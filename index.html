@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>타워 디펜스</title>
+<style>
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+  overflow: hidden;
+}
+body {
+  width: 100%; height: 100%;
+  height: -webkit-fill-available;
+  overflow: hidden;
+  background: #0d0d1a;
+  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────────── */
+#app {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  background: #0d0d1a;
+}
+#canvas-area {
+  -webkit-flex: 1;
+  flex: 1;
+  min-height: 0;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+canvas {
+  display: block;
+  touch-action: none;
+  -ms-touch-action: none;
+}
+
+/* ─── BOTTOM UI PANEL ────────────────────────────────────────── */
+#ui-panel {
+  background: #0f172a;
+  border-top: 1px solid #1e293b;
+  padding: 6px 8px 8px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+.btn-row {
+  display: -webkit-flex;
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+.btn-row:last-child { margin-bottom: 0; }
+
+.upg-btn {
+  -webkit-flex: 1;
+  flex: 1;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  background: #1e293b;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  color: #f1f5f9;
+  padding: 7px 4px;
+  min-height: 52px;
+  cursor: pointer;
+  gap: 2px;
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.upg-btn:active { background: #1e3a6e; }
+.upg-btn.gem-btn {
+  border-color: #7c3aed;
+  background: #1a0f2e;
+}
+.upg-btn.gem-btn:active { background: #2d1b60; }
+.upg-btn.disabled {
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.btn-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #93c5fd;
+  line-height: 1.3;
+}
+.gem-btn .btn-title { color: #c4b5fd; }
+
+.btn-desc {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.2;
+}
+.btn-cost {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fbbf24;
+  line-height: 1.2;
+}
+.gem-btn .btn-cost { color: #a78bfa; }
+
+/* ─── GAME OVER SCREEN ───────────────────────────────────────── */
+#game-over {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  z-index: 999;
+  gap: 18px;
+}
+#game-over.show {
+  display: -webkit-flex;
+  display: flex;
+}
+#game-over h1 {
+  font-size: clamp(38px, 11vw, 60px);
+  color: #ef4444;
+  text-shadow: 0 0 20px #ef4444, 0 0 50px #dc2626;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+#go-info {
+  color: #cbd5e1;
+  font-size: clamp(14px, 4vw, 18px);
+  text-align: center;
+  padding: 0 20px;
+}
+#restart-btn {
+  background: #2563eb;
+  color: #fff;
+  font-size: clamp(17px, 5vw, 22px);
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 54px;
+  min-height: 56px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  font-family: inherit;
+  letter-spacing: 1px;
+  box-shadow: 0 0 20px rgba(37,99,235,0.5);
+}
+#restart-btn:active { background: #1d4ed8; }
+
+/* ─── WAVE CLEAR BANNER ──────────────────────────────────────── */
+#wave-banner {
+  display: none;
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.82);
+  color: #60a5fa;
+  font-size: clamp(17px, 5.5vw, 26px);
+  font-weight: 700;
+  padding: 12px 26px;
+  border-radius: 12px;
+  border: 2px solid #3b82f6;
+  pointer-events: none;
+  z-index: 10;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 0 20px rgba(59,130,246,0.3);
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="canvas-area">
+    <canvas id="gameCanvas"></canvas>
+    <div id="wave-banner"></div>
+  </div>
+  <div id="ui-panel">
+    <div class="btn-row">
+      <button class="upg-btn" id="btn-dmg">
+        <span class="btn-title">⚔ 공격력</span>
+        <span class="btn-desc" id="desc-dmg">10 → 15</span>
+        <span class="btn-cost">💰 50골드</span>
+      </button>
+      <button class="upg-btn" id="btn-spd">
+        <span class="btn-title">⚡ 공격속도</span>
+        <span class="btn-desc" id="desc-spd">1.0s → 0.8s</span>
+        <span class="btn-cost">💰 75골드</span>
+      </button>
+    </div>
+    <div class="btn-row">
+      <button class="upg-btn" id="btn-rng">
+        <span class="btn-title">🎯 공격범위</span>
+        <span class="btn-desc">범위 +30</span>
+        <span class="btn-cost">💰 60골드</span>
+      </button>
+      <button class="upg-btn" id="btn-heal">
+        <span class="btn-title">❤️ 체력회복</span>
+        <span class="btn-desc">+50 HP</span>
+        <span class="btn-cost">💰 80골드</span>
+      </button>
+    </div>
+    <div class="btn-row">
+      <button class="upg-btn gem-btn" id="btn-buff">
+        <span class="btn-title">✨ 공격 2배</span>
+        <span class="btn-desc">30초 버프</span>
+        <span class="btn-cost">💎 3보석</span>
+      </button>
+      <button class="upg-btn gem-btn" id="btn-fheal">
+        <span class="btn-title">💖 완전 회복</span>
+        <span class="btn-desc">HP 100%</span>
+        <span class="btn-cost">💎 5보석</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="game-over">
+  <h1>GAME OVER</h1>
+  <div id="go-info">웨이브 1 도달</div>
+  <button id="restart-btn">재시작</button>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════
+   CANVAS SETUP
+═══════════════════════════════════════════════════════════════ */
+const canvas    = document.getElementById('gameCanvas');
+const ctx       = canvas.getContext('2d');
+const areaEl    = document.getElementById('canvas-area');
+const bannerEl  = document.getElementById('wave-banner');
+const gameOverEl = document.getElementById('game-over');
+
+let CW = 360, CH = 640; // logical canvas dimensions
+
+function resizeCanvas() {
+  const aw = areaEl.clientWidth  || window.innerWidth;
+  const ah = areaEl.clientHeight || Math.floor(window.innerHeight * 0.75);
+  let w, h;
+  if (aw / ah < 9 / 16) {
+    w = aw;
+    h = Math.floor(aw * 16 / 9);
+  } else {
+    h = ah;
+    w = Math.floor(ah * 9 / 16);
+  }
+  CW = w; CH = h;
+  canvas.width  = w;
+  canvas.height = h;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = h + 'px';
+  if (G) {
+    G.cx = w / 2;
+    G.cy = h / 2;
+    G.tower.range = Math.min(w, h) * 0.45;
+  }
+}
+window.addEventListener('resize', resizeCanvas, false);
+
+/* ═══════════════════════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════════════════════ */
+let G       = null;
+let loopGen = 0;
+
+function createState() {
+  return {
+    wave:         1,
+    gold:         100,
+    gems:         0,
+    phase:        'playing', // 'playing' | 'between' | 'gameover'
+    betweenTimer: 0,
+
+    tower: {
+      hp:      100,
+      maxHp:   100,
+      dmg:     10,
+      atkMs:   1000,  // ms between shots
+      range:   0,
+      lastAtk: 0,
+      buffMs:  0,     // ms remaining for 2× damage buff
+    },
+
+    // Spawn
+    spawnQ:       0,
+    spawnTimer:   0,
+    spawnIntvl:   800,
+    isBossWave:   false,
+    bossSpawned:  false,
+
+    // Entities
+    enemies: [],
+    bullets: [],
+    effects: [],
+
+    cx: CW / 2,
+    cy: CH / 2,
+    lastTime: 0,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GAME INIT / WAVE START
+═══════════════════════════════════════════════════════════════ */
+function startGame() {
+  G = createState();
+  G.tower.range = Math.min(CW, CH) * 0.45;
+
+  // Daily gem
+  try {
+    const today = new Date().toDateString();
+    if (localStorage.getItem('td_day') !== today) {
+      G.gems = 1;
+      localStorage.setItem('td_day', today);
+    }
+  } catch (_) {}
+
+  startWave();
+  loopGen++;
+  const gen = loopGen;
+  G.lastTime = performance.now();
+  requestAnimationFrame(function(ts) { gameLoop(gen, ts); });
+}
+
+function startWave() {
+  const w = G.wave;
+  G.isBossWave  = (w % 5 === 0);
+  G.bossSpawned = false;
+  G.spawnQ      = 5 + (w - 1) * 3;
+  G.spawnIntvl  = Math.max(350, 850 - w * 18); // gets faster with waves
+  G.spawnTimer  = G.spawnIntvl;
+  G.phase       = 'playing';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GAME LOOP
+═══════════════════════════════════════════════════════════════ */
+function gameLoop(gen, ts) {
+  if (gen !== loopGen) return;
+  const dt = Math.min(ts - G.lastTime, 50);
+  G.lastTime = ts;
+  update(dt);
+  render();
+  if (G.phase !== 'gameover') {
+    requestAnimationFrame(function(nts) { gameLoop(gen, nts); });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UPDATE
+═══════════════════════════════════════════════════════════════ */
+function update(dt) {
+  if (G.phase === 'gameover') return;
+
+  // Buff countdown
+  if (G.tower.buffMs > 0) G.tower.buffMs = Math.max(0, G.tower.buffMs - dt);
+
+  // Animate leftover effects even during between phase
+  for (let i = G.effects.length - 1; i >= 0; i--) {
+    G.effects[i].t += dt;
+    if (G.effects[i].t >= 600) G.effects.splice(i, 1);
+  }
+
+  // ── Between-wave countdown ──
+  if (G.phase === 'between') {
+    G.betweenTimer -= dt;
+    if (G.betweenTimer <= 0) {
+      G.wave++;
+      startWave();
+    }
+    syncUI();
+    return;
+  }
+
+  // ── Spawn enemies ──
+  const needBoss = G.isBossWave && !G.bossSpawned && G.spawnQ === 0;
+  if (G.spawnQ > 0 || needBoss) {
+    G.spawnTimer -= dt;
+    if (G.spawnTimer <= 0) {
+      if (G.spawnQ > 0) {
+        G.enemies.push(mkEnemy(false));
+        G.spawnQ--;
+        G.spawnTimer = G.spawnIntvl;
+      } else if (G.isBossWave && !G.bossSpawned) {
+        G.enemies.push(mkEnemy(true));
+        G.bossSpawned = true;
+      }
+    }
+  }
+
+  // ── Tower fires ──
+  G.tower.lastAtk += dt;
+  if (G.tower.lastAtk >= G.tower.atkMs) {
+    G.tower.lastAtk -= G.tower.atkMs;
+    fireTower();
+  }
+
+  // ── Move bullets ──
+  const bSpd = Math.min(CW, CH) * 0.022; // px per frame @60fps
+  for (let i = G.bullets.length - 1; i >= 0; i--) {
+    const b = G.bullets[i];
+    const mv = bSpd * (dt / 16.667);
+    b.x += b.dx * mv;
+    b.y += b.dy * mv;
+
+    if (b.x < -80 || b.x > CW + 80 || b.y < -80 || b.y > CH + 80) {
+      G.bullets.splice(i, 1);
+      continue;
+    }
+
+    let hit = false;
+    for (let j = G.enemies.length - 1; j >= 0; j--) {
+      const e = G.enemies[j];
+      const dx = b.x - e.x, dy = b.y - e.y;
+      if (dx * dx + dy * dy < (e.r + 5) * (e.r + 5)) {
+        const dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
+        e.hp -= dmg;
+        hit = true;
+        if (e.hp <= 0) {
+          G.gold += e.gold;
+          G.gems += e.gem;
+          addFx(e.x, e.y, e.r * 2.8, e.boss ? '#f97316' : '#ef4444');
+          G.enemies.splice(j, 1);
+        }
+        break;
+      }
+    }
+    if (hit) G.bullets.splice(i, 1);
+  }
+
+  // ── Move enemies toward tower ──
+  const TOWER_HIT_R = 18;
+  for (let i = G.enemies.length - 1; i >= 0; i--) {
+    const e = G.enemies[i];
+    const dx = G.cx - e.x, dy = G.cy - e.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < TOWER_HIT_R + e.r) {
+      G.tower.hp = Math.max(0, G.tower.hp - 10);
+      addFx(e.x, e.y, e.r * 2, '#f87171');
+      G.enemies.splice(i, 1);
+      if (G.tower.hp <= 0) { triggerGameOver(); return; }
+      continue;
+    }
+
+    const mv = e.spd * (dt / 16.667);
+    e.x += (dx / dist) * mv;
+    e.y += (dy / dist) * mv;
+  }
+
+  // ── Check wave complete ──
+  const spawnDone = G.spawnQ === 0 && (!G.isBossWave || G.bossSpawned);
+  if (spawnDone && G.enemies.length === 0 && G.phase === 'playing') {
+    onWaveComplete();
+  }
+
+  syncUI();
+}
+
+function mkEnemy(isBoss) {
+  const m = 50;
+  let x, y;
+  const side = (Math.random() * 4) | 0;
+  if      (side === 0) { x = Math.random() * CW; y = -m; }
+  else if (side === 1) { x = Math.random() * CW; y = CH + m; }
+  else if (side === 2) { x = -m;    y = Math.random() * CH; }
+  else                 { x = CW + m; y = Math.random() * CH; }
+
+  return {
+    x, y,
+    boss:  isBoss,
+    hp:    isBoss ? 300 : 30,
+    maxHp: isBoss ? 300 : 30,
+    r:     isBoss ? 22  : 11,
+    spd:   isBoss ? 0.85 : 1.35,
+    gold:  isBoss ? 50  : 10,
+    gem:   isBoss ? 1   : 0,
+  };
+}
+
+function fireTower() {
+  let target = null, minD = G.tower.range + 1;
+  for (const e of G.enemies) {
+    const dx = e.x - G.cx, dy = e.y - G.cy;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d < minD) { minD = d; target = e; }
+  }
+  if (!target) return;
+  const dx = target.x - G.cx, dy = target.y - G.cy;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  G.bullets.push({ x: G.cx, y: G.cy, dx: dx / len, dy: dy / len });
+}
+
+function addFx(x, y, maxR, color) {
+  G.effects.push({ x, y, maxR, color, t: 0 });
+}
+
+function onWaveComplete() {
+  G.phase = 'between';
+  G.betweenTimer = 3000;
+  if (G.wave % 10 === 0) G.gems += 2; // 10-wave milestone bonus
+  bannerEl.textContent = '🎉 웨이브 ' + G.wave + ' 클리어!';
+  bannerEl.style.display = 'block';
+  setTimeout(function() { bannerEl.style.display = 'none'; }, 2000);
+}
+
+function triggerGameOver() {
+  G.phase = 'gameover';
+  document.getElementById('go-info').textContent =
+    '웨이브 ' + G.wave + ' 도달  |  골드 ' + G.gold + '  |  보석 ' + G.gems;
+  gameOverEl.classList.add('show');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════ */
+function render() {
+  // Background
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // Subtle grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  const gs = Math.floor(CW / 9);
+  for (let x = 0; x <= CW; x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
+  }
+  for (let y = 0; y <= CH; y += gs) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+  }
+
+  // Attack range circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(G.cx, G.cy, G.tower.range, 0, Math.PI * 2);
+  ctx.setLineDash([6, 6]);
+  ctx.strokeStyle = 'rgba(59,130,246,0.22)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(59,130,246,0.04)';
+  ctx.fill();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Targeting line to nearest in-range enemy
+  {
+    let nearest = null, nd = G.tower.range + 1;
+    for (const e of G.enemies) {
+      const dx = e.x - G.cx, dy = e.y - G.cy;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < nd) { nd = d; nearest = e; }
+    }
+    if (nearest) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(251,191,36,0.22)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(G.cx, G.cy);
+      ctx.lineTo(nearest.x, nearest.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  // ── Effects (death rings) ──
+  for (const ef of G.effects) {
+    const t = ef.t / 600;
+    ctx.save();
+    ctx.globalAlpha = (1 - t) * 0.85;
+    ctx.beginPath();
+    ctx.arc(ef.x, ef.y, ef.maxR * t, 0, Math.PI * 2);
+    ctx.strokeStyle = ef.color;
+    ctx.lineWidth = Math.max(0.5, 3 - t * 2.5);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Enemies ──
+  for (const e of G.enemies) {
+    ctx.save();
+    ctx.shadowBlur  = e.boss ? 22 : 10;
+    ctx.shadowColor = e.boss ? '#f97316' : '#ef4444';
+
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+    ctx.fillStyle   = e.boss ? '#c2410c' : '#b91c1c';
+    ctx.fill();
+    ctx.strokeStyle = e.boss ? '#fb923c' : '#f87171';
+    ctx.lineWidth   = e.boss ? 2.5 : 1.5;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+
+    // Boss label
+    if (e.boss) {
+      ctx.fillStyle    = '#fff';
+      ctx.font         = 'bold ' + Math.floor(e.r * 0.82) + 'px Arial';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('B', e.x, e.y);
+    }
+
+    // HP bar
+    const bw = e.r * 2.6;
+    const bh = e.boss ? 6 : 4;
+    const bx = e.x - bw / 2;
+    const by = e.y - e.r - bh - 4;
+    const hr = e.hp / e.maxHp;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = hr > 0.6 ? '#16a34a' : hr > 0.3 ? '#ca8a04' : '#dc2626';
+    ctx.fillRect(bx, by, bw * hr, bh);
+    ctx.restore();
+  }
+
+  // ── Bullets ──
+  ctx.save();
+  ctx.shadowBlur  = 12;
+  ctx.shadowColor = '#fbbf24';
+  ctx.fillStyle   = '#fde68a';
+  for (const b of G.bullets) {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // ── Tower ──
+  const TS = 34;
+  const buffed = G.tower.buffMs > 0;
+  ctx.save();
+  ctx.shadowBlur  = 22;
+  ctx.shadowColor = buffed ? '#f97316' : '#3b82f6';
+  ctx.fillStyle   = buffed ? '#fdba74' : '#7dd3fc';
+  ctx.fillRect(G.cx - TS/2, G.cy - TS/2, TS, TS);
+  ctx.strokeStyle = buffed ? '#ea580c' : '#2563eb';
+  ctx.lineWidth   = 3;
+  ctx.strokeRect(G.cx - TS/2, G.cy - TS/2, TS, TS);
+  ctx.shadowBlur  = 0;
+  // Cross detail
+  ctx.strokeStyle = buffed ? '#9a3412' : '#1e40af';
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(G.cx, G.cy - TS/2 + 6); ctx.lineTo(G.cx, G.cy + TS/2 - 6);
+  ctx.moveTo(G.cx - TS/2 + 6, G.cy); ctx.lineTo(G.cx + TS/2 - 6, G.cy);
+  ctx.stroke();
+  ctx.restore();
+
+  renderHUD();
+}
+
+function renderHUD() {
+  const pad = 10;
+  const fs1 = Math.max(15, Math.floor(CW * 0.048)); // headline
+  const fs2 = Math.max(12, Math.floor(CW * 0.037)); // body
+
+  ctx.save();
+
+  // ─ Wave label ─
+  ctx.textBaseline = 'top';
+  ctx.font         = 'bold ' + fs1 + 'px Arial';
+  ctx.fillStyle    = '#93c5fd';
+  ctx.fillText('웨이브 ' + G.wave + (G.isBossWave ? ' 👑' : ''), pad, pad);
+
+  // ─ Tower HP bar ─
+  const barW = CW * 0.38;
+  const barH = Math.max(14, Math.floor(CH * 0.018));
+  const barX = pad, barY = pad + fs1 + 5;
+  const hr   = G.tower.hp / G.tower.maxHp;
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(barX, barY, barW, barH);
+  ctx.fillStyle = hr > 0.5 ? '#16a34a' : hr > 0.25 ? '#ca8a04' : '#dc2626';
+  ctx.fillRect(barX, barY, barW * hr, barH);
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth   = 1;
+  ctx.strokeRect(barX, barY, barW, barH);
+
+  ctx.font         = 'bold ' + Math.max(11, fs2 - 1) + 'px Arial';
+  ctx.fillStyle    = '#f0f9ff';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(G.tower.hp + '/' + G.tower.maxHp, barX + 4, barY + barH / 2);
+
+  // ─ Gold & Gems (right) ─
+  ctx.textAlign    = 'right';
+  ctx.textBaseline = 'top';
+  ctx.font         = 'bold ' + fs1 + 'px Arial';
+  ctx.fillStyle    = '#fbbf24';
+  ctx.fillText('💰 ' + G.gold, CW - pad, pad);
+  ctx.fillStyle = '#a78bfa';
+  ctx.fillText('💎 ' + G.gems, CW - pad, pad + fs1 + 5);
+  ctx.textAlign = 'left';
+
+  // ─ Buff timer (center top) ─
+  if (G.tower.buffMs > 0) {
+    const sec = Math.ceil(G.tower.buffMs / 1000);
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font         = 'bold ' + fs2 + 'px Arial';
+    ctx.fillStyle    = '#fb923c';
+    ctx.fillText('⚡ 공격 2배 ' + sec + 's', G.cx, pad);
+    ctx.textAlign = 'left';
+  }
+
+  // ─ Between-wave countdown overlay ─
+  if (G.phase === 'between') {
+    ctx.fillStyle = 'rgba(0,0,0,0.62)';
+    ctx.fillRect(0, 0, CW, CH);
+
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+
+    const bigF = Math.floor(CW * 0.17);
+    const sec  = Math.ceil(G.betweenTimer / 1000);
+    const nextW = G.wave + 1;
+    const nextBoss = nextW % 5 === 0;
+
+    ctx.font      = 'bold ' + Math.floor(CW * 0.065) + 'px Arial';
+    ctx.fillStyle = '#60a5fa';
+    ctx.fillText('다음 웨이브까지', G.cx, G.cy - bigF * 0.75);
+
+    ctx.font      = 'bold ' + bigF + 'px Arial';
+    ctx.fillStyle = '#f0f9ff';
+    ctx.fillText(sec, G.cx, G.cy + bigF * 0.08);
+
+    ctx.font      = 'bold ' + Math.floor(CW * 0.048) + 'px Arial';
+    ctx.fillStyle = nextBoss ? '#fb923c' : '#64748b';
+    ctx.fillText(
+      '웨이브 ' + nextW + (nextBoss ? '  👑 보스 등장!' : '  준비'),
+      G.cx, G.cy + bigF * 1.0
+    );
+
+    ctx.textAlign = 'left';
+  }
+
+  ctx.restore();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI SYNC
+═══════════════════════════════════════════════════════════════ */
+function syncUI() {
+  const t = G.tower;
+  document.getElementById('desc-dmg').textContent =
+    t.dmg + ' → ' + (t.dmg + 5);
+  document.getElementById('desc-spd').textContent =
+    (t.atkMs / 1000).toFixed(1) + 's → ' +
+    Math.max(0.2, t.atkMs / 1000 - 0.2).toFixed(1) + 's';
+
+  setDisabled('btn-dmg',   G.gold < 50);
+  setDisabled('btn-spd',   G.gold < 75 || t.atkMs <= 200);
+  setDisabled('btn-rng',   G.gold < 60);
+  setDisabled('btn-heal',  G.gold < 80 || t.hp >= t.maxHp);
+  setDisabled('btn-buff',  G.gems < 3  || t.buffMs > 0);
+  setDisabled('btn-fheal', G.gems < 5  || t.hp >= t.maxHp);
+}
+
+function setDisabled(id, off) {
+  document.getElementById(id).classList.toggle('disabled', off);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UPGRADE ACTIONS
+═══════════════════════════════════════════════════════════════ */
+function doUpgrade(type) {
+  if (!G || G.phase === 'gameover') return;
+  const t = G.tower;
+  if (type === 'dmg'   && G.gold >= 50)                        { G.gold -= 50;  t.dmg += 5; }
+  else if (type === 'spd'  && G.gold >= 75 && t.atkMs > 200)  { G.gold -= 75;  t.atkMs = Math.max(200, t.atkMs - 200); }
+  else if (type === 'rng'  && G.gold >= 60)                    { G.gold -= 60;  t.range += 30; }
+  else if (type === 'heal' && G.gold >= 80 && t.hp < t.maxHp) { G.gold -= 80;  t.hp = Math.min(t.maxHp, t.hp + 50); }
+  else if (type === 'buff' && G.gems >= 3  && t.buffMs === 0)  { G.gems -= 3;   t.buffMs = 30000; }
+  else if (type === 'fheal'&& G.gems >= 5)                     { G.gems -= 5;   t.hp = t.maxHp; }
+  syncUI();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTON EVENT BINDING  (touch + click)
+═══════════════════════════════════════════════════════════════ */
+function bindBtn(id, type) {
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+  el.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    if (!this.classList.contains('disabled')) doUpgrade(type);
+  }, { passive: false });
+  el.addEventListener('click', function() {
+    if (!this.classList.contains('disabled')) doUpgrade(type);
+  });
+}
+
+bindBtn('btn-dmg',   'dmg');
+bindBtn('btn-spd',   'spd');
+bindBtn('btn-rng',   'rng');
+bindBtn('btn-heal',  'heal');
+bindBtn('btn-buff',  'buff');
+bindBtn('btn-fheal', 'fheal');
+
+/* ─── Restart ─────────────────────────────────────────────────── */
+function restartGame() {
+  gameOverEl.classList.remove('show');
+  bannerEl.style.display = 'none';
+  loopGen++;
+  resizeCanvas();
+  startGame();
+}
+
+const rbtn = document.getElementById('restart-btn');
+rbtn.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+rbtn.addEventListener('touchend',   function(e) { e.preventDefault(); restartGame(); }, { passive: false });
+rbtn.addEventListener('click', restartGame);
+
+/* ─── Anti double-tap zoom ─────────────────────────────────────── */
+var _lastTap = 0;
+document.addEventListener('touchend', function(e) {
+  var now = Date.now();
+  if (now - _lastTap < 300) e.preventDefault();
+  _lastTap = now;
+}, { passive: false });
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════════ */
+resizeCanvas();
+startGame();
+</script>
+</body>
+</html>
