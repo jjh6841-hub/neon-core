@@ -497,218 +497,6 @@ canvas {
 
 /* wave banner is now rendered on canvas — no HTML element needed */
 
-/* ─── HOME SCREEN ────────────────────────────────────────────── */
-/* overlay-screen 공통 스타일 덮어쓰기 */
-#screen-home {
-  background: #030b10 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  -webkit-align-items: stretch !important;
-  align-items: stretch !important;
-}
-#home-root {
-  width: 100%; height: 100%;
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  position: relative; overflow: hidden;
-}
-/* 배경 그리드 */
-#home-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none; z-index: 0;
-}
-/* ── 상단 HUD 바 ── */
-#home-hud {
-  height: 44px; flex-shrink: 0;
-  background: #040c14;
-  border-bottom: 1px solid rgba(0,255,255,0.30);
-  display: -webkit-flex; display: flex;
-  -webkit-align-items: center; align-items: center;
-  padding: 0 14px; gap: 0;
-  position: relative; z-index: 1;
-}
-#home-hud-gold { font-size: 14px; color: #f59e0b; font-weight: 700; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; gap: 4px; }
-#home-hud-gems { font-size: 14px; color: #00ffff; font-weight: 700; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; gap: 4px; -webkit-flex: 1; flex: 1; -webkit-justify-content: center; justify-content: center; }
-#home-hud-arrow { background: none; border: none; color: #64748b; font-size: 13px; cursor: pointer; padding: 4px; font-family: inherit; }
-/* ── 메인 영역 ── */
-#home-main {
-  -webkit-flex: 1; flex: 1; min-height: 0;
-  display: -webkit-flex; display: flex;
-  -webkit-align-items: flex-start; align-items: flex-start;
-  position: relative; z-index: 1;
-}
-/* ── 좌/우 사이드 아이콘 ── */
-#home-left, #home-right {
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  -webkit-align-items: center; align-items: center;
-  gap: 8px; padding: 16px 6px; flex-shrink: 0;
-}
-.hm-icon-wrap {
-  width: 36px; height: 36px;
-  background: rgba(4,12,20,0.85);
-  border: 1px solid rgba(0,255,255,0.18);
-  border-radius: 10px;
-  display: -webkit-flex; display: flex;
-  -webkit-align-items: center; align-items: center;
-  -webkit-justify-content: center; justify-content: center;
-  position: relative; cursor: pointer;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
-.hm-icon-wrap.locked { opacity: 0.35; }
-.hm-icon { font-size: 18px; line-height: 1; }
-.hm-lock { position: absolute; bottom: 2px; right: 3px; font-size: 8px; line-height: 1; }
-.hm-badge {
-  position: absolute; top: 4px; right: 4px;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: #ef4444; color: #fff;
-  font-size: 8px; font-weight: 700;
-  display: -webkit-flex; display: flex;
-  -webkit-align-items: center; align-items: center;
-  -webkit-justify-content: center; justify-content: center;
-}
-/* 파워스톤 CSS 삼각형 */
-.hm-ps-icon {
-  width: 0; height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-bottom: 16px solid #00ff88;
-  filter: drop-shadow(0 0 4px #00ff88);
-}
-/* ── 중앙 영역 ── */
-#home-center {
-  -webkit-flex: 1; flex: 1;
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  -webkit-align-items: center; align-items: center;
-  gap: 0; padding: 0 8px 8px;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-}
-/* 아이콘+타이틀 래퍼 */
-#home-icon-title {
-  height: 120px; flex-shrink: 0;
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  -webkit-align-items: center; align-items: center;
-  -webkit-justify-content: center; justify-content: center;
-  gap: 10px;
-}
-/* 육각형 타워 아이콘 */
-#home-hex-outer {
-  width: 70px; height: 40px; position: relative;
-  filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 24px rgba(0,255,255,0.35));
-}
-#home-hex {
-  width: 70px; height: 40px;
-  border-left: 2px solid #00ffff;
-  border-right: 2px solid #00ffff;
-  position: relative;
-}
-#home-hex::before {
-  content: ''; position: absolute;
-  left: -14px; top: -21px;
-  width: 96px; height: 0;
-  border-left: 2px solid transparent;
-  border-right: 2px solid transparent;
-  border-bottom: 22px solid #00ffff;
-}
-#home-hex::after {
-  content: ''; position: absolute;
-  left: -14px; bottom: -21px;
-  width: 96px; height: 0;
-  border-left: 2px solid transparent;
-  border-right: 2px solid transparent;
-  border-top: 22px solid #00ffff;
-}
-#home-game-title {
-  font-family: 'Courier New', monospace;
-  font-size: 22px; font-weight: 700;
-  color: #00ffff; letter-spacing: 4px;
-  text-shadow: 0 0 10px #00ffff, 0 0 24px #00ffff;
-  text-align: center;
-}
-/* 정보 카드 */
-#home-cards {
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: row; flex-direction: row;
-  gap: 8px; width: 100%;
-  padding: 0 16px;
-  box-sizing: border-box;
-}
-.home-card {
-  -webkit-flex: 1; flex: 1;
-  min-width: 0;
-  background: #0a1a2a;
-  border: 1px solid #0a3344;
-  border-radius: 4px;
-  padding: 10px 8px;
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  -webkit-align-items: center; align-items: center;
-  gap: 6px;
-  overflow: hidden;
-}
-.home-card-label { font-size: 10px; color: #94a3b8; text-align: center; white-space: nowrap; }
-.home-card-value { font-size: 20px; color: #00ffff; font-weight: 700; white-space: nowrap; }
-/* 난이도 카드 */
-.home-diff-arrow {
-  background: none; border: none;
-  color: #00ffff; font-size: 16px;
-  cursor: pointer; padding: 4px 6px;
-  font-family: inherit; -webkit-tap-highlight-color: transparent;
-}
-.home-diff-arrow:active { opacity: 0.6; }
-/* 전투 시작 버튼 */
-#btn-start-game {
-  width: 200px; height: 52px;
-  margin: 16px auto;
-  background: #030b10;
-  border: 2px solid #cc44ff;
-  border-radius: 6px;
-  color: #ffffff; font-size: 18px; font-weight: 700;
-  white-space: nowrap;
-  text-shadow: 0 0 10px #cc44ff;
-  box-shadow: 0 0 16px rgba(204,68,255,0.3), inset 0 0 16px rgba(204,68,255,0.05);
-  cursor: pointer; font-family: inherit;
-  -webkit-appearance: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-transition: box-shadow 0.1s; transition: box-shadow 0.1s;
-}
-#btn-start-game:active { box-shadow: 0 0 28px rgba(204,68,255,0.7), inset 0 0 20px rgba(204,68,255,0.15); }
-/* ── 하단 네비게이션 ── */
-#home-nav {
-  height: 56px; flex-shrink: 0;
-  background: #040c14;
-  border-top: 1px solid #0a2233;
-  display: -webkit-flex; display: flex;
-  -webkit-align-items: center; align-items: center;
-  position: relative; z-index: 1;
-}
-.home-nav-btn {
-  -webkit-flex: 1; flex: 1; height: 56px;
-  background: none; border: none;
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  -webkit-align-items: center; align-items: center;
-  -webkit-justify-content: center; justify-content: center;
-  gap: 2px; cursor: pointer; font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-}
-.home-nav-btn.locked-nav { opacity: 0.30; }
-.home-nav-btn.active::after {
-  content: ''; position: absolute;
-  bottom: 0; left: 20%; right: 20%; height: 2px;
-  background: #00ffff;
-}
-.nav-icon { font-size: 22px; line-height: 1; }
-.nav-label { font-size: 10px; color: #94a3b8; font-weight: 600; }
-.home-nav-btn.active .nav-label { color: #00ffff; }
 
 /* ── Loading screen ── */
 #screen-loading {
@@ -1193,10 +981,10 @@ canvas {
   <button class="ov-btn" id="btn-to-shop">상점으로 이동</button>
 </div>
 
-<!-- ── 상점 화면 ── -->
-<div id="screen-home" class="overlay-screen">
+<!-- ── 홈화면 ── -->
+<div id="screen-home" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:absolute; top:0; left:0;">
 
-  <!-- 기존 JS 호환용 숨김 요소 (syncShopUI / buildUnlockUI 참조) -->
+  <!-- JS 호환용 숨김 요소 (syncShopUI / buildUnlockUI 참조) -->
   <div style="display:none" aria-hidden="true">
     <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">5💰</button>
     <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">7💰</button>
@@ -1206,83 +994,64 @@ canvas {
     <p id="shop-flash"></p>
   </div>
 
-  <!-- ── 새 홈화면 ── -->
-  <div id="home-root">
-    <div id="home-grid"></div>
+  <!-- 상단 HUD -->
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-bottom:1px solid rgba(0,255,255,0.15);">
+    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">🪙 <span id="home-gold">0</span></span>
+    <span style="color:#00ffff; font-size:13px; font-family:monospace;">💎 <span id="home-gem">0</span></span>
+    <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
+  </div>
 
-    <!-- 상단 HUD -->
-    <div id="home-hud">
-      <div id="home-hud-gold">🪙 <span id="s-gold">0</span></div>
-      <div id="home-hud-gems">💎 <span id="s-gems">0</span></div>
-      <button id="home-hud-arrow" aria-label="화폐 상세">▼</button>
+  <!-- 중앙 콘텐츠 -->
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 16px;">
+
+    <!-- 타워 아이콘 + 타이틀 -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+      <div style="width:60px; height:60px; border:2px solid #00ffff; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center;">
+        <div style="width:20px; height:20px; border:1px solid #00ffff;"></div>
+      </div>
+      <div style="color:#00ffff; font-size:22px; font-family:'Courier New',monospace; font-weight:bold; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff; letter-spacing:4px;">NEON CORE</div>
     </div>
 
-    <!-- 메인 (좌 | 중앙 | 우) -->
-    <div id="home-main">
+    <!-- 정보 카드 2개 -->
+    <div style="display:flex; flex-direction:row; gap:8px; width:100%;">
 
-      <!-- 좌측 아이콘 -->
-      <div id="home-left">
-        <div class="hm-icon-wrap locked"><span class="hm-icon">🏆</span><span class="hm-lock">🔒</span></div>
-        <div class="hm-icon-wrap locked"><span class="hm-icon">📅</span><span class="hm-lock">🔒</span></div>
-        <div class="hm-icon-wrap locked"><span class="hm-icon">🏰</span><span class="hm-lock">🔒</span></div>
-        <div class="hm-icon-wrap"><div class="hm-ps-icon"></div></div>
+      <!-- 총 코인 보너스 카드 -->
+      <div style="flex:1; background:#0a1a2a; border:1px solid #0a3344; padding:12px 8px; display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">총 코인 보너스</div>
+        <div style="color:#00ffff; font-size:20px; font-family:'Courier New',monospace; font-weight:bold; white-space:nowrap;">x1.00</div>
       </div>
 
-      <!-- 중앙 -->
-      <div id="home-center">
-        <!-- 육각형 타워 아이콘 + 타이틀 (120px 래퍼) -->
-        <div id="home-icon-title">
-          <div id="home-hex-outer">
-            <div id="home-hex"></div>
-          </div>
-          <div id="home-game-title">NEON CORE</div>
+      <!-- 난이도 카드 -->
+      <div style="flex:1; background:#0a1a2a; border:1px solid #0a3344; padding:12px 8px; display:flex; flex-direction:column; align-items:center; gap:6px;">
+        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">난이도</div>
+        <div style="display:flex; flex-direction:row; align-items:center; gap:6px; width:100%; justify-content:center;">
+          <button id="tier-prev" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:0 4px;">◀</button>
+          <span id="tier-name" style="color:#ffffff; font-size:14px; font-family:monospace; font-weight:bold; white-space:nowrap; min-width:40px; text-align:center;">티어 1</span>
+          <button id="tier-next" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:0 4px;">▶</button>
         </div>
-
-        <!-- 정보 카드 -->
-        <div id="home-cards">
-          <div class="home-card">
-            <div class="home-card-label">총 코인 보너스</div>
-            <div class="home-card-value" id="h-coin-bonus" style="white-space:nowrap;">x1.00</div>
-          </div>
-          <div class="home-card">
-            <div class="home-card-label" style="white-space:nowrap;">난이도</div>
-            <div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:center; justify-content:center; gap:8px;">
-              <button class="home-diff-arrow" id="h-diff-prev">◀</button>
-              <span id="h-tier" style="font-size:16px; color:#fff; font-weight:700; white-space:nowrap;">티어 1</span>
-              <button class="home-diff-arrow" id="h-diff-next">▶</button>
-            </div>
-            <div id="h-best-wave" style="font-size:11px; color:#94a3b8; white-space:nowrap;">최고 웨이브: 0</div>
-            <div id="h-coin-mult" style="font-size:11px; color:#f59e0b; white-space:nowrap;">🪙 x1.0</div>
-          </div>
-        </div>
-
-        <!-- 전투 시작 버튼 -->
-        <button id="btn-start-game">전투 시작</button>
+        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
+        <div style="color:#f59e0b; font-size:10px; font-family:monospace; white-space:nowrap;">🪙 x<span id="tier-multiplier">1.0</span></div>
       </div>
 
-      <!-- 우측 아이콘 -->
-      <div id="home-right">
-        <div class="hm-icon-wrap" id="h-btn-settings"><span class="hm-icon">⚙️</span></div>
-        <div class="hm-icon-wrap locked"><span class="hm-icon">🏅</span><span class="hm-lock">🔒</span></div>
-        <div class="hm-icon-wrap" style="position:relative">
-          <span class="hm-icon">✉️</span>
-          <span class="hm-badge">1</span>
-        </div>
-      </div>
-
-    </div><!-- /home-main -->
-
-    <!-- 하단 네비게이션 -->
-    <div id="home-nav">
-      <button class="home-nav-btn active"><span class="nav-icon">⚔️</span><span class="nav-label">전투</span></button>
-      <button class="home-nav-btn"       id="h-nav-workshop"><span class="nav-icon">🔨</span><span class="nav-label">작업장</span></button>
-      <button class="home-nav-btn locked-nav"><span class="nav-icon">🔒</span><span class="nav-label">-</span></button>
-      <button class="home-nav-btn locked-nav"><span class="nav-icon">🔒</span><span class="nav-label">-</span></button>
-      <button class="home-nav-btn locked-nav"><span class="nav-icon">🔒</span><span class="nav-label">-</span></button>
-      <button class="home-nav-btn"       id="h-nav-store"><span class="nav-icon">🛒</span><span class="nav-label">스토어</span></button>
     </div>
 
-  </div><!-- /home-root -->
+    <!-- 전투 시작 버튼 -->
+    <button id="btn-start-game" style="width:200px; height:52px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
+      전투 시작
+    </button>
+
+  </div>
+
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14;">
+    <button class="nav-btn active" data-screen="home" style="flex:1; height:52px; background:none; border:none; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer; border-bottom:2px solid #00ffff;">⚔️<br>전투</button>
+    <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">🔨<br>작업장</button>
+    <button class="nav-btn" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
+    <button class="nav-btn" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
+    <button class="nav-btn" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
+    <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">🛒<br>스토어</button>
+  </div>
+
 </div>
 
 <script>
@@ -2445,8 +2214,8 @@ function openShop() {
 }
 
 function syncShopUI() {
-  document.getElementById('s-gold').textContent = PERM.gold;
-  document.getElementById('s-gems').textContent = PERM.gems;
+  document.getElementById('home-gold').textContent = PERM.gold;
+  document.getElementById('home-gem').textContent  = PERM.gems;
   for (const key of Object.keys(SHOP_ITEMS)) {
     const cfg  = SHOP_ITEMS[key];
     const lv   = PERM[key + 'Lv'];
@@ -2706,24 +2475,24 @@ document.addEventListener('touchend', function(e) {
 
   function applyTier() {
     var t = TIERS[curTier];
-    document.getElementById('h-tier').textContent      = t.name;
-    document.getElementById('h-coin-mult').textContent = '🪙 x' + t.mult.toFixed(1);
+    document.getElementById('tier-name').textContent       = t.name;
+    document.getElementById('tier-multiplier').textContent = t.mult.toFixed(1);
   }
 
   function refreshHomeData() {
     /* bestWave: PERM은 기존 script의 전역 변수 */
     try {
-      document.getElementById('h-best-wave').textContent = '최고 웨이브: ' + (PERM.bestWave || 0);
+      document.getElementById('home-best-wave').textContent = (PERM.bestWave || 0);
     } catch (e) {}
     applyTier();
   }
 
   /* ── 난이도 화살표 ── */
-  document.getElementById('h-diff-prev').addEventListener('click', function() {
+  document.getElementById('tier-prev').addEventListener('click', function() {
     curTier = (curTier - 1 + TIERS.length) % TIERS.length;
     applyTier();
   });
-  document.getElementById('h-diff-next').addEventListener('click', function() {
+  document.getElementById('tier-next').addEventListener('click', function() {
     curTier = (curTier + 1) % TIERS.length;
     applyTier();
   });
