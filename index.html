@@ -420,6 +420,146 @@ canvas {
 
 /* wave banner is now rendered on canvas — no HTML element needed */
 
+/* ── Loading screen ── */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #030b10;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  gap: 0;
+  -webkit-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+  overflow: hidden;
+}
+#loading-screen.fade-out { opacity: 0; pointer-events: none; }
+
+/* radial glow overlay */
+#loading-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(0,255,255,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* version badge */
+#ld-version {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #334455;
+}
+
+/* center block */
+#ld-center {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+/* hexagon icon */
+.ld-hex {
+  width: 56px;
+  height: 32px;
+  position: relative;
+  border-left: 2px solid #00ffff;
+  border-right: 2px solid #00ffff;
+  filter: drop-shadow(0 0 6px #00ffff);
+}
+.ld-hex::before,
+.ld-hex::after {
+  content: '';
+  position: absolute;
+  left: -11px;
+  width: 76px;
+  height: 0;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+}
+.ld-hex::before {
+  top: -17px;
+  border-bottom: 17px solid #00ffff;
+}
+.ld-hex::after {
+  bottom: -17px;
+  border-top: 17px solid #00ffff;
+}
+
+/* title text */
+#ld-title {
+  font-family: 'Courier New', monospace;
+  font-size: 38px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff;
+  text-align: center;
+  line-height: 1;
+}
+
+/* bottom block */
+#ld-bottom {
+  position: absolute;
+  bottom: 40px;
+  left: 0; right: 0;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  gap: 10px;
+  z-index: 1;
+}
+#ld-maker {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #334455;
+  letter-spacing: 1px;
+}
+#ld-loading-label {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #00ffff;
+  letter-spacing: 1px;
+}
+#ld-pct {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #00ffff;
+}
+#ld-bar-wrap {
+  width: 220px;
+  height: 6px;
+  background: #0a1a22;
+  border-radius: 3px;
+  overflow: hidden;
+}
+#ld-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #00ffcc;
+  border-radius: 3px;
+  -webkit-transition: width 0.05s linear;
+  transition: width 0.05s linear;
+}
+
 /* ── Speed button ── */
 #speed-btn {
   background: var(--bg-card);
@@ -655,6 +795,21 @@ canvas {
 </style>
 </head>
 <body>
+
+<!-- ── 로딩 화면 ── -->
+<div id="loading-screen">
+  <span id="ld-version">v1.0.0</span>
+  <div id="ld-center">
+    <div class="ld-hex"></div>
+    <div id="ld-title">LASER TOWER</div>
+  </div>
+  <div id="ld-bottom">
+    <span id="ld-maker">MADE BY STUDIO_X</span>
+    <span id="ld-loading-label">Loading...</span>
+    <span id="ld-pct">0%</span>
+    <div id="ld-bar-wrap"><div id="ld-bar-fill"></div></div>
+  </div>
+</div>
 
 <div id="app">
   <div id="canvas-area">
@@ -2119,11 +2274,50 @@ document.addEventListener('touchend', function(e) {
 }, { passive: false });
 
 /* ═══════════════════════════════════════════════════════════════
-   BOOT
+   LOADING SCREEN
 ═══════════════════════════════════════════════════════════════ */
-resizeCanvas();
-loadPerm();
-startGame();
+(function() {
+  const DURATION = 1500; // ms to reach 100%
+  const fill     = document.getElementById('ld-bar-fill');
+  const pctEl    = document.getElementById('ld-pct');
+  const screen   = document.getElementById('loading-screen');
+  const start    = performance.now();
+  let   booted   = false;
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    resizeCanvas();
+    loadPerm();
+    openShop();  // 홈화면(상점)으로 진입
+  }
+
+  function tick(now) {
+    const elapsed = now - start;
+    const pct     = Math.min(100, Math.round((elapsed / DURATION) * 100));
+    fill.style.width = pct + '%';
+    pctEl.textContent = pct + '%';
+
+    if (pct < 100) {
+      requestAnimationFrame(tick);
+    } else {
+      // 100% reached — wait 0.5s then fade out
+      setTimeout(function() {
+        screen.classList.add('fade-out');
+        // After fade-out transition (0.5s) remove the element
+        setTimeout(function() {
+          screen.style.display = 'none';
+        }, 520);
+      }, 500);
+    }
+  }
+
+  requestAnimationFrame(tick);
+}());
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT  (called from loading screen above)
+═══════════════════════════════════════════════════════════════ */
 </script>
 </body>
 </html>
