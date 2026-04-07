@@ -45,11 +45,10 @@ body {
 }
 
 /* ─── LAYOUT ─────────────────────────────────────────────────── */
-#app {
+#screen-game {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  display: -webkit-flex;
-  display: flex;
+  display: none;   /* 초기 숨김 — startNewGame() 시 flex로 전환 */
   -webkit-flex-direction: column;
   flex-direction: column;
   background: var(--bg-dark);
@@ -134,8 +133,8 @@ canvas {
   font-size: clamp(16px, 4.5vw, 20px);
 }
 
-/* ── Shop screen ── */
-#shop-screen {
+/* ── Home screen (홈/상점) ── */
+#screen-home {
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   gap: 0;
@@ -284,7 +283,7 @@ canvas {
 .ov-btn.blue { background: var(--accent-blue); }
 
 /* ─── IN-GAME UPGRADE PANEL ─────────────────────────────────── */
-#ui-panel {
+#screen-shop {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   background: var(--bg-panel);
@@ -421,7 +420,7 @@ canvas {
 /* wave banner is now rendered on canvas — no HTML element needed */
 
 /* ── Loading screen ── */
-#loading-screen {
+#screen-loading {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -439,10 +438,10 @@ canvas {
   transition: opacity 0.5s ease;
   overflow: hidden;
 }
-#loading-screen.fade-out { opacity: 0; pointer-events: none; }
+#screen-loading.fade-out { opacity: 0; pointer-events: none; }
 
 /* radial glow overlay */
-#loading-screen::before {
+#screen-loading::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -797,11 +796,11 @@ canvas {
 <body>
 
 <!-- ── 로딩 화면 ── -->
-<div id="loading-screen">
+<div id="screen-loading">
   <span id="ld-version">v1.0.0</span>
   <div id="ld-center">
     <div class="ld-hex"></div>
-    <div id="ld-title">LASER TOWER</div>
+    <div id="ld-title">NEON CORE</div>
   </div>
   <div id="ld-bottom">
     <span id="ld-maker">MADE BY STUDIO_X</span>
@@ -811,10 +810,10 @@ canvas {
   </div>
 </div>
 
-<div id="app">
+<div id="screen-game">
   <div id="canvas-area">
     <canvas id="gameCanvas"></canvas>
-    <div id="ui-panel">
+    <div id="screen-shop">
       <div id="tab-bar">
         <button id="speed-btn">1×</button>
         <button class="tab-btn active" id="tab-atk">⚔️ 공격</button>
@@ -888,7 +887,7 @@ canvas {
 </div>
 
 <!-- ── 상점 화면 ── -->
-<div id="shop-screen" class="overlay-screen">
+<div id="screen-home" class="overlay-screen">
   <h2 class="shop-title">⚒ 상 점</h2>
   <div class="shop-currency">
     <span>💰 <span id="s-gold">0</span></span>
@@ -2085,7 +2084,9 @@ function toggleSetting(key) {
 ═══════════════════════════════════════════════════════════════ */
 function openShop() {
   document.getElementById('results-screen').classList.remove('show');
-  document.getElementById('shop-screen').classList.add('show');
+  document.getElementById('screen-game').style.display = 'none';
+  const home = document.getElementById('screen-home');
+  home.style.display = 'flex';
   buildUnlockUI();
   syncShopUI();
 }
@@ -2188,7 +2189,9 @@ function buyUnlock(key) {
 }
 
 function startNewGame() {
-  document.getElementById('shop-screen').classList.remove('show');
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-game').style.display = '-webkit-flex';
+  document.getElementById('screen-game').style.display = 'flex';
   loopGen++;
   resizeCanvas();
   startGame();
@@ -2278,37 +2281,50 @@ document.addEventListener('touchend', function(e) {
 ═══════════════════════════════════════════════════════════════ */
 (function() {
   const DURATION = 1500; // ms to reach 100%
-  const fill     = document.getElementById('ld-bar-fill');
-  const pctEl    = document.getElementById('ld-pct');
-  const screen   = document.getElementById('loading-screen');
-  const start    = performance.now();
-  let   booted   = false;
-
-  function boot() {
-    if (booted) return;
-    booted = true;
-    resizeCanvas();
-    loadPerm();
-    openShop();  // 홈화면(상점)으로 진입
-  }
+  const fill  = document.getElementById('ld-bar-fill');
+  const pctEl = document.getElementById('ld-pct');
+  const start = performance.now();
 
   function tick(now) {
     const elapsed = now - start;
-    const pct     = Math.min(100, Math.round((elapsed / DURATION) * 100));
-    fill.style.width = pct + '%';
+    const pct = Math.min(100, Math.round((elapsed / DURATION) * 100));
+    fill.style.width  = pct + '%';
     pctEl.textContent = pct + '%';
 
     if (pct < 100) {
       requestAnimationFrame(tick);
     } else {
-      // 100% reached — wait 0.5s then fade out
+      // 로딩 완료 → boot 후 전환
+      resizeCanvas();
+      loadPerm();
+
+      // 1. 0.3초 대기
       setTimeout(function() {
-        screen.classList.add('fade-out');
-        // After fade-out transition (0.5s) remove the element
+        // 2. 로딩화면 fade out
+        document.getElementById('screen-loading').style.transition = 'opacity 0.5s';
+        document.getElementById('screen-loading').style.opacity    = '0';
+
         setTimeout(function() {
-          screen.style.display = 'none';
-        }, 520);
-      }, 500);
+          // 3. 로딩화면 숨기기
+          document.getElementById('screen-loading').style.display = 'none';
+
+          // 4. 홈화면 표시
+          const home = document.getElementById('screen-home');
+          home.style.display    = 'flex';
+          home.style.opacity    = '0';
+          home.style.transition = 'opacity 0.5s';
+
+          // 홈화면 데이터 준비
+          buildUnlockUI();
+          syncShopUI();
+
+          // 5. 홈화면 fade in
+          setTimeout(function() {
+            home.style.opacity = '1';
+          }, 50);
+
+        }, 500);
+      }, 300);
     }
   }
 
