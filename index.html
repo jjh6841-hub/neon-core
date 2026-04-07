@@ -25,9 +25,10 @@ body {
   height: -webkit-fill-available;
   overflow: hidden;
   background: #0d0d1a;
-  font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Noto Sans KR', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─── LAYOUT ─────────────────────────────────────────────────── */
@@ -285,6 +286,7 @@ canvas {
 #tab-bar {
   display: -webkit-flex;
   display: flex;
+  height: 32px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .tab-btn {
@@ -292,25 +294,29 @@ canvas {
   flex: 1;
   background: transparent;
   border: none;
-  color: #64748b;
-  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
   font-weight: 700;
-  padding: 7px 4px 5px;
+  height: 32px;
+  padding: 0 4px;
   cursor: pointer;
   -webkit-appearance: none;
   font-family: inherit;
   border-bottom: 2px solid transparent;
-  -webkit-transition: color 0.15s, border-color 0.15s;
-  transition: color 0.15s, border-color 0.15s;
+  -webkit-transition: color 0.12s, border-color 0.12s, background 0.12s;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
-.tab-btn.active { color: #f0f9ff; border-bottom-color: #3b82f6; }
-.tab-btn:active { filter: brightness(1.3); }
+.tab-btn.active {
+  color: #f0f9ff;
+  border-bottom-color: #4a8aff;
+  background: rgba(42,63,90,0.45);
+}
 /* ── Card row (row 2) ── */
 #tab-content {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 5px 6px 7px;
+  padding: 6px 6px 8px;
   scrollbar-width: none;
 }
 #tab-content::-webkit-scrollbar { display: none; }
@@ -318,25 +324,27 @@ canvas {
   display: none;
   -webkit-flex-direction: row;
   flex-direction: row;
-  gap: 5px;
+  gap: 8px;
   width: -webkit-max-content;
   width: max-content;
 }
 .tab-pane.active { display: -webkit-flex; display: flex; }
 /* ── Upgrade card ── */
 .upg-card {
-  background: #1e293b;
-  border: 1.5px solid #334155;
-  border-radius: 9px;
-  padding: 6px 6px 5px;
+  background: #1e2a3a;
+  border: 1px solid #2e4a6a;
+  border-radius: 8px;
   width: 64px;
+  height: 64px;
   display: -webkit-flex;
   display: flex;
   -webkit-flex-direction: column;
   flex-direction: column;
   -webkit-align-items: center;
   align-items: center;
-  gap: 2px;
+  -webkit-justify-content: center;
+  justify-content: center;
+  gap: 1px;
   cursor: pointer;
   -webkit-appearance: none;
   font-family: inherit;
@@ -345,16 +353,16 @@ canvas {
   flex-shrink: 0;
   position: relative;
   -webkit-tap-highlight-color: transparent;
+  padding: 4px 2px;
 }
-.upg-card:active { filter: brightness(1.3); }
-.upg-card.no-gold { border-color: #dc2626; }
-.upg-card.locked  { opacity: 0.35; pointer-events: none; }
-.card-icon { font-size: 15px; line-height: 1; }
-.card-name { font-size: 9px; font-weight: 700; color: #cbd5e1; text-align: center; line-height: 1.2; }
-.card-stat { font-size: 9px; color: #94a3b8; }
-.card-cost { font-size: 10px; font-weight: 700; color: #fbbf24; }
-.card-tag  { font-size: 8px; color: #475569; }
-.lock-badge { position: absolute; top: 3px; right: 4px; font-size: 9px; }
+.upg-card:active { filter: brightness(1.25); }
+.upg-card.no-gold { background: #1a1a1a; border-color: #555; opacity: 0.5; }
+.upg-card.locked  { background: #111; border-color: #2a2a2a; pointer-events: none; }
+.card-icon { font-size: 18px; line-height: 1; }
+.card-name { font-size: 9px; font-weight: 600; color: #94a3b8; text-align: center; line-height: 1.1; }
+.card-stat { font-size: 10px; font-weight: 700; color: #f0f9ff; }
+.card-cost { font-size: 9px; color: #f59e0b; }
+.card-tag  { display: none; }
 /* ── Card glow animation (post-unlock) ── */
 @-webkit-keyframes cardGlow {
   0%,100% { box-shadow: 0 0 0 rgba(168,85,247,0); }
@@ -383,27 +391,7 @@ canvas {
 }
 #shop-flash.show { opacity: 1; }
 
-/* ─── WAVE CLEAR BANNER ──────────────────────────────────────── */
-#wave-banner {
-  display: none;
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.82);
-  color: #60a5fa;
-  font-size: clamp(17px, 5.5vw, 26px);
-  font-weight: 700;
-  padding: 12px 26px;
-  border-radius: 12px;
-  border: 2px solid #3b82f6;
-  pointer-events: none;
-  z-index: 10;
-  text-align: center;
-  white-space: nowrap;
-  box-shadow: 0 0 20px rgba(59,130,246,0.3);
-}
+/* wave banner is now rendered on canvas — no HTML element needed */
 </style>
 </head>
 <body>
@@ -423,7 +411,6 @@ canvas {
         <div class="tab-pane"        id="pane-spc"></div>
       </div>
     </div>
-    <div id="wave-banner"></div>
   </div>
 </div>
 
@@ -490,10 +477,9 @@ canvas {
 /* ═══════════════════════════════════════════════════════════════
    CANVAS SETUP
 ═══════════════════════════════════════════════════════════════ */
-const canvas   = document.getElementById('gameCanvas');
-const ctx      = canvas.getContext('2d');
-const areaEl   = document.getElementById('canvas-area');
-const bannerEl = document.getElementById('wave-banner');
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+const areaEl = document.getElementById('canvas-area');
 
 let CW = 360, CH = 640; // logical canvas dimensions
 
@@ -571,7 +557,7 @@ const UPGRADES = [
   { key:'rng',     tab:'atk', icon:'🎯',  name:'범위',     cost:6,  unlock:null,
     stat()   { return 'Lv.'+G.rangeLevel; },
     canBuy() { return G.gold>=6; },
-    apply()  { G.gold-=6; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); G.flashAlpha=0.85; },
+    apply()  { G.gold-=6; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
   },
   { key:'crit',    tab:'atk', icon:'💥',  name:'치명타',   cost:8,  unlock:'crit',
     stat()   { return Math.round(G.critChance*100)+'%'; },
@@ -731,6 +717,11 @@ function createState() {
     gemBonus:   1.0,
     goldBonus:  1.0,
 
+    // Wave banner (canvas-rendered)
+    bannerClear: '',
+    bannerNext:  '',
+    bannerTimer: -1, // -1 = inactive; ≥0 = ms elapsed
+
     cx: CW / 2,
     cy: CH / 2,
     lastTime: 0,
@@ -825,8 +816,6 @@ function update(dt) {
     if (Math.abs(G.zoom - G.targetZoom) < 0.001) G.zoom = G.targetZoom;
   }
 
-  // Flash edge decay
-  if (G.flashAlpha > 0) G.flashAlpha = Math.max(0, G.flashAlpha - dt / 400);
 
   // Buff countdown
   if (G.tower.buffMs > 0) G.tower.buffMs = Math.max(0, G.tower.buffMs - dt);
@@ -845,6 +834,9 @@ function update(dt) {
     G.effects[i].t += dt;
     if (G.effects[i].t >= 600) G.effects.splice(i, 1);
   }
+
+  // Wave banner timer
+  if (G.bannerTimer >= 0) G.bannerTimer += dt;
 
   // ── Between-wave countdown ──
   if (G.phase === 'between') {
@@ -1058,11 +1050,13 @@ function addFx(x, y, maxR, color) {
 
 function onWaveComplete() {
   G.phase = 'between';
-  G.betweenTimer = 3000;
-  if (G.wave % 10 === 0) G.gems += 2; // 10-wave milestone bonus
-  bannerEl.textContent = '🎉 웨이브 ' + G.wave + ' 클리어!';
-  bannerEl.style.display = 'block';
-  setTimeout(function() { bannerEl.style.display = 'none'; }, 2000);
+  G.betweenTimer = 2500;
+  if (G.wave % 10 === 0) G.gems += 2;
+  const nextW    = G.wave + 1;
+  const nextBoss = nextW % 5 === 0;
+  G.bannerClear = 'Wave ' + G.wave + ' Clear!';
+  G.bannerNext  = 'Wave ' + nextW + (nextBoss ? '  👑' : '');
+  G.bannerTimer = 0;
 }
 
 function triggerGameOver() {
@@ -1215,102 +1209,93 @@ function render() {
 
   ctx.restore(); // ← end zoom transform
 
-  // ── 3. Edge flash (full screen, no zoom) ─────────────────────
-  if (G.flashAlpha > 0) {
-    const r = Math.max(CW, CH);
-    const grad = ctx.createRadialGradient(CW/2, CH/2, r * 0.05, CW/2, CH/2, r * 0.9);
-    grad.addColorStop(0,    'rgba(148,218,255,0)');
-    grad.addColorStop(0.55, 'rgba(148,218,255,0)');
-    grad.addColorStop(1,    'rgba(148,218,255,' + (G.flashAlpha * 0.55) + ')');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, CW, CH);
+  // ── 3. Wave clear banner (canvas text, no zoom) ───────────────
+  if (G.bannerTimer >= 0 && G.bannerTimer < 1900) {
+    const t = G.bannerTimer;
+    let text, alpha;
+    if (t < 800) {
+      text = G.bannerClear; alpha = 1;
+    } else if (t < 1300) {
+      text = G.bannerClear; alpha = 1 - (t - 800) / 500;
+    } else if (t < 1600) {
+      text = G.bannerNext;  alpha = 1;
+    } else {
+      text = G.bannerNext;  alpha = 1 - (t - 1600) / 300;
+    }
+    ctx.save();
+    ctx.globalAlpha   = Math.max(0, alpha);
+    ctx.textAlign     = 'center';
+    ctx.textBaseline  = 'middle';
+    ctx.font          = 'bold 22px Arial';
+    ctx.fillStyle     = '#ffffff';
+    ctx.shadowBlur    = 0;
+    ctx.fillText(text, CW / 2, CH * 0.40);
+    ctx.restore();
   }
 
   // ── 4. HUD (full screen, no zoom) ────────────────────────────
   renderHUD();
 }
 
+function rrect(x, y, w, h, r) {
+  if (w <= 0 || h <= 0) return;
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); }
+  else { ctx.rect(x, y, w, h); }
+  ctx.fill();
+}
+
 function renderHUD() {
-  const pad = 10;
-  const fs1 = Math.max(13, Math.floor(CW * 0.042)); // headline
-  const fs2 = Math.max(11, Math.floor(CW * 0.033)); // body
+  const pad  = 8;
+  const panH = 50;
 
   ctx.save();
 
-  // ─ Wave label ─
-  ctx.textBaseline = 'top';
-  ctx.font         = 'bold ' + fs1 + 'px Arial';
-  ctx.fillStyle    = '#93c5fd';
-  ctx.fillText('웨이브 ' + G.wave + (G.isBossWave ? ' 👑' : ''), pad, pad);
+  // ── HUD background panel ──
+  ctx.fillStyle = 'rgba(0,0,0,0.68)';
+  ctx.fillRect(0, 0, CW, panH);
 
-  // ─ Tower HP bar ─
-  const barW = CW * 0.38;
-  const barH = Math.max(14, Math.floor(CH * 0.018));
-  const barX = pad, barY = pad + fs1 + 5;
+  // ── Wave label ──
+  ctx.textBaseline = 'middle';
+  ctx.font         = 'bold 14px Arial';
+  ctx.fillStyle    = '#93c5fd';
+  ctx.fillText('Wave ' + G.wave + (G.isBossWave ? '  👑' : ''), pad, pad + 8);
+
+  // ── HP bar (6px, rounded) ──
+  const barW = Math.floor(CW * 0.36);
+  const barH = 6;
+  const barX = pad;
+  const barY = pad + 24;
   const hr   = G.tower.hp / G.tower.maxHp;
 
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(barX, barY, barW, barH);
-  ctx.fillStyle = hr > 0.5 ? '#16a34a' : hr > 0.25 ? '#ca8a04' : '#dc2626';
-  ctx.fillRect(barX, barY, barW * hr, barH);
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-  ctx.lineWidth   = 1;
-  ctx.strokeRect(barX, barY, barW, barH);
+  ctx.fillStyle = '#0f1923';
+  rrect(barX, barY, barW, barH, 3);
+  ctx.fillStyle = hr > 0.5 ? '#00e676' : hr > 0.25 ? '#ffa726' : '#f44336';
+  rrect(barX, barY, Math.max(0, barW * hr), barH, 3);
 
-  ctx.font         = 'bold ' + Math.max(11, fs2 - 1) + 'px Arial';
-  ctx.fillStyle    = '#f0f9ff';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(G.tower.hp + '/' + G.tower.maxHp, barX + 4, barY + barH / 2);
-
-  // ─ Gold & Gems (right) ─
-  ctx.textAlign    = 'right';
+  ctx.font         = 'bold 10px Arial';
+  ctx.fillStyle    = 'rgba(255,255,255,0.7)';
   ctx.textBaseline = 'top';
-  ctx.font         = 'bold ' + fs1 + 'px Arial';
-  ctx.fillStyle    = '#fbbf24';
-  ctx.fillText('💰 ' + G.gold, CW - pad, pad);
-  ctx.fillStyle = '#a78bfa';
-  ctx.fillText('💎 ' + G.gems, CW - pad, pad + fs1 + 5);
-  ctx.textAlign = 'left';
+  ctx.fillText(Math.ceil(G.tower.hp) + '/' + G.tower.maxHp, barX, barY + barH + 3);
 
-  // ─ Buff timer (center top) ─
+  // ── Gold & Gems (right) ──
+  ctx.textAlign    = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.font         = 'bold 12px Arial';
+  ctx.fillStyle    = '#fbbf24';
+  ctx.fillText('💰 ' + G.gold, CW - pad, pad + 8);
+  ctx.fillStyle    = '#a78bfa';
+  ctx.fillText('💎 ' + G.gems, CW - pad, pad + 26);
+  ctx.textAlign    = 'left';
+
+  // ── Buff timer ──
   if (G.tower.buffMs > 0) {
     const sec = Math.ceil(G.tower.buffMs / 1000);
     ctx.textAlign    = 'center';
-    ctx.textBaseline = 'top';
-    ctx.font         = 'bold ' + fs2 + 'px Arial';
-    ctx.fillStyle    = '#fb923c';
-    ctx.fillText('⚡ 공격 2배 ' + sec + 's', G.cx, pad);
-    ctx.textAlign = 'left';
-  }
-
-  // ─ Between-wave countdown overlay ─
-  if (G.phase === 'between') {
-    ctx.fillStyle = 'rgba(0,0,0,0.62)';
-    ctx.fillRect(0, 0, CW, CH);
-
-    ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-
-    const bigF = Math.floor(CW * 0.17);
-    const sec  = Math.ceil(G.betweenTimer / 1000);
-    const nextW = G.wave + 1;
-    const nextBoss = nextW % 5 === 0;
-
-    ctx.font      = 'bold ' + Math.floor(CW * 0.065) + 'px Arial';
-    ctx.fillStyle = '#60a5fa';
-    ctx.fillText('다음 웨이브까지', G.cx, G.cy - bigF * 0.75);
-
-    ctx.font      = 'bold ' + bigF + 'px Arial';
-    ctx.fillStyle = '#f0f9ff';
-    ctx.fillText(sec, G.cx, G.cy + bigF * 0.08);
-
-    ctx.font      = 'bold ' + Math.floor(CW * 0.048) + 'px Arial';
-    ctx.fillStyle = nextBoss ? '#fb923c' : '#64748b';
-    ctx.fillText(
-      '웨이브 ' + nextW + (nextBoss ? '  👑 보스 등장!' : '  준비'),
-      G.cx, G.cy + bigF * 1.0
-    );
-
+    ctx.font         = 'bold 11px Arial';
+    ctx.fillStyle    = '#fb923c';
+    ctx.fillText('⚡ x2  ' + sec + 's', CW / 2, pad + 8);
     ctx.textAlign = 'left';
   }
 
@@ -1338,15 +1323,16 @@ function buildCards() {
       const btn = document.createElement('button');
       btn.id        = 'upg-card-' + upg.key;
       btn.className = 'upg-card' + (locked ? ' locked' : '');
-      const ulDef = locked ? UNLOCKS.find(function(u){ return u.key === upg.unlock; }) : null;
-      const costStr = locked ? ((ulDef ? ulDef.gems : '?') + '💎') : upg.cost + '💰';
-      const statText = locked ? '🔒' : (G ? upg.stat() : '-');
-      btn.innerHTML =
-        '<span class="card-icon">' + upg.icon + '</span>' +
-        '<span class="card-name">' + upg.name + '</span>' +
-        '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
-        '<span class="card-cost">' + costStr + '</span>' +
-        '<span class="card-tag">'  + (locked ? '상점해제' : '임시') + '</span>';
+      if (locked) {
+        btn.innerHTML = '<span style="font-size:20px;opacity:0.4">🔒</span>';
+      } else {
+        const statText = G ? upg.stat() : '-';
+        btn.innerHTML =
+          '<span class="card-icon">'  + upg.icon + '</span>' +
+          '<span class="card-name">'  + upg.name + '</span>' +
+          '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
+          '<span class="card-cost">'  + upg.cost + '🪙</span>';
+      }
       if (!locked) {
         btn.addEventListener('touchstart', function(ev) { ev.preventDefault(); }, { passive: false });
         btn.addEventListener('touchend',   function(ev) { ev.preventDefault(); doUpgrade(upg.key); }, { passive: false });
@@ -1518,7 +1504,6 @@ function buyUnlock(key) {
 
 function startNewGame() {
   document.getElementById('shop-screen').classList.remove('show');
-  bannerEl.style.display = 'none';
   loopGen++;
   resizeCanvas();
   startGame();
