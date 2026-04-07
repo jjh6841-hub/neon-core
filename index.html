@@ -217,6 +217,63 @@ canvas {
 .ov-btn:active { filter: brightness(0.85); }
 .ov-btn.blue { background: #2563eb; }
 
+/* ─── IN-GAME UPGRADE PANEL ─────────────────────────────────── */
+#ui-panel {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 5px 8px 10px;
+  background: rgba(0,0,0,0.58);
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  gap: 6px;
+  z-index: 5;
+  pointer-events: auto;
+}
+.upg-btn {
+  -webkit-flex: 1;
+  flex: 1;
+  max-width: 78px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #f0f9ff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 2px;
+  min-height: 48px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  font-family: inherit;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.3;
+}
+.upg-btn:active { filter: brightness(1.35); }
+.upg-btn.disabled { opacity: 0.26; pointer-events: none; }
+.upg-btn .tag { font-size: 9px; color: #64748b; font-weight: 400; }
+
+/* ── Shop flash ── */
+#shop-flash {
+  font-size: 13px;
+  color: #4ade80;
+  font-weight: 700;
+  min-height: 20px;
+  margin-bottom: 6px;
+  opacity: 0;
+  -webkit-transition: opacity 0.25s;
+  transition: opacity 0.25s;
+}
+#shop-flash.show { opacity: 1; }
+
 /* ─── WAVE CLEAR BANNER ──────────────────────────────────────── */
 #wave-banner {
   display: none;
@@ -245,6 +302,12 @@ canvas {
 <div id="app">
   <div id="canvas-area">
     <canvas id="gameCanvas"></canvas>
+    <div id="ui-panel">
+      <button class="upg-btn" id="ub-dmg"><span>⚔ 공격력</span><span>5💰</span><span class="tag">임시</span></button>
+      <button class="upg-btn" id="ub-spd"><span>⚡ 공격속도</span><span>7💰</span><span class="tag">임시</span></button>
+      <button class="upg-btn" id="ub-rng"><span>🎯 범위</span><span>6💰</span><span class="tag">임시</span></button>
+      <button class="upg-btn" id="ub-heal"><span>❤️ 회복</span><span>8💰</span><span class="tag">임시</span></button>
+    </div>
     <div id="wave-banner"></div>
   </div>
 </div>
@@ -301,6 +364,7 @@ canvas {
       <button class="si-btn" id="sb-hp">8💰</button>
     </div>
   </div>
+  <p id="shop-flash">✔ 영구 적용됨!</p>
   <button class="ov-btn blue" id="btn-start-game">게임 시작</button>
 </div>
 
@@ -327,6 +391,24 @@ let PERM = {
   hpLv:  0,
 };
 
+function loadPerm() {
+  try {
+    const s = localStorage.getItem('td_perm');
+    if (s) {
+      const d = JSON.parse(s);
+      PERM.gold  = d.gold  ?? 10;
+      PERM.gems  = d.gems  ?? 0;
+      PERM.dmgLv = d.dmgLv ?? 0;
+      PERM.spdLv = d.spdLv ?? 0;
+      PERM.rngLv = d.rngLv ?? 0;
+      PERM.hpLv  = d.hpLv  ?? 0;
+    }
+  } catch (_) {}
+}
+function savePerm() {
+  try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
+}
+
 /* ── 상점 아이템 정의 ── */
 const SHOP_ITEMS = {
   dmg: {
@@ -338,8 +420,8 @@ const SHOP_ITEMS = {
     cost: 7,  maxLv: 4,
     name: '⚡ 공격속도',
     effect: () => {
-      const cur  = ((1000 - PERM.spdLv * 200) / 1000).toFixed(1);
-      const next = (Math.max(200, 1000 - (PERM.spdLv + 1) * 200) / 1000).toFixed(1);
+      const cur  = (Math.max(200, 1000 - PERM.spdLv * 40) / 1000).toFixed(2);
+      const next = (Math.max(200, 1000 - (PERM.spdLv + 1) * 40) / 1000).toFixed(2);
       return cur + 's → ' + next + 's';
     },
   },
@@ -351,7 +433,7 @@ const SHOP_ITEMS = {
   hp: {
     cost: 8,  maxLv: 99,
     name: '❤️ 최대 체력',
-    effect: () => (10 + PERM.hpLv * 5) + ' → ' + (10 + (PERM.hpLv + 1) * 5),
+    effect: () => (10 + PERM.hpLv * 2) + ' → ' + (10 + (PERM.hpLv + 1) * 2),
   },
 };
 
@@ -444,11 +526,11 @@ function getTargetZoom() {
 function applyPermStats() {
   const t    = G.tower;
   t.dmg      = 3 + PERM.dmgLv;
-  t.atkMs    = Math.max(200, 1000 - PERM.spdLv * 200);
-  t.maxHp    = 10 + PERM.hpLv * 5;
+  t.atkMs    = Math.max(200, 1000 - PERM.spdLv * 40);
+  t.maxHp    = 10 + PERM.hpLv * 2;
   t.hp       = t.maxHp;
   t.range    = Math.min(CW, CH) * 0.45 + PERM.rngLv * 30;
-  G.rangeLevel = PERM.rngLv;
+  G.rangeLevel = 5 + PERM.rngLv; // base tier 5 → zoom 1.0 at start
   G.zoom       = getTargetZoom();
   G.targetZoom = G.zoom;
 }
@@ -466,6 +548,7 @@ function startGame() {
       G.gems += 1;
       PERM.gems += 1;
       localStorage.setItem('td_day', today);
+      savePerm();
     }
   } catch (_) {}
 
@@ -618,6 +701,8 @@ function update(dt) {
   if (spawnDone && G.enemies.length === 0 && G.phase === 'playing') {
     onWaveComplete();
   }
+
+  syncUI();
 }
 
 function mkEnemy(isBoss) {
@@ -688,6 +773,7 @@ function triggerGameOver() {
   G.phase    = 'gameover';
   PERM.gold  = G.gold;   // 남은 골드 보존
   PERM.gems  = G.gems;
+  savePerm();
   document.getElementById('r-wave').textContent  = G.wave;
   document.getElementById('r-kills').textContent = G.killCount;
   document.getElementById('r-gold').textContent  = '💰 ' + G.goldEarned;
@@ -933,6 +1019,61 @@ function renderHUD() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   IN-GAME UPGRADES (임시)
+═══════════════════════════════════════════════════════════════ */
+function syncUI() {
+  if (!G || G.phase === 'gameover') return;
+  const gold = G.gold;
+  const t    = G.tower;
+  setDisabled('ub-dmg',  gold < 5);
+  setDisabled('ub-spd',  gold < 7 || t.atkMs <= 200);
+  setDisabled('ub-rng',  gold < 6);
+  setDisabled('ub-heal', gold < 8 || t.hp >= t.maxHp);
+}
+
+function setDisabled(id, dis) {
+  document.getElementById(id).classList.toggle('disabled', dis);
+}
+
+function doUpgrade(type) {
+  if (!G || G.phase !== 'playing') return;
+  const t = G.tower;
+  if (type === 'dmg') {
+    if (G.gold < 5) return;
+    G.gold -= 5;
+    t.dmg += 1;
+  } else if (type === 'spd') {
+    if (G.gold < 7 || t.atkMs <= 200) return;
+    G.gold -= 7;
+    t.atkMs = Math.max(200, t.atkMs - 100);
+  } else if (type === 'rng') {
+    if (G.gold < 6) return;
+    G.gold -= 6;
+    t.range += 30;
+    G.rangeLevel++;
+    G.targetZoom = getTargetZoom();
+    G.flashAlpha = 0.85;
+  } else if (type === 'heal') {
+    if (G.gold < 8 || t.hp >= t.maxHp) return;
+    G.gold -= 8;
+    t.hp = Math.min(t.maxHp, t.hp + Math.ceil(t.maxHp * 0.4));
+  }
+  syncUI();
+}
+
+function bindBtn(id, fn) {
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+  el.addEventListener('touchend',   function(e) { e.preventDefault(); fn(); }, { passive: false });
+  el.addEventListener('click', fn);
+}
+
+bindBtn('ub-dmg',  doUpgrade.bind(null, 'dmg'));
+bindBtn('ub-spd',  doUpgrade.bind(null, 'spd'));
+bindBtn('ub-rng',  doUpgrade.bind(null, 'rng'));
+bindBtn('ub-heal', doUpgrade.bind(null, 'heal'));
+
+/* ═══════════════════════════════════════════════════════════════
    SHOP LOGIC
 ═══════════════════════════════════════════════════════════════ */
 function openShop() {
@@ -961,7 +1102,17 @@ function shopUpgrade(key) {
   if (!cfg || PERM.gold < cfg.cost || PERM[key + 'Lv'] >= cfg.maxLv) return;
   PERM.gold -= cfg.cost;
   PERM[key + 'Lv']++;
+  savePerm();
+  showShopFlash();
   syncShopUI();
+}
+
+let _flashTimer = null;
+function showShopFlash() {
+  const el = document.getElementById('shop-flash');
+  el.classList.add('show');
+  clearTimeout(_flashTimer);
+  _flashTimer = setTimeout(function() { el.classList.remove('show'); }, 1500);
 }
 
 function startNewGame() {
@@ -998,6 +1149,7 @@ document.addEventListener('touchend', function(e) {
    BOOT
 ═══════════════════════════════════════════════════════════════ */
 resizeCanvas();
+loadPerm();
 startGame();
 </script>
 </body>
