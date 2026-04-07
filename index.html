@@ -318,6 +318,12 @@ function createState() {
       buffMs:  0,     // ms remaining for 2× damage buff
     },
 
+    // Zoom
+    rangeLevel:  0,
+    zoom:        1.0,
+    targetZoom:  1.0,
+    flashAlpha:  0,
+
     // Spawn
     spawnQ:       0,
     spawnTimer:   0,
@@ -334,6 +340,15 @@ function createState() {
     cy: CH / 2,
     lastTime: 0,
   };
+}
+
+function getTargetZoom() {
+  const lvl = G.rangeLevel;
+  if (lvl <= 5)  return 1.00;
+  if (lvl <= 10) return 0.85;
+  if (lvl <= 15) return 0.70;
+  if (lvl <= 20) return 0.55;
+  return 0.40;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -388,6 +403,16 @@ function gameLoop(gen, ts) {
 ═══════════════════════════════════════════════════════════════ */
 function update(dt) {
   if (G.phase === 'gameover') return;
+
+  // Zoom smooth transition (~0.3s time constant)
+  if (G.zoom !== G.targetZoom) {
+    const lf = 1 - Math.exp(-dt / 80);
+    G.zoom += (G.targetZoom - G.zoom) * lf;
+    if (Math.abs(G.zoom - G.targetZoom) < 0.001) G.zoom = G.targetZoom;
+  }
+
+  // Flash edge decay
+  if (G.flashAlpha > 0) G.flashAlpha = Math.max(0, G.flashAlpha - dt / 400);
 
   // Buff countdown
   if (G.tower.buffMs > 0) G.tower.buffMs = Math.max(0, G.tower.buffMs - dt);
@@ -495,13 +520,26 @@ function update(dt) {
 }
 
 function mkEnemy(isBoss) {
-  const m = 50;
+  // Spawn just outside the visible area (accounts for zoom-out world expansion)
+  const zoom  = G.zoom;
+  const halfW = CW / (2 * zoom); // visible half-width in game coords
+  const halfH = CH / (2 * zoom);
+  const m     = 50;              // extra margin beyond screen edge
   let x, y;
   const side = (Math.random() * 4) | 0;
-  if      (side === 0) { x = Math.random() * CW; y = -m; }
-  else if (side === 1) { x = Math.random() * CW; y = CH + m; }
-  else if (side === 2) { x = -m;    y = Math.random() * CH; }
-  else                 { x = CW + m; y = Math.random() * CH; }
+  if (side === 0) {        // top
+    x = CW/2 + (Math.random() - 0.5) * 2 * (halfW + m);
+    y = CH/2 - halfH - m;
+  } else if (side === 1) { // bottom
+    x = CW/2 + (Math.random() - 0.5) * 2 * (halfW + m);
+    y = CH/2 + halfH + m;
+  } else if (side === 2) { // left
+    x = CW/2 - halfW - m;
+    y = CH/2 + (Math.random() - 0.5) * 2 * (halfH + m);
+  } else {                 // right
+    x = CW/2 + halfW + m;
+    y = CH/2 + (Math.random() - 0.5) * 2 * (halfH + m);
+  }
 
   const w       = G.wave;
   const baseHp  = isBoss ? 20 : 2 + (w - 1) * 0.5;          // +0.5 HP per wave
@@ -556,23 +594,34 @@ function triggerGameOver() {
    RENDER
 ═══════════════════════════════════════════════════════════════ */
 function render() {
-  // Background
+  // ── 1. Background (full canvas, before zoom) ──────────────────
   ctx.fillStyle = '#0d0d1a';
   ctx.fillRect(0, 0, CW, CH);
 
-  // Subtle grid
+  // ── 2. Game world (zoom transform applied) ────────────────────
+  ctx.save();
+  ctx.translate(CW / 2, CH / 2);
+  ctx.scale(G.zoom, G.zoom);
+  ctx.translate(-CW / 2, -CH / 2);
+
+  // Visible game-coord bounds when zoomed out
+  const visW = CW / G.zoom;
+  const visH = CH / G.zoom;
+  const ox   = (CW - visW) / 2; // negative when zoomed out
+  const oy   = (CH - visH) / 2;
+
+  // Grid (extended to fill visible area)
   ctx.strokeStyle = 'rgba(255,255,255,0.04)';
   ctx.lineWidth = 0.5;
   const gs = Math.floor(CW / 9);
-  for (let x = 0; x <= CW; x += gs) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
+  for (let x = Math.floor(ox / gs) * gs; x <= ox + visW + gs; x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + visH); ctx.stroke();
   }
-  for (let y = 0; y <= CH; y += gs) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+  for (let y = Math.floor(oy / gs) * gs; y <= oy + visH + gs; y += gs) {
+    ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + visW, y); ctx.stroke();
   }
 
   // Attack range circle
-  ctx.save();
   ctx.beginPath();
   ctx.arc(G.cx, G.cy, G.tower.range, 0, Math.PI * 2);
   ctx.setLineDash([6, 6]);
@@ -582,7 +631,6 @@ function render() {
   ctx.fillStyle = 'rgba(59,130,246,0.04)';
   ctx.fill();
   ctx.setLineDash([]);
-  ctx.restore();
 
   // Targeting line to nearest in-range enemy
   {
@@ -606,7 +654,7 @@ function render() {
     }
   }
 
-  // ── Effects (death rings) ──
+  // Effects (death rings)
   for (const ef of G.effects) {
     const t = ef.t / 600;
     ctx.save();
@@ -619,12 +667,11 @@ function render() {
     ctx.restore();
   }
 
-  // ── Enemies ──
+  // Enemies
   for (const e of G.enemies) {
     ctx.save();
     ctx.shadowBlur  = e.boss ? 22 : 10;
     ctx.shadowColor = e.boss ? '#f97316' : '#ef4444';
-
     ctx.beginPath();
     ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
     ctx.fillStyle   = e.boss ? '#c2410c' : '#b91c1c';
@@ -633,21 +680,14 @@ function render() {
     ctx.lineWidth   = e.boss ? 2.5 : 1.5;
     ctx.stroke();
     ctx.shadowBlur  = 0;
-
-    // Boss label
     if (e.boss) {
-      ctx.fillStyle    = '#fff';
-      ctx.font         = 'bold ' + Math.floor(e.r * 0.82) + 'px Arial';
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold ' + Math.floor(e.r * 0.82) + 'px Arial';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('B', e.x, e.y);
     }
-
-    // HP bar
-    const bw = e.r * 2.6;
-    const bh = e.boss ? 6 : 4;
-    const bx = e.x - bw / 2;
-    const by = e.y - e.r - bh - 4;
+    const bw = e.r * 2.6, bh = e.boss ? 6 : 4;
+    const bx = e.x - bw / 2, by = e.y - e.r - bh - 4;
     const hr = e.hp / e.maxHp;
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(bx, by, bw, bh);
@@ -656,19 +696,15 @@ function render() {
     ctx.restore();
   }
 
-  // ── Bullets ──
+  // Bullets
   ctx.save();
-  ctx.shadowBlur  = 8;
-  ctx.shadowColor = '#fbbf24';
-  ctx.fillStyle   = '#fde68a';
+  ctx.shadowBlur = 8; ctx.shadowColor = '#fbbf24'; ctx.fillStyle = '#fde68a';
   for (const b of G.bullets) {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(b.x, b.y, 3, 0, Math.PI * 2); ctx.fill();
   }
   ctx.restore();
 
-  // ── Tower ──
+  // Tower
   const TS = 26;
   const buffed = G.tower.buffMs > 0;
   ctx.save();
@@ -680,7 +716,6 @@ function render() {
   ctx.lineWidth   = 3;
   ctx.strokeRect(G.cx - TS/2, G.cy - TS/2, TS, TS);
   ctx.shadowBlur  = 0;
-  // Cross detail
   ctx.strokeStyle = buffed ? '#9a3412' : '#1e40af';
   ctx.lineWidth   = 1.5;
   ctx.beginPath();
@@ -689,6 +724,20 @@ function render() {
   ctx.stroke();
   ctx.restore();
 
+  ctx.restore(); // ← end zoom transform
+
+  // ── 3. Edge flash (full screen, no zoom) ─────────────────────
+  if (G.flashAlpha > 0) {
+    const r = Math.max(CW, CH);
+    const grad = ctx.createRadialGradient(CW/2, CH/2, r * 0.05, CW/2, CH/2, r * 0.9);
+    grad.addColorStop(0,    'rgba(148,218,255,0)');
+    grad.addColorStop(0.55, 'rgba(148,218,255,0)');
+    grad.addColorStop(1,    'rgba(148,218,255,' + (G.flashAlpha * 0.55) + ')');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CW, CH);
+  }
+
+  // ── 4. HUD (full screen, no zoom) ────────────────────────────
   renderHUD();
 }
 
@@ -810,7 +859,7 @@ function doUpgrade(type) {
   const t = G.tower;
   if (type === 'dmg'   && G.gold >= 5)                        { G.gold -= 5;   t.dmg += 1; }
   else if (type === 'spd'  && G.gold >= 7 && t.atkMs > 200)  { G.gold -= 7;   t.atkMs = Math.max(200, t.atkMs - 200); }
-  else if (type === 'rng'  && G.gold >= 6)                    { G.gold -= 6;   t.range += 30; }
+  else if (type === 'rng'  && G.gold >= 6)                    { G.gold -= 6;   t.range += 30; G.rangeLevel++; const nz = getTargetZoom(); if (nz !== G.targetZoom) { G.targetZoom = nz; G.flashAlpha = 1.0; } }
   else if (type === 'heal' && G.gold >= 8 && t.hp < t.maxHp) { G.gold -= 8;   t.hp = Math.min(t.maxHp, t.hp + 5); }
   else if (type === 'buff' && G.gems >= 1  && t.buffMs === 0) { G.gems -= 1;   t.buffMs = 30000; }
   else if (type === 'fheal'&& G.gems >= 2)                    { G.gems -= 2;   t.hp = t.maxHp; }
