@@ -403,6 +403,235 @@ canvas {
 #shop-flash.show { opacity: 1; }
 
 /* wave banner is now rendered on canvas — no HTML element needed */
+
+/* ── Speed button ── */
+#speed-btn {
+  background: rgba(42,63,90,0.7);
+  color: #f0f9ff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  width: 38px;
+  height: 24px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  margin: 4px 2px 4px 4px;
+  -webkit-appearance: none;
+}
+#speed-btn:active { background: rgba(42,63,90,1); }
+
+/* ── Pause menu ── */
+#pause-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,20,0.93);
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  z-index: 200;
+  gap: 12px;
+  padding: 24px;
+}
+#pause-screen.show { display: -webkit-flex; display: flex; }
+.pause-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #f0f9ff;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+.pause-btn {
+  width: 100%;
+  max-width: 280px;
+  background: #1e293b;
+  color: #f0f9ff;
+  border: 1px solid #2e4a6a;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  -webkit-appearance: none;
+}
+.pause-btn:active { filter: brightness(1.2); }
+.pause-btn.green { background: #16a34a; border-color: #15803d; }
+.pause-btn.red   { background: #991b1b; border-color: #7f1d1d; }
+
+/* ── Confirm popup ── */
+#confirm-popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  z-index: 400;
+}
+#confirm-popup.show { display: -webkit-flex; display: flex; }
+.confirm-box {
+  background: #1e293b;
+  border: 1px solid #2e4a6a;
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-width: 300px;
+  width: 90%;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  gap: 16px;
+}
+.confirm-msg {
+  font-size: 15px;
+  color: #f0f9ff;
+  text-align: center;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+.confirm-btns {
+  display: -webkit-flex;
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+.confirm-ok, .confirm-cancel {
+  -webkit-flex: 1;
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+.confirm-ok     { background: #dc2626; color: #fff; }
+.confirm-cancel { background: #334155; color: #f0f9ff; }
+
+/* ── Achievement screen ── */
+#achieve-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,20,0.97);
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  z-index: 250;
+  padding: 20px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 8px;
+}
+#achieve-screen.show { display: -webkit-flex; display: flex; }
+.achieve-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fbbf24;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+#ach-list { width: 100%; max-width: 360px; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; gap: 8px; }
+.ach-item {
+  background: #1e293b;
+  border: 1px solid #2d3f5a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  gap: 12px;
+}
+.ach-item.claimed { opacity: 0.45; border-color: #1e293b; }
+.ach-icon { font-size: 22px; -webkit-flex-shrink: 0; flex-shrink: 0; }
+.ach-info { -webkit-flex: 1; flex: 1; }
+.ach-name { font-size: 13px; font-weight: 700; color: #f0f9ff; }
+.ach-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+.ach-prog { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.ach-reward { font-size: 12px; font-weight: 700; color: #a78bfa; -webkit-flex-shrink: 0; flex-shrink: 0; text-align: right; }
+
+/* ── Settings screen ── */
+#settings-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,20,0.97);
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  z-index: 250;
+  padding: 40px 20px 20px;
+  gap: 12px;
+}
+#settings-screen.show { display: -webkit-flex; display: flex; }
+.settings-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #f0f9ff;
+  margin-bottom: 10px;
+}
+.setting-row {
+  width: 100%;
+  max-width: 320px;
+  background: #1e293b;
+  border: 1px solid #2d3f5a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+}
+.setting-label { font-size: 15px; color: #f0f9ff; }
+.toggle-btn {
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  -webkit-appearance: none;
+  -webkit-transition: background 0.15s;
+  transition: background 0.15s;
+}
+.toggle-btn.on  { background: #16a34a; color: #fff; }
+.toggle-btn.off { background: #475569; color: #94a3b8; }
+.back-btn {
+  margin-top: 8px;
+  background: #334155;
+  color: #f0f9ff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+.back-btn:active { filter: brightness(1.2); }
 </style>
 </head>
 <body>
@@ -412,6 +641,7 @@ canvas {
     <canvas id="gameCanvas"></canvas>
     <div id="ui-panel">
       <div id="tab-bar">
+        <button id="speed-btn">1×</button>
         <button class="tab-btn active" id="tab-atk">⚔️ 공격</button>
         <button class="tab-btn"        id="tab-def">🛡️ 방어</button>
         <button class="tab-btn"        id="tab-spc">💎 특수</button>
@@ -421,6 +651,52 @@ canvas {
         <div class="tab-pane"        id="pane-def"></div>
         <div class="tab-pane"        id="pane-spc"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 일시정지 메뉴 ── -->
+<div id="pause-screen">
+  <div class="pause-title">⏸ 일시정지</div>
+  <button class="pause-btn green" id="btn-resume">▶ 계속하기</button>
+  <button class="pause-btn" id="btn-restart">🔄 다시하기</button>
+  <button class="pause-btn" id="btn-home">🏠 홈화면으로</button>
+  <button class="pause-btn" id="btn-achieve">🏆 업적</button>
+  <button class="pause-btn" id="btn-settings">⚙️ 설정</button>
+</div>
+
+<!-- ── 업적 화면 ── -->
+<div id="achieve-screen">
+  <div class="achieve-title">🏆 업적</div>
+  <div id="ach-list"></div>
+  <button class="back-btn" id="btn-achieve-back">← 뒤로</button>
+</div>
+
+<!-- ── 설정 화면 ── -->
+<div id="settings-screen">
+  <div class="settings-title">⚙️ 설정</div>
+  <div class="setting-row">
+    <span class="setting-label">🔊 효과음</span>
+    <button class="toggle-btn on" id="tog-sound">ON</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">🎵 배경음악</span>
+    <button class="toggle-btn on" id="tog-music">ON</button>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">📳 진동</span>
+    <button class="toggle-btn on" id="tog-vibration">ON</button>
+  </div>
+  <button class="back-btn" id="btn-settings-back">← 뒤로</button>
+</div>
+
+<!-- ── 확인 팝업 ── -->
+<div id="confirm-popup">
+  <div class="confirm-box">
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" id="confirm-cancel">취소</button>
+      <button class="confirm-ok" id="confirm-ok">확인</button>
     </div>
   </div>
 </div>
@@ -503,6 +779,12 @@ let PERM = {
   rngLv:   0,
   hpLv:    0,
   unlocks: {},  // { crit: true, multi: true, ... }
+  bestWave:     0,
+  totalKills:   0,
+  bossKills:    0,
+  upgradeCount: 0,
+  achievements: {},
+  settings: { sound: true, music: true, vibration: true },
 };
 
 function loadPerm() {
@@ -516,7 +798,13 @@ function loadPerm() {
       PERM.spdLv   = d.spdLv  ?? 0;
       PERM.rngLv   = d.rngLv  ?? 0;
       PERM.hpLv    = d.hpLv   ?? 0;
-      PERM.unlocks = (d.unlocks && typeof d.unlocks === 'object') ? d.unlocks : {};
+      PERM.unlocks      = (d.unlocks && typeof d.unlocks === 'object') ? d.unlocks : {};
+      PERM.bestWave     = d.bestWave     ?? 0;
+      PERM.totalKills   = d.totalKills   ?? 0;
+      PERM.bossKills    = d.bossKills    ?? 0;
+      PERM.upgradeCount = d.upgradeCount ?? 0;
+      PERM.achievements = (d.achievements && typeof d.achievements === 'object') ? d.achievements : {};
+      PERM.settings     = Object.assign({ sound: true, music: true, vibration: true }, d.settings || {});
     }
   } catch (_) {}
 }
@@ -647,6 +935,32 @@ const UNLOCKS = [
   { key:'goldup',  gems:4, tab:'spc', icon:'🏅', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
 ];
 
+/* ── 업적 정의 ── */
+const ACHIEVEMENTS = [
+  { key:'wave5',   icon:'🌊', name:'웨이브 5 달성',    desc:'웨이브 5까지 생존',       cond:()=>PERM.bestWave>=5,   prog:()=>Math.min(PERM.bestWave,5)+'/5',    gems:1 },
+  { key:'wave10',  icon:'🌊', name:'웨이브 10 달성',   desc:'웨이브 10까지 생존',      cond:()=>PERM.bestWave>=10,  prog:()=>Math.min(PERM.bestWave,10)+'/10',  gems:2 },
+  { key:'wave20',  icon:'🏆', name:'웨이브 20 달성',   desc:'웨이브 20까지 생존',      cond:()=>PERM.bestWave>=20,  prog:()=>Math.min(PERM.bestWave,20)+'/20',  gems:3 },
+  { key:'wave50',  icon:'👑', name:'웨이브 50 달성',   desc:'웨이브 50까지 생존',      cond:()=>PERM.bestWave>=50,  prog:()=>Math.min(PERM.bestWave,50)+'/50',  gems:5 },
+  { key:'kill50',  icon:'⚔️', name:'처치 50',          desc:'적 50마리 처치',          cond:()=>PERM.totalKills>=50,  prog:()=>Math.min(PERM.totalKills,50)+'/50',   gems:1 },
+  { key:'kill200', icon:'⚔️', name:'처치 200',         desc:'적 200마리 처치',         cond:()=>PERM.totalKills>=200, prog:()=>Math.min(PERM.totalKills,200)+'/200', gems:2 },
+  { key:'kill500', icon:'💀', name:'처치 500',         desc:'적 500마리 처치',         cond:()=>PERM.totalKills>=500, prog:()=>Math.min(PERM.totalKills,500)+'/500', gems:3 },
+  { key:'boss10',  icon:'👹', name:'보스 처치 10',     desc:'보스 10마리 처치',        cond:()=>PERM.bossKills>=10,   prog:()=>Math.min(PERM.bossKills,10)+'/10',   gems:2 },
+  { key:'upg30',   icon:'🔧', name:'업그레이드 30회',  desc:'인게임 업그레이드 30회',  cond:()=>PERM.upgradeCount>=30,prog:()=>Math.min(PERM.upgradeCount,30)+'/30', gems:2 },
+];
+
+function checkAchievements() {
+  let changed = false;
+  for (const ach of ACHIEVEMENTS) {
+    if (!PERM.achievements[ach.key] && ach.cond()) {
+      PERM.achievements[ach.key] = 'claimed';
+      PERM.gems += ach.gems;
+      if (G) G.gems = PERM.gems;
+      changed = true;
+    }
+  }
+  if (changed) savePerm();
+}
+
 function resizeCanvas() {
   const aw = areaEl.clientWidth  || window.innerWidth;
   const ah = areaEl.clientHeight || Math.floor(window.innerHeight * 0.75);
@@ -674,8 +988,11 @@ window.addEventListener('resize', resizeCanvas, false);
 /* ═══════════════════════════════════════════════════════════════
    GAME STATE
 ═══════════════════════════════════════════════════════════════ */
-let G       = null;
-let loopGen = 0;
+let G        = null;
+let loopGen  = 0;
+let gameSpeed = 1;
+let _pauseBtnRect = { x: 0, y: 0, w: 28, h: 28 };
+let _confirmCb    = null;
 
 function createState() {
   return {
@@ -733,6 +1050,9 @@ function createState() {
     bannerNext:  '',
     bannerTimer: -1, // -1 = inactive; ≥0 = ms elapsed
 
+    speed:          1,
+    showTowerStats: false,
+
     cx: CW / 2,
     cy: CH / 2,
     lastTime: 0,
@@ -765,8 +1085,11 @@ function applyPermStats() {
 
 function startGame() {
   G = createState();
-  G.gold = PERM.gold;
-  G.gems = PERM.gems;
+  G.gold  = PERM.gold;
+  G.gems  = PERM.gems;
+  G.speed = gameSpeed;
+  const _sb = document.getElementById('speed-btn');
+  if (_sb) _sb.textContent = G.speed + '×';
   applyPermStats();
   buildCards();
   setActiveTab(activeTab);
@@ -805,9 +1128,10 @@ function startWave() {
 ═══════════════════════════════════════════════════════════════ */
 function gameLoop(gen, ts) {
   if (gen !== loopGen) return;
-  const dt = Math.min(ts - G.lastTime, 50);
+  const rawDt = Math.min(ts - G.lastTime, 50);
   G.lastTime = ts;
-  update(dt);
+  const steps = (G.speed > 1 && G.phase === 'playing') ? G.speed : 1;
+  for (let i = 0; i < steps; i++) update(rawDt);
   render();
   if (G.phase !== 'gameover') {
     requestAnimationFrame(function(nts) { gameLoop(gen, nts); });
@@ -818,7 +1142,7 @@ function gameLoop(gen, ts) {
    UPDATE
 ═══════════════════════════════════════════════════════════════ */
 function update(dt) {
-  if (G.phase === 'gameover') return;
+  if (G.phase === 'gameover' || G.phase === 'paused') return;
 
   // Zoom smooth transition (~0.3s time constant)
   if (G.zoom !== G.targetZoom) {
@@ -915,6 +1239,8 @@ function update(dt) {
           G.gems       += gmEarned;
           G.killCount++;
           G.goldEarned += gEarned;
+          PERM.totalKills++;
+          if (e.boss) PERM.bossKills++;
           // Life steal
           if (G.lifeSteal > 0) {
             G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + G.lifeSteal);
@@ -931,11 +1257,15 @@ function update(dt) {
               if (edx * edx + edy * edy < G.explodeR * G.explodeR) {
                 ek.hp -= exDmg;
                 if (ek.hp <= 0) {
-                  G.gold       += Math.floor(ek.gold * G.goldBonus);
+                  const ekGold = Math.floor(ek.gold * G.goldBonus);
+                  G.gold       += ekGold;
                   G.killCount++;
-                  G.goldEarned += Math.floor(ek.gold * G.goldBonus);
+                  G.goldEarned += ekGold;
+                  PERM.totalKills++;
+                  if (ek.boss) PERM.bossKills++;
                   addFx(ek.x, ek.y, ek.r * 2.8, '#f97316');
                   G.enemies.splice(k, 1);
+
                   if (k <= j) j--;
                 }
               }
@@ -1063,6 +1393,8 @@ function onWaveComplete() {
   G.phase = 'between';
   G.betweenTimer = 2500;
   if (G.wave % 10 === 0) G.gems += 2;
+  if (G.wave > PERM.bestWave) { PERM.bestWave = G.wave; savePerm(); }
+  checkAchievements();
   const nextW    = G.wave + 1;
   const nextBoss = nextW % 5 === 0;
   G.bannerClear = 'Wave ' + G.wave + ' Clear!';
@@ -1245,8 +1577,46 @@ function render() {
     ctx.restore();
   }
 
-  // ── 4. HUD (full screen, no zoom) ────────────────────────────
+  // ── 4. Tower stats popup ─────────────────────────────────────
+  renderTowerPopup();
+
+  // ── 5. HUD (full screen, no zoom) ────────────────────────────
   renderHUD();
+}
+
+function renderTowerPopup() {
+  if (!G || !G.showTowerStats) return;
+  const lines = [
+    '⚔️ 공격력: ' + G.tower.dmg,
+    '⚡ 속도: '   + (G.tower.atkMs / 1000).toFixed(2) + 's',
+    '🎯 범위: '   + Math.round(G.tower.range),
+    '🛡️ 방어구: ' + G.armor,
+    '❤️ HP: '     + Math.ceil(G.tower.hp) + '/' + G.tower.maxHp,
+  ];
+  if (G.lifeSteal > 0) lines.push('🩸 흡혈: ' + G.lifeSteal);
+  if (G.critChance > 0) lines.push('💥 치명타: ' + Math.round(G.critChance * 100) + '%');
+
+  const lineH = 18, popW = 160, popPad = 8;
+  const popH  = lines.length * lineH + popPad * 2;
+  const popX  = CW / 2 - popW / 2;
+  const popY  = CH / 2 - 13 - 12 - popH;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(8,16,38,0.93)';
+  rrect(popX, popY, popW, popH, 8);
+  ctx.strokeStyle = 'rgba(74,138,255,0.4)';
+  ctx.lineWidth   = 1;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(popX, popY, popW, popH, 8); else ctx.rect(popX, popY, popW, popH);
+  ctx.stroke();
+  ctx.font         = '11px Arial';
+  ctx.fillStyle    = '#93c5fd';
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], popX + popPad, popY + popPad + i * lineH);
+  }
+  ctx.restore();
 }
 
 function rrect(x, y, w, h, r) {
@@ -1290,14 +1660,28 @@ function renderHUD() {
   ctx.textBaseline = 'top';
   ctx.fillText(Math.ceil(G.tower.hp) + '/' + G.tower.maxHp, barX, barY + barH + 3);
 
-  // ── Gold & Gems (right) ──
+  // ── Pause button (top right 28×28) ──
+  const pbW = 28, pbH = 28;
+  const pbX = CW - pad - pbW;
+  const pbY = (panH - pbH) / 2;
+  _pauseBtnRect = { x: pbX, y: pbY, w: pbW, h: pbH };
+  ctx.fillStyle = 'rgba(60,80,120,0.75)';
+  rrect(pbX, pbY, pbW, pbH, 6);
+  ctx.font         = '15px Arial';
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle    = '#f0f9ff';
+  ctx.fillText('⏸', pbX + pbW / 2, pbY + pbH / 2);
+
+  // ── Gold & Gems (right, shifted left of pause btn) ──
+  const rightEdge = pbX - 6;
   ctx.textAlign    = 'right';
   ctx.textBaseline = 'middle';
   ctx.font         = 'bold 12px Arial';
   ctx.fillStyle    = '#fbbf24';
-  ctx.fillText('💰 ' + G.gold, CW - pad, pad + 8);
+  ctx.fillText('🪙 ' + G.gold, rightEdge, pad + 8);
   ctx.fillStyle    = '#a78bfa';
-  ctx.fillText('💎 ' + G.gems, CW - pad, pad + 26);
+  ctx.fillText('💎 ' + G.gems, rightEdge, pad + 26);
   ctx.textAlign    = 'left';
 
   // ── Buff timer ──
@@ -1375,6 +1759,8 @@ function doUpgrade(key) {
   const upg = UPGRADES.find(function(u) { return u.key === key; });
   if (!upg || !isUnlocked(upg.unlock) || !upg.canBuy()) return;
   upg.apply();
+  PERM.upgradeCount++;
+  checkAchievements();
   syncUI();
 }
 
@@ -1400,6 +1786,117 @@ function applyPendingHighlight() {
     btn.addEventListener('click', function() { setActiveTab(k); });
   }
 }());
+
+/* ═══════════════════════════════════════════════════════════════
+   CANVAS TAP HANDLER
+═══════════════════════════════════════════════════════════════ */
+function handleCanvasTap(tx, ty) {
+  if (!G || G.phase === 'gameover') return;
+
+  // Pause button hit test
+  const pb = _pauseBtnRect;
+  if (tx >= pb.x && tx <= pb.x + pb.w && ty >= pb.y && ty <= pb.y + pb.h) {
+    openPauseMenu();
+    return;
+  }
+
+  // Tower tap hit test (tower always at CW/2, CH/2 in screen coords)
+  const tdx = tx - CW / 2, tdy = ty - CH / 2;
+  if (tdx * tdx + tdy * tdy < 34 * 34) {
+    G.showTowerStats = !G.showTowerStats;
+  } else {
+    G.showTowerStats = false;
+  }
+}
+
+(function() {
+  function tapFromMouse(e) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = CW / rect.width, sy = CH / rect.height;
+    handleCanvasTap((e.clientX - rect.left) * sx, (e.clientY - rect.top) * sy);
+  }
+  function tapFromTouch(e) {
+    e.preventDefault();
+    const rect  = canvas.getBoundingClientRect();
+    const sx = CW / rect.width, sy = CH / rect.height;
+    const t  = e.changedTouches[0];
+    handleCanvasTap((t.clientX - rect.left) * sx, (t.clientY - rect.top) * sy);
+  }
+  canvas.addEventListener('click',     tapFromMouse);
+  canvas.addEventListener('touchend',  tapFromTouch, { passive: false });
+}());
+
+/* ═══════════════════════════════════════════════════════════════
+   PAUSE / SPEED / CONFIRM / ACHIEVEMENTS / SETTINGS
+═══════════════════════════════════════════════════════════════ */
+function openPauseMenu() {
+  if (!G || G.phase === 'gameover') return;
+  G.phase = 'paused';
+  document.getElementById('pause-screen').classList.add('show');
+}
+
+function closePauseMenu() {
+  document.getElementById('pause-screen').classList.remove('show');
+  if (G && G.phase === 'paused') G.phase = 'playing';
+}
+
+function cycleSpeed() {
+  if (!G) return;
+  G.speed = (G.speed % 3) + 1;
+  gameSpeed = G.speed;
+  const sb = document.getElementById('speed-btn');
+  if (sb) sb.textContent = G.speed + '×';
+}
+
+function showConfirm(msg, onOk) {
+  _confirmCb = onOk;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-popup').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-popup').classList.remove('show');
+  _confirmCb = null;
+}
+
+function buildAchieveUI() {
+  const list = document.getElementById('ach-list');
+  if (!list) return;
+  list.innerHTML = '';
+  for (const ach of ACHIEVEMENTS) {
+    const claimed = PERM.achievements[ach.key] === 'claimed';
+    const met     = ach.cond();
+    const div = document.createElement('div');
+    div.className = 'ach-item' + (claimed ? ' claimed' : '');
+    div.innerHTML =
+      '<span class="ach-icon">' + ach.icon + '</span>' +
+      '<div class="ach-info">' +
+        '<div class="ach-name">' + ach.name + '</div>' +
+        '<div class="ach-desc">' + ach.desc + '</div>' +
+        '<div class="ach-prog">' + ach.prog() + '</div>' +
+      '</div>' +
+      '<span class="ach-reward">' +
+        (claimed ? '수령 완료' : (met ? '+' + ach.gems + '💎 수령!' : '+' + ach.gems + '💎')) +
+      '</span>';
+    list.appendChild(div);
+  }
+}
+
+function syncSettingsUI() {
+  for (const key of ['sound', 'music', 'vibration']) {
+    const btn = document.getElementById('tog-' + key);
+    if (!btn) continue;
+    const on = PERM.settings[key];
+    btn.className   = 'toggle-btn ' + (on ? 'on' : 'off');
+    btn.textContent = on ? 'ON' : 'OFF';
+  }
+}
+
+function toggleSetting(key) {
+  PERM.settings[key] = !PERM.settings[key];
+  savePerm();
+  syncSettingsUI();
+}
 
 /* ═══════════════════════════════════════════════════════════════
    SHOP LOGIC
@@ -1528,6 +2025,63 @@ bindOverlayBtn('btn-start-game', startNewGame);
 for (const key of Object.keys(SHOP_ITEMS)) {
   bindOverlayBtn('sb-' + key, shopUpgrade.bind(null, key));
 }
+
+// Speed button
+bindOverlayBtn('speed-btn', cycleSpeed);
+
+// Pause menu
+bindOverlayBtn('btn-resume', closePauseMenu);
+bindOverlayBtn('btn-restart', function() {
+  showConfirm('다시 시작할까요?\n현재 진행 사항이 사라져요', function() {
+    closeConfirm();
+    document.getElementById('pause-screen').classList.remove('show');
+    startNewGame();
+  });
+});
+bindOverlayBtn('btn-home', function() {
+  showConfirm('홈으로 이동할까요?\n현재 진행 사항이 사라져요', function() {
+    closeConfirm();
+    document.getElementById('pause-screen').classList.remove('show');
+    PERM.gold = G.gold;
+    PERM.gems = G.gems;
+    savePerm();
+    G.phase = 'gameover';
+    openShop();
+  });
+});
+bindOverlayBtn('btn-achieve', function() {
+  buildAchieveUI();
+  document.getElementById('achieve-screen').classList.add('show');
+});
+bindOverlayBtn('btn-settings', function() {
+  syncSettingsUI();
+  document.getElementById('settings-screen').classList.add('show');
+});
+
+// Achievement screen
+bindOverlayBtn('btn-achieve-back', function() {
+  document.getElementById('achieve-screen').classList.remove('show');
+});
+
+// Settings screen
+bindOverlayBtn('btn-settings-back', function() {
+  document.getElementById('settings-screen').classList.remove('show');
+});
+(function() {
+  for (const k of ['sound', 'music', 'vibration']) {
+    (function(key) {
+      bindOverlayBtn('tog-' + key, function() { toggleSetting(key); });
+    }(k));
+  }
+}());
+
+// Confirm popup
+bindOverlayBtn('confirm-ok', function() {
+  const cb = _confirmCb;
+  closeConfirm();
+  if (cb) cb();
+});
+bindOverlayBtn('confirm-cancel', closeConfirm);
 
 /* ─── Anti double-tap zoom ─────────────────────────────────────── */
 var _lastTap = 0;
