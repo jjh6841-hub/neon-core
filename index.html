@@ -549,7 +549,7 @@ canvas {
   gap: 8px; padding: 16px 6px; flex-shrink: 0;
 }
 .hm-icon-wrap {
-  width: 44px; height: 44px;
+  width: 36px; height: 36px;
   background: rgba(4,12,20,0.85);
   border: 1px solid rgba(0,255,255,0.18);
   border-radius: 10px;
@@ -557,10 +557,11 @@ canvas {
   -webkit-align-items: center; align-items: center;
   -webkit-justify-content: center; justify-content: center;
   position: relative; cursor: pointer;
+  overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 .hm-icon-wrap.locked { opacity: 0.35; }
-.hm-icon { font-size: 20px; line-height: 1; }
+.hm-icon { font-size: 18px; line-height: 1; }
 .hm-lock { position: absolute; bottom: 2px; right: 3px; font-size: 8px; line-height: 1; }
 .hm-badge {
   position: absolute; top: 4px; right: 4px;
@@ -585,39 +586,48 @@ canvas {
   display: -webkit-flex; display: flex;
   -webkit-flex-direction: column; flex-direction: column;
   -webkit-align-items: center; align-items: center;
-  gap: 10px; padding: 16px 8px 8px;
+  gap: 0; padding: 0 8px 8px;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+/* 아이콘+타이틀 래퍼 */
+#home-icon-title {
+  height: 120px; flex-shrink: 0;
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  -webkit-align-items: center; align-items: center;
+  -webkit-justify-content: center; justify-content: center;
+  gap: 10px;
 }
 /* 육각형 타워 아이콘 */
 #home-hex-outer {
-  width: 90px; height: 52px; position: relative;
+  width: 70px; height: 40px; position: relative;
   filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 24px rgba(0,255,255,0.35));
 }
 #home-hex {
-  width: 90px; height: 52px;
+  width: 70px; height: 40px;
   border-left: 2px solid #00ffff;
   border-right: 2px solid #00ffff;
   position: relative;
 }
 #home-hex::before {
   content: ''; position: absolute;
-  left: -17px; top: -27px;
-  width: 122px; height: 0;
+  left: -14px; top: -21px;
+  width: 96px; height: 0;
   border-left: 2px solid transparent;
   border-right: 2px solid transparent;
-  border-bottom: 27px solid #00ffff;
+  border-bottom: 22px solid #00ffff;
 }
 #home-hex::after {
   content: ''; position: absolute;
-  left: -17px; bottom: -27px;
-  width: 122px; height: 0;
+  left: -14px; bottom: -21px;
+  width: 96px; height: 0;
   border-left: 2px solid transparent;
   border-right: 2px solid transparent;
-  border-top: 27px solid #00ffff;
+  border-top: 22px solid #00ffff;
 }
 #home-game-title {
   font-family: 'Courier New', monospace;
-  font-size: 24px; font-weight: 700;
+  font-size: 22px; font-weight: 700;
   color: #00ffff; letter-spacing: 4px;
   text-shadow: 0 0 10px #00ffff, 0 0 24px #00ffff;
   text-align: center;
@@ -625,37 +635,27 @@ canvas {
 /* 정보 카드 */
 #home-cards {
   display: -webkit-flex; display: flex;
+  -webkit-flex-direction: row; flex-direction: row;
   gap: 8px; width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 .home-card {
   -webkit-flex: 1; flex: 1;
+  min-width: 0;
   background: #0a1a2a;
   border: 1px solid #0a3344;
-  border-radius: 10px;
-  padding: 10px 10px 8px;
+  border-radius: 4px;
+  padding: 10px 8px;
   display: -webkit-flex; display: flex;
   -webkit-flex-direction: column; flex-direction: column;
   -webkit-align-items: center; align-items: center;
-  gap: 4px;
+  gap: 6px;
+  overflow: hidden;
 }
-.home-card-label { font-size: 12px; color: #94a3b8; text-align: center; }
-.home-card-value { font-size: 18px; color: #00ffff; font-weight: 700; }
+.home-card-label { font-size: 10px; color: #94a3b8; text-align: center; white-space: nowrap; }
+.home-card-value { font-size: 20px; color: #00ffff; font-weight: 700; white-space: nowrap; }
 /* 난이도 카드 */
-#home-diff-row {
-  display: -webkit-flex; display: flex;
-  -webkit-align-items: center; align-items: center;
-  gap: 4px; width: 100%;
-}
-#home-diff-info {
-  -webkit-flex: 1; flex: 1;
-  display: -webkit-flex; display: flex;
-  -webkit-flex-direction: column; flex-direction: column;
-  -webkit-align-items: center; align-items: center;
-  gap: 2px;
-}
-#h-tier { font-size: 16px; color: #ffffff; font-weight: 700; }
-#h-best-wave, #h-coin-mult { font-size: 11px; color: #94a3b8; }
-#h-coin-mult { color: #f59e0b; }
 .home-diff-arrow {
   background: none; border: none;
   color: #00ffff; font-size: 16px;
@@ -666,10 +666,12 @@ canvas {
 /* 전투 시작 버튼 */
 #btn-start-game {
   width: 200px; height: 52px;
+  margin: 16px auto;
   background: #030b10;
   border: 2px solid #cc44ff;
   border-radius: 6px;
   color: #ffffff; font-size: 18px; font-weight: 700;
+  white-space: nowrap;
   text-shadow: 0 0 10px #cc44ff;
   box-shadow: 0 0 16px rgba(204,68,255,0.3), inset 0 0 16px rgba(204,68,255,0.05);
   cursor: pointer; font-family: inherit;
@@ -1228,29 +1230,29 @@ canvas {
 
       <!-- 중앙 -->
       <div id="home-center">
-        <!-- 육각형 타워 아이콘 -->
-        <div id="home-hex-outer">
-          <div id="home-hex"></div>
+        <!-- 육각형 타워 아이콘 + 타이틀 (120px 래퍼) -->
+        <div id="home-icon-title">
+          <div id="home-hex-outer">
+            <div id="home-hex"></div>
+          </div>
+          <div id="home-game-title">NEON CORE</div>
         </div>
-        <div id="home-game-title">NEON CORE</div>
 
         <!-- 정보 카드 -->
         <div id="home-cards">
           <div class="home-card">
             <div class="home-card-label">총 코인 보너스</div>
-            <div class="home-card-value" id="h-coin-bonus">x1.00</div>
+            <div class="home-card-value" id="h-coin-bonus" style="white-space:nowrap;">x1.00</div>
           </div>
           <div class="home-card">
-            <div class="home-card-label">난이도</div>
-            <div id="home-diff-row">
+            <div class="home-card-label" style="white-space:nowrap;">난이도</div>
+            <div style="display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center; -webkit-justify-content:center; justify-content:center; gap:8px;">
               <button class="home-diff-arrow" id="h-diff-prev">◀</button>
-              <div id="home-diff-info">
-                <div id="h-tier">티어 1</div>
-                <div id="h-best-wave">최고 웨이브: 0</div>
-                <div id="h-coin-mult">🪙 x1.0</div>
-              </div>
+              <span id="h-tier" style="font-size:16px; color:#fff; font-weight:700; white-space:nowrap;">티어 1</span>
               <button class="home-diff-arrow" id="h-diff-next">▶</button>
             </div>
+            <div id="h-best-wave" style="font-size:11px; color:#94a3b8; white-space:nowrap;">최고 웨이브: 0</div>
+            <div id="h-coin-mult" style="font-size:11px; color:#f59e0b; white-space:nowrap;">🪙 x1.0</div>
           </div>
         </div>
 
