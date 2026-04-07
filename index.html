@@ -1340,10 +1340,11 @@ function buildCards() {
       btn.className = 'upg-card' + (locked ? ' locked' : '');
       const ulDef = locked ? UNLOCKS.find(function(u){ return u.key === upg.unlock; }) : null;
       const costStr = locked ? ((ulDef ? ulDef.gems : '?') + '💎') : upg.cost + '💰';
+      const statText = locked ? '🔒' : (G ? upg.stat() : '-');
       btn.innerHTML =
         '<span class="card-icon">' + upg.icon + '</span>' +
         '<span class="card-name">' + upg.name + '</span>' +
-        '<span class="card-stat" id="cs-' + upg.key + '">' + (locked ? '🔒' : upg.stat()) + '</span>' +
+        '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
         '<span class="card-cost">' + costStr + '</span>' +
         '<span class="card-tag">'  + (locked ? '상점해제' : '임시') + '</span>';
       if (!locked) {
@@ -1550,8 +1551,6 @@ document.addEventListener('touchend', function(e) {
 ═══════════════════════════════════════════════════════════════ */
 resizeCanvas();
 loadPerm();
-buildCards();
-setActiveTab('atk');
 startGame();
 </script>
 </body>
