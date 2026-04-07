@@ -419,6 +419,217 @@ canvas {
 
 /* wave banner is now rendered on canvas — no HTML element needed */
 
+/* ─── HOME SCREEN ────────────────────────────────────────────── */
+/* overlay-screen 공통 스타일 덮어쓰기 */
+#screen-home {
+  background: #030b10 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  -webkit-align-items: stretch !important;
+  align-items: stretch !important;
+}
+#home-root {
+  width: 100%; height: 100%;
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+/* 배경 그리드 */
+#home-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none; z-index: 0;
+}
+/* ── 상단 HUD 바 ── */
+#home-hud {
+  height: 44px; flex-shrink: 0;
+  background: #040c14;
+  border-bottom: 1px solid rgba(0,255,255,0.30);
+  display: -webkit-flex; display: flex;
+  -webkit-align-items: center; align-items: center;
+  padding: 0 14px; gap: 0;
+  position: relative; z-index: 1;
+}
+#home-hud-gold { font-size: 14px; color: #f59e0b; font-weight: 700; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; gap: 4px; }
+#home-hud-gems { font-size: 14px; color: #00ffff; font-weight: 700; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; gap: 4px; -webkit-flex: 1; flex: 1; -webkit-justify-content: center; justify-content: center; }
+#home-hud-arrow { background: none; border: none; color: #64748b; font-size: 13px; cursor: pointer; padding: 4px; font-family: inherit; }
+/* ── 메인 영역 ── */
+#home-main {
+  -webkit-flex: 1; flex: 1; min-height: 0;
+  display: -webkit-flex; display: flex;
+  -webkit-align-items: flex-start; align-items: flex-start;
+  position: relative; z-index: 1;
+}
+/* ── 좌/우 사이드 아이콘 ── */
+#home-left, #home-right {
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  -webkit-align-items: center; align-items: center;
+  gap: 8px; padding: 16px 6px; flex-shrink: 0;
+}
+.hm-icon-wrap {
+  width: 44px; height: 44px;
+  background: rgba(4,12,20,0.85);
+  border: 1px solid rgba(0,255,255,0.18);
+  border-radius: 10px;
+  display: -webkit-flex; display: flex;
+  -webkit-align-items: center; align-items: center;
+  -webkit-justify-content: center; justify-content: center;
+  position: relative; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hm-icon-wrap.locked { opacity: 0.35; }
+.hm-icon { font-size: 20px; line-height: 1; }
+.hm-lock { position: absolute; bottom: 2px; right: 3px; font-size: 8px; line-height: 1; }
+.hm-badge {
+  position: absolute; top: 4px; right: 4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #ef4444; color: #fff;
+  font-size: 8px; font-weight: 700;
+  display: -webkit-flex; display: flex;
+  -webkit-align-items: center; align-items: center;
+  -webkit-justify-content: center; justify-content: center;
+}
+/* 파워스톤 CSS 삼각형 */
+.hm-ps-icon {
+  width: 0; height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 16px solid #00ff88;
+  filter: drop-shadow(0 0 4px #00ff88);
+}
+/* ── 중앙 영역 ── */
+#home-center {
+  -webkit-flex: 1; flex: 1;
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  -webkit-align-items: center; align-items: center;
+  gap: 10px; padding: 16px 8px 8px;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+/* 육각형 타워 아이콘 */
+#home-hex-outer {
+  width: 90px; height: 52px; position: relative;
+  filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 24px rgba(0,255,255,0.35));
+}
+#home-hex {
+  width: 90px; height: 52px;
+  border-left: 2px solid #00ffff;
+  border-right: 2px solid #00ffff;
+  position: relative;
+}
+#home-hex::before {
+  content: ''; position: absolute;
+  left: -17px; top: -27px;
+  width: 122px; height: 0;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-bottom: 27px solid #00ffff;
+}
+#home-hex::after {
+  content: ''; position: absolute;
+  left: -17px; bottom: -27px;
+  width: 122px; height: 0;
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  border-top: 27px solid #00ffff;
+}
+#home-game-title {
+  font-family: 'Courier New', monospace;
+  font-size: 24px; font-weight: 700;
+  color: #00ffff; letter-spacing: 4px;
+  text-shadow: 0 0 10px #00ffff, 0 0 24px #00ffff;
+  text-align: center;
+}
+/* 정보 카드 */
+#home-cards {
+  display: -webkit-flex; display: flex;
+  gap: 8px; width: 100%;
+}
+.home-card {
+  -webkit-flex: 1; flex: 1;
+  background: #0a1a2a;
+  border: 1px solid #0a3344;
+  border-radius: 10px;
+  padding: 10px 10px 8px;
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  -webkit-align-items: center; align-items: center;
+  gap: 4px;
+}
+.home-card-label { font-size: 12px; color: #94a3b8; text-align: center; }
+.home-card-value { font-size: 18px; color: #00ffff; font-weight: 700; }
+/* 난이도 카드 */
+#home-diff-row {
+  display: -webkit-flex; display: flex;
+  -webkit-align-items: center; align-items: center;
+  gap: 4px; width: 100%;
+}
+#home-diff-info {
+  -webkit-flex: 1; flex: 1;
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  -webkit-align-items: center; align-items: center;
+  gap: 2px;
+}
+#h-tier { font-size: 16px; color: #ffffff; font-weight: 700; }
+#h-best-wave, #h-coin-mult { font-size: 11px; color: #94a3b8; }
+#h-coin-mult { color: #f59e0b; }
+.home-diff-arrow {
+  background: none; border: none;
+  color: #00ffff; font-size: 16px;
+  cursor: pointer; padding: 4px 6px;
+  font-family: inherit; -webkit-tap-highlight-color: transparent;
+}
+.home-diff-arrow:active { opacity: 0.6; }
+/* 전투 시작 버튼 */
+#btn-start-game {
+  width: 200px; height: 52px;
+  background: #030b10;
+  border: 2px solid #cc44ff;
+  border-radius: 6px;
+  color: #ffffff; font-size: 18px; font-weight: 700;
+  text-shadow: 0 0 10px #cc44ff;
+  box-shadow: 0 0 16px rgba(204,68,255,0.3), inset 0 0 16px rgba(204,68,255,0.05);
+  cursor: pointer; font-family: inherit;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-transition: box-shadow 0.1s; transition: box-shadow 0.1s;
+}
+#btn-start-game:active { box-shadow: 0 0 28px rgba(204,68,255,0.7), inset 0 0 20px rgba(204,68,255,0.15); }
+/* ── 하단 네비게이션 ── */
+#home-nav {
+  height: 56px; flex-shrink: 0;
+  background: #040c14;
+  border-top: 1px solid #0a2233;
+  display: -webkit-flex; display: flex;
+  -webkit-align-items: center; align-items: center;
+  position: relative; z-index: 1;
+}
+.home-nav-btn {
+  -webkit-flex: 1; flex: 1; height: 56px;
+  background: none; border: none;
+  display: -webkit-flex; display: flex;
+  -webkit-flex-direction: column; flex-direction: column;
+  -webkit-align-items: center; align-items: center;
+  -webkit-justify-content: center; justify-content: center;
+  gap: 2px; cursor: pointer; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.home-nav-btn.locked-nav { opacity: 0.30; }
+.home-nav-btn.active::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 20%; right: 20%; height: 2px;
+  background: #00ffff;
+}
+.nav-icon { font-size: 22px; line-height: 1; }
+.nav-label { font-size: 10px; color: #94a3b8; font-weight: 600; }
+.home-nav-btn.active .nav-label { color: #00ffff; }
+
 /* ── Loading screen ── */
 #screen-loading {
   position: fixed;
@@ -888,48 +1099,94 @@ canvas {
 
 <!-- ── 상점 화면 ── -->
 <div id="screen-home" class="overlay-screen">
-  <h2 class="shop-title">⚒ 상 점</h2>
-  <div class="shop-currency">
-    <span>💰 <span id="s-gold">0</span></span>
-    <span>💎 <span id="s-gems">0</span></span>
+
+  <!-- 기존 JS 호환용 숨김 요소 (syncShopUI / buildUnlockUI 참조) -->
+  <div style="display:none" aria-hidden="true">
+    <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">5💰</button>
+    <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">7💰</button>
+    <span id="sl-rng">Lv.0</span><span id="se-rng">기본</span><button id="sb-rng">6💰</button>
+    <span id="sl-hp">Lv.0</span><span id="se-hp">10→15</span><button id="sb-hp">8💰</button>
+    <div id="unlock-section"></div>
+    <p id="shop-flash"></p>
   </div>
-  <div class="shop-items">
-    <div class="shop-item">
-      <div class="si-info">
-        <span class="si-name">⚔ 공격력</span>
-        <span class="si-level" id="sl-dmg">Lv.0</span>
-        <span class="si-effect" id="se-dmg">3 → 4</span>
-      </div>
-      <button class="si-btn" id="sb-dmg">5💰</button>
+
+  <!-- ── 새 홈화면 ── -->
+  <div id="home-root">
+    <div id="home-grid"></div>
+
+    <!-- 상단 HUD -->
+    <div id="home-hud">
+      <div id="home-hud-gold">🪙 <span id="s-gold">0</span></div>
+      <div id="home-hud-gems">💎 <span id="s-gems">0</span></div>
+      <button id="home-hud-arrow" aria-label="화폐 상세">▼</button>
     </div>
-    <div class="shop-item">
-      <div class="si-info">
-        <span class="si-name">⚡ 공격속도</span>
-        <span class="si-level" id="sl-spd">Lv.0</span>
-        <span class="si-effect" id="se-spd">1.0s → 0.8s</span>
+
+    <!-- 메인 (좌 | 중앙 | 우) -->
+    <div id="home-main">
+
+      <!-- 좌측 아이콘 -->
+      <div id="home-left">
+        <div class="hm-icon-wrap locked"><span class="hm-icon">🏆</span><span class="hm-lock">🔒</span></div>
+        <div class="hm-icon-wrap locked"><span class="hm-icon">📅</span><span class="hm-lock">🔒</span></div>
+        <div class="hm-icon-wrap locked"><span class="hm-icon">🏰</span><span class="hm-lock">🔒</span></div>
+        <div class="hm-icon-wrap"><div class="hm-ps-icon"></div></div>
       </div>
-      <button class="si-btn" id="sb-spd">7💰</button>
-    </div>
-    <div class="shop-item">
-      <div class="si-info">
-        <span class="si-name">🎯 공격범위</span>
-        <span class="si-level" id="sl-rng">Lv.0</span>
-        <span class="si-effect" id="se-rng">기본 → +30</span>
+
+      <!-- 중앙 -->
+      <div id="home-center">
+        <!-- 육각형 타워 아이콘 -->
+        <div id="home-hex-outer">
+          <div id="home-hex"></div>
+        </div>
+        <div id="home-game-title">NEON CORE</div>
+
+        <!-- 정보 카드 -->
+        <div id="home-cards">
+          <div class="home-card">
+            <div class="home-card-label">총 코인 보너스</div>
+            <div class="home-card-value" id="h-coin-bonus">x1.00</div>
+          </div>
+          <div class="home-card">
+            <div class="home-card-label">난이도</div>
+            <div id="home-diff-row">
+              <button class="home-diff-arrow" id="h-diff-prev">◀</button>
+              <div id="home-diff-info">
+                <div id="h-tier">티어 1</div>
+                <div id="h-best-wave">최고 웨이브: 0</div>
+                <div id="h-coin-mult">🪙 x1.0</div>
+              </div>
+              <button class="home-diff-arrow" id="h-diff-next">▶</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 전투 시작 버튼 -->
+        <button id="btn-start-game">전투 시작</button>
       </div>
-      <button class="si-btn" id="sb-rng">6💰</button>
-    </div>
-    <div class="shop-item">
-      <div class="si-info">
-        <span class="si-name">❤️ 최대 체력</span>
-        <span class="si-level" id="sl-hp">Lv.0</span>
-        <span class="si-effect" id="se-hp">10 → 15</span>
+
+      <!-- 우측 아이콘 -->
+      <div id="home-right">
+        <div class="hm-icon-wrap" id="h-btn-settings"><span class="hm-icon">⚙️</span></div>
+        <div class="hm-icon-wrap locked"><span class="hm-icon">🏅</span><span class="hm-lock">🔒</span></div>
+        <div class="hm-icon-wrap" style="position:relative">
+          <span class="hm-icon">✉️</span>
+          <span class="hm-badge">1</span>
+        </div>
       </div>
-      <button class="si-btn" id="sb-hp">8💰</button>
+
+    </div><!-- /home-main -->
+
+    <!-- 하단 네비게이션 -->
+    <div id="home-nav">
+      <button class="home-nav-btn active"><span class="nav-icon">⚔️</span><span class="nav-label">전투</span></button>
+      <button class="home-nav-btn"       id="h-nav-workshop"><span class="nav-icon">🔨</span><span class="nav-label">작업장</span></button>
+      <button class="home-nav-btn locked-nav"><span class="nav-icon">🔒</span><span class="nav-label">-</span></button>
+      <button class="home-nav-btn locked-nav"><span class="nav-icon">🔒</span><span class="nav-label">-</span></button>
+      <button class="home-nav-btn locked-nav"><span class="nav-icon">🔒</span><span class="nav-label">-</span></button>
+      <button class="home-nav-btn"       id="h-nav-store"><span class="nav-icon">🛒</span><span class="nav-label">스토어</span></button>
     </div>
-  </div>
-  <div id="unlock-section"></div>
-  <p id="shop-flash">✔ 영구 적용됨!</p>
-  <button class="ov-btn blue" id="btn-start-game">게임 시작</button>
+
+  </div><!-- /home-root -->
 </div>
 
 <script>
@@ -2334,6 +2591,66 @@ document.addEventListener('touchend', function(e) {
 /* ═══════════════════════════════════════════════════════════════
    BOOT  (called from loading screen above)
 ═══════════════════════════════════════════════════════════════ */
+</script>
+
+<!-- ── 홈화면 전용 스크립트 (기존 코드 불변) ── -->
+<script>
+(function() {
+  'use strict';
+
+  /* ── 난이도 티어 설정 ── */
+  var TIERS = [
+    { name: '티어 1', mult: 1.0 },
+    { name: '티어 2', mult: 1.5 },
+    { name: '티어 3', mult: 2.0 },
+    { name: '티어 4', mult: 3.0 },
+    { name: '티어 5', mult: 5.0 },
+  ];
+  var curTier = 0;
+
+  function applyTier() {
+    var t = TIERS[curTier];
+    document.getElementById('h-tier').textContent      = t.name;
+    document.getElementById('h-coin-mult').textContent = '🪙 x' + t.mult.toFixed(1);
+  }
+
+  function refreshHomeData() {
+    /* bestWave: PERM은 기존 script의 전역 변수 */
+    try {
+      document.getElementById('h-best-wave').textContent = '최고 웨이브: ' + (PERM.bestWave || 0);
+    } catch (e) {}
+    applyTier();
+  }
+
+  /* ── 난이도 화살표 ── */
+  document.getElementById('h-diff-prev').addEventListener('click', function() {
+    curTier = (curTier - 1 + TIERS.length) % TIERS.length;
+    applyTier();
+  });
+  document.getElementById('h-diff-next').addEventListener('click', function() {
+    curTier = (curTier + 1) % TIERS.length;
+    applyTier();
+  });
+
+  /* ── 설정 버튼 (기존 설정 화면 연동) ── */
+  var hSet = document.getElementById('h-btn-settings');
+  if (hSet) {
+    hSet.addEventListener('click', function() {
+      try { syncSettingsUI(); } catch(e) {}
+      document.getElementById('settings-screen').classList.add('show');
+    });
+  }
+
+  /* ── screen-home 가시성 감지 → 데이터 갱신 ── */
+  var homeEl = document.getElementById('screen-home');
+  var obs = new MutationObserver(function() {
+    if (homeEl.style.display && homeEl.style.display !== 'none') {
+      refreshHomeData();
+    }
+  });
+  obs.observe(homeEl, { attributes: true, attributeFilter: ['style'] });
+
+}());
 </script>
 </body>
 </html>
