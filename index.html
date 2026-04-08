@@ -1026,26 +1026,29 @@ canvas {
 }
 .back-btn:active { background: #0d2030; }
 
-/* Tooltip for locked nav */
-.locked-nav { position: relative; }
-.locked-nav .tooltip {
-  display: none;
-  position: absolute;
-  bottom: 100%;
+/* Nav lock tooltip popup */
+.nav-lock-tooltip {
+  position: fixed;
+  bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
   background: #0a1a2a;
   border: 1px solid #00ffff;
   color: #00ffff;
-  font-size: 10px;
   font-family: 'Courier New', monospace;
-  padding: 4px 8px;
+  font-size: 11px;
+  padding: 6px 14px;
   white-space: nowrap;
-  z-index: 999;
+  z-index: 9999;
   pointer-events: none;
+  animation: fadeInOut 1.5s ease forwards;
 }
-.locked-nav:hover .tooltip,
-.locked-nav.show-tooltip .tooltip { display: block; }
+@keyframes fadeInOut {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
 </style>
 </head>
 <body>
@@ -1161,6 +1164,7 @@ canvas {
     <div class="go-reward-row go-reward-gold" id="r-gold-row">◈ 획득 골드: <span id="r-gold">0</span></div>
     <div class="go-reward-row go-reward-gem" id="r-gem-row" style="display:none">◆ 획득 보석: <span id="r-gems">0</span></div>
     <div class="go-reward-row go-reward-ach" id="r-ach-row" style="display:none"></div>
+    <div id="r-unlock-row" style="display:none; font-size:12px; color:#00ffff; font-family:'Courier New',monospace; margin-top:4px;"></div>
   </div>
   <div class="go-btn-row">
     <button class="go-btn" id="btn-retry">재시도</button>
@@ -1233,9 +1237,9 @@ canvas {
   <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);">
     <button class="nav-btn active" data-screen="home" style="flex:1; height:52px; background:none; border:none; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer; border-bottom:2px solid #00ffff;"><span style="font-size:16px; color:#00ffff;">X</span><br>전투</button>
     <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
-    <button class="nav-btn locked-nav" data-tooltip="토너먼트 (웨이브 15 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">토너먼트</span></button>
-    <button class="nav-btn locked-nav" data-tooltip="길드 (웨이브 30 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">길드</span></button>
-    <button class="nav-btn locked-nav" data-tooltip="시즌 (웨이브 50 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">시즌</span></button>
+    <button class="nav-btn" id="h-nav-tournament" data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button class="nav-btn" id="h-nav-guild" data-navlock="guild" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">길드</span></button>
+    <button class="nav-btn" id="h-nav-season" data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
     <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 
@@ -1267,9 +1271,9 @@ canvas {
   <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
     <button id="ws-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◈</span><br>강화</button>
-    <button class="locked-nav" data-tooltip="토너먼트 (웨이브 15 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">토너먼트</span></button>
-    <button class="locked-nav" data-tooltip="길드 (웨이브 30 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">길드</span></button>
-    <button class="locked-nav" data-tooltip="시즌 (웨이브 50 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">시즌</span></button>
+    <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button data-navlock="guild" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">길드</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
     <button id="ws-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 
@@ -1295,9 +1299,9 @@ canvas {
   <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);">
     <button id="st-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
     <button id="st-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
-    <button class="locked-nav" data-tooltip="토너먼트 (웨이브 15 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">토너먼트</span></button>
-    <button class="locked-nav" data-tooltip="길드 (웨이브 30 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">길드</span></button>
-    <button class="locked-nav" data-tooltip="시즌 (웨이브 50 달성 시 해금)" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;"><span style="font-size:14px; color:#1a2a3a;">▣</span><br><span style="font-size:8px; color:#1a2a3a;">시즌</span></button>
+    <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button data-navlock="guild" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">길드</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◉</span><br>스토어</button>
   </div>
 </div>
@@ -2174,6 +2178,17 @@ function triggerGameOver() {
     achRow.style.display = 'none';
   }
 
+  // Nav unlock notification
+  checkNavUnlocks();
+  var unlockRow = document.getElementById('r-unlock-row');
+  var newUnlocks = getNewUnlocks();
+  if (newUnlocks.length > 0) {
+    unlockRow.innerHTML = newUnlocks.map(function(l) { return '■ [' + l + '] 해금됨!'; }).join('<br>');
+    unlockRow.style.display = '';
+  } else {
+    unlockRow.style.display = 'none';
+  }
+
   document.getElementById('results-screen').classList.add('show');
 }
 
@@ -2882,6 +2897,7 @@ function openShop() {
   home.style.display = 'flex';
   buildUnlockUI();
   syncShopUI();
+  checkNavUnlocks();
 }
 
 function syncShopUI() {
@@ -3147,27 +3163,87 @@ document.addEventListener('touchend', function(e) {
    BOOT  (called from loading screen above)
 ═══════════════════════════════════════════════════════════════ */
 
-// Locked nav tooltips (long press for mobile)
+// Nav lock system
+var navLockConditions = {
+  tournament: { label: '토너먼트', wave: 15, tooltip: '웨이브 15 달성 시 해금' },
+  guild:      { label: '길드',     wave: 30, tooltip: '웨이브 30 달성 시 해금' },
+  season:     { label: '시즌',     wave: 50, tooltip: '웨이브 50 달성 시 해금' },
+};
+
+function showNavLockTooltip(text) {
+  var existing = document.querySelector('.nav-lock-tooltip');
+  if (existing) existing.remove();
+  var tip = document.createElement('div');
+  tip.className = 'nav-lock-tooltip';
+  tip.textContent = text;
+  document.body.appendChild(tip);
+  setTimeout(function() { if (tip.parentNode) tip.remove(); }, 1500);
+}
+
+function checkNavUnlocks() {
+  var best = PERM.bestWave || 0;
+  var allBtns = document.querySelectorAll('[data-navlock]');
+  for (var i = 0; i < allBtns.length; i++) {
+    var btn = allBtns[i];
+    var key = btn.getAttribute('data-navlock');
+    var cfg = navLockConditions[key];
+    if (!cfg) continue;
+    if (best >= cfg.wave) {
+      btn.setAttribute('data-locked', 'false');
+      btn.style.color = '#00ffff';
+      var spans = btn.querySelectorAll('span');
+      for (var s = 0; s < spans.length; s++) spans[s].style.color = '#00ffff';
+    } else {
+      btn.setAttribute('data-locked', 'true');
+      btn.style.color = '#1a2a3a';
+      var spans2 = btn.querySelectorAll('span');
+      for (var s2 = 0; s2 < spans2.length; s2++) spans2[s2].style.color = '#1a2a3a';
+    }
+  }
+}
+
+function getNewUnlocks() {
+  var best = PERM.bestWave || 0;
+  var unlocked = [];
+  try {
+    var saved = JSON.parse(localStorage.getItem('td_nav_unlocked') || '{}');
+    for (var key in navLockConditions) {
+      if (best >= navLockConditions[key].wave && !saved[key]) {
+        saved[key] = true;
+        unlocked.push(navLockConditions[key].label);
+      }
+    }
+    localStorage.setItem('td_nav_unlocked', JSON.stringify(saved));
+  } catch(e) {}
+  return unlocked;
+}
+
+// Bind click on all nav-lock buttons
 (function() {
-  var lockedBtns = document.querySelectorAll('.locked-nav');
-  for (var i = 0; i < lockedBtns.length; i++) {
+  var allBtns = document.querySelectorAll('[data-navlock]');
+  for (var i = 0; i < allBtns.length; i++) {
     (function(btn) {
-      var tip = document.createElement('span');
-      tip.className = 'tooltip';
-      tip.textContent = btn.getAttribute('data-tooltip') || '';
-      btn.appendChild(tip);
-      var timer = null;
-      btn.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        timer = setTimeout(function() { btn.classList.add('show-tooltip'); }, 500);
-      }, { passive: false });
-      btn.addEventListener('touchend', function() {
-        clearTimeout(timer);
-        setTimeout(function() { btn.classList.remove('show-tooltip'); }, 1500);
+      btn.addEventListener('click', function() {
+        if (btn.getAttribute('data-locked') === 'true') {
+          var key = btn.getAttribute('data-navlock');
+          var cfg = navLockConditions[key];
+          if (cfg) showNavLockTooltip(cfg.tooltip);
+        }
       });
-    })(lockedBtns[i]);
+      btn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (btn.getAttribute('data-locked') === 'true') {
+          var key = btn.getAttribute('data-navlock');
+          var cfg = navLockConditions[key];
+          if (cfg) showNavLockTooltip(cfg.tooltip);
+        }
+      });
+    })(allBtns[i]);
   }
 }());
+
+// Initial unlock check
+checkNavUnlocks();
 
 </script>
 
