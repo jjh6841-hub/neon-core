@@ -19,6 +19,15 @@
   --accent-red:    #ef4444;
   --text-primary:  #f1f5f9;
   --text-secondary:#94a3b8;
+  --laser-bg: #030b10;
+  --laser-primary: #00ffff;
+  --laser-secondary: #0099bb;
+  --laser-dark: #0a1a2a;
+  --laser-border: #0a3344;
+  --laser-gold: #f59e0b;
+  --laser-purple: #cc44ff;
+  --laser-red: #ef4444;
+  --laser-green: #00ff88;
 }
 *, *::before, *::after {
   margin: 0; padding: 0;
@@ -27,6 +36,7 @@
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  font-family: 'Courier New', monospace !important;
 }
 html {
   height: 100%;
@@ -99,42 +109,93 @@ canvas {
 #results-screen {
   -webkit-justify-content: center;
   justify-content: center;
-  gap: 20px;
+  gap: 0;
+  background: rgba(3,11,16,0.97);
 }
-#results-screen h1 {
-  font-size: clamp(36px, 10vw, 56px);
+#go-title {
+  font-family: 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: 700;
   color: #ef4444;
-  text-shadow: 0 0 20px #ef4444, 0 0 50px #dc2626;
-  font-weight: 900;
-  letter-spacing: 3px;
+  text-shadow: 0 0 10px #ef4444, 0 0 30px #ef4444;
+  letter-spacing: 4px;
   text-align: center;
+  margin-bottom: 16px;
 }
-.result-stats {
+.go-stats {
   width: 100%;
-  max-width: 320px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 6px 0;
+  max-width: 300px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
 }
-.stat-row {
+.go-stat-card {
+  background: #060f18;
+  border: 1px solid #0a2233;
+  padding: 10px 14px;
   display: -webkit-flex;
   display: flex;
   -webkit-justify-content: space-between;
   justify-content: space-between;
   -webkit-align-items: center;
   align-items: center;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
-  font-size: clamp(14px, 4vw, 17px);
-  color: var(--text-secondary);
 }
-.stat-row:last-child { border-bottom: none; }
-.stat-val {
+.go-stat-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: 'Courier New', monospace;
+}
+.go-stat-val {
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text-primary);
-  font-size: clamp(16px, 4.5vw, 20px);
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
 }
+.go-reward-section {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 20px;
+}
+.go-reward-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  font-family: 'Courier New', monospace;
+}
+.go-reward-row {
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.go-reward-gold { color: #f59e0b; }
+.go-reward-gem  { color: #00ffff; }
+.go-reward-ach  { color: #a78bfa; font-size: 12px; line-height: 1.6; }
+.go-btn-row {
+  display: -webkit-flex;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+}
+.go-btn {
+  -webkit-flex: 1;
+  flex: 1;
+  height: 44px;
+  background: #030b10;
+  border: 1px solid #00ffff;
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+.go-btn:active { background: #001a22; }
+.go-btn-home { border-color: #cc44ff; }
 
 /* ── Home screen (홈/상점) ── */
 #screen-home {
@@ -355,16 +416,16 @@ canvas {
   gap: 6px;
   width: -webkit-max-content;
   width: max-content;
-  min-height: 78px;
+  min-height: 66px;
 }
 
 /* ── Upgrade card — corner-bracket style ── */
 .upg-card {
   /* size */
-  width: 72px !important;
-  height: 72px !important;
-  min-width: 72px !important;
-  max-width: 72px !important;
+  width: 60px !important;
+  height: 60px !important;
+  min-width: 60px !important;
+  max-width: 60px !important;
   box-sizing: border-box !important;
   padding: 4px 5px !important;
   /* appearance */
@@ -380,10 +441,10 @@ canvas {
     linear-gradient(var(--cc), var(--cc)),
     linear-gradient(var(--cc), var(--cc)) !important;
   background-size:
-    8px 1px, 1px 8px,
-    8px 1px, 1px 8px,
-    8px 1px, 1px 8px,
-    8px 1px, 1px 8px !important;
+    6px 1px, 1px 6px,
+    6px 1px, 1px 6px,
+    6px 1px, 1px 6px,
+    6px 1px, 1px 6px !important;
   background-position:
     0 0,   0 0,
     100% 0,   100% 0,
@@ -417,6 +478,10 @@ canvas {
   --cc: rgba(239,68,68,1);
   opacity: 1 !important;
 }
+.upg-card.is-max {
+  --cc: rgba(204,68,255,0.8);
+  opacity: 1 !important;
+}
 
 /* 아이콘 숨김 */
 .card-icon { display: none !important; }
@@ -436,7 +501,7 @@ canvas {
 }
 /* 수치 */
 .card-stat {
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   color: #00ffff;
   text-align: center;
@@ -466,8 +531,8 @@ canvas {
 
 /* 호환 클래스 */
 .upgrade-btn {
-  width: 72px !important;
-  height: 72px !important;
+  width: 60px !important;
+  height: 60px !important;
   font-size: 9px !important;
 }
 
@@ -826,7 +891,7 @@ canvas {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(10,14,26,0.97);
+  background: rgba(3,11,16,0.95);
   -webkit-flex-direction: column;
   flex-direction: column;
   -webkit-align-items: center;
@@ -835,60 +900,152 @@ canvas {
   justify-content: flex-start;
   z-index: 250;
   padding: 40px 20px 20px;
-  gap: 12px;
+  gap: 0;
 }
 #settings-screen.show { display: -webkit-flex; display: flex; }
 .settings-title {
-  font-size: 22px;
-  font-weight: 900;
-  color: #f0f9ff;
-  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #00ffff;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.settings-card {
+  width: 100%;
+  max-width: 320px;
+  --cc: rgba(0,255,255,0.5);
+  background-color: #0a1a2a;
+  background-image:
+    linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)),
+    linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)),
+    linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc)),
+    linear-gradient(var(--cc), var(--cc)), linear-gradient(var(--cc), var(--cc));
+  background-size:
+    10px 1px, 1px 10px, 10px 1px, 1px 10px,
+    10px 1px, 1px 10px, 10px 1px, 1px 10px;
+  background-position:
+    0 0, 0 0, 100% 0, 100% 0,
+    0 100%, 0 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  padding: 12px 0;
+  margin-bottom: 16px;
 }
 .setting-row {
   width: 100%;
-  max-width: 320px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   display: -webkit-flex;
   display: flex;
   -webkit-justify-content: space-between;
   justify-content: space-between;
   -webkit-align-items: center;
   align-items: center;
+  border-bottom: 1px solid #0a3344;
 }
-.setting-label { font-size: 15px; color: var(--text-primary); }
-.toggle-btn {
-  width: 52px;
-  height: 28px;
-  border-radius: 14px;
-  border: none;
+.setting-row:last-child { border-bottom: none; }
+.setting-label {
+  font-size: 14px;
+  color: #f1f5f9;
+  font-family: 'Courier New', monospace;
+}
+.toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: #0a3344;
+  position: relative;
   cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: inherit;
   -webkit-appearance: none;
-  -webkit-transition: background 0.15s;
-  transition: background 0.15s;
+  border: none;
+  -webkit-transition: background 0.2s;
+  transition: background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
 }
-.toggle-btn.on  { background: var(--accent-green); color: #fff; }
-.toggle-btn.off { background: #334155; color: var(--text-secondary); }
+.toggle-track.on { background: #00ffff; }
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  -webkit-transition: left 0.2s;
+  transition: left 0.2s;
+  pointer-events: none;
+}
+.toggle-track.on .toggle-knob { left: 22px; }
+.settings-btn-row {
+  width: 100%;
+  max-width: 320px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-back-btn {
+  background: #0a1a2a;
+  border: 1px solid #0a3344;
+  color: #94a3b8;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  -webkit-appearance: none;
+  text-align: center;
+}
+.settings-back-btn:active { background: #0d2030; }
+.settings-reset-btn {
+  background: #030b10;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  -webkit-appearance: none;
+  text-align: center;
+}
+.settings-reset-btn:active { background: #1a0505; }
 .back-btn {
   margin-top: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  border: none;
-  border-radius: 10px;
+  background: #0a1a2a;
+  border: 1px solid #0a3344;
+  color: #94a3b8;
+  border-radius: 0;
   padding: 12px 28px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
+  font-family: 'Courier New', monospace;
   -webkit-appearance: none;
 }
-.back-btn:active { filter: brightness(1.2); }
+.back-btn:active { background: #0d2030; }
+
+/* Tooltip for locked nav */
+.locked-nav { position: relative; }
+.locked-nav .tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0a1a2a;
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  padding: 4px 8px;
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+}
+.locked-nav:hover .tooltip,
+.locked-nav.show-tooltip .tooltip { display: block; }
 </style>
 </head>
 <body>
@@ -929,37 +1086,46 @@ canvas {
 
 <!-- ── 일시정지 메뉴 ── -->
 <div id="pause-screen">
-  <div class="pause-title">⏸ 일시정지</div>
+  <div class="pause-title">|| 일시정지</div>
   <button class="pause-btn green" id="btn-resume">▶ 계속하기</button>
-  <button class="pause-btn" id="btn-restart">🔄 다시하기</button>
-  <button class="pause-btn" id="btn-home">🏠 홈화면으로</button>
-  <button class="pause-btn" id="btn-achieve">🏆 업적</button>
-  <button class="pause-btn" id="btn-settings">⚙️ 설정</button>
+  <button class="pause-btn" id="btn-restart">:: 다시하기</button>
+  <button class="pause-btn" id="btn-home">[] 홈화면으로</button>
+  <button class="pause-btn" id="btn-achieve">★ 업적</button>
+  <button class="pause-btn" id="btn-settings">설정</button>
 </div>
 
 <!-- ── 업적 화면 ── -->
 <div id="achieve-screen">
-  <div class="achieve-title">🏆 업적</div>
+  <div class="achieve-title">★ 업적</div>
   <div id="ach-list"></div>
   <button class="back-btn" id="btn-achieve-back">← 뒤로</button>
 </div>
 
 <!-- ── 설정 화면 ── -->
 <div id="settings-screen">
-  <div class="settings-title">⚙️ 설정</div>
-  <div class="setting-row">
-    <span class="setting-label">🔊 효과음</span>
-    <button class="toggle-btn on" id="tog-sound">ON</button>
+  <div class="settings-title">설정 SETTINGS</div>
+  <div class="settings-card">
+    <div class="setting-row">
+      <span class="setting-label">SFX 효과음</span>
+      <button class="toggle-track on" id="tog-sound"><span class="toggle-knob"></span></button>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">BGM 배경음악</span>
+      <button class="toggle-track on" id="tog-music"><span class="toggle-knob"></span></button>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">VIB 진동</span>
+      <button class="toggle-track on" id="tog-vibration"><span class="toggle-knob"></span></button>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">LNG 언어</span>
+      <button class="toggle-track" id="tog-lang"><span class="toggle-knob"></span></button>
+    </div>
   </div>
-  <div class="setting-row">
-    <span class="setting-label">🎵 배경음악</span>
-    <button class="toggle-btn on" id="tog-music">ON</button>
+  <div class="settings-btn-row">
+    <button class="settings-back-btn" id="btn-settings-back">← 뒤로</button>
+    <button class="settings-reset-btn" id="btn-data-reset">데이터 초기화</button>
   </div>
-  <div class="setting-row">
-    <span class="setting-label">📳 진동</span>
-    <button class="toggle-btn on" id="tog-vibration">ON</button>
-  </div>
-  <button class="back-btn" id="btn-settings-back">← 뒤로</button>
 </div>
 
 <!-- ── 확인 팝업 ── -->
@@ -975,13 +1141,31 @@ canvas {
 
 <!-- ── 결과 화면 ── -->
 <div id="results-screen" class="overlay-screen">
-  <h1>GAME OVER</h1>
-  <div class="result-stats">
-    <div class="stat-row"><span>생존 웨이브</span><span class="stat-val" id="r-wave">-</span></div>
-    <div class="stat-row"><span>처치한 적</span><span class="stat-val" id="r-kills">-</span></div>
-    <div class="stat-row"><span>획득 골드</span><span class="stat-val" id="r-gold">-</span></div>
+  <div id="go-title">GAME OVER</div>
+  <div class="go-stats">
+    <div class="go-stat-card">
+      <span class="go-stat-label">생존 웨이브</span>
+      <span class="go-stat-val" id="r-wave">-</span>
+    </div>
+    <div class="go-stat-card">
+      <span class="go-stat-label">처치한 적</span>
+      <span class="go-stat-val" id="r-kills">-</span>
+    </div>
+    <div class="go-stat-card">
+      <span class="go-stat-label">최고 기록</span>
+      <span class="go-stat-val" id="r-best">-</span>
+    </div>
   </div>
-  <button class="ov-btn" id="btn-to-shop">상점으로 이동</button>
+  <div class="go-reward-section">
+    <div class="go-reward-label">획득 보상</div>
+    <div class="go-reward-row go-reward-gold" id="r-gold-row">◈ 획득 골드: <span id="r-gold">0</span></div>
+    <div class="go-reward-row go-reward-gem" id="r-gem-row" style="display:none">◆ 획득 보석: <span id="r-gems">0</span></div>
+    <div class="go-reward-row go-reward-ach" id="r-ach-row" style="display:none"></div>
+  </div>
+  <div class="go-btn-row">
+    <button class="go-btn" id="btn-retry">재시도</button>
+    <button class="go-btn go-btn-home" id="btn-go-home">홈</button>
+  </div>
 </div>
 
 <!-- ── 홈화면 ── -->
@@ -989,18 +1173,18 @@ canvas {
 
   <!-- JS 호환용 숨김 요소 (syncShopUI / buildUnlockUI 참조) -->
   <div style="display:none" aria-hidden="true">
-    <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">5💰</button>
-    <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">7💰</button>
-    <span id="sl-rng">Lv.0</span><span id="se-rng">기본</span><button id="sb-rng">6💰</button>
-    <span id="sl-hp">Lv.0</span><span id="se-hp">10→15</span><button id="sb-hp">8💰</button>
+    <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">5◈</button>
+    <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">7◈</button>
+    <span id="sl-rng">Lv.0</span><span id="se-rng">기본</span><button id="sb-rng">6◈</button>
+    <span id="sl-hp">Lv.0</span><span id="se-hp">10→15</span><button id="sb-hp">8◈</button>
     <div id="unlock-section"></div>
     <p id="shop-flash"></p>
   </div>
 
   <!-- 상단 HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0;">
-    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">🪙 <span id="home-gold">0</span></span>
-    <span style="color:#00ffff; font-size:13px; font-family:monospace;">💎 <span id="home-gem">0</span></span>
+    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="home-gold">0</span></span>
+    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="home-gem">0</span></span>
     <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
   </div>
 
@@ -1033,7 +1217,7 @@ canvas {
           <button id="tier-next" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:8px 14px; min-width:44px; min-height:44px;">▶</button>
         </div>
         <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
-        <div style="color:#f59e0b; font-size:10px; font-family:monospace; white-space:nowrap;">🪙 x<span id="tier-multiplier">1.0</span></div>
+        <div style="color:#f59e0b; font-size:10px; font-family:monospace; white-space:nowrap;">◈ x<span id="tier-multiplier">1.0</span></div>
       </div>
 
     </div>
@@ -1047,33 +1231,33 @@ canvas {
 
   <!-- 하단 네비게이션 -->
   <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);">
-    <button class="nav-btn active" data-screen="home" style="flex:1; height:52px; background:none; border:none; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer; border-bottom:2px solid #00ffff;">⚔️<br>전투</button>
-    <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">🔨<br>작업장</button>
-    <button class="nav-btn" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
-    <button class="nav-btn" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
-    <button class="nav-btn" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
-    <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">🛒<br>스토어</button>
+    <button class="nav-btn active" data-screen="home" style="flex:1; height:52px; background:none; border:none; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer; border-bottom:2px solid #00ffff;">//<br>전투</button>
+    <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">◈<br>강화</button>
+    <button class="nav-btn locked-nav" data-tooltip="웨이브 15 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="nav-btn locked-nav" data-tooltip="웨이브 30 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="nav-btn locked-nav" data-tooltip="웨이브 50 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">◈<br>스토어</button>
   </div>
 
 </div>
 
-<!-- ── 작업장 화면 ── -->
+<!-- ── 강화 화면 ── -->
 <div id="screen-workshop" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
 
   <!-- 상단 HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">🪙 <span id="ws-gold">0</span></span>
-    <span style="color:#00ffff; font-size:13px; font-family:monospace;">💎 <span id="ws-gem">0</span></span>
+    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="ws-gold">0</span></span>
+    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="ws-gem">0</span></span>
     <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">작업장</div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">강화</div>
 
   <!-- 카테고리 탭 -->
   <div id="ws-tab-bar" style="display:flex; height:36px; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
-    <button class="ws-tab" data-tab="atk" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">⚔️ 공격</button>
-    <button class="ws-tab" data-tab="def" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">🛡️ 방어</button>
-    <button class="ws-tab" data-tab="spc" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">⭐ 특수</button>
-    <button class="ws-tab" data-tab="pwr" disabled style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#1a2a3a; font-size:11px; font-family:'Courier New',monospace; cursor:default; opacity:0.35;">🔺 파워</button>
+    <button class="ws-tab" data-tab="atk" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">/ 공격</button>
+    <button class="ws-tab" data-tab="def" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">□ 방어</button>
+    <button class="ws-tab" data-tab="spc" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">* 특수</button>
+    <button class="ws-tab" data-tab="pwr" disabled style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#1a2a3a; font-size:11px; font-family:'Courier New',monospace; cursor:default; opacity:0.35;">▲ 파워</button>
   </div>
 
   <!-- 업그레이드 목록 -->
@@ -1081,14 +1265,32 @@ canvas {
 
   <!-- 하단 네비게이션 -->
   <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
-    <button id="ws-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">⚔️<br>전투</button>
-    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;">🔨<br>작업장</button>
-    <button style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
-    <button style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
-    <button style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; cursor:pointer;">🔒</button>
-    <button style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">🛒<br>스토어</button>
+    <button id="ws-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">//<br>전투</button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;">◈<br>강화</button>
+    <button class="locked-nav" data-tooltip="웨이브 15 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="locked-nav" data-tooltip="웨이브 30 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="locked-nav" data-tooltip="웨이브 50 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button id="ws-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">◈<br>스토어</button>
   </div>
 
+</div>
+
+<!-- ── 스토어 화면 ── -->
+<div id="screen-store" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="store-gold">0</span></span>
+    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="store-gem">0</span></span>
+  </div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">STORE</div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; color:#334455; font-family:monospace; font-size:12px;">준비 중...</div>
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);">
+    <button id="st-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">//<br>전투</button>
+    <button id="st-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;">◈<br>강화</button>
+    <button class="locked-nav" data-tooltip="웨이브 15 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="locked-nav" data-tooltip="웨이브 30 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button class="locked-nav" data-tooltip="웨이브 50 달성 시 해금" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer; position:relative;">■</button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;">◈<br>스토어</button>
+  </div>
 </div>
 
 <script>
@@ -1148,15 +1350,19 @@ function savePerm() {
 }
 
 /* ── 상점 아이템 정의 ── */
+function getUpgradeCost(baseCost, currentLevel) {
+  return Math.floor(baseCost * Math.pow(1.4, currentLevel));
+}
+
 const SHOP_ITEMS = {
   dmg: {
-    cost: 5,  maxLv: 99,
-    name: '⚔ 공격력',
+    baseCost: 5,  maxLv: 99,
+    name: '/ 공격력',
     effect: () => (3 + PERM.dmgLv) + ' → ' + (3 + PERM.dmgLv + 1),
   },
   spd: {
-    cost: 7,  maxLv: 4,
-    name: '⚡ 공격속도',
+    baseCost: 7,  maxLv: 4,
+    name: '// 공격속도',
     effect: () => {
       const cur  = (Math.max(200, 1000 - PERM.spdLv * 40) / 1000).toFixed(2);
       const next = (Math.max(200, 1000 - (PERM.spdLv + 1) * 40) / 1000).toFixed(2);
@@ -1164,123 +1370,142 @@ const SHOP_ITEMS = {
     },
   },
   rng: {
-    cost: 6,  maxLv: 99,
-    name: '🎯 공격범위',
+    baseCost: 6,  maxLv: 99,
+    name: '(+) 공격범위',
     effect: () => 'Lv.' + PERM.rngLv + ' → Lv.' + (PERM.rngLv + 1),
   },
   hp: {
-    cost: 8,  maxLv: 99,
-    name: '❤️ 최대 체력',
+    baseCost: 8,  maxLv: 99,
+    name: '+ 최대 체력',
     effect: () => (10 + PERM.hpLv * 2) + ' → ' + (10 + (PERM.hpLv + 1) * 2),
   },
 };
 
 /* ── 인게임 업그레이드 정의 (임시) ── */
+function upgCost(key, base) {
+  if (!G) return base;
+  return getUpgradeCost(base, G.upgLvl[key] || 0);
+}
 const UPGRADES = [
   // ─ 공격 탭 ─
-  { key:'dmg',     tab:'atk', icon:'⚔️',  name:'공격력',   cost:5,  unlock:null,
+  { key:'dmg',     tab:'atk', icon:'/',  name:'공격력',   baseCost:5,  unlock:null,
+    cost()   { return upgCost('dmg',5); },
     stat()   { return '피해 '+G.tower.dmg; },
-    canBuy() { return G.gold>=5; },
-    apply()  { G.gold-=5; G.tower.dmg++; },
+    canBuy() { return G.gold>=upgCost('dmg',5); },
+    apply()  { var c=upgCost('dmg',5); G.gold-=c; G.upgLvl.dmg=(G.upgLvl.dmg||0)+1; G.tower.dmg++; },
   },
-  { key:'spd',     tab:'atk', icon:'⚡',  name:'공격속도',  cost:7,  unlock:null,
+  { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null,
+    cost()   { return upgCost('spd',7); },
     stat()   { return (G.tower.atkMs/1000).toFixed(2)+'s'; },
-    canBuy() { return G.gold>=7 && G.tower.atkMs>200; },
-    apply()  { G.gold-=7; G.tower.atkMs=Math.max(200,G.tower.atkMs-100); },
+    canBuy() { return G.gold>=upgCost('spd',7) && G.tower.atkMs>200; },
+    apply()  { var c=upgCost('spd',7); G.gold-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; G.tower.atkMs=Math.max(200,G.tower.atkMs-100); },
   },
-  { key:'rng',     tab:'atk', icon:'🎯',  name:'범위',     cost:6,  unlock:null,
+  { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:null,
+    cost()   { return upgCost('rng',6); },
     stat()   { return 'Lv.'+G.rangeLevel; },
-    canBuy() { return G.gold>=6; },
-    apply()  { G.gold-=6; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
+    canBuy() { return G.gold>=upgCost('rng',6); },
+    apply()  { var c=upgCost('rng',6); G.gold-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
   },
-  { key:'crit',    tab:'atk', icon:'💥',  name:'치명타',   cost:8,  unlock:'crit',
+  { key:'crit',    tab:'atk', icon:'!',  name:'치명타',   baseCost:8,  unlock:'crit',
+    cost()   { return upgCost('crit',8); },
     stat()   { return Math.round(G.critChance*100)+'%'; },
-    canBuy() { return G.gold>=8; },
-    apply()  { G.gold-=8; G.critChance=Math.min(0.9,G.critChance+0.08); },
+    canBuy() { return G.gold>=upgCost('crit',8); },
+    apply()  { var c=upgCost('crit',8); G.gold-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.08); },
   },
-  { key:'multi',   tab:'atk', icon:'🔱',  name:'다발',     cost:10, unlock:'multi',
+  { key:'multi',   tab:'atk', icon:'+',  name:'다발',     baseCost:10, unlock:'multi',
+    cost()   { return upgCost('multi',10); },
     stat()   { return G.multiShot+'발'; },
-    canBuy() { return G.gold>=10; },
-    apply()  { G.gold-=10; G.multiShot++; },
+    canBuy() { return G.gold>=upgCost('multi',10); },
+    apply()  { var c=upgCost('multi',10); G.gold-=c; G.upgLvl.multi=(G.upgLvl.multi||0)+1; G.multiShot++; },
   },
-  { key:'pierce',  tab:'atk', icon:'🏹',  name:'관통',     cost:10, unlock:'pierce',
+  { key:'pierce',  tab:'atk', icon:'>',  name:'관통',     baseCost:10, unlock:'pierce',
+    cost()   { return upgCost('pierce',10); },
     stat()   { return G.pierce+'관'; },
-    canBuy() { return G.gold>=10; },
-    apply()  { G.gold-=10; G.pierce++; },
+    canBuy() { return G.gold>=upgCost('pierce',10); },
+    apply()  { var c=upgCost('pierce',10); G.gold-=c; G.upgLvl.pierce=(G.upgLvl.pierce||0)+1; G.pierce++; },
   },
   // ─ 방어 탭 ─
-  { key:'heal',    tab:'def', icon:'❤️',  name:'회복',     cost:8,  unlock:null,
+  { key:'heal',    tab:'def', icon:'+',  name:'회복',     baseCost:8,  unlock:null,
+    cost()   { return upgCost('heal',8); },
     stat()   { return G.tower.hp+'/'+G.tower.maxHp; },
-    canBuy() { return G.gold>=8 && G.tower.hp<G.tower.maxHp; },
-    apply()  { G.gold-=8; G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.ceil(G.tower.maxHp*0.4)); },
+    canBuy() { return G.gold>=upgCost('heal',8) && G.tower.hp<G.tower.maxHp; },
+    apply()  { var c=upgCost('heal',8); G.gold-=c; G.upgLvl.heal=(G.upgLvl.heal||0)+1; G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.ceil(G.tower.maxHp*0.4)); },
   },
-  { key:'maxhp',   tab:'def', icon:'💪',  name:'최대체력',  cost:9,  unlock:null,
+  { key:'maxhp',   tab:'def', icon:'+',  name:'최대체력',  baseCost:7,  unlock:null,
+    cost()   { return upgCost('maxhp',7); },
     stat()   { return '최대 '+G.tower.maxHp; },
-    canBuy() { return G.gold>=9; },
-    apply()  { G.gold-=9; G.tower.maxHp+=3; G.tower.hp+=3; },
+    canBuy() { return G.gold>=upgCost('maxhp',7); },
+    apply()  { var c=upgCost('maxhp',7); G.gold-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; G.tower.maxHp+=3; G.tower.hp+=3; },
   },
-  { key:'armor',   tab:'def', icon:'🛡️',  name:'방어구',   cost:7,  unlock:null,
+  { key:'armor',   tab:'def', icon:'[]',  name:'방어구',   baseCost:6,  unlock:null,
+    cost()   { return upgCost('armor',6); },
     stat()   { return G.armor+'중첩'; },
-    canBuy() { return G.gold>=7; },
-    apply()  { G.gold-=7; G.armor++; },
+    canBuy() { return G.gold>=upgCost('armor',6); },
+    apply()  { var c=upgCost('armor',6); G.gold-=c; G.upgLvl.armor=(G.upgLvl.armor||0)+1; G.armor++; },
   },
-  { key:'vamp',    tab:'def', icon:'🩸',  name:'흡혈',     cost:9,  unlock:'vamp',
+  { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp',
+    cost()   { return upgCost('vamp',9); },
     stat()   { return G.lifeSteal+'/킬'; },
-    canBuy() { return G.gold>=9; },
-    apply()  { G.gold-=9; G.lifeSteal++; },
+    canBuy() { return G.gold>=upgCost('vamp',9); },
+    apply()  { var c=upgCost('vamp',9); G.gold-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal++; },
   },
-  { key:'regen',   tab:'def', icon:'🌿',  name:'재생',     cost:11, unlock:'regen',
+  { key:'regen',   tab:'def', icon:'~',  name:'재생',     baseCost:11, unlock:'regen',
+    cost()   { return upgCost('regen',11); },
     stat()   { return G.regenRate+'/s'; },
-    canBuy() { return G.gold>=11; },
-    apply()  { G.gold-=11; G.regenRate++; },
+    canBuy() { return G.gold>=upgCost('regen',11); },
+    apply()  { var c=upgCost('regen',11); G.gold-=c; G.upgLvl.regen=(G.upgLvl.regen||0)+1; G.regenRate++; },
   },
   // ─ 특수 탭 ─
-  { key:'explode', tab:'spc', icon:'💣',  name:'폭발',     cost:15, unlock:'explode',
+  { key:'explode', tab:'spc', icon:'*',  name:'폭발',     baseCost:15, unlock:'explode',
+    cost()   { return upgCost('explode',15); },
     stat()   { return 'r='+G.explodeR; },
-    canBuy() { return G.gold>=15; },
-    apply()  { G.gold-=15; G.explodeR+=15; },
+    canBuy() { return G.gold>=upgCost('explode',15); },
+    apply()  { var c=upgCost('explode',15); G.gold-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
   },
-  { key:'slow',    tab:'spc', icon:'❄️',  name:'감속',     cost:12, unlock:'slow',
+  { key:'slow',    tab:'spc', icon:'#',  name:'감속',     baseCost:12, unlock:'slow',
+    cost()   { return upgCost('slow',12); },
     stat()   { return Math.round(G.slowPct*100)+'%'; },
-    canBuy() { return G.gold>=12; },
-    apply()  { G.gold-=12; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
+    canBuy() { return G.gold>=upgCost('slow',12); },
+    apply()  { var c=upgCost('slow',12); G.gold-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
   },
-  { key:'gemup',   tab:'spc', icon:'💎',  name:'젬증폭',   cost:12, unlock:'gemup',
+  { key:'gemup',   tab:'spc', icon:'◆',  name:'젬증폭',   baseCost:12, unlock:'gemup',
+    cost()   { return upgCost('gemup',12); },
     stat()   { return 'x'+G.gemBonus.toFixed(1); },
-    canBuy() { return G.gold>=12; },
-    apply()  { G.gold-=12; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
+    canBuy() { return G.gold>=upgCost('gemup',12); },
+    apply()  { var c=upgCost('gemup',12); G.gold-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
   },
-  { key:'goldup',  tab:'spc', icon:'🏅',  name:'골드증폭',  cost:11, unlock:'goldup',
+  { key:'goldup',  tab:'spc', icon:'G',  name:'골드증폭',  baseCost:11, unlock:'goldup',
+    cost()   { return upgCost('goldup',11); },
     stat()   { return 'x'+G.goldBonus.toFixed(1); },
-    canBuy() { return G.gold>=11; },
-    apply()  { G.gold-=11; G.goldBonus=parseFloat((G.goldBonus+0.5).toFixed(1)); },
+    canBuy() { return G.gold>=upgCost('goldup',11); },
+    apply()  { var c=upgCost('goldup',11); G.gold-=c; G.upgLvl.goldup=(G.upgLvl.goldup||0)+1; G.goldBonus=parseFloat((G.goldBonus+0.5).toFixed(1)); },
   },
 ];
 
 /* ── 잠금 해제 정의 (상점) ── */
 const UNLOCKS = [
-  { key:'crit',    gems:3, tab:'atk', icon:'💥', name:'치명타 해금',    desc:'치명타 확률 업그레이드 해금 (2× 피해)' },
-  { key:'multi',   gems:5, tab:'atk', icon:'🔱', name:'다발 해금',      desc:'다발 사격 업그레이드 해금' },
-  { key:'pierce',  gems:5, tab:'atk', icon:'🏹', name:'관통 해금',      desc:'관통 업그레이드 해금' },
-  { key:'vamp',    gems:3, tab:'def', icon:'🩸', name:'흡혈 해금',      desc:'처치 시 HP 회복 업그레이드 해금' },
-  { key:'regen',   gems:4, tab:'def', icon:'🌿', name:'재생 해금',      desc:'초당 HP 자동 회복 해금' },
-  { key:'explode', gems:7, tab:'spc', icon:'💣', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
-  { key:'slow',    gems:4, tab:'spc', icon:'❄️', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
-  { key:'gemup',   gems:5, tab:'spc', icon:'💎', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
-  { key:'goldup',  gems:4, tab:'spc', icon:'🏅', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
+  { key:'crit',    gems:3, tab:'atk', icon:'!', name:'치명타 해금',    desc:'치명타 확률 업그레이드 해금 (2x 피해)' },
+  { key:'multi',   gems:5, tab:'atk', icon:'+', name:'다발 해금',      desc:'다발 사격 업그레이드 해금' },
+  { key:'pierce',  gems:5, tab:'atk', icon:'>', name:'관통 해금',      desc:'관통 업그레이드 해금' },
+  { key:'vamp',    gems:3, tab:'def', icon:'*', name:'흡혈 해금',      desc:'처치 시 HP 회복 업그레이드 해금' },
+  { key:'regen',   gems:4, tab:'def', icon:'~', name:'재생 해금',      desc:'초당 HP 자동 회복 해금' },
+  { key:'explode', gems:7, tab:'spc', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
+  { key:'slow',    gems:4, tab:'spc', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
+  { key:'gemup',   gems:5, tab:'spc', icon:'◆', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
+  { key:'goldup',  gems:4, tab:'spc', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
 ];
 
 /* ── 업적 정의 ── */
 const ACHIEVEMENTS = [
-  { key:'wave5',   icon:'🌊', name:'웨이브 5 달성',    desc:'웨이브 5까지 생존',       cond:()=>PERM.bestWave>=5,   prog:()=>Math.min(PERM.bestWave,5)+'/5',    gems:1 },
-  { key:'wave10',  icon:'🌊', name:'웨이브 10 달성',   desc:'웨이브 10까지 생존',      cond:()=>PERM.bestWave>=10,  prog:()=>Math.min(PERM.bestWave,10)+'/10',  gems:2 },
-  { key:'wave20',  icon:'🏆', name:'웨이브 20 달성',   desc:'웨이브 20까지 생존',      cond:()=>PERM.bestWave>=20,  prog:()=>Math.min(PERM.bestWave,20)+'/20',  gems:3 },
-  { key:'wave50',  icon:'👑', name:'웨이브 50 달성',   desc:'웨이브 50까지 생존',      cond:()=>PERM.bestWave>=50,  prog:()=>Math.min(PERM.bestWave,50)+'/50',  gems:5 },
-  { key:'kill50',  icon:'⚔️', name:'처치 50',          desc:'적 50마리 처치',          cond:()=>PERM.totalKills>=50,  prog:()=>Math.min(PERM.totalKills,50)+'/50',   gems:1 },
-  { key:'kill200', icon:'⚔️', name:'처치 200',         desc:'적 200마리 처치',         cond:()=>PERM.totalKills>=200, prog:()=>Math.min(PERM.totalKills,200)+'/200', gems:2 },
-  { key:'kill500', icon:'💀', name:'처치 500',         desc:'적 500마리 처치',         cond:()=>PERM.totalKills>=500, prog:()=>Math.min(PERM.totalKills,500)+'/500', gems:3 },
-  { key:'boss10',  icon:'👹', name:'보스 처치 10',     desc:'보스 10마리 처치',        cond:()=>PERM.bossKills>=10,   prog:()=>Math.min(PERM.bossKills,10)+'/10',   gems:2 },
-  { key:'upg30',   icon:'🔧', name:'업그레이드 30회',  desc:'인게임 업그레이드 30회',  cond:()=>PERM.upgradeCount>=30,prog:()=>Math.min(PERM.upgradeCount,30)+'/30', gems:2 },
+  { key:'wave5',   icon:'~', name:'웨이브 5 달성',    desc:'웨이브 5까지 생존',       cond:()=>PERM.bestWave>=5,   prog:()=>Math.min(PERM.bestWave,5)+'/5',    gems:1 },
+  { key:'wave10',  icon:'~', name:'웨이브 10 달성',   desc:'웨이브 10까지 생존',      cond:()=>PERM.bestWave>=10,  prog:()=>Math.min(PERM.bestWave,10)+'/10',  gems:2 },
+  { key:'wave20',  icon:'★', name:'웨이브 20 달성',   desc:'웨이브 20까지 생존',      cond:()=>PERM.bestWave>=20,  prog:()=>Math.min(PERM.bestWave,20)+'/20',  gems:3 },
+  { key:'wave50',  icon:'★', name:'웨이브 50 달성',   desc:'웨이브 50까지 생존',      cond:()=>PERM.bestWave>=50,  prog:()=>Math.min(PERM.bestWave,50)+'/50',  gems:5 },
+  { key:'kill50',  icon:'/', name:'처치 50',          desc:'적 50마리 처치',          cond:()=>PERM.totalKills>=50,  prog:()=>Math.min(PERM.totalKills,50)+'/50',   gems:1 },
+  { key:'kill200', icon:'/', name:'처치 200',         desc:'적 200마리 처치',         cond:()=>PERM.totalKills>=200, prog:()=>Math.min(PERM.totalKills,200)+'/200', gems:2 },
+  { key:'kill500', icon:'X', name:'처치 500',         desc:'적 500마리 처치',         cond:()=>PERM.totalKills>=500, prog:()=>Math.min(PERM.totalKills,500)+'/500', gems:3 },
+  { key:'boss10',  icon:'★', name:'보스 처치 10',     desc:'보스 10마리 처치',        cond:()=>PERM.bossKills>=10,   prog:()=>Math.min(PERM.bossKills,10)+'/10',   gems:2 },
+  { key:'upg30',   icon:'◈', name:'업그레이드 30회',  desc:'인게임 업그레이드 30회',  cond:()=>PERM.upgradeCount>=30,prog:()=>Math.min(PERM.upgradeCount,30)+'/30', gems:2 },
 ];
 
 function checkAchievements() {
@@ -1338,6 +1563,7 @@ function createState() {
     betweenTimer: 0,
     killCount:    0,   // enemies killed this run
     goldEarned:   0,   // gold earned this run
+    upgLvl:       {},  // in-game upgrade purchase counts
 
     tower: {
       hp:      10,
@@ -1356,16 +1582,21 @@ function createState() {
     flashAlpha:  0,
 
     // Spawn
-    spawnQ:       0,
+    spawnQ:       [],      // array of type strings
+    spawnIdx:     0,       // current index in spawnQ
     spawnTimer:   0,
     spawnIntvl:   800,
     isBossWave:   false,
     bossSpawned:  false,
+    sniperBullets: [],
+    bossWarningTimer: -1,
 
     // Entities
     enemies: [],
     bullets: [],
     effects: [],
+    floatTexts: [],
+    deathParticles: [],
 
     // New mechanics (all temp, reset each run)
     critChance: 0,
@@ -1384,6 +1615,8 @@ function createState() {
     bannerClear: '',
     bannerNext:  '',
     bannerTimer: -1, // -1 = inactive; ≥0 = ms elapsed
+    waveBonusText:  '',
+    waveBonusTimer: -1,
 
     speed:          1,
     showTowerStats: false,
@@ -1448,6 +1681,8 @@ function startGame() {
     }
   } catch (_) {}
 
+  G.initialGems = G.gems;
+  G.initialBossKills = PERM.bossKills;
   startWave();
   loopGen++;
   const gen = loopGen;
@@ -1455,14 +1690,46 @@ function startGame() {
   requestAnimationFrame(function(ts) { gameLoop(gen, ts); });
 }
 
+function getWaveEnemies(wave) {
+  var list = [];
+  var basicCount = 3 + wave * 2;
+  for (var i = 0; i < basicCount; i++) list.push('basic');
+  if (wave >= 3) {
+    var tankCount = Math.floor(wave / 3);
+    for (var i = 0; i < tankCount; i++) list.push('tank');
+  }
+  if (wave >= 5) {
+    var rusherCount = Math.floor(wave / 2);
+    for (var i = 0; i < rusherCount; i++) list.push('rusher');
+  }
+  if (wave >= 8) {
+    var sniperCount = Math.floor(wave / 4);
+    for (var i = 0; i < sniperCount; i++) list.push('sniper');
+  }
+  // Shuffle non-boss
+  for (var j = list.length - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var tmp = list[j]; list[j] = list[k]; list[k] = tmp;
+  }
+  if (wave % 5 === 0) list.push('boss'); // boss always last
+  return list;
+}
+
 function startWave() {
   const w = G.wave;
   G.isBossWave  = (w % 5 === 0);
   G.bossSpawned = false;
-  G.spawnQ      = 5 + (w - 1) * 3;
-  G.spawnIntvl  = Math.max(350, 850 - w * 18); // gets faster with waves
+  G.spawnQ      = getWaveEnemies(w);
+  G.spawnIdx    = 0;
+  G.spawnIntvl  = 800;  // fixed 0.8s between spawns
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
+  // Wave start gold bonus
+  var bonus = w * 2;
+  G.gold += bonus;
+  G.goldEarned += bonus;
+  G.waveBonusText = '+' + bonus + '골드 웨이브 보너스';
+  G.waveBonusTimer = 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1493,6 +1760,11 @@ function update(dt) {
     if (Math.abs(G.zoom - G.targetZoom) < 0.001) G.zoom = G.targetZoom;
   }
 
+  // Tower hit flash decay
+  if (G.flashAlpha > 0) {
+    G.flashAlpha = Math.max(0, G.flashAlpha - dt / 200);
+  }
+
 
   // Buff countdown
   if (G.tower.buffMs > 0) G.tower.buffMs = Math.max(0, G.tower.buffMs - dt);
@@ -1512,8 +1784,25 @@ function update(dt) {
     if (G.effects[i].t >= 600) G.effects.splice(i, 1);
   }
 
+  // Float texts (gold pickup)
+  for (let i = G.floatTexts.length - 1; i >= 0; i--) {
+    G.floatTexts[i].timer += dt;
+    if (G.floatTexts[i].timer > 500) G.floatTexts.splice(i, 1);
+  }
+
+  // Death particles
+  for (let i = G.deathParticles.length - 1; i >= 0; i--) {
+    const p = G.deathParticles[i];
+    p.timer += dt;
+    p.x += p.vx * (dt / 1000);
+    p.y += p.vy * (dt / 1000);
+    if (p.timer > 300) G.deathParticles.splice(i, 1);
+  }
+
   // Wave banner timer
   if (G.bannerTimer >= 0) G.bannerTimer += dt;
+  if (G.waveBonusTimer >= 0) G.waveBonusTimer += dt;
+  if (G.bossWarningTimer >= 0) G.bossWarningTimer += dt;
 
   // ── Between-wave countdown ──
   if (G.phase === 'between') {
@@ -1526,18 +1815,17 @@ function update(dt) {
   }
 
   // ── Spawn enemies ──
-  const needBoss = G.isBossWave && !G.bossSpawned && G.spawnQ === 0;
-  if (G.spawnQ > 0 || needBoss) {
+  if (G.spawnIdx < G.spawnQ.length) {
     G.spawnTimer -= dt;
     if (G.spawnTimer <= 0) {
-      if (G.spawnQ > 0) {
-        G.enemies.push(mkEnemy(false));
-        G.spawnQ--;
-        G.spawnTimer = G.spawnIntvl;
-      } else if (G.isBossWave && !G.bossSpawned) {
-        G.enemies.push(mkEnemy(true));
+      var etype = G.spawnQ[G.spawnIdx];
+      G.enemies.push(mkEnemy(etype));
+      if (etype === 'boss') {
         G.bossSpawned = true;
+        G.bossWarningTimer = 0;
       }
+      G.spawnIdx++;
+      G.spawnTimer = G.spawnIntvl;
     }
   }
 
@@ -1583,6 +1871,12 @@ function update(dt) {
           G.goldEarned += gEarned;
           PERM.totalKills++;
           if (e.boss) PERM.bossKills++;
+          // Float text & death particles
+          if (gEarned > 0) G.floatTexts.push({ x: e.x, y: e.y, text: '+' + gEarned, timer: 0 });
+          for (let dp = 0; dp < 4; dp++) {
+            const da = Math.PI / 2 * dp + Math.PI / 4;
+            G.deathParticles.push({ x: e.x, y: e.y, vx: Math.cos(da) * 40, vy: Math.sin(da) * 40, timer: 0 });
+          }
           // Life steal
           if (G.lifeSteal > 0) {
             G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + G.lifeSteal);
@@ -1605,6 +1899,11 @@ function update(dt) {
                   G.goldEarned += ekGold;
                   PERM.totalKills++;
                   if (ek.boss) PERM.bossKills++;
+                  if (ekGold > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekGold, timer: 0 });
+                  for (let dp2 = 0; dp2 < 4; dp2++) {
+                    const da2 = Math.PI / 2 * dp2 + Math.PI / 4;
+                    G.deathParticles.push({ x: ek.x, y: ek.y, vx: Math.cos(da2) * 40, vy: Math.sin(da2) * 40, timer: 0 });
+                  }
                   addFx(ek.x, ek.y, ek.r * 2.8, '#f97316');
                   G.enemies.splice(k, 1);
 
@@ -1640,6 +1939,7 @@ function update(dt) {
     if (dist < TOWER_HIT_R + e.r) {
       const dmgTaken = Math.max(1, Math.round(1 - G.armor * 0.05));
       G.tower.hp = Math.max(0, G.tower.hp - dmgTaken);
+      G.flashAlpha = 1;
       addFx(e.x, e.y, e.r * 2, '#f87171');
       G.enemies.splice(i, 1);
       if (G.tower.hp <= 0) { triggerGameOver(); return; }
@@ -1652,10 +1952,48 @@ function update(dt) {
     const mv = e.spd * spdMult * (dt / 16.667);
     e.x += (dx / dist) * mv;
     e.y += (dy / dist) * mv;
+
+    // Boss enrage at 50% HP
+    if (e.type === 'boss' && !e.enraged && e.hp <= e.maxHp * 0.5) {
+      e.enraged = true;
+      e.spd *= 1.2;
+    }
+  }
+
+  // ── Sniper ranged attacks ──
+  for (var si = 0; si < G.enemies.length; si++) {
+    var se = G.enemies[si];
+    if (se.type !== 'sniper') continue;
+    se.atkTimer += dt;
+    var sdx = G.cx - se.x, sdy = G.cy - se.y;
+    var sDist = Math.sqrt(sdx * sdx + sdy * sdy);
+    if (sDist < G.tower.range + 50 && se.atkTimer >= 2000) {
+      se.atkTimer = 0;
+      G.sniperBullets.push({
+        x: se.x, y: se.y,
+        dx: sdx / sDist, dy: sdy / sDist,
+        dmg: 0.5,
+      });
+    }
+  }
+  // Update sniper bullets
+  for (var sbi = G.sniperBullets.length - 1; sbi >= 0; sbi--) {
+    var sb = G.sniperBullets[sbi];
+    sb.x += sb.dx * 2.5 * (dt / 16.667);
+    sb.y += sb.dy * 2.5 * (dt / 16.667);
+    var sbdx = sb.x - G.cx, sbdy = sb.y - G.cy;
+    if (sbdx * sbdx + sbdy * sbdy < 18 * 18) {
+      G.tower.hp = Math.max(0, G.tower.hp - sb.dmg);
+      G.flashAlpha = 1;
+      G.sniperBullets.splice(sbi, 1);
+      if (G.tower.hp <= 0) { triggerGameOver(); return; }
+    } else if (sb.x < -50 || sb.x > CW + 50 || sb.y < -50 || sb.y > CH + 50) {
+      G.sniperBullets.splice(sbi, 1);
+    }
   }
 
   // ── Check wave complete ──
-  const spawnDone = G.spawnQ === 0 && (!G.isBossWave || G.bossSpawned);
+  const spawnDone = G.spawnIdx >= G.spawnQ.length;
   if (spawnDone && G.enemies.length === 0 && G.phase === 'playing') {
     onWaveComplete();
   }
@@ -1663,42 +2001,77 @@ function update(dt) {
   syncUI();
 }
 
-function mkEnemy(isBoss) {
-  // Spawn just outside the visible area (accounts for zoom-out world expansion)
-  const zoom  = G.zoom;
-  const halfW = CW / (2 * zoom); // visible half-width in game coords
-  const halfH = CH / (2 * zoom);
-  const m     = 50;              // extra margin beyond screen edge
-  let x, y;
-  const side = (Math.random() * 4) | 0;
-  if (side === 0) {        // top
+function mkEnemy(etype) {
+  var zoom  = G.zoom;
+  var halfW = CW / (2 * zoom);
+  var halfH = CH / (2 * zoom);
+  var m     = 50;
+  var x, y;
+  var side = (Math.random() * 4) | 0;
+  if (side === 0) {
     x = CW/2 + (Math.random() - 0.5) * 2 * (halfW + m);
     y = CH/2 - halfH - m;
-  } else if (side === 1) { // bottom
+  } else if (side === 1) {
     x = CW/2 + (Math.random() - 0.5) * 2 * (halfW + m);
     y = CH/2 + halfH + m;
-  } else if (side === 2) { // left
+  } else if (side === 2) {
     x = CW/2 - halfW - m;
     y = CH/2 + (Math.random() - 0.5) * 2 * (halfH + m);
-  } else {                 // right
+  } else {
     x = CW/2 + halfW + m;
     y = CH/2 + (Math.random() - 0.5) * 2 * (halfH + m);
   }
 
-  const w       = G.wave;
-  const baseHp  = isBoss ? 20 : 2 + (w - 1) * 0.5;          // +0.5 HP per wave
-  const baseSpd = isBoss ? 0.51 : 0.81 * Math.pow(1.02, w - 1); // +2% speed per wave
+  var w = G.wave;
+  var baseHp  = 2 * Math.pow(1.15, w - 1);
+  var baseSpd = 0.81 * Math.pow(1.03, w - 1);
+  var baseR   = 9;
+  var baseGold = Math.floor(1 * (1 + w * 0.1));
+
+  var hp, spd, r, gold, gem = 0;
+
+  if (etype === 'boss') {
+    hp   = w * 20;
+    spd  = baseSpd * 0.7;
+    r    = Math.round(baseR * 2.5);
+    gold = w * 2;
+    gem  = 1;
+  } else if (etype === 'tank') {
+    hp   = baseHp * 4;
+    spd  = baseSpd * 0.5;
+    r    = Math.round(baseR * 1.6);
+    gold = baseGold * 3;
+  } else if (etype === 'rusher') {
+    hp   = baseHp * 0.5;
+    spd  = baseSpd * 2.5;
+    r    = Math.round(baseR * 0.7);
+    gold = baseGold * 2;
+  } else if (etype === 'sniper') {
+    hp   = baseHp * 0.8;
+    spd  = baseSpd * 0.8;
+    r    = baseR;
+    gold = baseGold * 4;
+  } else {
+    // basic
+    hp   = baseHp;
+    spd  = baseSpd;
+    r    = baseR;
+    gold = baseGold;
+  }
 
   return {
-    x, y,
-    boss:      isBoss,
-    hp:        baseHp,
-    maxHp:     baseHp,
-    r:         isBoss ? 17  : 9,
-    spd:       baseSpd,
-    gold:      isBoss ? 5   : 1,
-    gem:       isBoss ? 1   : 0,
+    x: x, y: y,
+    type:      etype,
+    boss:      etype === 'boss',
+    hp:        hp,
+    maxHp:     hp,
+    r:         r,
+    spd:       spd,
+    gold:      gold,
+    gem:       gem,
     slowTimer: 0,
+    atkTimer:  0,   // for sniper attacks
+    enraged:   false, // for boss enrage
   };
 }
 
@@ -1739,21 +2112,60 @@ function onWaveComplete() {
   checkAchievements();
   const nextW    = G.wave + 1;
   const nextBoss = nextW % 5 === 0;
-  G.bannerClear = 'Wave ' + G.wave + ' Clear!';
-  G.bannerNext  = 'Wave ' + nextW + (nextBoss ? '  👑' : '');
+  G.bannerClear = 'WAVE ' + String(G.wave).padStart(2, '0') + ' CLEAR';
+  G.bannerNext  = 'WAVE ' + String(nextW).padStart(2, '0') + (nextBoss ? '  BOSS' : '');
   G.bannerTimer = 0;
 }
 
 function triggerGameOver() {
-  G.phase   = 'gameover';
+  loopGen++;           // stop game loop immediately
+  G.phase = 'gameover';
+
+  // Gems earned this run & boss check
+  var gemsEarned = G.gems - (G.initialGems || 0);
+  var bossKilledThisRun = PERM.bossKills > (G.initialBossKills || 0);
+
+  // Update & save persistent data
+  if (G.wave > PERM.bestWave) PERM.bestWave = G.wave;
   PERM.gold = G.gold;
   PERM.gems = G.gems;
   savePerm();
+
+  // Detect newly earned achievements (before claiming)
+  var newAchs = [];
+  for (var i = 0; i < ACHIEVEMENTS.length; i++) {
+    var ach = ACHIEVEMENTS[i];
+    if (!PERM.achievements[ach.key] && ach.cond()) newAchs.push(ach);
+  }
+  checkAchievements(); // claim & award gems
+
+  // Populate results
   document.getElementById('r-wave').textContent  = G.wave;
   document.getElementById('r-kills').textContent = G.killCount;
-  document.getElementById('r-gold').textContent  = '💰 ' + G.goldEarned;
+  document.getElementById('r-best').textContent  = PERM.bestWave;
+  document.getElementById('r-gold').textContent  = G.goldEarned;
+
+  // Gem row — only visible when boss was killed
+  var gemRow = document.getElementById('r-gem-row');
+  if (bossKilledThisRun && gemsEarned > 0) {
+    document.getElementById('r-gems').textContent = gemsEarned;
+    gemRow.style.display = '';
+  } else {
+    gemRow.style.display = 'none';
+  }
+
+  // Achievement rewards
+  var achRow = document.getElementById('r-ach-row');
+  if (newAchs.length > 0) {
+    achRow.innerHTML = newAchs.map(function(a) {
+      return '★ ' + a.name + ' (+' + a.gems + '◆)';
+    }).join('<br>');
+    achRow.style.display = '';
+  } else {
+    achRow.style.display = 'none';
+  }
+
   document.getElementById('results-screen').classList.add('show');
-  setTimeout(openShop, 1500); // 1.5초 후 자동으로 상점 이동
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1761,7 +2173,7 @@ function triggerGameOver() {
 ═══════════════════════════════════════════════════════════════ */
 function render() {
   // ── 1. Background (full canvas, before zoom) ──────────────────
-  ctx.fillStyle = '#0a0e1a';
+  ctx.fillStyle = '#030b10';
   ctx.fillRect(0, 0, CW, CH);
 
   // ── 2. Game world (zoom transform applied) ────────────────────
@@ -1777,9 +2189,9 @@ function render() {
   const oy   = (CH - visH) / 2;
 
   // Grid (extended to fill visible area)
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.strokeStyle = 'rgba(0,255,255,0.03)';
   ctx.lineWidth = 0.5;
-  const gs = Math.floor(CW / 9);
+  const gs = 40;
   for (let x = Math.floor(ox / gs) * gs; x <= ox + visW + gs; x += gs) {
     ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + visH); ctx.stroke();
   }
@@ -1791,11 +2203,9 @@ function render() {
   ctx.beginPath();
   ctx.arc(G.cx, G.cy, G.tower.range, 0, Math.PI * 2);
   ctx.setLineDash([6, 6]);
-  ctx.strokeStyle = 'rgba(59,130,246,0.15)';
+  ctx.strokeStyle = 'rgba(0,255,255,0.10)';
   ctx.lineWidth = 1;
   ctx.stroke();
-  ctx.fillStyle = 'rgba(59,130,246,0.03)';
-  ctx.fill();
   ctx.setLineDash([]);
 
   // Targeting line to nearest in-range enemy
@@ -1833,65 +2243,216 @@ function render() {
     ctx.restore();
   }
 
-  // Enemies
+  // Enemies (type-specific shapes)
   for (const e of G.enemies) {
     const slowed = e.slowTimer > 0;
     ctx.save();
-    ctx.shadowBlur  = e.boss ? 22 : 10;
-    ctx.shadowColor = slowed ? '#60a5fa' : (e.boss ? '#f97316' : '#ef4444');
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-    ctx.fillStyle   = slowed ? (e.boss ? '#1e3a8a' : '#1d4ed8') : (e.boss ? '#c2410c' : '#b91c1c');
-    ctx.fill();
-    ctx.strokeStyle = slowed ? '#93c5fd' : (e.boss ? '#fb923c' : '#f87171');
-    ctx.lineWidth   = e.boss ? 2.5 : 1.5;
-    ctx.stroke();
-    ctx.shadowBlur  = 0;
-    if (e.boss) {
+    ctx.translate(e.x, e.y);
+
+    if (e.type === 'boss') {
+      // Octagon
+      var bossColor = (e.enraged) ? '#ffbb33' : '#ff9900';
+      var bossStroke = (e.enraged) ? '#ffdd44' : '#ffcc00';
+      if (slowed) { bossColor = '#1e3a8a'; bossStroke = '#93c5fd'; }
+      ctx.beginPath();
+      for (var oi = 0; oi < 8; oi++) {
+        var oa = (Math.PI * 2 / 8) * oi - Math.PI / 8;
+        var opx = Math.cos(oa) * e.r, opy = Math.sin(oa) * e.r;
+        if (oi === 0) ctx.moveTo(opx, opy); else ctx.lineTo(opx, opy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = bossColor;
+      ctx.fill();
+      ctx.strokeStyle = bossStroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold ' + Math.floor(e.r * 0.82) + 'px Arial';
+      ctx.font = 'bold ' + Math.floor(e.r * 0.5) + 'px "Courier New", monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('B', e.x, e.y);
+      ctx.fillText('BOSS', 0, 0);
+    } else if (e.type === 'tank') {
+      // Hexagon
+      var tankColor = slowed ? '#1e3a8a' : '#ff6600';
+      var tankStroke = slowed ? '#93c5fd' : '#ff8833';
+      ctx.beginPath();
+      for (var hi = 0; hi < 6; hi++) {
+        var ha = (Math.PI * 2 / 6) * hi - Math.PI / 6;
+        var hx = Math.cos(ha) * e.r, hy = Math.sin(ha) * e.r;
+        if (hi === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = tankColor;
+      ctx.fill();
+      ctx.strokeStyle = tankStroke;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    } else if (e.type === 'rusher') {
+      // Triangle pointing toward tower
+      var rdx = G.cx - e.x, rdy = G.cy - e.y;
+      var ra = Math.atan2(rdy, rdx);
+      ctx.rotate(ra);
+      var rl = e.r * 1.8, rw = e.r * 0.7;
+      var rushColor = slowed ? '#1d4ed8' : '#ff0055';
+      var rushStroke = slowed ? '#93c5fd' : '#ff3377';
+      ctx.beginPath();
+      ctx.moveTo(rl / 2, 0);
+      ctx.lineTo(-rl / 2, -rw);
+      ctx.lineTo(-rl / 2, rw);
+      ctx.closePath();
+      ctx.fillStyle = rushColor;
+      ctx.fill();
+      ctx.strokeStyle = rushStroke;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.rotate(-ra);
+      // Trail effect
+      ctx.globalAlpha = 0.2;
+      ctx.rotate(ra);
+      ctx.fillStyle = rushColor;
+      ctx.fillRect(-rl / 2 - 6, -rw * 0.5, 6, rw);
+      ctx.rotate(-ra);
+      ctx.globalAlpha = 1;
+    } else if (e.type === 'sniper') {
+      // Elongated diamond
+      var snpColor = slowed ? '#1d4ed8' : '#aa00ff';
+      var snpStroke = slowed ? '#93c5fd' : '#cc44ff';
+      ctx.beginPath();
+      ctx.moveTo(0, -e.r * 1.4);
+      ctx.lineTo(e.r * 0.6, 0);
+      ctx.lineTo(0, e.r * 1.4);
+      ctx.lineTo(-e.r * 0.6, 0);
+      ctx.closePath();
+      ctx.fillStyle = snpColor;
+      ctx.fill();
+      ctx.strokeStyle = snpStroke;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    } else {
+      // Basic - diamond
+      ctx.rotate(Math.PI / 4);
+      var sz = e.r * 1.3;
+      ctx.fillStyle = slowed ? '#1d4ed8' : '#ef4444';
+      ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+      ctx.strokeStyle = slowed ? '#93c5fd' : '#ff6666';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-sz / 2, -sz / 2, sz, sz);
+      ctx.rotate(-Math.PI / 4);
     }
-    const bw = e.r * 2.6, bh = 3;
-    const bx = e.x - bw / 2, by = e.y - e.r - bh - 4;
-    const hr = e.hp / e.maxHp;
-    ctx.fillStyle = '#0f172a';
+
+    // Health bar (color by type)
+    var hbColors = { basic: '#ef4444', tank: '#ff6600', rusher: '#ff0055', sniper: '#aa00ff', boss: '#ffcc00' };
+    var bw = e.r * 2.6, bh = (e.type === 'tank') ? 3 : 2;
+    var bx = -bw / 2, by = -e.r - bh - 4;
+    var hr = e.hp / e.maxHp;
+    ctx.fillStyle = '#1a0005';
     ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = hr > 0.6 ? '#16a34a' : hr > 0.3 ? '#ca8a04' : '#dc2626';
+    ctx.fillStyle = hbColors[e.type] || '#ef4444';
     ctx.fillRect(bx, by, bw * hr, bh);
+
     ctx.restore();
   }
 
-  // Bullets
+  // Bullets (laser lines)
   for (const b of G.bullets) {
+    const angle = Math.atan2(b.dy, b.dx);
     ctx.save();
-    ctx.shadowBlur  = b.crit ? 12 : 8;
-    ctx.shadowColor = b.crit ? '#f97316' : '#fbbf24';
-    ctx.fillStyle   = b.crit ? '#fb923c' : '#fde68a';
-    ctx.beginPath(); ctx.arc(b.x, b.y, b.crit ? 4 : 3, 0, Math.PI * 2); ctx.fill();
+    ctx.translate(b.x, b.y);
+    ctx.rotate(angle);
+    // Trail
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = b.crit ? '#ff6600' : '#00ffff';
+    ctx.fillRect(-12, -1, 4, 2);
+    // Main bullet line
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = b.crit ? '#ff6600' : '#00ffff';
+    ctx.fillRect(-4, -1, 8, 2);
     ctx.restore();
   }
 
-  // Tower
-  const TS = 26;
-  const buffed = G.tower.buffMs > 0;
-  ctx.save();
-  ctx.shadowBlur  = 22;
-  ctx.shadowColor = buffed ? '#f97316' : '#3b82f6';
-  ctx.fillStyle   = buffed ? '#fdba74' : '#7dd3fc';
-  ctx.fillRect(G.cx - TS/2, G.cy - TS/2, TS, TS);
-  ctx.strokeStyle = buffed ? '#ea580c' : '#2563eb';
-  ctx.lineWidth   = 3;
-  ctx.strokeRect(G.cx - TS/2, G.cy - TS/2, TS, TS);
-  ctx.shadowBlur  = 0;
-  ctx.strokeStyle = buffed ? '#9a3412' : '#1e40af';
-  ctx.lineWidth   = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(G.cx, G.cy - TS/2 + 6); ctx.lineTo(G.cx, G.cy + TS/2 - 6);
-  ctx.moveTo(G.cx - TS/2 + 6, G.cy); ctx.lineTo(G.cx + TS/2 - 6, G.cy);
-  ctx.stroke();
-  ctx.restore();
+  // Sniper bullets (purple)
+  for (var sbi = 0; sbi < G.sniperBullets.length; sbi++) {
+    var sb = G.sniperBullets[sbi];
+    var sba = Math.atan2(sb.dy, sb.dx);
+    ctx.save();
+    ctx.translate(sb.x, sb.y);
+    ctx.rotate(sba);
+    ctx.fillStyle = '#aa00ff';
+    ctx.fillRect(-5, -1.5, 10, 3);
+    ctx.globalAlpha = 0.3;
+    ctx.fillRect(-11, -1, 6, 2);
+    ctx.restore();
+  }
+
+  // Tower (hexagon)
+  {
+    const TR = 20;
+    const buffed = G.tower.buffMs > 0;
+    const flashHit = G.flashAlpha > 0;
+    ctx.save();
+    // Hexagon path
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = Math.PI / 3 * i - Math.PI / 6;
+      const hx = G.cx + TR * Math.cos(a);
+      const hy = G.cy + TR * Math.sin(a);
+      if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#001a22';
+    ctx.fill();
+    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : '#00ffff');
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Crosshair
+    ctx.strokeStyle = 'rgba(0,255,255,0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(G.cx, G.cy - 8); ctx.lineTo(G.cx, G.cy + 8);
+    ctx.moveTo(G.cx - 8, G.cy); ctx.lineTo(G.cx + 8, G.cy);
+    ctx.stroke();
+    // Corner brackets (4 corners of bounding box)
+    const bk = 6;
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    // Top-left
+    ctx.moveTo(G.cx - TR, G.cy - TR); ctx.lineTo(G.cx - TR + bk, G.cy - TR);
+    ctx.moveTo(G.cx - TR, G.cy - TR); ctx.lineTo(G.cx - TR, G.cy - TR + bk);
+    // Top-right
+    ctx.moveTo(G.cx + TR, G.cy - TR); ctx.lineTo(G.cx + TR - bk, G.cy - TR);
+    ctx.moveTo(G.cx + TR, G.cy - TR); ctx.lineTo(G.cx + TR, G.cy - TR + bk);
+    // Bottom-left
+    ctx.moveTo(G.cx - TR, G.cy + TR); ctx.lineTo(G.cx - TR + bk, G.cy + TR);
+    ctx.moveTo(G.cx - TR, G.cy + TR); ctx.lineTo(G.cx - TR, G.cy + TR - bk);
+    // Bottom-right
+    ctx.moveTo(G.cx + TR, G.cy + TR); ctx.lineTo(G.cx + TR - bk, G.cy + TR);
+    ctx.moveTo(G.cx + TR, G.cy + TR); ctx.lineTo(G.cx + TR, G.cy + TR - bk);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Death particles
+  for (const dp of G.deathParticles) {
+    const dpAlpha = 1 - dp.timer / 300;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, dpAlpha);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(dp.x - 1.5, dp.y - 1.5, 3, 3);
+    ctx.restore();
+  }
+
+  // Float texts (gold pickup)
+  for (const ft of G.floatTexts) {
+    const ftAlpha = 1 - ft.timer / 500;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, ftAlpha);
+    ctx.font = '10px "Courier New", monospace';
+    ctx.fillStyle = '#f59e0b';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(ft.text, ft.x, ft.y - ft.timer * 0.04);
+    ctx.restore();
+  }
 
   ctx.restore(); // ← end zoom transform
 
@@ -1912,10 +2473,47 @@ function render() {
     ctx.globalAlpha   = Math.max(0, alpha);
     ctx.textAlign     = 'center';
     ctx.textBaseline  = 'middle';
-    ctx.font          = 'bold 22px Arial';
-    ctx.fillStyle     = '#ffffff';
+    ctx.font          = 'bold 18px "Courier New", monospace';
+    ctx.fillStyle     = '#00ffff';
     ctx.shadowBlur    = 0;
-    ctx.fillText(text, CW / 2, CH * 0.40);
+    const bannerY = CH * 0.40;
+    ctx.fillText(text, CW / 2, bannerY);
+    // Horizontal lines expanding from center
+    const lineW = Math.min(t / 800, 1) * 80;
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(CW / 2 - lineW, bannerY - 14);
+    ctx.lineTo(CW / 2 + lineW, bannerY - 14);
+    ctx.moveTo(CW / 2 - lineW, bannerY + 14);
+    ctx.lineTo(CW / 2 + lineW, bannerY + 14);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── 3b. Wave bonus gold text ──────────────────────────────────
+  if (G.waveBonusTimer >= 0 && G.waveBonusTimer < 1200) {
+    var wbAlpha = G.waveBonusTimer < 800 ? 1 : 1 - (G.waveBonusTimer - 800) / 400;
+    ctx.save();
+    ctx.globalAlpha  = Math.max(0, wbAlpha);
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font         = 'bold 16px "Courier New", monospace';
+    ctx.fillStyle    = '#f59e0b';
+    ctx.fillText(G.waveBonusText || '', CW / 2, CH * 0.52);
+    ctx.restore();
+  }
+
+  // ── Boss warning text ──
+  if (G.bossWarningTimer >= 0 && G.bossWarningTimer < 1000) {
+    var bwAlpha = G.bossWarningTimer < 700 ? 1 : 1 - (G.bossWarningTimer - 700) / 300;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, bwAlpha);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 24px "Courier New", monospace';
+    ctx.fillStyle = '#ff9900';
+    ctx.fillText('! BOSS', CW / 2, CH * 0.25);
     ctx.restore();
   }
 
@@ -1929,14 +2527,14 @@ function render() {
 function renderTowerPopup() {
   if (!G || !G.showTowerStats) return;
   const lines = [
-    '⚔️ 공격력: ' + G.tower.dmg,
-    '⚡ 속도: '   + (G.tower.atkMs / 1000).toFixed(2) + 's',
-    '🎯 범위: '   + Math.round(G.tower.range),
-    '🛡️ 방어구: ' + G.armor,
-    '❤️ HP: '     + Math.ceil(G.tower.hp) + '/' + G.tower.maxHp,
+    'ATK 공격력: ' + G.tower.dmg,
+    'SPD 속도: '   + (G.tower.atkMs / 1000).toFixed(2) + 's',
+    'RNG 범위: '   + Math.round(G.tower.range),
+    'DEF 방어구: ' + G.armor,
+    'HP: '     + Math.ceil(G.tower.hp) + '/' + G.tower.maxHp,
   ];
-  if (G.lifeSteal > 0) lines.push('🩸 흡혈: ' + G.lifeSteal);
-  if (G.critChance > 0) lines.push('💥 치명타: ' + Math.round(G.critChance * 100) + '%');
+  if (G.lifeSteal > 0) lines.push('* 흡혈: ' + G.lifeSteal);
+  if (G.critChance > 0) lines.push('! 치명타: ' + Math.round(G.critChance * 100) + '%');
 
   const lineH = 18, popW = 160, popPad = 8;
   const popH  = lines.length * lineH + popPad * 2;
@@ -1976,61 +2574,68 @@ function renderHUD() {
   ctx.save();
 
   // ── HUD background panel ──
-  ctx.fillStyle = 'rgba(10,14,26,0.82)';
+  ctx.fillStyle = '#030b10';
   ctx.fillRect(0, 0, CW, panH);
+  ctx.strokeStyle = 'rgba(0,255,255,0.20)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, panH);
+  ctx.lineTo(CW, panH);
+  ctx.stroke();
 
   // ── Wave label ──
   ctx.textBaseline = 'middle';
-  ctx.font         = '700 13px "Noto Sans KR", Arial';
-  ctx.fillStyle    = '#94a3b8';
-  ctx.fillText('Wave ' + G.wave + (G.isBossWave ? '  👑' : ''), pad, pad + 7);
+  ctx.font         = '700 12px "Courier New", monospace';
+  ctx.fillStyle    = '#00ffff';
+  ctx.fillText('WAVE ' + String(G.wave).padStart(2, '0') + (G.isBossWave ? '  BOSS' : ''), pad, pad + 7);
 
-  // ── HP bar (4px, rounded) ──
+  // ── HP bar (4px) ──
   const barW = Math.floor(CW * 0.36);
   const barH = 4;
   const barX = pad;
   const barY = pad + 22;
   const hr   = G.tower.hp / G.tower.maxHp;
 
-  ctx.fillStyle = '#1e293b';
-  rrect(barX, barY, barW, barH, 2);
-  ctx.fillStyle = '#10b981';  // always green; red glow when low
-  if (hr <= 0.25) ctx.fillStyle = '#ef4444';
+  ctx.fillStyle = '#0a1a2a';
+  ctx.fillRect(barX, barY, barW, barH);
+  ctx.fillStyle = '#00ff88';
+  if (hr <= 0.3) ctx.fillStyle = '#ef4444';
   else if (hr <= 0.5) ctx.fillStyle = '#f59e0b';
-  rrect(barX, barY, Math.max(0, barW * hr), barH, 2);
+  ctx.fillRect(barX, barY, Math.max(0, barW * hr), barH);
 
-  ctx.font         = '400 11px "Noto Sans KR", Arial';
+  ctx.font         = '400 10px "Courier New", monospace';
   ctx.fillStyle    = '#94a3b8';
   ctx.textBaseline = 'top';
-  ctx.fillText(Math.ceil(G.tower.hp) + '/' + G.tower.maxHp, barX, barY + barH + 3);
+  ctx.fillText((G.tower.hp).toFixed(1) + ' / ' + (G.tower.maxHp).toFixed(1), barX, barY + barH + 3);
 
-  // ── Pause button (top right 32×32) ──
-  const pbW = 32, pbH = 32;
+  // ── Pause button (top right 28×28, square) ──
+  const pbW = 28, pbH = 28;
   const pbX = CW - pad - pbW;
   const pbY = (panH - pbH) / 2;
   _pauseBtnRect = { x: pbX, y: pbY, w: pbW, h: pbH };
-  ctx.fillStyle = '#1a2332';
-  rrect(pbX, pbY, pbW, pbH, 8);
-  ctx.strokeStyle = '#2a3f5f';
+  ctx.fillStyle = '#030b10';
+  ctx.fillRect(pbX, pbY, pbW, pbH);
+  ctx.strokeStyle = '#0a3344';
   ctx.lineWidth   = 1;
-  ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(pbX, pbY, pbW, pbH, 8); else ctx.rect(pbX, pbY, pbW, pbH);
-  ctx.stroke();
-  ctx.font         = '14px Arial';
+  ctx.strokeRect(pbX, pbY, pbW, pbH);
+  ctx.font         = '14px "Courier New", monospace';
   ctx.textAlign    = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle    = '#f1f5f9';
-  ctx.fillText('⏸', pbX + pbW / 2, pbY + pbH / 2);
+  ctx.fillStyle    = '#00ffff';
+  ctx.fillText('||', pbX + pbW / 2, pbY + pbH / 2);
 
   // ── Gold & Gems (right, shifted left of pause btn) ──
   const rightEdge = pbX - 6;
   ctx.textAlign    = 'right';
   ctx.textBaseline = 'middle';
-  ctx.font         = '700 13px "Noto Sans KR", Arial';
+  ctx.font         = '700 12px "Courier New", monospace';
   ctx.fillStyle    = '#f59e0b';
-  ctx.fillText('🪙 ' + G.gold, rightEdge, pad + 7);
-  ctx.fillStyle    = '#a78bfa';
-  ctx.fillText('💎 ' + G.gems, rightEdge, pad + 24);
+  ctx.fillText('\u25CF ' + G.gold, rightEdge, pad + 7);
+  ctx.fillStyle    = '#00ffff';
+  ctx.fillText('\u25C6 ' + G.gems, rightEdge, pad + 24);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '10px "Courier New", monospace';
+  ctx.fillText('\u2620 ' + G.killCount, rightEdge, pad + 38);
   ctx.textAlign    = 'left';
 
   // ── Buff timer ──
@@ -2038,9 +2643,9 @@ function renderHUD() {
     const sec = Math.ceil(G.tower.buffMs / 1000);
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font         = 'bold 11px Arial';
+    ctx.font         = 'bold 11px "Courier New", monospace';
     ctx.fillStyle    = '#fb923c';
-    ctx.fillText('⚡ x2  ' + sec + 's', CW / 2, pad + 8);
+    ctx.fillText('x2  ' + sec + 's', CW / 2, pad + 8);
     ctx.textAlign = 'left';
   }
 
@@ -2073,7 +2678,7 @@ function buildCards() {
         '<span class="card-icon">'  + upg.icon + '</span>' +
         '<span class="card-name">'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
-        '<span class="card-cost">'  + upg.cost + '🪙</span>';
+        '<span class="card-cost" id="cc-' + upg.key + '">'  + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '◈</span>';
       btn.addEventListener('touchstart', function(ev) { ev.preventDefault(); }, { passive: false });
       btn.addEventListener('touchend',   function(ev) { ev.preventDefault(); doUpgrade(upg.key); }, { passive: false });
       btn.addEventListener('click', function() { doUpgrade(upg.key); });
@@ -2099,6 +2704,8 @@ function syncUI() {
     if (!card || !isUnlocked(upg.unlock)) continue;
     const statEl = document.getElementById('cs-' + upg.key);
     if (statEl) statEl.textContent = upg.stat();
+    const costEl = document.getElementById('cc-' + upg.key);
+    if (costEl) costEl.textContent = (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '◈';
     card.classList.toggle('no-gold', !upg.canBuy());
   }
 }
@@ -2225,7 +2832,7 @@ function buildAchieveUI() {
         '<div class="ach-prog">' + ach.prog() + '</div>' +
       '</div>' +
       '<span class="ach-reward">' +
-        (claimed ? '수령 완료' : (met ? '+' + ach.gems + '💎 수령!' : '+' + ach.gems + '💎')) +
+        (claimed ? '수령 완료' : (met ? '+' + ach.gems + '◆ 수령!' : '+' + ach.gems + '◆')) +
       '</span>';
     list.appendChild(div);
   }
@@ -2236,13 +2843,22 @@ function syncSettingsUI() {
     const btn = document.getElementById('tog-' + key);
     if (!btn) continue;
     const on = PERM.settings[key];
-    btn.className   = 'toggle-btn ' + (on ? 'on' : 'off');
-    btn.textContent = on ? 'ON' : 'OFF';
+    btn.className = 'toggle-track' + (on ? ' on' : '');
+  }
+  // Language toggle
+  var langBtn = document.getElementById('tog-lang');
+  if (langBtn) {
+    var isKo = (PERM.settings.lang || 'ko') === 'ko';
+    langBtn.className = 'toggle-track' + (isKo ? '' : ' on');
   }
 }
 
 function toggleSetting(key) {
-  PERM.settings[key] = !PERM.settings[key];
+  if (key === 'lang') {
+    PERM.settings.lang = (PERM.settings.lang || 'ko') === 'ko' ? 'en' : 'ko';
+  } else {
+    PERM.settings[key] = !PERM.settings[key];
+  }
   savePerm();
   syncSettingsUI();
 }
@@ -2269,15 +2885,18 @@ function syncShopUI() {
     document.getElementById('sl-' + key).textContent = 'Lv.' + lv;
     document.getElementById('se-' + key).textContent = maxed ? '최대 레벨' : cfg.effect();
     const btn = document.getElementById('sb-' + key);
-    btn.classList.toggle('disabled', maxed || PERM.gold < cfg.cost);
-    btn.textContent = maxed ? 'MAX' : cfg.cost + '💰';
+    var shopCost = getUpgradeCost(cfg.baseCost, lv);
+    btn.classList.toggle('disabled', maxed || PERM.gold < shopCost);
+    btn.textContent = maxed ? 'MAX' : shopCost + '◈';
   }
 }
 
 function shopUpgrade(key) {
   const cfg = SHOP_ITEMS[key];
-  if (!cfg || PERM.gold < cfg.cost || PERM[key + 'Lv'] >= cfg.maxLv) return;
-  PERM.gold -= cfg.cost;
+  var lv = PERM[key + 'Lv'];
+  var cost = getUpgradeCost(cfg.baseCost, lv);
+  if (!cfg || PERM.gold < cost || lv >= cfg.maxLv) return;
+  PERM.gold -= cost;
   PERM[key + 'Lv']++;
   savePerm();
   showShopFlash();
@@ -2298,7 +2917,7 @@ function showShopFlash() {
 function buildUnlockUI() {
   const section = document.getElementById('unlock-section');
   if (!section) return;
-  section.innerHTML = '<p class="unlock-title">🔒 특수 해금</p>';
+  section.innerHTML = '<p class="unlock-title">■ 특수 해금</p>';
   for (const ul of UNLOCKS) {
     const owned = !!PERM.unlocks[ul.key];
     const div = document.createElement('div');
@@ -2310,7 +2929,7 @@ function buildUnlockUI() {
         '<span class="ui-desc">' + ul.desc + '</span>' +
       '</div>' +
       '<button class="ui-btn' + (owned ? ' owned-btn' : '') + '" id="unlock-btn-' + ul.key + '">' +
-        (owned ? '보유' : ul.gems + '💎') +
+        (owned ? '보유' : ul.gems + '◆') +
       '</button>';
     section.appendChild(div);
     if (!owned) {
@@ -2334,7 +2953,7 @@ function syncUnlockUI() {
       btn.textContent = '보유';
     } else {
       btn.className = 'ui-btn' + (PERM.gems < ul.gems ? ' disabled' : '');
-      btn.textContent = ul.gems + '💎';
+      btn.textContent = ul.gems + '◆';
     }
   }
 }
@@ -2373,7 +2992,14 @@ function bindOverlayBtn(id, fn) {
   el.addEventListener('click', fn);
 }
 
-bindOverlayBtn('btn-to-shop',   openShop);
+bindOverlayBtn('btn-retry', function() {
+  document.getElementById('results-screen').classList.remove('show');
+  startNewGame();
+});
+bindOverlayBtn('btn-go-home', function() {
+  document.getElementById('results-screen').classList.remove('show');
+  openShop();
+});
 bindOverlayBtn('btn-start-game', startNewGame);
 for (const key of Object.keys(SHOP_ITEMS)) {
   bindOverlayBtn('sb-' + key, shopUpgrade.bind(null, key));
@@ -2421,12 +3047,21 @@ bindOverlayBtn('btn-settings-back', function() {
   document.getElementById('settings-screen').classList.remove('show');
 });
 (function() {
-  for (const k of ['sound', 'music', 'vibration']) {
+  for (const k of ['sound', 'music', 'vibration', 'lang']) {
     (function(key) {
       bindOverlayBtn('tog-' + key, function() { toggleSetting(key); });
     }(k));
   }
 }());
+
+// Data reset button
+bindOverlayBtn('btn-data-reset', function() {
+  showConfirm('모든 데이터를 초기화할까요?\n되돌릴 수 없습니다!', function() {
+    closeConfirm();
+    try { localStorage.removeItem('td_perm'); localStorage.removeItem('td_day'); } catch(_){}
+    location.reload();
+  });
+});
 
 // Confirm popup
 bindOverlayBtn('confirm-ok', function() {
@@ -2502,6 +3137,29 @@ document.addEventListener('touchend', function(e) {
 /* ═══════════════════════════════════════════════════════════════
    BOOT  (called from loading screen above)
 ═══════════════════════════════════════════════════════════════ */
+
+// Locked nav tooltips (long press for mobile)
+(function() {
+  var lockedBtns = document.querySelectorAll('.locked-nav');
+  for (var i = 0; i < lockedBtns.length; i++) {
+    (function(btn) {
+      var tip = document.createElement('span');
+      tip.className = 'tooltip';
+      tip.textContent = btn.getAttribute('data-tooltip') || '';
+      btn.appendChild(tip);
+      var timer = null;
+      btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        timer = setTimeout(function() { btn.classList.add('show-tooltip'); }, 500);
+      }, { passive: false });
+      btn.addEventListener('touchend', function() {
+        clearTimeout(timer);
+        setTimeout(function() { btn.classList.remove('show-tooltip'); }, 1500);
+      });
+    })(lockedBtns[i]);
+  }
+}());
+
 </script>
 
 <!-- ── 홈화면 전용 스크립트 (기존 코드 불변) ── -->
@@ -2564,7 +3222,7 @@ document.addEventListener('touchend', function(e) {
 }());
 </script>
 
-<!-- ── 작업장 스크립트 ── -->
+<!-- ── 강화 스크립트 ── -->
 <script>
 (function() {
   'use strict';
@@ -2673,38 +3331,38 @@ document.addEventListener('touchend', function(e) {
 
     var card = document.createElement('div');
     card.style.cssText =
-      'background:#0a1a2a;' +
+      'background:' + (locked ? '#0a1520' : '#0a1a2a') + ';' +
       'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
       'padding:12px;display:flex;flex-direction:row;' +
       'justify-content:space-between;align-items:center;' +
-      'opacity:' + (locked ? '0.4' : '1') + ';' +
+      'opacity:' + (locked ? '0.5' : '1') + ';' +
       'transition:border-color 0.2s;' +
       '-webkit-tap-highlight-color:transparent;';
 
     var rightHTML;
     if (locked) {
-      rightHTML = '<span style="font-size:11px;color:#1a2a3a;font-family:\'Courier New\',monospace;">🔒</span>';
+      rightHTML = '<span style="font-size:11px;color:#1a2a3a;font-family:\'Courier New\',monospace;">■</span>';
     } else if (maxed) {
       rightHTML =
         '<span style="font-size:15px;color:#00ffff;font-family:\'Courier New\',monospace;font-weight:bold;">' + cfg.cur(lv) + '</span>' +
-        '<span style="font-size:10px;color:#334455;font-family:\'Courier New\',monospace;margin-top:3px;">MAX</span>';
+        '<span style="font-size:14px;color:#cc44ff;font-family:\'Courier New\',monospace;font-weight:bold;margin-top:3px;">MAX</span>';
     } else {
       rightHTML =
         '<span style="font-size:15px;color:#00ffff;font-family:\'Courier New\',monospace;font-weight:bold;">' +
-          cfg.cur(lv) + '<span style="font-size:9px;color:#334455;"> → ' + cfg.nxt(lv) + '</span>' +
+          cfg.cur(lv) + '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span>' +
         '</span>' +
         '<button data-key="' + key + '" style="background:#030b10;border:1px solid ' +
           (afford ? '#0a3344' : '#ef4444') + ';color:' +
           (afford ? '#f59e0b' : '#ef4444') + ';font-size:11px;' +
           'font-family:\'Courier New\',monospace;padding:4px 8px;cursor:pointer;' +
-          '-webkit-appearance:none;margin-top:3px;">🪙' + cost + '</button>';
+          '-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>';
     }
 
     card.innerHTML =
       '<div style="display:flex;flex-direction:column;gap:3px;">' +
         '<span style="font-size:12px;color:#94a3b8;font-family:\'Courier New\',monospace;">' + cfg.name + '</span>' +
-        '<span style="font-size:10px;color:#334455;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
+        '<span style="font-size:10px;color:#556677;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
       '</div>' +
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0px;">' + rightHTML + '</div>';
 
@@ -2738,7 +3396,7 @@ document.addEventListener('touchend', function(e) {
       : '<button style="background:#030b10;border:1px solid ' +
           (afford ? '#0a3344' : '#ef4444') + ';color:' +
           (afford ? '#f59e0b' : '#ef4444') + ';font-size:11px;' +
-          'font-family:\'Courier New\',monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">🪙50</button>';
+          'font-family:\'Courier New\',monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">◈50</button>';
 
     card.innerHTML =
       '<div style="display:flex;flex-direction:column;gap:3px;">' +
@@ -2805,6 +3463,57 @@ document.addEventListener('touchend', function(e) {
 
   var workshopBtn = document.getElementById('h-nav-workshop');
   if (workshopBtn) workshopBtn.addEventListener('click', openWorkshop);
+
+}());
+</script>
+
+<!-- ── 스토어 스크립트 ── -->
+<script>
+(function() {
+  'use strict';
+
+  function syncStoreHUD() {
+    try {
+      document.getElementById('store-gold').textContent = PERM.gold;
+      document.getElementById('store-gem').textContent  = PERM.gems;
+    } catch (e) {}
+  }
+
+  function openStore() {
+    document.getElementById('screen-home').style.display = 'none';
+    document.getElementById('screen-workshop').style.display = 'none';
+    var el = document.getElementById('screen-store');
+    el.style.display = 'flex';
+    syncStoreHUD();
+  }
+
+  function closeStoreToHome() {
+    document.getElementById('screen-store').style.display = 'none';
+    var home = document.getElementById('screen-home');
+    home.style.display = 'flex';
+    try { syncShopUI(); } catch (e) {}
+  }
+
+  function closeStoreToWorkshop() {
+    document.getElementById('screen-store').style.display = 'none';
+    document.getElementById('screen-workshop').style.display = 'flex';
+  }
+
+  /* ── 네비게이션 바인딩 ── */
+  var stNavHome = document.getElementById('st-nav-home');
+  if (stNavHome) stNavHome.addEventListener('click', closeStoreToHome);
+
+  var stNavWorkshop = document.getElementById('st-nav-workshop');
+  if (stNavWorkshop) stNavWorkshop.addEventListener('click', closeStoreToWorkshop);
+
+  var hNavStore = document.getElementById('h-nav-store');
+  if (hNavStore) hNavStore.addEventListener('click', openStore);
+
+  var wsNavStore = document.getElementById('ws-nav-store');
+  if (wsNavStore) wsNavStore.addEventListener('click', function() {
+    document.getElementById('screen-workshop').style.display = 'none';
+    openStore();
+  });
 
 }());
 </script>
