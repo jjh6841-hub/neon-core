@@ -1193,15 +1193,18 @@ canvas {
   </div>
 
   <!-- 중앙 콘텐츠 -->
-  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 16px;">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 16px; position:relative;">
 
-    <!-- 타워 아이콘 + 타이틀 -->
-    <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-      <div style="width:60px; height:60px; border:2px solid #00ffff; clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display:flex; align-items:center; justify-content:center;">
-        <div style="width:20px; height:20px; border:1px solid #00ffff;"></div>
-      </div>
-      <div style="color:#00ffff; font-size:22px; font-family:'Courier New',monospace; font-weight:bold; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff; letter-spacing:4px;">NEON CORE</div>
+    <!-- 좌측 아이콘 버튼 -->
+    <div style="position:absolute; left:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
+      <button id="side-achieve" style="width:36px; height:36px; background:#0a1a2a; border:1px solid #0a3344; color:#00ffff; font-family:monospace; font-size:10px; cursor:pointer;" title="업적">▣<br><span style="font-size:7px;">업적</span></button>
+      <button id="side-event" data-sidelock="event" style="width:36px; height:36px; background:#060f18; border:1px solid #0a2233; color:#1a2a3a; font-family:monospace; font-size:10px; cursor:pointer;" title="이벤트 (웨이브 10 달성 시 해금)">▣<br><span style="font-size:7px;">이벤트</span></button>
+      <button id="side-ranking" data-sidelock="ranking" style="width:36px; height:36px; background:#060f18; border:1px solid #0a2233; color:#1a2a3a; font-family:monospace; font-size:10px; cursor:pointer;" title="랭킹 (웨이브 20 달성 시 해금)">▣<br><span style="font-size:7px;">랭킹</span></button>
+      <button id="side-power" data-sidelock="power" style="width:36px; height:36px; background:#060f18; border:1px solid #0a2233; color:#1a2a3a; font-family:monospace; font-size:10px; cursor:pointer;" title="파워스톤 (웨이브 30 달성 시 해금)">▣<br><span style="font-size:7px;">파워</span></button>
     </div>
+
+    <!-- 타이틀 -->
+    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:20px 0;">NEON CORE</div>
 
     <!-- 정보 카드 2개 -->
     <div style="display:flex; flex-direction:row; gap:8px; width:100%;">
@@ -1221,7 +1224,7 @@ canvas {
           <button id="tier-next" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:8px 14px; min-width:44px; min-height:44px;">▶</button>
         </div>
         <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
-        <div style="color:#f59e0b; font-size:10px; font-family:monospace; white-space:nowrap;">◈ x<span id="tier-multiplier">1.0</span></div>
+        <div style="color:#00ffff; font-size:10px; font-family:monospace; white-space:nowrap;">◆ x<span id="tier-multiplier">1.0</span></div>
       </div>
 
     </div>
@@ -2898,6 +2901,7 @@ function openShop() {
   buildUnlockUI();
   syncShopUI();
   checkNavUnlocks();
+  checkSideUnlocks();
 }
 
 function syncShopUI() {
@@ -3242,8 +3246,59 @@ function getNewUnlocks() {
   }
 }());
 
+// Side button unlock conditions
+var sideLockConditions = {
+  event:   { wave: 10, tooltip: '웨이브 10 달성 시 해금' },
+  ranking: { wave: 20, tooltip: '웨이브 20 달성 시 해금' },
+  power:   { wave: 30, tooltip: '파워스톤 (웨이브 30 달성 시 해금)' },
+};
+
+function checkSideUnlocks() {
+  var best = PERM.bestWave || 0;
+  var sideBtns = document.querySelectorAll('[data-sidelock]');
+  for (var i = 0; i < sideBtns.length; i++) {
+    var btn = sideBtns[i];
+    var key = btn.getAttribute('data-sidelock');
+    var cfg = sideLockConditions[key];
+    if (!cfg) continue;
+    if (best >= cfg.wave) {
+      btn.style.color = '#00ffff';
+      btn.style.background = '#0a1a2a';
+      btn.style.borderColor = '#0a3344';
+      var spans = btn.querySelectorAll('span');
+      for (var s = 0; s < spans.length; s++) spans[s].style.color = '#00ffff';
+      btn.setAttribute('data-sidelock', '');
+    }
+  }
+}
+
+// Side button click handlers
+(function() {
+  var sideAchieve = document.getElementById('side-achieve');
+  if (sideAchieve) {
+    sideAchieve.addEventListener('click', function() {
+      try {
+        buildAchieveUI();
+        document.getElementById('achieve-screen').classList.add('show');
+      } catch(e) {}
+    });
+  }
+  var sideBtns = document.querySelectorAll('[data-sidelock]');
+  for (var i = 0; i < sideBtns.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var key = btn.getAttribute('data-sidelock');
+        if (key && sideLockConditions[key]) {
+          showNavLockTooltip(sideLockConditions[key].tooltip);
+        }
+      });
+    })(sideBtns[i]);
+  }
+}());
+
 // Initial unlock check
 checkNavUnlocks();
+checkSideUnlocks();
 
 </script>
 
