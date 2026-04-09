@@ -1357,14 +1357,45 @@ canvas {
   </div>
 
   <!-- 상단 HUD -->
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; position:relative;">
     <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="home-gold">0</span></span>
     <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="home-gem">0</span></span>
-    <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
+    <button id="btn-currency-toggle" style="background:none; border:none; color:#334455; font-size:13px; font-family:monospace; cursor:pointer; padding:0; line-height:1;">▼</button>
+    <!-- 재화 상세 패널 -->
+    <div id="currency-panel" style="display:none; position:absolute; top:48px; right:0; width:200px; background:#0a1a2a; border:1px solid #0a3344; border-top:none; z-index:200; padding:8px 0;">
+      <div class="currency-row">
+        <span style="color:#f59e0b; font-family:monospace; font-size:11px;">◈ 골드</span>
+        <span id="panel-gold" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#00ffff; font-family:monospace; font-size:11px;">◆ 보석</span>
+        <span id="panel-gem" style="color:#00ffff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <div class="currency-row">
+        <span style="color:#94a3b8; font-family:monospace; font-size:10px;">최고 웨이브</span>
+        <span id="panel-best-wave" style="color:#94a3b8; font-family:monospace; font-size:11px;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#94a3b8; font-family:monospace; font-size:10px;">총 처치 수</span>
+        <span id="panel-total-kills" style="color:#94a3b8; font-family:monospace; font-size:11px;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#94a3b8; font-family:monospace; font-size:10px;">연속 출석</span>
+        <span id="panel-streak" style="color:#94a3b8; font-family:monospace; font-size:11px;">0일</span>
+      </div>
+      <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <button id="panel-store-btn" style="width:calc(100% - 16px); margin:0 8px; height:32px; background:#030b10; border:1px solid #0a3344; color:#00ffff; font-family:monospace; font-size:10px; cursor:pointer;">◉ 스토어에서 충전</button>
+    </div>
   </div>
 
   <!-- 중앙 콘텐츠 -->
   <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 16px; position:relative;">
+
+    <!-- 우측 아이콘 버튼 -->
+    <div style="position:absolute; right:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
+      <button id="home-btn-settings" style="width:36px; height:36px; background:#0a1a2a; border:1px solid #0a3344; color:#00ffff; font-family:monospace; font-size:14px; cursor:pointer;">✦</button>
+    </div>
 
     <!-- 좌측 아이콘 버튼 -->
     <div style="position:absolute; left:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
@@ -5684,6 +5715,80 @@ if (_origTGO) {
       _saveTrn(trn);
     }
   };
+}
+
+}());
+</script>
+
+<style>
+.currency-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+}
+</style>
+
+<!-- 홈화면: 설정 버튼 + 재화 패널 -->
+<script>
+(function() {
+'use strict';
+
+/* ── 설정 버튼 ── */
+var settingsBtn = document.getElementById('home-btn-settings');
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', function() {
+    try { syncSettingsUI(); } catch(_) {}
+    document.getElementById('settings-screen').classList.add('show');
+  });
+}
+
+/* ── 재화 패널 토글 ── */
+var toggleBtn   = document.getElementById('btn-currency-toggle');
+var panel       = document.getElementById('currency-panel');
+var panelOpen   = false;
+
+function openPanel() {
+  document.getElementById('panel-gold').textContent       = PERM.gold       || 0;
+  document.getElementById('panel-gem').textContent        = PERM.gems       || 0;
+  document.getElementById('panel-best-wave').textContent  = PERM.bestWave   || 0;
+  document.getElementById('panel-total-kills').textContent= PERM.totalKills || 0;
+  var streak = parseInt(localStorage.getItem('td_daily_streak') || '0');
+  document.getElementById('panel-streak').textContent = streak + '일';
+  panel.style.display = 'block';
+  toggleBtn.textContent = '▲';
+  toggleBtn.style.color = '#00ffff';
+  panelOpen = true;
+}
+
+function closePanel() {
+  panel.style.display = 'none';
+  toggleBtn.textContent = '▼';
+  toggleBtn.style.color = '#334455';
+  panelOpen = false;
+}
+
+if (toggleBtn) {
+  toggleBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    panelOpen ? closePanel() : openPanel();
+  });
+}
+
+// 패널 외부 클릭 시 닫기
+document.addEventListener('click', function(e) {
+  if (!panelOpen) return;
+  if (panel && !panel.contains(e.target) && e.target !== toggleBtn) closePanel();
+});
+
+// 스토어 바로가기
+var storeBtn = document.getElementById('panel-store-btn');
+if (storeBtn) {
+  storeBtn.addEventListener('click', function() {
+    closePanel();
+    var navStore = document.getElementById('h-nav-store');
+    if (navStore) navStore.click();
+  });
 }
 
 }());
