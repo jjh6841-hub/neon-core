@@ -1205,6 +1205,8 @@ canvas {
 <div id="screen-game">
   <div id="canvas-area">
     <canvas id="gameCanvas"></canvas>
+    <!-- 궁극 무기 쿨타임 HUD -->
+    <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
     <div id="screen-shop">
       <div id="tab-bar">
         <button id="speed-btn">1×</button>
@@ -1410,7 +1412,7 @@ canvas {
     <button class="nav-btn active" data-screen="home" style="flex:1; height:52px; background:none; border:none; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer; border-bottom:2px solid #00ffff;"><span style="font-size:16px; color:#00ffff;">X</span><br>전투</button>
     <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
     <button class="nav-btn" id="h-nav-tournament" data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
-    <button class="nav-btn" id="h-nav-guild" data-navlock="guild" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">길드</span></button>
+    <button class="nav-btn" id="h-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
     <button class="nav-btn" id="h-nav-season" data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
     <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
@@ -1433,7 +1435,7 @@ canvas {
     <button class="ws-tab" data-tab="atk" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">/ 공격</button>
     <button class="ws-tab" data-tab="def" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">□ 방어</button>
     <button class="ws-tab" data-tab="spc" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">* 특수</button>
-    <button class="ws-tab" data-tab="pwr" disabled style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#1a2a3a; font-size:11px; font-family:'Courier New',monospace; cursor:default; opacity:0.35;">▲ 파워</button>
+    <button class="ws-tab" data-tab="pwr" style="flex:1; height:36px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-size:11px; font-family:'Courier New',monospace; cursor:pointer;">▲ 크리스탈</button>
   </div>
 
   <!-- 업그레이드 목록 -->
@@ -1444,7 +1446,7 @@ canvas {
     <button id="ws-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◈</span><br>강화</button>
     <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
-    <button data-navlock="guild" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">길드</span></button>
+    <button id="ws-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
     <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
     <button id="ws-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
@@ -1472,7 +1474,7 @@ canvas {
     <button id="st-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
     <button id="st-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
     <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
-    <button data-navlock="guild" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">길드</span></button>
+    <button id="st-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
     <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◉</span><br>스토어</button>
   </div>
@@ -3661,8 +3663,8 @@ document.addEventListener('touchend', function(e) {
 
 // Nav lock system
 var navLockConditions = {
-  tournament: { label: '토너먼트', wave: 15, tooltip: '웨이브 15 달성 시 해금' },
-  guild:      { label: '길드',     wave: 30, tooltip: '웨이브 30 달성 시 해금' },
+  tournament: { label: '토너먼트', wave: 30, tooltip: '웨이브 30 달성 시 해금' },
+  lab:        { label: '연구소',   wave: 15, tooltip: '웨이브 15 달성 시 해금' },
   season:     { label: '시즌',     wave: 50, tooltip: '웨이브 50 달성 시 해금' },
 };
 
@@ -4105,6 +4107,16 @@ if (dailyClaimBtn) {
   var workshopBtn = document.getElementById('h-nav-workshop');
   if (workshopBtn) workshopBtn.addEventListener('click', openWorkshop);
 
+  /* ── 외부 확장용 노출 ── */
+  window._wsExt = {
+    items:   WS_ITEMS,
+    flash:   flashCard,
+    sync:    syncWorkshopHUD,
+    upgrade: wsUpgrade,
+    open:    openWorkshop,
+    activeTab: function() { return wsActiveTab; }
+  };
+
 }());
 </script>
 
@@ -4289,6 +4301,1390 @@ if (dailyClaimBtn) {
     document.getElementById('screen-workshop').style.display = 'none';
     openStore();
   });
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     연구소 화면
+══════════════════════════════════════════════════════ -->
+<div id="screen-lab" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
+  <!-- HUD -->
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="lab-gold">0</span></span>
+    <span style="color:#00ffff; font-size:11px; font-family:'Courier New',monospace; letter-spacing:3px;">연구소</span>
+    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="lab-gem">0</span></span>
+  </div>
+  <!-- 연구 선택 버튼 -->
+  <div style="padding:8px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14;">
+    <button id="lab-research-select-btn" style="width:100%; background:#0a1a2a; border:1px solid #0a3344; color:#00ffff; font-family:'Courier New',monospace; font-size:11px; padding:8px; cursor:pointer;">연구 선택</button>
+  </div>
+  <!-- 슬롯 목록 -->
+  <div id="lab-slots" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
+    <button id="lab-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
+    <button id="lab-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
+    <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">◈</span><br><span style="font-size:8px;">연구소</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button id="lab-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
+  </div>
+</div>
+<!-- 연구 선택 팝업 -->
+<div id="lab-popup" style="display:none; position:fixed; inset:0; background:rgba(3,11,16,0.97); z-index:2000; flex-direction:column; overflow:hidden;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid #0a3344; background:#040c14; flex-shrink:0;">
+    <span style="color:#00ffff; font-family:monospace; font-size:13px; letter-spacing:2px;">연구 선택</span>
+    <button id="lab-popup-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
+  </div>
+  <div id="lab-popup-filter" style="display:flex; gap:4px; padding:6px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14; overflow-x:auto;">
+    <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">전체</button>
+    <button class="lab-filter" data-cat="attack"  style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">공격</button>
+    <button class="lab-filter" data-cat="defense" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">방어</button>
+    <button class="lab-filter" data-cat="utility" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">유틸</button>
+    <button class="lab-filter" data-cat="ultimate" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">궁극</button>
+  </div>
+  <div style="padding:6px 12px; flex-shrink:0; display:flex; justify-content:flex-end;">
+    <label style="color:#334455; font-family:monospace; font-size:10px; cursor:pointer;">
+      <input type="checkbox" id="lab-hide-complete" style="margin-right:4px;">완료 숨기기
+    </label>
+  </div>
+  <div id="lab-popup-list" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 12px 12px;"></div>
+  <div style="padding:8px 12px; border-top:1px solid #0a2233; flex-shrink:0; background:#040c14;">
+    <div style="color:#334455; font-family:monospace; font-size:9px;" id="lab-popup-hint">선택할 연구소 슬롯을 먼저 선택하세요</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     토너먼트 화면
+══════════════════════════════════════════════════════ -->
+<div id="screen-tournament" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
+  <!-- HUD -->
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
+    <span style="color:#00ffff; font-size:11px; font-family:'Courier New',monospace; letter-spacing:2px;">THE TOURNAMENT</span>
+    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="trn-gem">0</span></span>
+  </div>
+  <!-- 콘텐츠 -->
+  <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px; display:flex; flex-direction:column; gap:10px; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));">
+    <!-- 리그 아이콘 -->
+    <div style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px;">
+      <div id="trn-trophy" style="font-size:48px; text-align:center;">🥉</div>
+      <div id="trn-league-name" style="color:#cd7f32; font-family:'Courier New',monospace; font-size:18px; font-weight:bold; letter-spacing:2px;">브론즈 리그</div>
+      <div style="color:#334455; font-family:monospace; font-size:10px;">최대 100명 참가 · 최고 웨이브 경쟁</div>
+    </div>
+    <!-- 참가 시간 -->
+    <div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="color:#94a3b8; font-family:monospace; font-size:11px;">다음 토너먼트까지</span>
+      <span id="trn-timer" style="color:#00ffff; font-family:'Courier New',monospace; font-size:14px; font-weight:bold;">00h 00m</span>
+    </div>
+    <!-- 닉네임 -->
+    <div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px;">
+      <div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-bottom:6px;">플레이어 이름</div>
+      <div style="display:flex; gap:6px;">
+        <input id="trn-name-input" type="text" maxlength="12" placeholder="닉네임 입력"
+          style="flex:1; background:#030b10; border:1px solid #0a3344; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; padding:6px 8px; outline:none;">
+        <button id="trn-name-save" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:10px; padding:6px 10px; cursor:pointer;">저장</button>
+      </div>
+    </div>
+    <!-- 상금 보기 -->
+    <button id="trn-prize-btn" style="background:#0a1a2a; border:1px solid #0a3344; color:#f59e0b; font-family:'Courier New',monospace; font-size:11px; padding:10px; cursor:pointer; text-align:left;">
+      ◈ 상금 목록 보기 ▶
+    </button>
+    <!-- 순위표 -->
+    <div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px;">
+      <div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-bottom:8px; letter-spacing:1px;">현재 순위</div>
+      <div id="trn-leaderboard" style="display:flex; flex-direction:column; gap:4px;"></div>
+    </div>
+    <!-- 참가 버튼 -->
+    <button id="trn-join-btn" style="width:100%; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-family:'Courier New',monospace; font-size:16px; font-weight:bold; padding:14px; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff;">
+      참가하기
+    </button>
+  </div>
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
+    <button id="trn-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
+    <button id="trn-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button id="trn-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button id="trn-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
+  </div>
+</div>
+<!-- 상금 팝업 -->
+<div id="trn-prize-popup" style="display:none; position:fixed; inset:0; background:rgba(3,11,16,0.97); z-index:2000; flex-direction:column; overflow:hidden;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid #0a3344; background:#040c14; flex-shrink:0;">
+    <span style="color:#f59e0b; font-family:monospace; font-size:13px; letter-spacing:2px;">PRIZES</span>
+    <button id="trn-prize-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
+  </div>
+  <div id="trn-prize-tabs" style="display:flex; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
+    <button class="trn-ptab" data-league="bronze"   style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid #cd7f32; color:#cd7f32; font-family:monospace; font-size:9px; cursor:pointer;">🥉브론즈</button>
+    <button class="trn-ptab" data-league="silver"   style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-family:monospace; font-size:9px; cursor:pointer;">🥈실버</button>
+    <button class="trn-ptab" data-league="gold"     style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-family:monospace; font-size:9px; cursor:pointer;">🥇골드</button>
+    <button class="trn-ptab" data-league="platinum" style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-family:monospace; font-size:9px; cursor:pointer;">💎플래티넘</button>
+  </div>
+  <div id="trn-prize-content" style="flex:1; overflow-y:auto; padding:10px 12px;"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 숫자 포맷 + 게임 확장 (넉백/구체/지뢰/궁극무기)
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ── 숫자 단위 약어 ── */
+window.formatNumber = function(n) {
+  n = Math.floor(n);
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
+  return String(n);
+};
+
+/* ── createState 확장 ── */
+var _origCreate = window.createState;
+window.createState = function() {
+  var g = _origCreate.apply(this, arguments);
+  var ws = PERM.ws || {};
+  // Defense extended
+  g.knockbackChance = (ws.knockbackChance || 0) * 0.008;
+  g.knockbackForce  = (ws.knockbackForce  || 0) * 0.1;
+  g.orbSpeed        = 1 + (ws.orbSpeed    || 0) * 0.1;
+  g.orbCount        = ws.orbCount || 0;
+  g.orbAngle        = 0;
+  g.thornDamage     = (ws.thornDamage || 0) * 0.01;
+  g.deathDefy       = (ws.deathDefy   || 0) * 0.001;
+  g.defenseAbs      = ws.defenseAbsolute || 0;
+  // Mine state
+  g.mineChance      = (ws.mineChance  || 0) * 0.003;
+  g.mineDamageM     = 1 + (ws.mineDamage || 0) * 0.05;
+  g.mineRadius      = (0.5 + (ws.mineRadius || 0) * 0.02) * 30;
+  g.mines           = [];
+  g.mineSpawnTimer  = 0;
+  // Utility
+  g.cashBonusM      = 1 + (ws.cashBonus   || 0) * 0.05;
+  g.cashPerWaveExt  = (ws.cashPerWave     || 0) * 2;
+  g.coinsPerKillM   = 1 + (ws.coinsPerKill|| 0) * 0.02;
+  g.interestRate    = (ws.interest        || 0) * 0.001;
+  // Ultimate weapons
+  var uw = _loadUW();
+  g.hasDeathWave    = !!(uw.death_wave    && uw.death_wave.unlocked);
+  g.hasChronoField  = !!(uw.chrono_field  && uw.chrono_field.unlocked);
+  g.hasPlasma       = !!(uw.plasma_surge  && uw.plasma_surge.unlocked);
+  g.hasNovaBurst    = !!(uw.nova_burst    && uw.nova_burst.unlocked);
+  var dw = uw.death_wave    || {};
+  var cf = uw.chrono_field  || {};
+  var ps = uw.plasma_surge  || {};
+  var nb = uw.nova_burst    || {};
+  g.dwDamageMult  = 2.5 + (dw.dmgLv      || 0) * 0.05;
+  g.dwCooldownMax = Math.max(30000, (270  - (dw.cooldownLv || 0) * 5) * 1000);
+  g.dwCooldown    = g.hasDeathWave    ? g.dwCooldownMax : Infinity;
+  g.cfDuration    = (8  + (cf.durationLv || 0) * 0.5) * 1000;
+  g.cfSlowRate    = 0.20 + (cf.slowLv    || 0) * 0.01;
+  g.cfCooldownMax = Math.max(30000, (170  - (cf.cooldownLv || 0) * 3) * 1000);
+  g.cfCooldown    = g.hasChronoField  ? g.cfCooldownMax : Infinity;
+  g.cfActive      = false; g.cfTimer = 0;
+  g.psCooldownMax = Math.max(30000, (180  - (ps.cooldownLv || 0) * 4) * 1000);
+  g.psCooldown    = g.hasPlasma       ? g.psCooldownMax : Infinity;
+  g.psEffect      = null;
+  g.nbProj        = 8 + (nb.projectilesLv || 0);
+  g.nbCooldownMax = Math.max(30000, (90   - (nb.cooldownLv || 0) * 2) * 1000);
+  g.nbCooldown    = g.hasNovaBurst    ? g.nbCooldownMax : Infinity;
+  return g;
+};
+
+/* ── applyPermStats 확장 ── */
+var _origApply = window.applyPermStats;
+window.applyPermStats = function() {
+  _origApply.apply(this, arguments);
+  if (!G) return;
+  var ws = PERM.ws || {};
+  // Extended range from ws.wsRange
+  G.tower.range += (ws.wsRange || 0) * 8;
+  // Cash bonus multiplies gold mult
+  if (G.cashBonusM) G.goldMult = (G.goldMult || 1) * G.cashBonusM;
+  if (G.coinsPerKillM) G.goldMult = (G.goldMult || 1) * G.coinsPerKillM;
+};
+
+/* ── startWave 확장 (이자율, 웨이브 보너스) ── */
+var _origStartWave = window.startWave;
+window.startWave = function() {
+  _origStartWave.apply(this, arguments);
+  if (!G) return;
+  if (G.interestRate > 0) {
+    var interest = Math.floor(G.gold * G.interestRate);
+    if (interest > 0) { G.gold += interest; G.goldEarned += interest; }
+  }
+  if (G.cashPerWaveExt > 0) {
+    G.gold += G.cashPerWaveExt; G.goldEarned += G.cashPerWaveExt;
+  }
+};
+
+/* ── update 확장 ── */
+var _origUpdate = window.update;
+window.update = function(dt) {
+  _origUpdate.apply(this, arguments);
+  if (!G || G.phase !== 'playing') return;
+  _updateOrbs(dt);
+  _updateMines(dt);
+  _updateThorn(dt);
+  _updateUltimates(dt);
+  _updateUltHUD();
+};
+
+function _updateOrbs(dt) {
+  if (!G.orbCount) return;
+  G.orbAngle = (G.orbAngle || 0) + G.orbSpeed * 0.0025 * dt;
+  var orbR = 70, orbDmg = G.tower.dmg * 0.4;
+  for (var oi = 0; oi < G.orbCount; oi++) {
+    var a = G.orbAngle + (Math.PI * 2 / G.orbCount) * oi;
+    var ox = G.cx + Math.cos(a) * orbR, oy = G.cy + Math.sin(a) * orbR;
+    for (var ei = G.enemies.length - 1; ei >= 0; ei--) {
+      var e = G.enemies[ei];
+      var edx = e.x - ox, edy = e.y - oy;
+      if (edx * edx + edy * edy < (e.r + 7) * (e.r + 7)) {
+        e.hp -= orbDmg * (dt / 300);
+        if (e.hp <= 0) {
+          var ge = Math.floor(e.gold * (G.goldMult || 1));
+          G.gold += ge; G.goldEarned += ge; G.killCount++; PERM.totalKills++;
+          if (e.boss) PERM.bossKills++;
+          try { spawnDeathParticles(e.x, e.y, '#00ffff', 5); } catch(_) {}
+          G.enemies.splice(ei, 1);
+        }
+      }
+    }
+  }
+}
+
+function _updateMines(dt) {
+  if (!G.mineChance) return;
+  G.mineSpawnTimer += dt;
+  if (G.mineSpawnTimer >= 2500 && G.mines.length < 15) {
+    G.mineSpawnTimer = 0;
+    if (Math.random() < G.mineChance * 8) {
+      var ang = Math.random() * Math.PI * 2;
+      var dist = G.tower.range * 0.3 + Math.random() * G.tower.range * 0.5;
+      G.mines.push({ x: G.cx + Math.cos(ang) * dist, y: G.cy + Math.sin(ang) * dist, life: 18000, armed: false, armTimer: 800 });
+    }
+  }
+  for (var mi = G.mines.length - 1; mi >= 0; mi--) {
+    var mine = G.mines[mi];
+    mine.life -= dt;
+    if (!mine.armed) { mine.armTimer -= dt; if (mine.armTimer <= 0) mine.armed = true; }
+    if (mine.life <= 0) { G.mines.splice(mi, 1); continue; }
+    if (!mine.armed) continue;
+    for (var emi = G.enemies.length - 1; emi >= 0; emi--) {
+      var em = G.enemies[emi];
+      var mDx = em.x - mine.x, mDy = em.y - mine.y;
+      if (mDx * mDx + mDy * mDy < (em.r + 10) * (em.r + 10)) {
+        var mR = G.mineRadius, mDmg = G.tower.dmg * G.mineDamageM;
+        try { addFx(mine.x, mine.y, mR, '#00ff88'); triggerShake(3); } catch(_) {}
+        for (var eki = G.enemies.length - 1; eki >= 0; eki--) {
+          var ek = G.enemies[eki];
+          var ekDx = ek.x - mine.x, ekDy = ek.y - mine.y;
+          if (ekDx * ekDx + ekDy * ekDy < mR * mR) {
+            ek.hp -= mDmg;
+            if (ek.hp <= 0) {
+              var mkGe = Math.floor(ek.gold * (G.goldMult || 1));
+              G.gold += mkGe; G.goldEarned += mkGe; G.killCount++; PERM.totalKills++;
+              if (ek.boss) PERM.bossKills++;
+              try { spawnDeathParticles(ek.x, ek.y, '#00ff88', 5); } catch(_) {}
+              G.enemies.splice(eki, 1);
+              if (eki <= emi) emi--;
+            }
+          }
+        }
+        G.mines.splice(mi, 1); break;
+      }
+    }
+  }
+}
+
+function _updateThorn(dt) {
+  if (!G.thornDamage) return;
+  for (var ti = G.enemies.length - 1; ti >= 0; ti--) {
+    var te = G.enemies[ti];
+    var tdx = te.x - G.cx, tdy = te.y - G.cy;
+    if (Math.sqrt(tdx * tdx + tdy * tdy) < G.tower.range) {
+      te.hp -= G.thornDamage * G.tower.dmg * (dt / 1000);
+      if (te.hp <= 0) {
+        var tge = Math.floor(te.gold * (G.goldMult || 1));
+        G.gold += tge; G.goldEarned += tge; G.killCount++; PERM.totalKills++;
+        if (te.boss) PERM.bossKills++;
+        try { spawnDeathParticles(te.x, te.y, '#ff8888', 4); } catch(_) {}
+        G.enemies.splice(ti, 1);
+      }
+    }
+  }
+}
+
+function _updateUltimates(dt) {
+  // Death Wave
+  if (G.hasDeathWave && G.dwCooldown > 0) {
+    G.dwCooldown = Math.max(0, G.dwCooldown - dt);
+    if (G.dwCooldown === 0) _triggerDeathWave();
+  }
+  // Chrono Field
+  if (G.hasChronoField) {
+    if (!G.cfActive && G.cfCooldown > 0) {
+      G.cfCooldown = Math.max(0, G.cfCooldown - dt);
+      if (G.cfCooldown === 0) { G.cfActive = true; G.cfTimer = G.cfDuration; _toast('◷ 크로노 필드 활성화!'); }
+    }
+    if (G.cfActive) {
+      G.cfTimer -= dt;
+      for (var ci = 0; ci < G.enemies.length; ci++) G.enemies[ci].slowTimer = Math.max(G.enemies[ci].slowTimer, 150);
+      if (G.cfTimer <= 0) { G.cfActive = false; G.cfCooldown = G.cfCooldownMax; }
+    }
+  }
+  // Plasma Surge
+  if (G.hasPlasma && G.psCooldown > 0) {
+    G.psCooldown = Math.max(0, G.psCooldown - dt);
+    if (G.psCooldown === 0) _triggerPlasma();
+  }
+  if (G.psEffect) { G.psEffect.timer -= dt; if (G.psEffect.timer <= 0) G.psEffect = null; }
+  // Nova Burst
+  if (G.hasNovaBurst && G.nbCooldown > 0) {
+    G.nbCooldown = Math.max(0, G.nbCooldown - dt);
+    if (G.nbCooldown === 0) _triggerNovaBurst();
+  }
+}
+
+function _triggerDeathWave() {
+  var dmg = G.tower.dmg * G.dwDamageMult, killed = 0;
+  for (var i = G.enemies.length - 1; i >= 0; i--) {
+    G.enemies[i].hp -= dmg;
+    if (G.enemies[i].hp <= 0) {
+      var ge = Math.floor(G.enemies[i].gold * (G.goldMult || 1));
+      G.gold += ge; G.goldEarned += ge; G.killCount++; PERM.totalKills++;
+      if (G.enemies[i].boss) PERM.bossKills++;
+      try { spawnDeathParticles(G.enemies[i].x, G.enemies[i].y, '#ef4444', 8); } catch(_) {}
+      G.enemies.splice(i, 1); killed++;
+    }
+  }
+  try { triggerShake(12); addFx(G.cx, G.cy, Math.max(CW, CH) * 0.7, '#ef4444'); } catch(_) {}
+  G.dwCooldown = G.dwCooldownMax;
+  _toast('◎ 데스 웨이브! ' + killed + '마리 처치');
+}
+
+function _triggerPlasma() {
+  var angle = Math.random() * Math.PI;
+  G.psEffect = { angle: angle, timer: 600 };
+  var cos = Math.cos(angle), sin = Math.sin(angle), bw = 22;
+  for (var i = G.enemies.length - 1; i >= 0; i--) {
+    var e = G.enemies[i], ex = e.x - G.cx, ey = e.y - G.cy;
+    if (Math.abs(-ex * sin + ey * cos) < bw + e.r) {
+      e.hp -= G.tower.dmg * 4;
+      if (e.hp <= 0) {
+        var ge = Math.floor(e.gold * (G.goldMult || 1));
+        G.gold += ge; G.goldEarned += ge; G.killCount++; PERM.totalKills++;
+        if (e.boss) PERM.bossKills++;
+        try { spawnDeathParticles(e.x, e.y, '#f59e0b', 8); } catch(_) {}
+        G.enemies.splice(i, 1);
+      }
+    }
+  }
+  G.psCooldown = G.psCooldownMax;
+  try { triggerShake(6); } catch(_) {}
+  _toast('⚡ 플라즈마 서지!');
+}
+
+function _triggerNovaBurst() {
+  var shots = G.nbProj || 8, dmg = G.tower.dmg * 1.5;
+  for (var s = 0; s < shots; s++) {
+    var a = (Math.PI * 2 / shots) * s;
+    G.bullets.push({ x: G.cx, y: G.cy, dx: Math.cos(a), dy: Math.sin(a), crit: false, pierceLeft: 99, hitSet: new Set(), _dmg: dmg });
+  }
+  G.nbCooldown = G.nbCooldownMax;
+  _toast('✦ 노바 버스트! ' + shots + '발');
+}
+
+/* ── render 확장 ── */
+var _origRender = window.render;
+window.render = function() {
+  _origRender.apply(this, arguments);
+  if (!G) return;
+  ctx.save();
+  ctx.translate(screenShake.x, screenShake.y);
+  ctx.save();
+  ctx.translate(CW / 2, CH / 2);
+  ctx.scale(G.zoom, G.zoom);
+  ctx.translate(-CW / 2, -CH / 2);
+
+  // Mines
+  for (var mi = 0; mi < G.mines.length; mi++) {
+    var mine = G.mines[mi];
+    ctx.save(); ctx.translate(mine.x, mine.y);
+    if (mine.armed) {
+      var pulse = 0.5 + Math.sin(Date.now() * 0.012) * 0.35;
+      ctx.strokeStyle = 'rgba(0,255,136,' + pulse + ')'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#00ff88'; ctx.font = 'bold 9px Courier New';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('×', 0, 0);
+    } else {
+      ctx.strokeStyle = '#334455'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Orbs
+  if (G.orbCount > 0) {
+    var orbR = 70;
+    for (var oi = 0; oi < G.orbCount; oi++) {
+      var oa = G.orbAngle + (Math.PI * 2 / G.orbCount) * oi;
+      var ox = G.cx + Math.cos(oa) * orbR, oy = G.cy + Math.sin(oa) * orbR;
+      ctx.save(); ctx.translate(ox, oy);
+      var op = 0.65 + Math.sin(Date.now() * 0.008 + oi * 1.5) * 0.3;
+      ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 8;
+      ctx.fillStyle = 'rgba(0,255,255,' + op + ')';
+      ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Plasma Surge
+  if (G.psEffect && G.psEffect.timer > 0) {
+    var pa = G.psEffect.angle, alpha = Math.min(1, G.psEffect.timer / 300);
+    var pc = Math.cos(pa), ps2 = Math.sin(pa), len = Math.max(CW, CH) * 1.2;
+    ctx.save(); ctx.translate(G.cx, G.cy);
+    ctx.strokeStyle = 'rgba(245,158,11,' + alpha + ')'; ctx.lineWidth = 18;
+    ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 30;
+    ctx.beginPath(); ctx.moveTo(-pc * len, -ps2 * len); ctx.lineTo(pc * len, ps2 * len); ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.restore(); ctx.restore();
+};
+
+/* ── 궁극 무기 HUD ── */
+function _updateUltHUD() {
+  var el = document.getElementById('ult-hud'); if (!el) return;
+  var wps = [];
+  if (G.hasDeathWave)   wps.push({ icon:'◎', color:'#ef4444', cd:G.dwCooldown,  max:G.dwCooldownMax  });
+  if (G.hasChronoField) wps.push({ icon:'◷', color:'#3b82f6', cd:G.cfCooldown,  max:G.cfCooldownMax, active:G.cfActive });
+  if (G.hasPlasma)      wps.push({ icon:'⚡', color:'#f59e0b', cd:G.psCooldown, max:G.psCooldownMax  });
+  if (G.hasNovaBurst)   wps.push({ icon:'✦', color:'#cc44ff', cd:G.nbCooldown,  max:G.nbCooldownMax  });
+  el.style.display = wps.length ? 'flex' : 'none';
+  el.innerHTML = wps.map(function(w) {
+    var pct   = w.max > 0 ? Math.max(0, 1 - w.cd / w.max) : 1;
+    var ready = w.cd <= 0;
+    var lbl   = ready ? 'READY' : (Math.ceil(w.cd / 1000) + 's');
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:28px;">' +
+      '<div style="font-size:13px;color:' + w.color + ';' + (ready ? 'text-shadow:0 0 8px ' + w.color + ';' : '') + '">' + w.icon + '</div>' +
+      '<div style="width:26px;height:3px;background:#0a1a2a;border:1px solid #1a2a3a;">' +
+        '<div style="height:100%;background:' + w.color + ';width:' + Math.round(pct * 100) + '%;transition:width 0.3s;"></div>' +
+      '</div>' +
+      '<div style="font-size:7px;color:' + (ready ? w.color : '#334455') + ';font-family:monospace;">' + lbl + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function _toast(msg) {
+  try {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);' +
+      'background:rgba(3,11,16,0.92);border:1px solid #00ffff;color:#00ffff;' +
+      'font-family:\'Courier New\',monospace;font-size:11px;padding:5px 14px;pointer-events:none;z-index:9500;white-space:nowrap;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function() { if (t.parentNode) t.remove(); }, 2000);
+  } catch(_) {}
+}
+
+function _loadUW() {
+  try { return JSON.parse(localStorage.getItem('td_uw') || '{}'); } catch(_) { return {}; }
+}
+window._loadUW  = _loadUW;
+window._saveUW  = function(d) { try { localStorage.setItem('td_uw', JSON.stringify(d)); } catch(_) {} };
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 강화 확장 (단계별 해금 + 코어 크리스탈 탭)
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+var _ext = window._wsExt;
+if (!_ext) return;
+var WS = _ext.items;
+
+/* ── 새 WS_ITEMS 추가 ── */
+var NEW_ITEMS = {
+  // 공격 탭 2단계 (tier 2, wave 150골드)
+  wsRange:       { tab:'atk', name:'공격 범위',   tier:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return '+'+lv*8+'px';},              nxt:function(lv){return '+'+(lv+1)*8+'px';} },
+  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'x'+(1+lv*0.01).toFixed(2);}, nxt:function(lv){return 'x'+(1+(lv+1)*0.01).toFixed(2);} },
+  // 공격 탭 3단계
+  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1)+'%';},    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return (lv+1)+'발';},                 nxt:function(lv){return (lv+2)+'발';} },
+  // 공격 탭 4단계
+  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5).toFixed(1)+'%';},    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1).toFixed(1)+'s';},  nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1)+'s';} },
+  // 공격 탭 5단계
+  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5).toFixed(1)+'%';},    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return (lv+1)+'회';},                 nxt:function(lv){return (lv+2)+'회';} },
+  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return 'x'+(1+lv*0.1).toFixed(1);},  nxt:function(lv){return 'x'+(1+(lv+1)*0.1).toFixed(1);} },
+
+  // 방어 탭 2단계
+  defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return lv+'dmg 감소';},         nxt:function(lv){return (lv+1)+'dmg 감소';} },
+  thornDamage:     { tab:'def', name:'가시 피해',        tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (lv*1).toFixed(0)+'%';},  nxt:function(lv){return (lv+1)+'%';} },
+  // 방어 탭 3단계
+  knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8).toFixed(1)+'%';},nxt:function(lv){return ((lv+1)*0.8).toFixed(1)+'%';} },
+  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'Lv.'+lv;},               nxt:function(lv){return 'Lv.'+(lv+1);} },
+  // 방어 탭 4단계
+  orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return 'x'+(1+lv*0.1).toFixed(1);},nxt:function(lv){return 'x'+(1+(lv+1)*0.1).toFixed(1);} },
+  orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return lv+'개';},                 nxt:function(lv){return (lv+1)+'개';} },
+  // 방어 탭 5단계
+  mineChance:      { tab:'def', name:'에너지 지뢰 확률', tier:5, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.3).toFixed(1)+'%';},nxt:function(lv){return ((lv+1)*0.3).toFixed(1)+'%';} },
+  mineDamage:      { tab:'def', name:'에너지 지뢰 피해', tier:5, maxLv:99, cost:function(lv){return 16+Math.floor(lv*2.8);}, cur:function(lv){return 'x'+(1+lv*0.05).toFixed(2);},nxt:function(lv){return 'x'+(1+(lv+1)*0.05).toFixed(2);} },
+  mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return 'x'+(0.5+lv*0.02).toFixed(2);},nxt:function(lv){return 'x'+(0.5+(lv+1)*0.02).toFixed(2);} },
+  deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1)+'%';},nxt:function(lv){return ((lv+1)*0.1).toFixed(1)+'%';} },
+
+  // 특수 탭 1단계 확장
+  cashBonus:       { tab:'spc', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return 'x'+(1+lv*0.05).toFixed(2);},nxt:function(lv){return 'x'+(1+(lv+1)*0.05).toFixed(2);} },
+  cashPerWave:     { tab:'spc', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return '+'+lv*2+'◈';},              nxt:function(lv){return '+'+(lv+1)*2+'◈';} },
+  // 특수 탭 2단계
+  coinsPerKill:    { tab:'spc', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'x'+(1+lv*0.02).toFixed(2);},nxt:function(lv){return 'x'+(1+(lv+1)*0.02).toFixed(2);} },
+  coinsPerWave:    { tab:'spc', name:'웨이브 코인',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return '+'+lv*5+'◈';},              nxt:function(lv){return '+'+(lv+1)*5+'◈';} },
+  // 특수 탭 4단계
+  interest:        { tab:'spc', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1)+'%/wave';},nxt:function(lv){return ((lv+1)*0.1).toFixed(1)+'%/wave';} },
+};
+
+// WS에 주입
+Object.keys(NEW_ITEMS).forEach(function(k) { WS[k] = NEW_ITEMS[k]; });
+
+/* ── 단계 해금 비용 ── */
+var TIER_COSTS = { atk:[0,150,400,1000,3000], def:[0,150,400,1000,3000], spc:[0,40,150,400,1000] };
+
+/* ── MutationObserver로 탭 빌드 후 확장 카드 추가 ── */
+var _building = false, _buildTimer = null;
+var wsContent = document.getElementById('ws-content');
+if (wsContent) {
+  new MutationObserver(function() {
+    if (_building) return;
+    clearTimeout(_buildTimer);
+    _buildTimer = setTimeout(function() {
+      _building = true;
+      _appendExtended();
+      setTimeout(function() { _building = false; }, 120);
+    }, 25);
+  }).observe(wsContent, { childList: true });
+}
+
+function _appendExtended() {
+  var container = document.getElementById('ws-content');
+  if (!container) return;
+  // 현재 활성 탭 확인
+  var activeTab = (_ext.activeTab && _ext.activeTab()) || 'atk';
+
+  if (activeTab === 'pwr') {
+    _buildCrystalTab(container);
+    return;
+  }
+
+  var ws       = PERM.ws || {};
+  var tierKey  = 'tier_' + activeTab;
+  var curTier  = ws[tierKey] || 1;
+  var costs    = TIER_COSTS[activeTab] || [0,150,400,1000,3000];
+
+  // 해금된 확장 아이템 추가
+  Object.keys(NEW_ITEMS).forEach(function(key) {
+    var item = NEW_ITEMS[key];
+    if (item.tab !== activeTab) return;
+    if ((item.tier || 1) > curTier) return;
+    _appendExtCard(container, key, ws);
+  });
+
+  // 다음 단계 해금 버튼
+  if (curTier < 5) {
+    var nextTier = curTier + 1;
+    var cost     = costs[nextTier - 1] || 999;
+    _appendTierCard(container, activeTab, nextTier, cost, ws);
+  }
+}
+
+function _appendExtCard(container, key, ws) {
+  var cfg    = NEW_ITEMS[key];
+  var lv     = ws[key] || 0;
+  var maxed  = lv >= cfg.maxLv;
+  var cost   = maxed ? 0 : cfg.cost(lv);
+  var afford = PERM.gold >= cost;
+
+  var card = document.createElement('div');
+  card.style.cssText =
+    'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;';
+
+  var rightHTML = maxed
+    ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
+    : '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0px;">' +
+        '<span style="font-size:13px;color:#00ffff;font-family:monospace;">' + cfg.cur(lv) +
+          '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span></span>' +
+        '<button data-extkey="' + key + '" style="background:#030b10;border:1px solid ' +
+          (afford ? '#0a3344' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
+          ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>' +
+      '</div>';
+
+  card.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:3px;">' +
+      '<span style="font-size:12px;color:#94a3b8;font-family:monospace;">' + cfg.name + '</span>' +
+      '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
+    '</div>' + rightHTML;
+
+  if (!maxed) {
+    var btn = card.querySelector('[data-extkey]');
+    if (btn) (function(k) {
+      btn.addEventListener('click', function() {
+        var c2 = NEW_ITEMS[k]; var l2 = (PERM.ws||{})[k]||0;
+        if (l2 >= c2.maxLv) return;
+        var co = c2.cost(l2);
+        if (PERM.gold < co) { card.style.borderColor='#ef4444'; setTimeout(function(){card.style.borderColor='';},200); return; }
+        PERM.gold -= co;
+        if (!PERM.ws) PERM.ws = {};
+        PERM.ws[k] = l2 + 1;
+        savePerm();
+        try { _ext.sync(); } catch(_) {}
+        setTimeout(function() { try { document.querySelector('.ws-tab[style*="00ffff"]') && document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {} }, 10);
+      });
+    }(key));
+  }
+  container.appendChild(card);
+}
+
+function _appendTierCard(container, tab, nextTier, cost, ws) {
+  var tierNames = ['','1단계','2단계','3단계','4단계','5단계'];
+  var tierDescs = {
+    atk: ['','기본','범위/거리피해','분열탄','연사','도약탄'],
+    def: ['','기본','절대방어/가시','넉백','에너지구체','지뢰/방어막'],
+    spc: ['','기본','크레딧','처치보너스','—','이자율'],
+  };
+  var desc    = (tierDescs[tab] && tierDescs[tab][nextTier]) || '';
+  var afford  = PERM.gold >= cost;
+  var tierKey = 'tier_' + tab;
+
+  var card = document.createElement('div');
+  card.style.cssText = 'grid-column:1/-1;background:#060f18;border:1px solid ' +
+    (afford ? '#0a3344' : '#1a2a3a') + ';border-left:2px solid rgba(0,255,255,0.15);' +
+    'padding:10px 12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:4px;';
+
+  card.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:2px;">' +
+      '<span style="font-size:11px;color:#334455;font-family:monospace;">다음 단계 해금: ' + tierNames[nextTier] + '</span>' +
+      '<span style="font-size:10px;color:#1a3344;font-family:monospace;">' + desc + ' 해금</span>' +
+    '</div>' +
+    '<button style="background:#030b10;border:1px solid ' + (afford ? '#0a3344' : '#ef4444') +
+      ';color:' + (afford ? '#f59e0b' : '#ef4444') +
+      ';font-family:monospace;font-size:11px;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">◈' + cost + '</button>';
+
+  var btn = card.querySelector('button');
+  btn.addEventListener('click', function() {
+    if (PERM.gold < cost) { card.style.borderColor='#ef4444'; setTimeout(function(){card.style.borderColor='';},200); return; }
+    PERM.gold -= cost;
+    if (!PERM.ws) PERM.ws = {};
+    PERM.ws[tierKey] = nextTier;
+    savePerm();
+    try { _ext.sync(); } catch(_) {}
+    setTimeout(function() { try { document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {} }, 10);
+  });
+  container.appendChild(card);
+}
+
+/* ══ 코어 크리스탈 탭 (궁극 무기) ══ */
+var ULTIMATE_WEAPONS = [
+  { id:'death_wave',   name:'데스 웨이브',   icon:'◎', color:'#ef4444', unlockCost:5,
+    desc:'강력한 충격파 - 공격력 250% 피해를 전체 적에게',
+    stats:[
+      { key:'dmgLv',       name:'피해량',  fmt:function(lv){return (250+lv*5)+'%';} },
+      { key:'cooldownLv',  name:'쿨타임',  fmt:function(lv){return Math.max(30,(270-lv*5))+'s';} },
+    ]},
+  { id:'chrono_field',  name:'크로노 필드',  icon:'◷', color:'#3b82f6', unlockCost:5,
+    desc:'적 이동속도를 감소시키는 시간 왜곡 필드',
+    stats:[
+      { key:'durationLv', name:'지속시간', fmt:function(lv){return (8+lv*0.5).toFixed(1)+'s';} },
+      { key:'slowLv',     name:'감속률',   fmt:function(lv){return (20+lv)+'%';} },
+      { key:'cooldownLv', name:'쿨타임',   fmt:function(lv){return Math.max(30,(170-lv*3))+'s';} },
+    ]},
+  { id:'plasma_surge',  name:'플라즈마 서지', icon:'⚡', color:'#f59e0b', unlockCost:8,
+    desc:'레이저 빔으로 일직선 관통',
+    stats:[
+      { key:'cooldownLv', name:'쿨타임', fmt:function(lv){return Math.max(30,(180-lv*4))+'s';} },
+    ]},
+  { id:'nova_burst',    name:'노바 버스트',   icon:'✦', color:'#cc44ff', unlockCost:10,
+    desc:'360도 에너지 파동 발사',
+    stats:[
+      { key:'projectilesLv', name:'발사체 수', fmt:function(lv){return (8+lv)+'발';} },
+      { key:'cooldownLv',    name:'쿨타임',    fmt:function(lv){return Math.max(30,(90-lv*2))+'s';} },
+    ]},
+];
+
+function _buildCrystalTab(container) {
+  container.style.gridTemplateColumns = '1fr';
+  var uw = window._loadUW ? window._loadUW() : {};
+
+  // 해금 버튼 헤더
+  var header = document.createElement('div');
+  header.style.cssText = 'grid-column:1/-1;padding:8px 0 4px;display:flex;justify-content:space-between;align-items:center;';
+  header.innerHTML =
+    '<span style="font-size:11px;color:#334455;font-family:monospace;">◆ 크리스탈로 해금</span>' +
+    '<span style="color:#cc44ff;font-family:monospace;font-size:12px;">◆ ' + (PERM.gems || 0) + '</span>';
+  container.appendChild(header);
+
+  ULTIMATE_WEAPONS.forEach(function(uw2) {
+    var uwData   = uw[uw2.id] || {};
+    var unlocked = !!uwData.unlocked;
+    var card     = document.createElement('div');
+    card.style.cssText = 'border:1px solid ' + (unlocked ? uw2.color + '44' : '#0a2233') +
+      ';background:#060f18;padding:12px;display:flex;flex-direction:column;gap:8px;';
+
+    var top = '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<div style="width:40px;height:40px;border:2px solid ' + uw2.color + ';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:' + uw2.color + ';flex-shrink:0;' + (unlocked ? 'box-shadow:0 0 10px ' + uw2.color + '44;' : 'opacity:0.4;') + '">' + uw2.icon + '</div>' +
+      '<div style="flex:1;"><div style="font-family:monospace;font-size:13px;color:' + (unlocked ? '#f1f5f9' : '#334455') + ';font-weight:bold;">' + uw2.name + '</div>' +
+      '<div style="font-size:10px;color:#334455;font-family:monospace;margin-top:2px;">' + uw2.desc + '</div></div>';
+
+    if (!unlocked) {
+      top += '<button data-uw-unlock="' + uw2.id + '" style="background:#030b10;border:1px solid ' + uw2.color + ';color:' + uw2.color + ';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◆' + uw2.unlockCost + ' 해금</button>';
+    } else {
+      top += '<span style="font-size:10px;color:#00ff88;font-family:monospace;flex-shrink:0;">✓ 해금</span>';
+    }
+    top += '</div>';
+
+    var statsHTML = '';
+    if (unlocked) {
+      statsHTML = '<div style="display:flex;flex-direction:column;gap:4px;">';
+      uw2.stats.forEach(function(st) {
+        var lv     = uwData[st.key] || 0;
+        var afford = PERM.gems >= 3;
+        statsHTML +=
+          '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<div style="font-size:10px;color:#94a3b8;font-family:monospace;">' + st.name + ' <span style="color:' + uw2.color + ';">' + st.fmt(lv) + '</span>' +
+          '<span style="color:#4a6a7a;"> → ' + st.fmt(lv+1) + '</span></div>' +
+          '<button data-uw-upgrade="' + uw2.id + '" data-uw-stat="' + st.key + '" style="background:#030b10;border:1px solid ' +
+            (afford ? '#334455' : '#ef4444') + ';color:' + (afford ? '#00ffff' : '#ef4444') +
+            ';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">◆3</button>' +
+          '</div>';
+      });
+      statsHTML += '</div>';
+    }
+
+    card.innerHTML = top + statsHTML;
+
+    // 해금 버튼 바인딩
+    var unlockBtn = card.querySelector('[data-uw-unlock]');
+    if (unlockBtn) {
+      unlockBtn.addEventListener('click', function() {
+        var id   = unlockBtn.getAttribute('data-uw-unlock');
+        var wep  = ULTIMATE_WEAPONS.filter(function(w){return w.id===id;})[0];
+        if (!wep || PERM.gems < wep.unlockCost) { unlockBtn.style.borderColor='#ef4444'; setTimeout(function(){unlockBtn.style.borderColor=wep.color;},300); return; }
+        PERM.gems -= wep.unlockCost;
+        savePerm();
+        var uwSave = window._loadUW();
+        if (!uwSave[id]) uwSave[id] = {};
+        uwSave[id].unlocked = true;
+        window._saveUW(uwSave);
+        try { _ext.sync(); } catch(_) {}
+        try { document.querySelector('.ws-tab[data-tab="pwr"]').click(); } catch(_) {}
+      });
+    }
+    // 업그레이드 버튼 바인딩
+    var upgBtns = card.querySelectorAll('[data-uw-upgrade]');
+    for (var bi = 0; bi < upgBtns.length; bi++) {
+      (function(btn) {
+        btn.addEventListener('click', function() {
+          if (PERM.gems < 3) { btn.style.borderColor='#ef4444'; setTimeout(function(){btn.style.borderColor='';},300); return; }
+          var uid = btn.getAttribute('data-uw-upgrade');
+          var skey= btn.getAttribute('data-uw-stat');
+          PERM.gems -= 3;
+          savePerm();
+          var uwSave = window._loadUW();
+          if (!uwSave[uid]) uwSave[uid] = { unlocked: true };
+          uwSave[uid][skey] = (uwSave[uid][skey] || 0) + 1;
+          window._saveUW(uwSave);
+          try { _ext.sync(); } catch(_) {}
+          setTimeout(function() { try { document.querySelector('.ws-tab[data-tab="pwr"]').click(); } catch(_) {} }, 10);
+        });
+      })(upgBtns[bi]);
+    }
+    container.appendChild(card);
+  });
+}
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 연구소 시스템
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+var RESEARCH_LIST = {
+  main: [
+    { id:'game_speed',   name:'게임 속도',   desc:'최대 배속 증가',           time:3600,  cost:500,   maxLv:10 },
+    { id:'start_cash',   name:'시작 골드',   desc:'게임 시작 시 +골드',        time:6300,  cost:2940,  maxLv:20 },
+    { id:'atk_discount', name:'공격 할인',   desc:'공격 업그레이드 비용 -1%',  time:19800, cost:12390, maxLv:30 },
+    { id:'def_discount', name:'방어 할인',   desc:'방어 업그레이드 비용 -1%',  time:28320, cost:18810, maxLv:30 },
+    { id:'lab_speed',    name:'연구 속도',   desc:'연구 시간 단축',            time:7200,  cost:8000,  maxLv:30 },
+    { id:'buy_multi',    name:'구매 배수',   desc:'x5, x10 구매 해금',         time:13560, cost:9280,  maxLv:5  },
+  ],
+  attack: [
+    { id:'r_damage',     name:'대미지 연구', desc:'공격력 배율 향상',  time:15720, cost:7580,  maxLv:99 },
+    { id:'r_spd',        name:'속도 연구',   desc:'공격속도 향상',     time:12600, cost:5000,  maxLv:99 },
+    { id:'r_crit',       name:'치명타 연구', desc:'치명타 확률 향상',  time:18000, cost:9000,  maxLv:50 },
+    { id:'r_multishot',  name:'분열탄 연구', desc:'분열탄 효과 향상',  time:21600, cost:11000, maxLv:30 },
+  ],
+  defense: [
+    { id:'r_health',     name:'체력 연구',   desc:'최대 체력 배율 향상', time:15720, cost:9800,  maxLv:99 },
+    { id:'r_regen',      name:'재생 연구',   desc:'체력 재생 향상',      time:3147,  cost:1240,  maxLv:50 },
+    { id:'r_defense',    name:'방어 연구',   desc:'방어력 향상',         time:8820,  cost:4180,  maxLv:30 },
+    { id:'r_mine',       name:'지뢰 연구',   desc:'에너지 지뢰 피해 향상',time:11400,cost:37120, maxLv:20 },
+  ],
+  utility: [
+    { id:'r_cash',       name:'크레딧 연구',    desc:'크레딧 보너스 향상',  time:23940, cost:15390,  maxLv:99 },
+    { id:'r_wave_cash',  name:'웨이브 연구',    desc:'웨이브 코인 향상',    time:15660, cost:9810,   maxLv:50 },
+    { id:'r_interest',   name:'이자율 연구',    desc:'이자율 향상',         time:32940, cost:252150, maxLv:30 },
+  ],
+  ultimate: [
+    { id:'r_dw_dmg',     name:'데스웨이브 피해', desc:'피해량 향상',  time:61200, cost:461200, maxLv:10 },
+    { id:'r_cf_dur',     name:'크로노필드 지속', desc:'지속시간 향상', time:35160, cost:73000,  maxLv:10 },
+    { id:'r_cf_slow',    name:'크로노필드 감속', desc:'감속률 향상',  time:54600, cost:264480, maxLv:10 },
+  ],
+};
+
+var ALL_RESEARCH = [];
+Object.keys(RESEARCH_LIST).forEach(function(cat) {
+  RESEARCH_LIST[cat].forEach(function(r) { r.cat = cat; ALL_RESEARCH.push(r); });
+});
+
+var LAB_SLOT_COUNT = 3;
+var LAB_SLOT_UNLOCK = [0, 20, 35]; // wave 달성 시 해금
+var LAB_SLOT_COST   = [0, 500, 1000];
+var _labSelectSlot  = null;
+var _labFilterCat   = 'main';
+var _labHideComplete = false;
+
+function _loadLab() {
+  try { return JSON.parse(localStorage.getItem('td_lab') || '{}'); } catch(_) { return {}; }
+}
+function _saveLab(d) {
+  try { localStorage.setItem('td_lab', JSON.stringify(d)); } catch(_) {}
+}
+
+function openLab() {
+  _hideAll();
+  var el = document.getElementById('screen-lab');
+  el.style.display = 'flex';
+  _syncLabHUD();
+  _buildLabSlots();
+  checkNavUnlocks();
+}
+function closeLab() {
+  document.getElementById('screen-lab').style.display = 'none';
+  document.getElementById('screen-home').style.display = 'flex';
+  try { syncShopUI(); } catch(_) {}
+}
+
+function _hideAll() {
+  ['screen-home','screen-workshop','screen-store','screen-lab','screen-tournament'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+}
+
+function _syncLabHUD() {
+  try {
+    document.getElementById('lab-gold').textContent = PERM.gold;
+    document.getElementById('lab-gem').textContent  = PERM.gems;
+  } catch(_) {}
+}
+
+function _fmtTime(sec) {
+  if (sec <= 0) return '완료';
+  var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = Math.floor(sec % 60);
+  if (h > 0) return h + 'h ' + m + 'm';
+  if (m > 0) return m + 'm ' + s + 's';
+  return s + 's';
+}
+
+function _buildLabSlots() {
+  var container = document.getElementById('lab-slots'); if (!container) return;
+  container.innerHTML = '';
+  var lab = _loadLab();
+  var best = PERM.bestWave || 0;
+
+  for (var i = 0; i < LAB_SLOT_COUNT; i++) {
+    var slotEl  = document.createElement('div');
+    var slotKey = 'slot' + i;
+    var slotData = lab[slotKey] || {};
+    var locked  = best < LAB_SLOT_UNLOCK[i];
+    var needBuy = i > 0 && !slotData.bought && !locked;
+    var style   = 'background:#0a1a2a;border:1px solid ' + (locked ? '#0a1520' : '#0a3344') + ';padding:12px;display:flex;flex-direction:column;gap:8px;';
+    slotEl.style.cssText = style;
+
+    var title = '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+      '<span style="font-family:monospace;font-size:12px;color:' + (locked ? '#1a2a3a' : '#00ffff') + ';">Lab ' + (i+1) + '</span>';
+
+    if (locked) {
+      title += '<span style="font-size:10px;color:#1a2a3a;font-family:monospace;">웨이브 ' + LAB_SLOT_UNLOCK[i] + ' 달성 시 해금</span>';
+      slotEl.innerHTML = title + '</div>';
+    } else if (needBuy) {
+      title += '<button data-lab-buy="' + i + '" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:4px 10px;cursor:pointer;">◈' + LAB_SLOT_COST[i] + ' 해금</button>';
+      slotEl.innerHTML = title + '</div><div style="color:#334455;font-family:monospace;font-size:10px;">슬롯 ' + (i+1) + ' 해금 필요</div>';
+      (function(idx, cost) {
+        var buyBtn = slotEl.querySelector('[data-lab-buy]');
+        buyBtn.addEventListener('click', function() {
+          if (PERM.gold < cost) return;
+          PERM.gold -= cost;
+          savePerm();
+          var labData = _loadLab();
+          if (!labData['slot' + idx]) labData['slot' + idx] = {};
+          labData['slot' + idx].bought = true;
+          _saveLab(labData);
+          _syncLabHUD();
+          _buildLabSlots();
+        });
+      }(i, LAB_SLOT_COST[i]));
+    } else {
+      // Active slot
+      var now        = Date.now();
+      var researchId = slotData.researchId;
+      var endTime    = slotData.endTime || 0;
+      var done       = researchId && now >= endTime;
+
+      title += '</div>';
+      slotEl.innerHTML = title;
+
+      if (!researchId) {
+        var noRes = document.createElement('div');
+        noRes.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+        noRes.innerHTML = '<span style="color:#334455;font-family:monospace;font-size:11px;">연구 없음</span>' +
+          '<button data-lab-select="' + i + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 10px;cursor:pointer;">선택</button>';
+        slotEl.appendChild(noRes);
+      } else {
+        var res  = ALL_RESEARCH.filter(function(r){return r.id===researchId;})[0];
+        var name = res ? res.name : researchId;
+        var remaining = done ? 0 : Math.ceil((endTime - now) / 1000);
+
+        var resDiv = document.createElement('div');
+        resDiv.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+
+        var topRow = '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="color:#f1f5f9;font-family:monospace;font-size:11px;">' + name + '</span>';
+        if (done) {
+          topRow += '<span style="color:#00ff88;font-family:monospace;font-size:10px;">✓ 완료</span>';
+        } else {
+          var rushCost = Math.max(1, Math.ceil(remaining / 60));
+          topRow += '<button data-lab-rush="' + i + '" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:3px 7px;cursor:pointer;">Rush ◆' + rushCost + '</button>';
+        }
+        topRow += '</div>';
+
+        var prog = '';
+        if (!done) {
+          var labSpeedLv = ((_loadLab().research && _loadLab().research.lab_speed) || 0);
+          prog = '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+            '<div style="flex:1;height:4px;background:#0a1520;margin-right:8px;">' +
+            '<div style="height:4px;background:#00ffff;width:' + Math.round((1 - remaining / (res ? res.time : 1)) * 100) + '%;"></div></div>' +
+            '<span style="color:#94a3b8;font-family:monospace;font-size:10px;white-space:nowrap;">' + _fmtTime(remaining) + '</span></div>';
+        } else {
+          prog = '<button data-lab-complete="' + i + '" style="width:100%;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">◈ 연구 완료 수령</button>';
+        }
+
+        resDiv.innerHTML = topRow + prog;
+
+        (function(idx, slotD, isComplete) {
+          var rushBtn = resDiv.querySelector('[data-lab-rush]');
+          if (rushBtn) {
+            rushBtn.addEventListener('click', function() {
+              var rem2 = Math.max(0, Math.ceil((slotD.endTime - Date.now()) / 1000));
+              var rc   = Math.max(1, Math.ceil(rem2 / 60));
+              if (PERM.gems < rc) { rushBtn.style.borderColor='#ef4444'; setTimeout(function(){rushBtn.style.borderColor='#cc44ff';},300); return; }
+              PERM.gems -= rc;
+              savePerm();
+              var labData2 = _loadLab();
+              if (!labData2['slot' + idx]) labData2['slot' + idx] = {};
+              labData2['slot' + idx].endTime = Date.now() - 1;
+              _saveLab(labData2);
+              _syncLabHUD();
+              _buildLabSlots();
+            });
+          }
+          var complBtn = resDiv.querySelector('[data-lab-complete]');
+          if (complBtn) {
+            complBtn.addEventListener('click', function() {
+              var labData3 = _loadLab();
+              var sid      = slotD.researchId;
+              if (!labData3.research) labData3.research = {};
+              labData3.research[sid] = (labData3.research[sid] || 0) + 1;
+              if (!labData3['slot' + idx]) labData3['slot' + idx] = {};
+              labData3['slot' + idx].researchId = null;
+              labData3['slot' + idx].endTime    = null;
+              _saveLab(labData3);
+              _buildLabSlots();
+              try { showToast && showToast('◈ ' + sid + ' 연구 완료!'); } catch(_) {}
+            });
+          }
+        }(i, slotData, done));
+        slotEl.appendChild(resDiv);
+      }
+
+      // Select button
+      var selDiv = document.createElement('div');
+      selDiv.innerHTML = '<button data-lab-select="' + i + '" style="background:#030b10;border:1px solid #334455;color:#334455;font-family:monospace;font-size:9px;padding:3px 8px;cursor:pointer;">연구 변경</button>';
+      slotEl.appendChild(selDiv);
+    }
+
+    // Select button handler
+    (function(idx) {
+      var selBtns = slotEl.querySelectorAll('[data-lab-select]');
+      for (var bi2 = 0; bi2 < selBtns.length; bi2++) {
+        selBtns[bi2].addEventListener('click', function() {
+          _labSelectSlot = idx;
+          document.getElementById('lab-popup-hint').textContent = 'Lab ' + (idx+1) + '에서 연구 시작';
+          _buildLabPopupList();
+          document.getElementById('lab-popup').style.display = 'flex';
+        });
+      }
+    }(i));
+
+    container.appendChild(slotEl);
+  }
+}
+
+function _buildLabPopupList() {
+  var container = document.getElementById('lab-popup-list'); if (!container) return;
+  container.innerHTML = '';
+  var lab  = _loadLab();
+  var done = lab.research || {};
+
+  var items = ALL_RESEARCH.filter(function(r) {
+    if (_labFilterCat !== 'main' && r.cat !== _labFilterCat) return false;
+    if (_labHideComplete && (done[r.id] || 0) >= r.maxLv) return false;
+    return true;
+  });
+
+  items.forEach(function(r) {
+    var lv     = done[r.id] || 0;
+    var maxed  = lv >= r.maxLv;
+    var inProg = false;
+    for (var s = 0; s < LAB_SLOT_COUNT; s++) {
+      if ((lab['slot'+s] || {}).researchId === r.id) { inProg = true; break; }
+    }
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;' +
+      (maxed ? 'opacity:0.4;' : '');
+    var status = maxed ? '<span style="color:#00ff88;font-family:monospace;font-size:10px;">Max</span>'
+      : inProg  ? '<span style="color:#f59e0b;font-family:monospace;font-size:10px;">진행중</span>'
+      : '<button data-start-res="' + r.id + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 8px;cursor:pointer;">시작</button>';
+    card.innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:2px;">' +
+        '<span style="font-size:11px;color:#f1f5f9;font-family:monospace;">' + r.name + ' <span style="color:#4a6a7a;font-size:9px;">Lv.' + lv + '</span></span>' +
+        '<span style="font-size:9px;color:#334455;font-family:monospace;">' + r.desc + ' · ' + _fmtTime(r.time) + ' · ◈' + r.cost + '</span>' +
+      '</div>' + status;
+    if (!maxed && !inProg) {
+      var btn = card.querySelector('[data-start-res]');
+      (function(research) {
+        btn.addEventListener('click', function() {
+          if (_labSelectSlot === null) return;
+          if (PERM.gold < research.cost) { btn.style.borderColor='#ef4444'; setTimeout(function(){btn.style.borderColor='#00ffff';},300); return; }
+          PERM.gold -= research.cost;
+          savePerm();
+          var labData = _loadLab();
+          var slotKey = 'slot' + _labSelectSlot;
+          if (!labData[slotKey]) labData[slotKey] = { bought: true };
+          var labSpeedMult = 1 - Math.min(0.8, (labData.research && labData.research.lab_speed || 0) * 0.02);
+          labData[slotKey].researchId = research.id;
+          labData[slotKey].endTime    = Date.now() + Math.floor(research.time * 1000 * labSpeedMult);
+          _saveLab(labData);
+          document.getElementById('lab-popup').style.display = 'none';
+          _syncLabHUD();
+          _buildLabSlots();
+        });
+      }(r));
+    }
+    container.appendChild(card);
+  });
+}
+
+// 연구소 버튼 바인딩
+var labBtns = document.querySelectorAll('#h-nav-lab, #ws-nav-lab, #st-nav-lab');
+for (var li = 0; li < labBtns.length; li++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.getAttribute('data-locked') === 'true') return;
+      openLab();
+    });
+  }(labBtns[li]));
+}
+
+document.getElementById('lab-nav-home')  && document.getElementById('lab-nav-home').addEventListener('click', closeLab);
+document.getElementById('lab-nav-workshop') && document.getElementById('lab-nav-workshop').addEventListener('click', function() {
+  _hideAll();
+  try { window._wsExt.open(); } catch(_) { document.getElementById('screen-workshop').style.display = 'flex'; }
+});
+document.getElementById('lab-nav-store') && document.getElementById('lab-nav-store').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-store').style.display = 'flex';
+});
+
+document.getElementById('lab-popup-close') && document.getElementById('lab-popup-close').addEventListener('click', function() {
+  document.getElementById('lab-popup').style.display = 'none';
+});
+document.getElementById('lab-research-select-btn') && document.getElementById('lab-research-select-btn').addEventListener('click', function() {
+  _labSelectSlot = 0;
+  document.getElementById('lab-popup-hint').textContent = 'Lab 1에서 연구 시작';
+  _buildLabPopupList();
+  document.getElementById('lab-popup').style.display = 'flex';
+});
+document.getElementById('lab-hide-complete') && document.getElementById('lab-hide-complete').addEventListener('change', function(e) {
+  _labHideComplete = e.target.checked;
+  _buildLabPopupList();
+});
+
+var filterBtns = document.querySelectorAll('.lab-filter');
+for (var fi = 0; fi < filterBtns.length; fi++) {
+  (function(btn2) {
+    btn2.addEventListener('click', function() {
+      _labFilterCat = btn2.getAttribute('data-cat');
+      filterBtns.forEach(function(b) {
+        b.style.borderColor = b === btn2 ? '#00ffff' : '#334455';
+        b.style.color       = b === btn2 ? '#00ffff' : '#334455';
+      });
+      _buildLabPopupList();
+    });
+  }(filterBtns[fi]));
+}
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 토너먼트 시스템
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+var TOURNAMENTS = [
+  { id:'bronze',   name:'브론즈 리그', icon:'🥉', color:'#cd7f32',
+    prizes:[ {rank:'1',gem:50,crystal:20},{rank:'2',gem:35,crystal:14},{rank:'3-4',gem:25,crystal:10},{rank:'5-8',gem:15,crystal:6},{rank:'9-16',gem:10,crystal:3} ] },
+  { id:'silver',   name:'실버 리그',   icon:'🥈', color:'#94a3b8',
+    prizes:[ {rank:'1',gem:150,crystal:60},{rank:'2',gem:100,crystal:40},{rank:'3-4',gem:70,crystal:28},{rank:'5-8',gem:40,crystal:16},{rank:'9-16',gem:20,crystal:8} ] },
+  { id:'gold',     name:'골드 리그',   icon:'🥇', color:'#f59e0b',
+    prizes:[ {rank:'1',gem:250,crystal:100},{rank:'2',gem:170,crystal:68},{rank:'3-4',gem:120,crystal:48},{rank:'5-8',gem:70,crystal:28},{rank:'9-16',gem:35,crystal:14} ] },
+  { id:'platinum', name:'플래티넘 리그', icon:'💎', color:'#00ffff',
+    prizes:[ {rank:'1',gem:400,crystal:175},{rank:'2',gem:280,crystal:120},{rank:'3-4',gem:200,crystal:85},{rank:'5-8',gem:120,crystal:50},{rank:'9-16',gem:60,crystal:25} ] },
+];
+
+var _activePrizeLeague = 'bronze';
+
+function _loadTrn() { try { return JSON.parse(localStorage.getItem('td_trn') || '{}'); } catch(_) { return {}; } }
+function _saveTrn(d) { try { localStorage.setItem('td_trn', JSON.stringify(d)); } catch(_) {} }
+
+function _hideAll() {
+  ['screen-home','screen-workshop','screen-store','screen-lab','screen-tournament'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+}
+
+function openTournament() {
+  _hideAll();
+  document.getElementById('screen-tournament').style.display = 'flex';
+  _syncTrnHUD();
+  _renderTrnLeague();
+  _renderLeaderboard();
+  _updateTrnTimer();
+  checkNavUnlocks();
+}
+
+function _syncTrnHUD() {
+  try {
+    document.getElementById('trn-gold').textContent = PERM.gold;
+    document.getElementById('trn-gem').textContent  = PERM.gems;
+  } catch(_) {}
+}
+
+function _getPlayerLeague() {
+  var best = PERM.bestWave || 0;
+  if (best >= 60) return TOURNAMENTS[3]; // platinum
+  if (best >= 40) return TOURNAMENTS[2]; // gold
+  if (best >= 20) return TOURNAMENTS[1]; // silver
+  return TOURNAMENTS[0]; // bronze
+}
+
+function _renderTrnLeague() {
+  var league = _getPlayerLeague();
+  document.getElementById('trn-trophy').textContent     = league.icon;
+  document.getElementById('trn-league-name').textContent = league.name;
+  document.getElementById('trn-league-name').style.color = league.color;
+
+  // 닉네임
+  var trn = _loadTrn();
+  var nameInput = document.getElementById('trn-name-input');
+  if (nameInput) nameInput.value = trn.playerName || '';
+}
+
+function _makeFakeScore(base, spread) {
+  return Math.max(1, Math.round(base + (Math.random() - 0.5) * spread));
+}
+
+function _renderLeaderboard() {
+  var container = document.getElementById('trn-leaderboard'); if (!container) return;
+  var trn        = _loadTrn();
+  var playerName = trn.playerName || '나';
+  var playerScore= trn.lastScore  || 0;
+  var best       = PERM.bestWave  || 0;
+  var league     = _getPlayerLeague();
+
+  // 가상 상대 생성 (시드 기반으로 일관성 유지)
+  var seed  = Math.floor(Date.now() / (1000 * 60 * 60 * 24)); // daily seed
+  var fakeNames = ['NEON_001','SHADOW_X','VORTEX_7','LASER_9','CORE_21','PHASE_3','VOID_77','APEX_5','FLUX_44','ECHO_16'];
+  var scores = [];
+  for (var i = 0; i < fakeNames.length; i++) {
+    var fakeSeed = (seed + i * 31337) % 1000;
+    scores.push({ name: fakeNames[i], score: _makeFakeScore(best * 0.8 + 5, best * 0.6 + 10) });
+  }
+  if (playerScore > 0) scores.push({ name: playerName, score: playerScore, isPlayer: true });
+  scores.sort(function(a, b) { return b.score - a.score; });
+
+  container.innerHTML = scores.slice(0, 10).map(function(s, idx) {
+    var rankColor = idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : idx === 2 ? '#cd7f32' : '#334455';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #0a2233;">' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="font-family:monospace;font-size:11px;color:' + rankColor + ';width:20px;">' + (idx+1) + '</span>' +
+        '<span style="font-family:monospace;font-size:11px;color:' + (s.isPlayer ? '#00ffff' : '#94a3b8') + ';">' + s.name + '</span>' +
+      '</div>' +
+      '<span style="font-family:monospace;font-size:11px;color:#f59e0b;">웨이브 ' + s.score + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+function _updateTrnTimer() {
+  var el = document.getElementById('trn-timer'); if (!el) return;
+  // 매일 오전 8시 리셋
+  var now   = new Date();
+  var reset = new Date(now);
+  reset.setHours(8, 0, 0, 0);
+  if (now.getTime() > reset.getTime()) reset.setDate(reset.getDate() + 1);
+  var diff  = Math.max(0, Math.floor((reset - now) / 1000));
+  var hh    = Math.floor(diff / 3600), mm = Math.floor((diff % 3600) / 60);
+  el.textContent = ('0'+hh).slice(-2) + 'h ' + ('0'+mm).slice(-2) + 'm';
+  setTimeout(_updateTrnTimer, 30000);
+}
+
+function _buildPrizeContent(leagueId) {
+  var league = TOURNAMENTS.filter(function(t){return t.id===leagueId;})[0];
+  if (!league) return '';
+  var html = '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #0a2233;">' +
+    '<span style="font-family:monospace;font-size:10px;color:#334455;">순위</span>' +
+    '<span style="font-family:monospace;font-size:10px;color:#334455;">보석 ◆</span>' +
+    '<span style="font-family:monospace;font-size:10px;color:#334455;">크리스탈 ▲</span>' +
+    '</div>';
+  league.prizes.forEach(function(p) {
+    html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #0a1520;">' +
+      '<span style="font-family:monospace;font-size:11px;color:#94a3b8;">' + p.rank + '등</span>' +
+      '<span style="font-family:monospace;font-size:11px;color:#00ffff;">' + p.gem + '</span>' +
+      '<span style="font-family:monospace;font-size:11px;color:#cc44ff;">' + p.crystal + '</span>' +
+      '</div>';
+  });
+  return html;
+}
+
+// 토너먼트 nav 바인딩
+var trnNavBtns = document.querySelectorAll('#h-nav-tournament');
+for (var ti = 0; ti < trnNavBtns.length; ti++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.getAttribute('data-locked') === 'true') return;
+      openTournament();
+    });
+  }(trnNavBtns[ti]));
+}
+
+document.getElementById('trn-nav-home') && document.getElementById('trn-nav-home').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-home').style.display = 'flex';
+  try { syncShopUI(); } catch(_) {}
+});
+document.getElementById('trn-nav-workshop') && document.getElementById('trn-nav-workshop').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-workshop').style.display = 'flex';
+});
+document.getElementById('trn-nav-store') && document.getElementById('trn-nav-store').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-store').style.display = 'flex';
+});
+
+// 닉네임 저장
+document.getElementById('trn-name-save') && document.getElementById('trn-name-save').addEventListener('click', function() {
+  var val = (document.getElementById('trn-name-input').value || '').trim().slice(0, 12);
+  if (!val) return;
+  var trn = _loadTrn(); trn.playerName = val; _saveTrn(trn);
+});
+
+// 참가하기
+document.getElementById('trn-join-btn') && document.getElementById('trn-join-btn').addEventListener('click', function() {
+  var trn = _loadTrn(); trn.participating = true; _saveTrn(trn);
+  // 게임 시작
+  _hideAll();
+  try {
+    document.getElementById('screen-game').style.display = 'flex';
+    startNewGame && startNewGame();
+  } catch(_) {
+    try {
+      document.getElementById('screen-home').style.display = 'flex';
+      document.getElementById('btn-start-game').click();
+    } catch(__) {}
+  }
+});
+
+// 상금 팝업
+document.getElementById('trn-prize-btn') && document.getElementById('trn-prize-btn').addEventListener('click', function() {
+  _activePrizeLeague = _getPlayerLeague().id;
+  document.getElementById('trn-prize-content').innerHTML = _buildPrizeContent(_activePrizeLeague);
+  _updatePrizeTabs();
+  document.getElementById('trn-prize-popup').style.display = 'flex';
+});
+document.getElementById('trn-prize-close') && document.getElementById('trn-prize-close').addEventListener('click', function() {
+  document.getElementById('trn-prize-popup').style.display = 'none';
+});
+
+var prizeTabs = document.querySelectorAll('.trn-ptab');
+for (var pi = 0; pi < prizeTabs.length; pi++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      _activePrizeLeague = btn.getAttribute('data-league');
+      document.getElementById('trn-prize-content').innerHTML = _buildPrizeContent(_activePrizeLeague);
+      _updatePrizeTabs();
+    });
+  }(prizeTabs[pi]));
+}
+
+function _updatePrizeTabs() {
+  var league = TOURNAMENTS.filter(function(t){return t.id===_activePrizeLeague;})[0];
+  if (!league) return;
+  prizeTabs.forEach(function(b) {
+    var isAct = b.getAttribute('data-league') === _activePrizeLeague;
+    b.style.borderBottomColor = isAct ? league.color : 'transparent';
+    b.style.color             = isAct ? league.color : '#334455';
+  });
+}
+
+// 게임 종료 시 토너먼트 점수 저장 (triggerGameOver 래핑)
+var _origTGO = window.triggerGameOver;
+if (_origTGO) {
+  window.triggerGameOver = function() {
+    _origTGO.apply(this, arguments);
+    var trn = _loadTrn();
+    if (trn.participating && G) {
+      var score = G.wave || 0;
+      if (score > (trn.lastScore || 0)) { trn.lastScore = score; }
+      trn.participating = false;
+      _saveTrn(trn);
+    }
+  };
+}
 
 }());
 </script>
