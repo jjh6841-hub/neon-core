@@ -1440,10 +1440,26 @@ canvas {
 
     <!-- 좌측 아이콘 버튼 -->
     <div style="position:absolute; left:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
-      <button id="side-achieve" style="width:36px; height:36px; background:#0a1a2a; border:1px solid #0a3344; color:#00ffff; font-family:monospace; font-size:10px; cursor:pointer;" title="업적">▣<br><span style="font-size:7px;">업적</span></button>
-      <button id="side-event" data-sidelock="event" style="width:36px; height:36px; background:#060f18; border:1px solid #0a2233; color:#1a2a3a; font-family:monospace; font-size:10px; cursor:pointer;" title="이벤트 (웨이브 10 달성 시 해금)">▣<br><span style="font-size:7px;">이벤트</span></button>
-      <button id="side-ranking" data-sidelock="ranking" style="width:36px; height:36px; background:#060f18; border:1px solid #0a2233; color:#1a2a3a; font-family:monospace; font-size:10px; cursor:pointer;" title="랭킹 (웨이브 20 달성 시 해금)">▣<br><span style="font-size:7px;">랭킹</span></button>
-      <button id="side-power" data-sidelock="power" style="width:36px; height:36px; background:#060f18; border:1px solid #0a2233; color:#1a2a3a; font-family:monospace; font-size:10px; cursor:pointer;" title="코어 크리스탈 (웨이브 30 달성 시 해금)">▣<br><span style="font-size:7px;">크리스탈</span></button>
+      <button onclick="window._openAchieve&&window._openAchieve()"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;color:#00ffff;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
+        <span style="font-size:15px;line-height:1;">★</span>
+        <span>업적</span>
+      </button>
+      <button id="btn-left-event" onclick="window._openLeft&&window._openLeft(10,'signal-market')"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#1a2a3a;">
+        <span style="font-size:15px;line-height:1;">◈</span>
+        <span>이벤트</span>
+      </button>
+      <button id="btn-left-rank" onclick="window._openLeft&&window._openLeft(20,'frequency-wars')"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#1a2a3a;">
+        <span style="font-size:15px;line-height:1;">⊞</span>
+        <span>랭킹</span>
+      </button>
+      <button id="btn-left-store" onclick="window._openLeft&&window._openLeft(30,'store')"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#1a2a3a;">
+        <span style="font-size:15px;line-height:1;">◉</span>
+        <span>상점</span>
+      </button>
     </div>
 
     <!-- 타이틀 -->
@@ -11108,6 +11124,47 @@ document.addEventListener('click', function (e) {
   if (!dd || dd.style.display === 'none') return;
   if (!dd.contains(e.target) && e.target !== tb) dd.style.display = 'none';
 });
+</script>
+
+<script>
+/* ── 좌측 아이콘 버튼 함수 ── */
+window._openAchieve = function () {
+  try { buildAchieveUI(); document.getElementById('achieve-screen').classList.add('show'); } catch(e) {}
+};
+
+window._openLeft = function (minWave, screen) {
+  var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+  if (w < minWave) return;
+  if (screen === 'store') {
+    var sb = document.getElementById('h-nav-store');
+    if (sb) { sb.click(); return; }
+  }
+  if (typeof showScreen === 'function') showScreen(screen);
+};
+
+window.updateLeftIcons = function () {
+  var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+  var ev = document.getElementById('btn-left-event');
+  var rk = document.getElementById('btn-left-rank');
+  var st = document.getElementById('btn-left-store');
+  if (ev) ev.style.color = w >= 10 ? '#ffc800' : '#1a2a3a';
+  if (rk) rk.style.color = w >= 20 ? '#bb44ff' : '#1a2a3a';
+  if (st) st.style.color = w >= 30 ? '#00ffff' : '#1a2a3a';
+};
+
+/* showScreen('home') 호출 시 아이콘 잠금 상태 갱신 */
+(function () {
+  var _orig = window.showScreen;
+  if (typeof _orig === 'function') {
+    window.showScreen = function (name) {
+      _orig.apply(this, arguments);
+      if (name === 'home') { try { window.updateLeftIcons(); } catch(e) {} }
+    };
+  }
+}());
+
+/* 초기 렌더링 (PERM 초기화 후 실행) */
+setTimeout(function () { try { window.updateLeftIcons(); } catch(e) {} }, 100);
 </script>
 </body>
 </html>
