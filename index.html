@@ -1432,7 +1432,7 @@ canvas {
 
     <!-- 우측 아이콘 버튼 -->
     <div style="position:absolute; right:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
-      <button id="home-btn-settings" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:14px;cursor:pointer;">✦</button>
+      <button id="home-btn-settings" title="설정" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:18px;cursor:pointer;">⚙</button>
       <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#94a3b8;position:relative;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#f59e0b;font-size:7px;">0/8</span><span id="home-miss-badge" style="display:none;position:absolute;top:3px;right:3px;width:8px;height:8px;background:#ef4444;border-radius:50%;"></span></button>
     </div>
 
@@ -1556,7 +1556,7 @@ canvas {
 
 // ── Audio Manager ──
 var AudioManager = {
-  ctx: null, bgmGain: null, sfxGain: null, bgmOscs: [],
+  ctx: null, bgmGain: null, sfxGain: null, bgmOscs: [], bgmInterval: null,
   init: function() {
     if (this.ctx) return;
     try {
@@ -1570,24 +1570,36 @@ var AudioManager = {
     } catch(e) {}
   },
   playBGM: function() {
-    if (!this.ctx || this.bgmOscs.length > 0) return;
-    var freqs = [55, 110, 165];
+    if (!this.ctx || this.bgmInterval) return;
     var self = this;
-    for (var i = 0; i < freqs.length; i++) {
+    var notes = [261.63, 329.63, 392.00, 523.25];
+    var noteIdx = 0;
+    function playNote() {
       try {
-        var osc = this.ctx.createOscillator();
-        var gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freqs[i];
-        gain.gain.value = 0.05;
+        var osc = self.ctx.createOscillator();
+        var gain = self.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = notes[noteIdx % notes.length];
+        noteIdx++;
+        var t = self.ctx.currentTime;
+        gain.gain.setValueAtTime(0.04, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
         osc.connect(gain);
-        gain.connect(this.bgmGain);
-        osc.start();
-        this.bgmOscs.push(osc);
+        gain.connect(self.bgmGain);
+        osc.start(t);
+        osc.stop(t + 0.8);
+        self.bgmOscs.push(osc);
+        osc.onended = function() {
+          var idx = self.bgmOscs.indexOf(osc);
+          if (idx !== -1) self.bgmOscs.splice(idx, 1);
+        };
       } catch(e) {}
     }
+    playNote();
+    this.bgmInterval = setInterval(playNote, 1200);
   },
   stopBGM: function() {
+    if (this.bgmInterval) { clearInterval(this.bgmInterval); this.bgmInterval = null; }
     for (var i = 0; i < this.bgmOscs.length; i++) {
       try { this.bgmOscs[i].stop(); } catch(e) {}
     }
@@ -2169,6 +2181,8 @@ function gameLoop(gen, ts) {
 /* ═══════════════════════════════════════════════════════════════
    UPDATE
 ═══════════════════════════════════════════════════════════════ */
+var shieldAbsorbCount = 0; // 실드 피해 차단 누적 횟수 (ev_shield_10 미션용)
+
 function update(dt) {
   if (G.phase === 'gameover' || G.phase === 'paused') return;
 
@@ -2309,7 +2323,14 @@ function update(dt) {
           G.killCount++;
           G.goldEarned += gEarned;
           PERM.totalKills++;
-          if (e.boss) PERM.bossKills++;
+          if (e.boss) {
+            PERM.bossKills++;
+            // ev_range_boss: 보스가 사거리 밖에서 처치됐는지 확인
+            var _rbDx = e.x - G.cx, _rbDy = e.y - G.cy;
+            if (Math.sqrt(_rbDx * _rbDx + _rbDy * _rbDy) > G.tower.range) {
+              try { document.dispatchEvent(new CustomEvent('ev_range_boss', { detail: { x: e.x, y: e.y } })); } catch(_) {}
+            }
+          }
           // Float text & death particles
           if (gEarned > 0) G.floatTexts.push({ x: e.x, y: e.y, text: '+' + gEarned, timer: 0 });
           for (let dp = 0; dp < 4; dp++) {
@@ -2382,7 +2403,25 @@ function update(dt) {
 
     if (dist < TOWER_HIT_R + e.r) {
       const dmgTaken = Math.max(1, Math.round(1 - G.armor * 0.05));
-      G.tower.hp = Math.max(0, G.tower.hp - dmgTaken);
+      // 실드 흡수 처리
+      if (G.tower.shdCur > 0) {
+        const _sAbs = Math.min(G.tower.shdCur, dmgTaken);
+        G.tower.shdCur -= _sAbs;
+        shieldAbsorbCount++;
+        try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs } })); } catch(_) {}
+        if (shieldAbsorbCount >= 10) {
+          try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
+          shieldAbsorbCount = 0;
+        }
+        if (_sAbs >= dmgTaken) {
+          addFx(e.x, e.y, e.r * 2, '#0088ff');
+          G.enemies.splice(i, 1);
+          continue; // 완전 차단: HP 감소 없음
+        }
+        G.tower.hp = Math.max(0, G.tower.hp - (dmgTaken - _sAbs)); // 초과분만 HP 감소
+      } else {
+        G.tower.hp = Math.max(0, G.tower.hp - dmgTaken);
+      }
       G.flashAlpha = 1;
       triggerShake(4);
       addFx(e.x, e.y, e.r * 2, '#f87171');
@@ -2428,7 +2467,21 @@ function update(dt) {
     sb.y += sb.dy * 2.5 * (dt / 16.667);
     var sbdx = sb.x - G.cx, sbdy = sb.y - G.cy;
     if (sbdx * sbdx + sbdy * sbdy < 18 * 18) {
-      G.tower.hp = Math.max(0, G.tower.hp - sb.dmg);
+      // 스나이퍼 탄 실드 흡수 처리
+      if (G.tower.shdCur > 0) {
+        const _sAbs2 = Math.min(G.tower.shdCur, sb.dmg);
+        G.tower.shdCur -= _sAbs2;
+        shieldAbsorbCount++;
+        try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs2 } })); } catch(_) {}
+        if (shieldAbsorbCount >= 10) {
+          try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
+          shieldAbsorbCount = 0;
+        }
+        if (_sAbs2 >= sb.dmg) { G.sniperBullets.splice(sbi, 1); continue; } // 완전 차단
+        G.tower.hp = Math.max(0, G.tower.hp - (sb.dmg - _sAbs2));
+      } else {
+        G.tower.hp = Math.max(0, G.tower.hp - sb.dmg);
+      }
       G.flashAlpha = 1;
       triggerShake(3);
       G.sniperBullets.splice(sbi, 1);
@@ -2704,7 +2757,10 @@ function triggerGameOver() {
 ═══════════════════════════════════════════════════════════════ */
 function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
-  ctx.fillStyle = '#030b10';
+  // CYBER ABYSS 스킨: smOwned에 'abyss'가 있으면 배경색 변경
+  ctx.fillStyle = (window._smOwnedItems && window._smOwnedItems.indexOf('abyss') !== -1)
+    ? '#000e1a'   // CYBER ABYSS 배경
+    : '#030b10';  // 기본 배경
   ctx.fillRect(0, 0, CW, CH);
 
   // ── Screen shake wrapper ──────────────────────────────────────
@@ -2935,6 +2991,9 @@ function render() {
     const TR = 20;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
+    // VOID CIRCUIT 스킨 체크: 보라색 네온 타워
+    const _voidSkin = !!(window._smOwnedItems && window._smOwnedItems.indexOf('void') !== -1);
+    const _towerAccent = _voidSkin ? '#aa44ff' : '#00ffff';
     ctx.save();
     // Hexagon path
     ctx.beginPath();
@@ -2945,13 +3004,15 @@ function render() {
       if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
     }
     ctx.closePath();
-    ctx.fillStyle = '#001a22';
+    ctx.fillStyle = _voidSkin ? '#160026' : '#001a22'; // VOID: 짙은 보라 배경
     ctx.fill();
-    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : '#00ffff');
+    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
+    if (_voidSkin && !flashHit && !buffed) { ctx.shadowColor = '#aa44ff'; ctx.shadowBlur = 12; }
     ctx.lineWidth = 2;
     ctx.stroke();
+    ctx.shadowBlur = 0;
     // Crosshair
-    ctx.strokeStyle = 'rgba(0,255,255,0.6)';
+    ctx.strokeStyle = _voidSkin ? 'rgba(170,68,255,0.7)' : 'rgba(0,255,255,0.6)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(G.cx, G.cy - 8); ctx.lineTo(G.cx, G.cy + 8);
@@ -2959,7 +3020,7 @@ function render() {
     ctx.stroke();
     // Corner brackets (4 corners of bounding box)
     const bk = 6;
-    ctx.strokeStyle = '#00ffff';
+    ctx.strokeStyle = _towerAccent;
     ctx.lineWidth = 1;
     ctx.beginPath();
     // Top-left
@@ -4375,6 +4436,239 @@ if (dailyClaimBtn) {
 
 }());
 </script>
+
+<!-- ══════════════════════════════════════════════════════
+     주파수 전쟁 화면 (정적 HTML — JS 동적 주입 중복 방지용)
+══════════════════════════════════════════════════════ -->
+<div id="screen-frequency-wars" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
+  <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
+    <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">주파수 전쟁</span>
+    <span style="margin-left:auto; color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
+  </div>
+  <div style="padding:14px;">
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="font-size:15px; letter-spacing:4px; color:#00dddd;">FREQUENCY WARS</div>
+      <div style="font-size:9px; color:#334455; margin-top:4px; letter-spacing:2px;">실시간 순위 경쟁</div>
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px; text-align:center; font-size:11px; color:#7aacac; line-height:1.7;">
+      매주 <span style="color:#00dddd;">월 / 목 오후 10시</span> 개최<br>24시간 진행 — 최고 스테이지로 순위 결정
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px; text-align:center; font-size:11px; color:#7aacac; line-height:1.7;">
+      종료 시 <span style="color:#ffc800;">✦ 펄스 조각</span> + <span style="color:#bb44ff;">◆ 보석</span> 지급<br>종료 후 <span style="color:#00dddd;">48시간</span> 내 수령 필수
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:16px; text-align:center; font-size:11px; color:#7aacac; line-height:1.7;">
+      같은 티어 플레이어끼리 경쟁<br>매 이벤트마다 <span style="color:#00dddd;">승급 / 강등</span> 결정
+    </div>
+    <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:8px;">▸ 참가 티어</div>
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0a1020; border:1px solid #152535; border-radius:8px; margin-bottom:6px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#4488ff; flex-shrink:0;"></div>
+      <div style="flex:1; font-size:11px; color:#6699cc;">TIER F</div>
+      <div style="font-size:10px; color:#445566;">웨이브 1+</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0a1020; border:1px solid #152535; border-radius:8px; margin-bottom:6px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#44cc66; flex-shrink:0;"></div>
+      <div style="flex:1; font-size:11px; color:#44cc66;">TIER E</div>
+      <div style="font-size:10px; color:#445566;">웨이브 15+</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0a1020; border:1px solid #152535; border-radius:8px; margin-bottom:6px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#ffc800; flex-shrink:0;"></div>
+      <div style="flex:1; font-size:11px; color:#ffc800;">TIER D</div>
+      <div style="font-size:10px; color:#445566;">웨이브 30+</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0a1020; border:1px solid #152535; border-radius:8px; margin-bottom:6px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#ff8822; flex-shrink:0;"></div>
+      <div style="flex:1; font-size:11px; color:#ff8822;">TIER C</div>
+      <div style="font-size:10px; color:#445566;">웨이브 60+</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#0a1020; border:1px solid #152535; border-radius:8px; margin-bottom:6px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#ff4444; flex-shrink:0;"></div>
+      <div style="flex:1; font-size:11px; color:#ff4444;">TIER B</div>
+      <div style="font-size:10px; color:#445566;">웨이브 100+</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; background:#100820; border:1px solid #2a1040; border-radius:8px; margin-bottom:16px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#bb44ff; flex-shrink:0;"></div>
+      <div style="flex:1; font-size:11px; color:#bb44ff;">TIER S</div>
+      <div style="font-size:10px; color:#445566;">웨이브 200+</div>
+    </div>
+    <div style="text-align:center; padding:14px; background:#0a0a1a; border-radius:10px; border:1px solid #1a2a3a;">
+      <div style="font-size:9px; color:#334455; margin-bottom:6px; letter-spacing:2px;">NEXT EVENT</div>
+      <div id="fw-timer" style="font-size:20px; color:#00dddd; letter-spacing:5px; font-family:'Courier New',monospace;">--:--:--</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     시그널 마켓 화면 (정적 HTML — JS 동적 주입 중복 방지용)
+══════════════════════════════════════════════════════ -->
+<div id="screen-signal-market" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
+  <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
+    <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">시그널 마켓</span>
+    <span style="margin-left:auto; color:#ffc800; font-size:12px;">✦ <span id="sm-pulse-display">0</span></span>
+  </div>
+  <div style="display:flex; border-bottom:1px solid #1a2a3a; flex-shrink:0;">
+    <button id="sm-tab-mission" onclick="smTab('mission')" style="flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; background:transparent; border:none; border-bottom:2px solid #00dddd; color:#00dddd; cursor:pointer;">미션</button>
+    <button id="sm-tab-market" onclick="smTab('market')" style="flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; background:transparent; border:none; border-bottom:2px solid transparent; color:#445566; cursor:pointer;">시그널 마켓</button>
+  </div>
+  <!-- 미션 탭 -->
+  <div id="sm-s-mission" style="padding:14px;">
+    <div id="ns-banner" style="background:linear-gradient(90deg,#0a1020,#1a0a20); border:1px solid #cc44ff; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="if(window._openEvScreen)window._openEvScreen();">
+      <div>
+        <div style="font-size:12px; color:#f59e0b; font-family:'Courier New',monospace; letter-spacing:2px; font-weight:bold;">NEON SURGE</div>
+        <div style="font-size:9px; color:#556677; font-family:'Courier New',monospace; margin-top:2px;">시즌 이벤트 · 미션 &amp; 마일스톤</div>
+      </div>
+      <span style="color:#cc44ff; font-size:14px;">▶</span>
+    </div>
+    <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:10px;">▸ 일일 미션 — 매일 자정 초기화</div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:11px; color:#00dddd;">1게임 플레이</div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="color:#ffc800; font-size:11px;">✦ +10</span>
+          <button id="m-daily1-btn" onclick="claimMission('daily1', 10)" style="background:#00aa88; color:#001a14; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:10px; cursor:pointer; font-weight:bold;">수령</button>
+        </div>
+      </div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily1-bar" style="background:#00dddd; height:100%; border-radius:3px; width:100%;"></div></div>
+      <div id="m-daily1-text" style="font-size:9px; color:#557766; margin-top:3px;">1/1 완료</div>
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:11px; color:#00dddd;">웨이브 30 도달</div>
+        <span style="color:#ffc800; font-size:11px;">✦ +25</span>
+      </div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily2-bar" style="background:#00dddd; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div id="m-daily2-text" style="font-size:9px; color:#445566; margin-top:3px;">0 / 30</div>
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:11px; color:#00dddd;">강화 3회 실시</div>
+        <span style="color:#ffc800; font-size:11px;">✦ +15</span>
+      </div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily3-bar" style="background:#00dddd; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div id="m-daily3-text" style="font-size:9px; color:#445566; margin-top:3px;">0 / 3</div>
+    </div>
+    <div style="font-size:10px; color:#445566; letter-spacing:1px; margin:14px 0 10px;">▸ 주간 미션 — 매주 월요일 초기화</div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:11px; color:#00dddd;">주파수 전쟁 TOP 10 진입</div>
+        <span style="color:#ffc800; font-size:11px;">✦ +100</span>
+      </div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div style="background:#334; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div style="font-size:9px; color:#445566; margin-top:3px;">0 / 1</div>
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-size:11px; color:#00dddd;">웨이브 100 도달</div>
+        <span style="color:#ffc800; font-size:11px;">✦ +80</span>
+      </div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-weekly2-bar" style="background:#00dddd; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div id="m-weekly2-text" style="font-size:9px; color:#445566; margin-top:3px;">0 / 100</div>
+    </div>
+    <div id="mission-toast" style="display:none; background:#0a1a1a; border:1px solid #00dddd; border-radius:8px; padding:8px 12px; font-size:11px; color:#00dddd; text-align:center; margin-top:8px;"></div>
+  </div>
+  <!-- 마켓 탭 -->
+  <div id="sm-s-market" style="display:none; padding:14px;">
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      <div style="flex:1; background:#0a1018; border:1px solid #1a3444; border-radius:8px; padding:8px; text-align:center;">
+        <div style="font-size:9px; color:#334455; margin-bottom:3px;">펄스 조각</div>
+        <div style="font-size:14px; color:#ffc800; font-family:'Courier New',monospace;">✦ <span id="sm-pulse-val">0</span></div>
+      </div>
+      <div style="flex:1; background:#0a1018; border:1px solid #1a3444; border-radius:8px; padding:8px; text-align:center;">
+        <div style="font-size:9px; color:#334455; margin-bottom:3px;">보석</div>
+        <div style="font-size:14px; color:#00dddd; font-family:'Courier New',monospace;">◆ <span id="sm-gem-val">0</span></div>
+      </div>
+    </div>
+    <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:8px;">▸ 통화 교환</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+      <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; text-align:center;">
+        <div style="font-size:22px; color:#00dddd; margin-bottom:4px;">◆</div>
+        <div style="font-size:10px; color:#778899; margin-bottom:6px;">보석 x100</div>
+        <div style="font-size:11px; color:#ffc800; margin-bottom:8px;">✦ 200</div>
+        <button onclick="smBuy('gem100', 200)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+      </div>
+      <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; text-align:center;">
+        <div style="font-size:22px; color:#ffc800; margin-bottom:4px;">✦</div>
+        <div style="font-size:10px; color:#778899; margin-bottom:6px;">펄스 조각 x50</div>
+        <div style="font-size:11px; color:#00dddd; margin-bottom:8px;">◆ 30</div>
+        <button onclick="smBuy('pulse50', 30)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+      </div>
+    </div>
+    <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:8px;">▸ 테마 <span style="color:#cc44cc; font-size:9px; background:#2a0a2a; border:1px solid #660066; padding:1px 5px; border-radius:3px;">한정</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+      <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; text-align:center; position:relative;">
+        <span style="position:absolute; top:8px; right:8px; background:#2a0a2a; color:#cc44cc; border:1px solid #660066; border-radius:4px; font-size:9px; padding:2px 5px;">한정</span>
+        <div style="width:52px; height:52px; margin:0 auto 8px; background:#160026; border:1px solid #6600aa; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+          <div style="width:20px; height:20px; border:3px solid #aa44ff; border-radius:50%;"></div>
+        </div>
+        <div style="font-size:10px; color:#bb44ff; margin-bottom:2px;">VOID CIRCUIT</div>
+        <div style="font-size:9px; color:#445566; margin-bottom:6px;">타워 스킨</div>
+        <div style="font-size:11px; color:#ffc800; margin-bottom:8px;">✦ 150</div>
+        <button id="btn-void" onclick="smBuy('void', 150)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+      </div>
+      <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; text-align:center; position:relative;">
+        <span style="position:absolute; top:8px; right:8px; background:#2a0a2a; color:#cc44cc; border:1px solid #660066; border-radius:4px; font-size:9px; padding:2px 5px;">한정</span>
+        <div style="width:52px; height:52px; margin:0 auto 8px; background:#000e1a; border:1px solid #004466; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+          <div style="width:24px; height:24px; border:2px solid #0088cc; transform:rotate(45deg);"></div>
+        </div>
+        <div style="font-size:10px; color:#4488cc; margin-bottom:2px;">CYBER ABYSS</div>
+        <div style="font-size:9px; color:#445566; margin-bottom:6px;">배경 테마</div>
+        <div style="font-size:11px; color:#ffc800; margin-bottom:8px;">✦ 250</div>
+        <button id="btn-abyss" onclick="smBuy('abyss', 250)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+      </div>
+    </div>
+    <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:8px;">▸ 부스트 <span style="color:#445566; font-size:9px;">(1게임 지속 · 게임 시작 전 적용)</span></div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:44px; height:44px; background:#1a0a00; border:1px solid #884400; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div style="width:20px; height:20px; border:3px solid #ff8822; border-radius:50%;"></div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px; color:#ff8844; margin-bottom:2px;">오버클럭 레이저</div>
+          <div style="font-size:9px; color:#445566; margin-bottom:3px;">데미지 +3000% · 1게임</div>
+          <div style="font-size:9px; color:#334455;">사거리 변동 없음</div>
+        </div>
+        <div style="text-align:right; flex-shrink:0;">
+          <div style="font-size:11px; color:#ffc800; margin-bottom:6px;">✦ 80</div>
+          <button onclick="smBuy('boost_dmg', 80)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+        </div>
+      </div>
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:44px; height:44px; background:#001a14; border:1px solid #007755; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div style="width:20px; height:20px; border:2px solid #00cc88; border-radius:50%;"></div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px; color:#00ccaa; margin-bottom:2px;">레이더 확장 펄스</div>
+          <div style="font-size:9px; color:#445566; margin-bottom:3px;">사거리 +40m · 1게임</div>
+          <div style="font-size:9px; color:#334455;">데미지 변동 없음</div>
+        </div>
+        <div style="text-align:right; flex-shrink:0;">
+          <div style="font-size:11px; color:#ffc800; margin-bottom:6px;">✦ 60</div>
+          <button onclick="smBuy('boost_range', 60)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+        </div>
+      </div>
+    </div>
+    <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:44px; height:44px; background:#1a001a; border:1px solid #660066; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <div style="width:18px; height:18px; border:2px solid #bb44ff; transform:rotate(45deg);"></div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px; color:#bb44ff; margin-bottom:2px;">방어막 과충전</div>
+          <div style="font-size:9px; color:#445566; margin-bottom:3px;">최대 HP +200% · 1게임</div>
+          <div style="font-size:9px; color:#334455;">공격력 변동 없음</div>
+        </div>
+        <div style="text-align:right; flex-shrink:0;">
+          <div style="font-size:11px; color:#ffc800; margin-bottom:6px;">✦ 50</div>
+          <button onclick="smBuy('boost_hp', 50)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
+        </div>
+      </div>
+    </div>
+    <div id="market-toast" style="display:none; background:#0a1a1a; border:1px solid #00dddd; border-radius:8px; padding:8px 12px; font-size:11px; color:#00dddd; text-align:center; margin-top:8px;"></div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════
      연구소 화면
@@ -8223,6 +8517,2554 @@ function _init() {
 }
 
 setTimeout(_init, 350);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     [NEW] 7개 신기능: 카드/랭킹/우편/설정/계정/코어크리스탈/유틸잠금
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 1: 카드 컬렉션 시스템 (스토어 새 탭)
+════════════════════════════════════════════════════════ */
+var CARDS = [
+  { id:'fire_core',     rarity:'common', name:'파이어코어',       icon:'🔥', color:'#f59e0b', desc:'+1 공격력' },
+  { id:'iron_shell',    rarity:'common', name:'아이언쉘',         icon:'🛡', color:'#f59e0b', desc:'+5% 최대HP' },
+  { id:'speed_coil',    rarity:'common', name:'스피드코일',       icon:'⚡', color:'#f59e0b', desc:'+5% 공격속도' },
+  { id:'coin_magnet',   rarity:'common', name:'코인마그넷',       icon:'💰', color:'#f59e0b', desc:'+5% 골드' },
+  { id:'crit_lens',     rarity:'rare',   name:'크리트렌즈',       icon:'🔭', color:'#3b82f6', desc:'+3% 치명타' },
+  { id:'plasma_blade',  rarity:'rare',   name:'플라즈마블레이드', icon:'⚔', color:'#3b82f6', desc:'+2 공격력' },
+  { id:'shield_matrix', rarity:'rare',   name:'실드매트릭스',     icon:'◎', color:'#3b82f6', desc:'+15% 최대HP' },
+  { id:'wave_scout',    rarity:'rare',   name:'웨이브스카우트',   icon:'📡', color:'#3b82f6', desc:'보너스 +5' },
+  { id:'death_core',    rarity:'epic',   name:'데스코어',         icon:'💀', color:'#cc44ff', desc:'+5 공격력' },
+  { id:'chrono_mod',    rarity:'epic',   name:'크로노모드',       icon:'⏱', color:'#cc44ff', desc:'공격속도 +15%' },
+  { id:'quantum_armor', rarity:'epic',   name:'퀀텀아머',         icon:'🔮', color:'#cc44ff', desc:'+30% 최대HP' },
+  { id:'gold_rush',     rarity:'epic',   name:'골드러시',         icon:'✨', color:'#cc44ff', desc:'+15% 골드' },
+];
+var CARD_RATES  = { common:70, rare:25, epic:5 };
+var CARD_LABEL  = { common:'일반', rare:'희귀', epic:'서사' };
+var CARD_MAX    = { common:10, rare:7, epic:5 };
+var CARD_SINGLE = 50, CARD_TEN = 450;
+
+function _cardCount(id) { return (window.PERM && window.PERM.cards && window.PERM.cards[id]) || 0; }
+
+function _drawOne() {
+  var r = Math.random()*100;
+  var rarity = r < CARD_RATES.epic ? 'epic' : r < CARD_RATES.epic+CARD_RATES.rare ? 'rare' : 'common';
+  var pool = CARDS.filter(function(c){ return c.rarity===rarity; });
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function _addCard(card) {
+  if (!window.PERM) return;
+  if (!window.PERM.cards) window.PERM.cards = {};
+  var cur = window.PERM.cards[card.id] || 0;
+  window.PERM.cards[card.id] = Math.min(cur+1, CARD_MAX[card.rarity]||10);
+}
+
+function _doDraw(n) {
+  var cost = n===10 ? CARD_TEN : CARD_SINGLE;
+  if (!window.PERM || (window.PERM.gems||0) < cost) return null;
+  window.PERM.gems -= cost;
+  var drawn = [];
+  for (var i=0; i<n; i++) { var c=_drawOne(); drawn.push(c); _addCard(c); }
+  window.savePerm && window.savePerm();
+  return drawn;
+}
+
+function _applyCardEffects() {
+  if (!window.G || !window.G.tower) return;
+  var t = window.G.tower, n;
+  var c = (window.PERM && window.PERM.cards) || {};
+  n=c.fire_core    ||0; if(n) t.dmg=(t.dmg||0)+n;
+  n=c.iron_shell   ||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.05*n));
+  n=c.speed_coil   ||0; if(n) t.atkMs=Math.max(200,Math.round((t.atkMs||1200)*Math.pow(0.95,n)));
+  n=c.coin_magnet  ||0; if(n) window.G.goldMult=(window.G.goldMult||1)*(1+0.05*n);
+  n=c.crit_lens    ||0; if(n){ window.G.critChance=(window.G.critChance||0)+0.03*n; t.critChance=(t.critChance||0)+0.03*n; }
+  n=c.plasma_blade ||0; if(n) t.dmg=(t.dmg||0)+2*n;
+  n=c.shield_matrix||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.15*n));
+  n=c.death_core   ||0; if(n) t.dmg=(t.dmg||0)+5*n;
+  n=c.chrono_mod   ||0; if(n) t.atkMs=Math.max(200,Math.round((t.atkMs||1200)*Math.pow(0.85,n)));
+  n=c.quantum_armor||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.30*n));
+  n=c.gold_rush    ||0; if(n) window.G.goldMult=(window.G.goldMult||1)*(1+0.15*n);
+}
+
+// 카드 효과를 applyPermStats에 연결
+(function(){
+  var tries=0, iv=setInterval(function(){
+    var orig=window.applyPermStats;
+    if(!orig||orig._fCard){ if(++tries>40) clearInterval(iv); return; }
+    window.applyPermStats=function(){ orig.apply(this,arguments); _applyCardEffects(); };
+    window.applyPermStats._fCard=true;
+    clearInterval(iv);
+  },200);
+}());
+
+// 카드 뽑기 결과 모달
+function _showDrawResult(drawn) {
+  var prev=document.getElementById('card-draw-modal');
+  if(prev) prev.remove();
+  var modal=document.createElement('div');
+  modal.id='card-draw-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;-webkit-tap-highlight-color:transparent;';
+
+  var ttl=document.createElement('div');
+  ttl.style.cssText='color:#00ffff;font-family:monospace;font-size:14px;letter-spacing:2px;';
+  ttl.textContent=drawn.length===1?'카드 뽑기':'10연 뽑기';
+  modal.appendChild(ttl);
+
+  var grid=document.createElement('div');
+  var cols=drawn.length===1?1:5;
+  grid.style.cssText='display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;max-width:340px;width:100%;';
+
+  drawn.forEach(function(card,idx){
+    var cell=document.createElement('div');
+    cell.style.cssText='background:#0a1a2a;border:1px solid '+card.color+';padding:'+(drawn.length===1?'20px 12px':'8px 4px')+';display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transition:opacity 0.3s '+(idx*0.08)+'s;';
+    cell.innerHTML='<div style="font-size:'+(drawn.length===1?'36px':'20px')+';line-height:1;">'+card.icon+'</div>'+
+      '<div style="font-size:'+(drawn.length===1?'11px':'8px')+';color:'+card.color+';font-family:monospace;text-align:center;">'+CARD_LABEL[card.rarity]+'</div>'+
+      '<div style="font-size:'+(drawn.length===1?'11px':'8px')+';color:#f1f5f9;font-family:monospace;text-align:center;">'+card.name+'</div>';
+    grid.appendChild(cell);
+    setTimeout(function(){ cell.style.opacity='1'; }, 50+idx*80);
+  });
+  modal.appendChild(grid);
+
+  var okBtn=document.createElement('button');
+  okBtn.style.cssText='margin-top:8px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:13px;padding:10px 40px;cursor:pointer;';
+  okBtn.textContent='확인';
+  okBtn.addEventListener('click',function(){ modal.remove(); _renderCardTab(); });
+  modal.appendChild(okBtn);
+  document.body.appendChild(modal);
+}
+
+// 카드 탭 콘텐츠 렌더링
+function _renderCardTab() {
+  var content=document.getElementById('store-content');
+  if(!content) return;
+  var cards=(window.PERM&&window.PERM.cards)||{};
+  var ownedCount=CARDS.filter(function(c){ return (cards[c.id]||0)>0; }).length;
+
+  var html='<div style="padding:12px;display:flex;flex-direction:column;gap:12px;">';
+  html+='<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;">'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">🃏 카드 컬렉션</div>'+
+    '<div style="color:#556677;font-family:monospace;font-size:10px;">카드를 수집하여 전투 능력을 강화하세요. ('+ownedCount+'/12 수집)</div>'+
+    '</div>';
+
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  html+='<button id="card-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+    '<span style="font-size:18px;">🃏</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">◆ '+CARD_SINGLE+'</span></button>';
+  html+='<button id="card-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+    '<span style="font-size:18px;">🃏✕10</span><span>10회 뽑기</span><span style="color:#00ffff;font-size:10px;">◆ '+CARD_TEN+'</span></button>';
+  html+='</div>';
+
+  var rarOrder={epic:0,rare:1,common:2};
+  var sorted=CARDS.slice().sort(function(a,b){ return rarOrder[a.rarity]-rarOrder[b.rarity]; });
+  html+='<div style="color:#94a3b8;font-family:monospace;font-size:10px;border-bottom:1px solid #0a2233;padding-bottom:4px;">보유 카드</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+  sorted.forEach(function(card){
+    var cnt=cards[card.id]||0, max=CARD_MAX[card.rarity]||10, owned=cnt>0;
+    html+='<div style="background:'+(owned?'#0a1a2a':'#060f18')+';border:1px solid '+(owned?card.color+'55':'#0a2233')+';padding:8px;display:flex;flex-direction:column;gap:3px;opacity:'+(owned?1:0.45)+';">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+        '<span style="font-size:18px;line-height:1;">'+card.icon+'</span>'+
+        '<span style="font-size:9px;color:'+card.color+';font-family:monospace;">'+CARD_LABEL[card.rarity]+'</span>'+
+      '</div>'+
+      '<div style="font-size:10px;color:'+(owned?'#f1f5f9':'#334455')+';font-family:monospace;font-weight:bold;">'+card.name+'</div>'+
+      '<div style="font-size:9px;color:#556677;font-family:monospace;">'+card.desc+'</div>'+
+      '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">'+
+        '<div style="flex:1;background:#030b10;height:3px;border-radius:2px;overflow:hidden;"><div style="background:'+card.color+';height:3px;width:'+Math.round(cnt/max*100)+'%;"></div></div>'+
+        '<span style="font-size:9px;color:'+card.color+';font-family:monospace;">'+cnt+'/'+max+'</span>'+
+      '</div>'+
+    '</div>';
+  });
+  html+='</div></div>';
+  content.innerHTML=html;
+
+  var d1=document.getElementById('card-draw-1');
+  if(d1) d1.addEventListener('click',function(){
+    var res=_doDraw(1);
+    if(res===null){ d1.style.borderColor='#ef4444'; setTimeout(function(){d1.style.borderColor='#cc44ff';},400); }
+    else _showDrawResult(res);
+  });
+  var d10=document.getElementById('card-draw-10');
+  if(d10) d10.addEventListener('click',function(){
+    var res=_doDraw(10);
+    if(res===null){ d10.style.borderColor='#ef4444'; setTimeout(function(){d10.style.borderColor='#f59e0b';},400); }
+    else _showDrawResult(res);
+  });
+}
+
+function _injectCardTab() {
+  var bar=document.getElementById('store-tab-bar');
+  if(!bar||bar.querySelector('[data-tab="card"]')) return;
+  var btn=document.createElement('button');
+  btn.className='store-tab';
+  btn.setAttribute('data-tab','card');
+  btn.style.cssText='flex:1;height:34px;background:none;border:none;color:#334455;font-family:monospace;font-size:10px;border-bottom:2px solid transparent;cursor:pointer;';
+  btn.textContent='🃏 카드';
+  btn.addEventListener('click',function(){
+    var all=bar.querySelectorAll('.store-tab');
+    for(var i=0;i<all.length;i++){ all[i].style.color='#334455'; all[i].style.borderBottom='2px solid transparent'; }
+    btn.style.color='#cc44ff'; btn.style.borderBottom='2px solid #cc44ff';
+    _renderCardTab();
+  });
+  bar.appendChild(btn);
+
+  // 첫 방문 시 +40 보석
+  if(window.PERM&&!window.PERM.cardsVisited){
+    window.PERM.cardsVisited=1;
+    window.PERM.gems=(window.PERM.gems||0)+40;
+    window.savePerm&&window.savePerm();
+    setTimeout(_showCardFirstVisit, 800);
+  }
+}
+
+function _showCardFirstVisit() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;';
+  p.innerHTML=
+    '<div style="font-size:48px;">🃏</div>'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">카드 컬렉션 오픈!</div>'+
+    '<div style="color:#94a3b8;font-family:monospace;font-size:11px;text-align:center;line-height:1.8;max-width:260px;">'+
+      '카드를 수집하여 전투를 강화하세요!<br><span style="color:#00ffff;">첫 방문 보상 ◆ 40 지급!</span></div>'+
+    '<button id="card-fv-ok" style="background:#030b10;border:2px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:13px;padding:12px 40px;cursor:pointer;">확인</button>';
+  document.body.appendChild(p);
+  document.getElementById('card-fv-ok').addEventListener('click',function(){ p.remove(); });
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 2: 랭킹 시스템
+════════════════════════════════════════════════════════ */
+var _RNAMES = ['NeonKing','IronWall','StormRider','VoidHunter','DarkNova','CyberGhost','DataStar','CodeBreaker',
+  'NightFox','ShadowCore','ArcLight','BioShield','OmegaForce','QuantumX','CrystalBorn','PhantomEdge',
+  'StarPulse','GlitchWave','NanoStrike','HoloMind','EtherBlade','FluxDrive','CerberusX','ZeroPoint',
+  'MegaCore','TurboSoul','FrostByte','BlazePath','GravityWell','EchoVoid','RiftWalker','TechPulse',
+  'CrimsonArc','NexusBot','VortexX','PrismLight','SpectralX','QuantumZ','StellarX','OrbitCore'];
+
+function _genRanking(playerWave) {
+  var seed=42, rows=[];
+  function rand(max){ seed=(seed*1103515245+12345)&0x7fffffff; return seed%max; }
+  for(var i=0;i<49;i++){
+    var w=Math.max(1, playerWave+rand(80)-30+Math.floor(i*0.4));
+    rows.push({ name:_RNAMES[i%_RNAMES.length], wave:w, isPlayer:false });
+  }
+  rows.push({ name:'YOU', wave:playerWave, isPlayer:true }); // 49 + 1 = 50명
+  rows.sort(function(a,b){ return b.wave-a.wave; });
+  return rows;
+}
+
+function _buildRankingScreen() {
+  if(document.getElementById('screen-ranking')) return;
+  var sc=document.createElement('div');
+  sc.id='screen-ranking';
+  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:300;overflow:hidden;';
+  sc.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
+      '<button id="ranking-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">RANKING</span>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:12px;">◆ <span id="ranking-gem">0</span></span>'+
+    '</div>'+
+    '<div style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
+      '<button class="rank-tab" data-rtab="global" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">글로벌</button>'+
+      '<button class="rank-tab" data-rtab="weekly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">주간</button>'+
+      '<button class="rank-tab" data-rtab="monthly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">월간</button>'+
+    '</div>'+
+    '<div id="ranking-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 12px;display:flex;flex-direction:column;gap:3px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));"></div>';
+  document.body.appendChild(sc);
+
+  document.getElementById('ranking-back').addEventListener('click',_closeRanking);
+
+  var rtabs=sc.querySelectorAll('.rank-tab');
+  for(var i=0;i<rtabs.length;i++){
+    (function(btn){ btn.addEventListener('click',function(){
+      rtabs.forEach(function(b){ b.style.color='#334455'; b.style.borderBottom='2px solid transparent'; });
+      btn.style.color='#00ffff'; btn.style.borderBottom='2px solid #00ffff';
+      _renderRanking();
+    }); })(rtabs[i]);
+  }
+}
+
+function _renderRanking() {
+  var list=document.getElementById('ranking-list');
+  if(!list) return;
+  var playerWave=(window.PERM&&window.PERM.bestWave)||0;
+  var rows=_genRanking(playerWave);
+  var medals=['🥇','🥈','🥉'];
+  var html='';
+  rows.forEach(function(row,idx){
+    var rank=idx+1;
+    var isTop3=rank<=3;
+    var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
+    var bg=row.isPlayer?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
+    var nameColor=row.isPlayer?'#00ffff':'#94a3b8';
+    html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
+      '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
+      '<span style="flex:1;font-family:monospace;font-size:11px;color:'+nameColor+';">'+row.name+'</span>'+
+      '<span style="font-family:monospace;font-size:11px;color:#00ffff;">웨이브 <span style="color:#f59e0b;font-weight:bold;">'+row.wave+'</span></span>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+  // 플레이어 행으로 스크롤
+  var playerIdx=-1; for(var ri=0;ri<rows.length;ri++){ if(rows[ri].isPlayer){ playerIdx=ri; break; } }
+  if(playerIdx>5) setTimeout(function(){
+    var items=list.children;
+    if(items[playerIdx]) items[playerIdx].scrollIntoView({block:'center'});
+  },100);
+}
+
+function _openRanking() {
+  var sc=document.getElementById('screen-ranking');
+  if(!sc) return;
+  var gem=document.getElementById('ranking-gem');
+  if(gem) gem.textContent=(window.PERM&&window.PERM.gems)||0;
+  sc.style.display='flex';
+  _renderRanking();
+}
+
+function _closeRanking() {
+  var sc=document.getElementById('screen-ranking');
+  if(sc) sc.style.display='none';
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 3: 우편함
+════════════════════════════════════════════════════════ */
+var SYSTEM_MAILS = [
+  { id:'welcome',  title:'🎮 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
+  { id:'update1',  title:'🔧 v1.1 패치 보상',  body:'밸런스 업데이트 기념 선물입니다. 항상 감사합니다!',                  gems:3,  gold:50  },
+  { id:'weekend',  title:'🎁 주말 이벤트',      body:'주말 특별 이벤트 보상을 받으세요!',                                  gems:10, gold:200 },
+  { id:'battle1',  title:'⚔ 첫 전투 응원',     body:'첫 전투를 완료하셨습니다. 앞으로도 파이팅!',                         gems:2,  gold:30  },
+];
+var NEWS_ITEMS = [
+  { id:'n1', title:'[패치] v1.1 밸런스 업데이트', date:'2026.04.10', body:'보스 HP 조정, 웨이브 클리어 보상 개선, 카드 시스템 추가.' },
+  { id:'n2', title:'[이벤트] 봄맞이 이벤트',      date:'2026.04.08', body:'4월 한 달간 카드 뽑기 확률 UP 이벤트 진행 중!' },
+  { id:'n3', title:'[공지] 정기 점검 완료',        date:'2026.04.05', body:'2026.04.05 점검이 완료되었습니다. 이용해주셔서 감사합니다.' },
+];
+
+var _newsExpanded = {};
+
+function _mailClaimed(id) { return !!(window.PERM&&window.PERM.mailClaimed&&window.PERM.mailClaimed[id]); }
+function _unclaimedCount() { return SYSTEM_MAILS.filter(function(m){ return !_mailClaimed(m.id); }).length; }
+
+function _buildMailScreen() {
+  if(document.getElementById('screen-mail')) return;
+  var sc=document.createElement('div');
+  sc.id='screen-mail';
+  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:300;overflow:hidden;';
+  sc.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
+      '<button id="mail-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">우편함</span>'+
+      '<div style="width:60px;"></div>'+
+    '</div>'+
+    '<div id="mail-tab-bar" style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
+      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">📬 우편</button>'+
+      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">📰 소식</button>'+
+    '</div>'+
+    '<div id="mail-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>';
+  document.body.appendChild(sc);
+
+  document.getElementById('mail-back').addEventListener('click',_closeMail);
+  var activeMailTab='mail';
+  var mtabs=sc.querySelectorAll('.mail-tab-btn');
+  for(var i=0;i<mtabs.length;i++){
+    (function(btn){ btn.addEventListener('click',function(){
+      activeMailTab=btn.getAttribute('data-mtab');
+      mtabs.forEach(function(b){ b.style.color='#334455'; b.style.borderBottom='2px solid transparent'; });
+      btn.style.color='#00ffff'; btn.style.borderBottom='2px solid #00ffff';
+      activeMailTab==='mail'?_renderMailTab():_renderNewsTab();
+    }); })(mtabs[i]);
+  }
+  sc._renderActive=function(){ activeMailTab==='mail'?_renderMailTab():_renderNewsTab(); };
+}
+
+function _renderMailTab() {
+  var cont=document.getElementById('mail-content');
+  if(!cont) return;
+  var html='';
+  SYSTEM_MAILS.forEach(function(mail){
+    var claimed=_mailClaimed(mail.id);
+    html+='<div style="background:#0a1a2a;border:1px solid '+(claimed?'#0a2233':'#0a3344')+';padding:12px;display:flex;flex-direction:column;gap:6px;opacity:'+(claimed?0.5:1)+';">'+
+      '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':'#f1f5f9')+';font-weight:bold;">'+mail.title+'</div>'+
+      '<div style="font-family:monospace;font-size:10px;color:#556677;line-height:1.6;">'+mail.body+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'+
+        '<span style="font-family:monospace;font-size:10px;color:#94a3b8;">'+
+          (mail.gems?'◆ '+mail.gems+'  ':'')+
+          (mail.gold?'◈ '+mail.gold:'')+'</span>'+
+        (claimed
+          ? '<span style="font-family:monospace;font-size:10px;color:#334455;">수령완료</span>'
+          : '<button data-mail-claim="'+mail.id+'" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer;">수령</button>')+
+      '</div>'+
+    '</div>';
+  });
+  cont.innerHTML=html;
+
+  var claimBtns=cont.querySelectorAll('[data-mail-claim]');
+  for(var i=0;i<claimBtns.length;i++){
+    (function(btn){ btn.addEventListener('click',function(){
+      var id=btn.getAttribute('data-mail-claim');
+      var mail=SYSTEM_MAILS.filter(function(m){ return m.id===id; })[0];
+      if(!mail||_mailClaimed(id)) return;
+      if(!window.PERM) return;
+      if(!window.PERM.mailClaimed) window.PERM.mailClaimed={};
+      window.PERM.mailClaimed[id]=1;
+      window.PERM.gems=(window.PERM.gems||0)+(mail.gems||0);
+      window.PERM.gold=(window.PERM.gold||0)+(mail.gold||0);
+      window.savePerm&&window.savePerm();
+      _renderMailTab();
+      _updateMailBadge();
+    }); })(claimBtns[i]);
+  }
+}
+
+function _renderNewsTab() {
+  var cont=document.getElementById('mail-content');
+  if(!cont) return;
+  var html='';
+  NEWS_ITEMS.forEach(function(item){
+    var exp=_newsExpanded[item.id];
+    html+='<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;display:flex;flex-direction:column;gap:6px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" data-news-toggle="'+item.id+'">'+
+        '<div>'+
+          '<div style="font-family:monospace;font-size:11px;color:#f1f5f9;font-weight:bold;">'+item.title+'</div>'+
+          '<div style="font-family:monospace;font-size:9px;color:#334455;margin-top:2px;">'+item.date+'</div>'+
+        '</div>'+
+        '<span style="color:#334455;font-family:monospace;font-size:14px;">'+(exp?'▲':'▼')+'</span>'+
+      '</div>'+
+      (exp?'<div style="font-family:monospace;font-size:10px;color:#94a3b8;line-height:1.6;border-top:1px solid #0a2233;padding-top:6px;margin-top:2px;">'+item.body+'</div>':'')+
+    '</div>';
+  });
+  cont.innerHTML=html;
+  var toggles=cont.querySelectorAll('[data-news-toggle]');
+  for(var i=0;i<toggles.length;i++){
+    (function(el){ el.addEventListener('click',function(){
+      var id=el.getAttribute('data-news-toggle');
+      _newsExpanded[id]=!_newsExpanded[id];
+      _renderNewsTab();
+    }); })(toggles[i]);
+  }
+}
+
+function _updateMailBadge() {
+  var badge=document.getElementById('mail-badge');
+  var cnt=_unclaimedCount();
+  if(badge){ badge.style.display=cnt>0?'flex':'none'; badge.textContent=cnt; }
+}
+
+function _injectMailButton() {
+  // 우측 아이콘 컬럼에 버튼 추가 (설정 버튼 아래)
+  var settingsBtn=document.getElementById('home-btn-settings');
+  if(!settingsBtn||document.getElementById('home-btn-mail')) return;
+  var btn=document.createElement('button');
+  btn.id='home-btn-mail';
+  btn.title='우편함';
+  btn.style.cssText='width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:14px;cursor:pointer;position:relative;';
+  btn.innerHTML='📬<span id="mail-badge" style="display:none;position:absolute;top:3px;right:3px;width:14px;height:14px;background:#ef4444;border-radius:50%;color:#fff;font-size:8px;font-family:monospace;align-items:center;justify-content:center;"></span>';
+  settingsBtn.parentNode.insertBefore(btn, settingsBtn.nextSibling);
+  btn.addEventListener('click', _openMail);
+  _updateMailBadge();
+}
+
+function _openMail() {
+  var sc=document.getElementById('screen-mail');
+  if(!sc) return;
+  sc.style.display='flex';
+  if(sc._renderActive) sc._renderActive();
+  else _renderMailTab();
+}
+
+function _closeMail() {
+  var sc=document.getElementById('screen-mail');
+  if(sc) sc.style.display='none';
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 4: 설정 화면 기능 추가
+════════════════════════════════════════════════════════ */
+function _injectSettingsButtons() {
+  var sc=document.getElementById('settings-screen');
+  if(!sc||sc.querySelector('#settings-ext-grid')) return;
+
+  var grid=document.createElement('div');
+  grid.id='settings-ext-grid';
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;';
+
+  var buttons=[
+    { label:'계정',       icon:'👤', action:function(){ _openAccount(); } },
+    { label:'통계',       icon:'📊', action:function(){ _showStatsPopup(); } },
+    { label:'언어',       icon:'🌐', action:function(){ _showLanguageSelector(); } },
+    { label:'백과사전',   icon:'📖', action:function(){ _showEncyclopedia(); } },
+    { label:'패치노트',   icon:'🔧', action:function(){ _showPatchNotes(); } },
+    { label:'크리에이터', icon:'🎁', action:function(){ _showCreatorCode(); } },
+    { label:'지원하기',   icon:'📧', action:function(){ window.location.href='mailto:support@neoncore.game'; } },
+    { label:'개인정보',   icon:'🔒', action:function(){ window.open('privacy.html','_blank'); } },
+  ];
+
+  buttons.forEach(function(b){
+    var btn=document.createElement('button');
+    btn.style.cssText='background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-family:monospace;font-size:10px;padding:12px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;-webkit-appearance:none;';
+    btn.innerHTML='<span style="font-size:18px;">'+b.icon+'</span><span>'+b.label+'</span>';
+    btn.addEventListener('click',b.action);
+    grid.appendChild(btn);
+  });
+
+  // 기존 settings-btn-row 앞에 삽입
+  var btnRow=sc.querySelector('.settings-btn-row');
+  sc.insertBefore(grid, btnRow);
+}
+
+function _showStatsPopup() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:12px;';
+  var bw=(window.PERM&&window.PERM.bestWave)||0;
+  var tk=(window.PERM&&window.PERM.totalKills)||0;
+  var gold=(window.PERM&&window.PERM.gold)||0;
+  var gems=(window.PERM&&window.PERM.gems)||0;
+  var rows=[
+    ['최고 웨이브', bw+''], ['총 처치 수', tk+''],
+    ['보유 골드', '◈ '+gold], ['보유 보석', '◆ '+gems],
+    ['수집 카드', Object.keys((window.PERM&&window.PERM.cards)||{}).filter(function(k){ return (window.PERM.cards[k]||0)>0; }).length+'/12'],
+  ];
+  var rowHtml=rows.map(function(r){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
+      '<span style="color:#556677;font-family:monospace;font-size:11px;">'+r[0]+'</span>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:12px;font-weight:bold;">'+r[1]+'</span></div>';
+  }).join('');
+  p.innerHTML=
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:0;">'+
+      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;margin-bottom:12px;text-align:center;">📊 통계</div>'+
+      rowHtml+
+      '<button id="stats-close" style="margin-top:16px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;">닫기</button>'+
+    '</div>';
+  document.body.appendChild(p);
+  document.getElementById('stats-close').addEventListener('click',function(){ p.remove(); });
+}
+
+function _showLanguageSelector() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:12px;';
+  p.innerHTML=
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px;">'+
+      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:8px;">🌐 언어 선택</div>'+
+      '<button id="lang-ko" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;cursor:pointer;">한국어 (Korean)</button>'+
+      '<button id="lang-en" style="background:#030b10;border:1px solid #334455;color:#334455;font-family:monospace;font-size:12px;padding:12px;cursor:pointer;">English (준비 중)</button>'+
+      '<button id="lang-close" style="background:none;border:none;color:#334455;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">닫기</button>'+
+    '</div>';
+  document.body.appendChild(p);
+  document.getElementById('lang-ko').addEventListener('click',function(){ p.remove(); });
+  document.getElementById('lang-en').addEventListener('click',function(){
+    document.getElementById('lang-en').textContent='준비 중입니다.';
+  });
+  document.getElementById('lang-close').addEventListener('click',function(){ p.remove(); });
+}
+
+function _showEncyclopedia() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
+  p.innerHTML=
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;max-height:80vh;overflow-y:auto;">'+
+      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:8px;">📖 백과사전</div>'+
+      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.8;">'+
+        '<b style="color:#f59e0b;">일반 적</b> - 기본 체력과 속도를 가진 적<br>'+
+        '<b style="color:#3b82f6;">탱크</b> - 높은 체력, 낮은 속도<br>'+
+        '<b style="color:#ef4444;">돌격병</b> - 낮은 체력, 빠른 속도<br>'+
+        '<b style="color:#cc44ff;">저격병</b> - 중간 체력, 높은 처치 골드<br>'+
+        '<b style="color:#f59e0b;">보스</b> - 10웨이브마다 등장<br><br>'+
+        '<b style="color:#00ffff;">타워 공격</b> - 일정 간격으로 가장 먼 적 공격<br>'+
+        '<b style="color:#cc44ff;">치명타</b> - 확률로 2배 피해<br>'+
+        '<b style="color:#00ff88;">흡혈</b> - 피해량의 일부를 HP 회복<br>'+
+      '</div>'+
+      '<button id="enc-close" style="background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;">닫기</button>'+
+    '</div>';
+  document.body.appendChild(p);
+  document.getElementById('enc-close').addEventListener('click',function(){ p.remove(); });
+}
+
+function _showPatchNotes() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
+  p.innerHTML=
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;max-height:80vh;overflow-y:auto;">'+
+      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:8px;">🔧 패치노트</div>'+
+      '<div style="color:#f59e0b;font-family:monospace;font-size:11px;font-weight:bold;">v1.1.0 (2026.04.10)</div>'+
+      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.7;">'+
+        '• 카드 컬렉션 시스템 추가<br>• 랭킹 시스템 추가<br>• 우편함 추가<br>• 설정 화면 기능 확장<br>• 밸런스 전반 조정<br>• 데미지 플로팅 텍스트 추가</div>'+
+      '<div style="color:#f59e0b;font-family:monospace;font-size:11px;font-weight:bold;margin-top:6px;">v1.0.0 (2026.03.01)</div>'+
+      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.7;">'+
+        '• 게임 최초 출시<br>• 기본 타워 디펜스 시스템<br>• 강화 시스템<br>• 출석 보상</div>'+
+      '<button id="pn-close" style="background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;margin-top:8px;">닫기</button>'+
+    '</div>';
+  document.body.appendChild(p);
+  document.getElementById('pn-close').addEventListener('click',function(){ p.remove(); });
+}
+
+function _showCreatorCode() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;';
+  p.innerHTML=
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px;">'+
+      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:4px;">🎁 크리에이터 코드</div>'+
+      '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.6;">크리에이터 코드를 입력하면<br>◆ 5 보석이 지급됩니다!</div>'+
+      '<input id="creator-input" type="text" maxlength="20" placeholder="코드 입력" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:10px;outline:none;width:100%;box-sizing:border-box;">'+
+      '<div id="creator-msg" style="color:#ef4444;font-family:monospace;font-size:10px;min-height:14px;text-align:center;"></div>'+
+      '<button id="creator-apply" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;">적용</button>'+
+      '<button id="creator-close" style="background:none;border:none;color:#334455;font-family:monospace;font-size:10px;padding:6px;cursor:pointer;">닫기</button>'+
+    '</div>';
+  document.body.appendChild(p);
+
+  var VALID_CODES=['NEONCORE','STUDIO_X','TOWER2026'];
+  document.getElementById('creator-apply').addEventListener('click',function(){
+    var code=(document.getElementById('creator-input').value||'').toUpperCase().trim();
+    var msg=document.getElementById('creator-msg');
+    if(!code){ msg.textContent='코드를 입력해주세요.'; return; }
+    var claimed=(window.PERM&&window.PERM.creatorCodes)||[];
+    if(claimed.indexOf(code)>=0){ msg.style.color='#ef4444'; msg.textContent='이미 사용한 코드입니다.'; return; }
+    if(VALID_CODES.indexOf(code)<0){ msg.style.color='#ef4444'; msg.textContent='유효하지 않은 코드입니다.'; return; }
+    if(!window.PERM) return;
+    if(!window.PERM.creatorCodes) window.PERM.creatorCodes=[];
+    window.PERM.creatorCodes.push(code);
+    window.PERM.gems=(window.PERM.gems||0)+5;
+    window.savePerm&&window.savePerm();
+    msg.style.color='#00ff88'; msg.textContent='코드 적용 완료! ◆ 5 지급!';
+    document.getElementById('creator-apply').style.borderColor='#00ff88';
+    document.getElementById('creator-apply').style.color='#00ff88';
+    document.getElementById('creator-apply').textContent='적용 완료';
+    document.getElementById('creator-apply').disabled=true;
+  });
+  document.getElementById('creator-close').addEventListener('click',function(){ p.remove(); });
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 5: 계정 관리 시스템
+════════════════════════════════════════════════════════ */
+function _buildAccountScreen() {
+  if(document.getElementById('screen-account')) return;
+  var sc=document.createElement('div');
+  sc.id='screen-account';
+  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:9900;overflow:hidden;';
+  sc.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
+      '<button id="account-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">계정 관리</span>'+
+      '<div style="width:60px;"></div>'+
+    '</div>'+
+    '<div id="account-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));"></div>';
+  document.body.appendChild(sc);
+  document.getElementById('account-back').addEventListener('click',_closeAccount);
+}
+
+function _renderAccountContent() {
+  var cont=document.getElementById('account-content');
+  if(!cont) return;
+  var email=(window.PERM&&window.PERM.accountEmail)||'';
+
+  if(email) {
+    // 연동된 상태
+    cont.innerHTML=
+      '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;display:flex;flex-direction:column;gap:8px;align-items:center;">'+
+        '<div style="font-size:36px;">👤</div>'+
+        '<div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">계정 연동 완료</div>'+
+        '<div style="color:#94a3b8;font-family:monospace;font-size:11px;">'+email+'</div>'+
+      '</div>'+
+      '<button id="acc-cloud-save" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:14px;cursor:pointer;">☁ 클라우드 저장</button>'+
+      '<button id="acc-change" style="background:#030b10;border:1px solid #334455;color:#334455;font-family:monospace;font-size:12px;padding:14px;cursor:pointer;">계정 변경</button>'+
+      '<div id="acc-save-msg" style="color:#00ff88;font-family:monospace;font-size:10px;text-align:center;min-height:14px;"></div>';
+
+    document.getElementById('acc-cloud-save').addEventListener('click',function(){
+      document.getElementById('acc-save-msg').textContent='저장 완료! (2026.04.10 '+new Date().toTimeString().slice(0,8)+')';
+    });
+    document.getElementById('acc-change').addEventListener('click',function(){
+      if(!window.PERM) return;
+      window.PERM.accountEmail='';
+      window.savePerm&&window.savePerm();
+      _renderAccountContent();
+    });
+  } else {
+    // 미연동 상태
+    cont.innerHTML=
+      '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;display:flex;flex-direction:column;gap:8px;">'+
+        '<div style="color:#00ffff;font-family:monospace;font-size:12px;font-weight:bold;text-align:center;margin-bottom:8px;">계정 연동</div>'+
+        '<div style="color:#94a3b8;font-family:monospace;font-size:10px;text-align:center;line-height:1.7;">'+
+          '계정을 연동하면 진행 상황을<br>클라우드에 저장할 수 있습니다.<br>'+
+          '<span style="color:#00ffff;">연동 시 ◆ 20 보석이 지급됩니다!</span></div>'+
+      '</div>'+
+      '<input id="acc-email" type="email" placeholder="이메일" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;outline:none;width:100%;box-sizing:border-box;">'+
+      '<input id="acc-pw" type="password" placeholder="비밀번호 (6자 이상)" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;outline:none;width:100%;box-sizing:border-box;">'+
+      '<div id="acc-msg" style="color:#ef4444;font-family:monospace;font-size:10px;text-align:center;min-height:14px;"></div>'+
+      '<button id="acc-link-btn" style="background:#030b10;border:2px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:13px;padding:14px;cursor:pointer;font-weight:bold;">계정 연동하기</button>';
+
+    document.getElementById('acc-link-btn').addEventListener('click',function(){
+      var e=document.getElementById('acc-email').value.trim();
+      var pw=document.getElementById('acc-pw').value;
+      var msg=document.getElementById('acc-msg');
+      if(!e||e.indexOf('@')<0){ msg.textContent='올바른 이메일을 입력해주세요.'; return; }
+      if(!pw||pw.length<6){ msg.textContent='비밀번호는 6자 이상이어야 합니다.'; return; }
+      if(!window.PERM) return;
+      window.PERM.accountEmail=e;
+      window.PERM.gems=(window.PERM.gems||0)+20;
+      window.savePerm&&window.savePerm();
+      msg.style.color='#00ff88'; msg.textContent='연동 완료! ◆ 20 지급!';
+      setTimeout(_renderAccountContent, 800);
+    });
+  }
+}
+
+function _openAccount() {
+  // 설정 화면 닫기
+  var settingsEl=document.getElementById('settings-screen');
+  if(settingsEl) settingsEl.classList.remove('show');
+  var sc=document.getElementById('screen-account');
+  if(!sc) return;
+  sc.style.display='flex';
+  _renderAccountContent();
+}
+
+function _closeAccount() {
+  var sc=document.getElementById('screen-account');
+  if(sc) sc.style.display='none';
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 6: 코어 크리스탈 탭 첫 방문 팝업
+════════════════════════════════════════════════════════ */
+function _initCrystalTabFirstVisit() {
+  var wsBar=document.getElementById('ws-tab-bar');
+  if(!wsBar) return;
+  wsBar.addEventListener('click',function(e){
+    var btn=e.target.closest?e.target.closest('[data-tab]'):e.target;
+    if(!btn||btn.getAttribute('data-tab')!=='pwr') return;
+    if(window.PERM&&!window.PERM.pwrVisited){
+      window.PERM.pwrVisited=1;
+      window.savePerm&&window.savePerm();
+      setTimeout(_showCrystalFirstVisit, 200);
+    }
+  });
+}
+
+function _showCrystalFirstVisit() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;';
+  p.innerHTML=
+    '<div style="font-size:48px;text-align:center;text-shadow:0 0 20px #00ff8844;">◆</div>'+
+    '<div style="color:#00ff88;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">코어 크리스탈</div>'+
+    '<div style="background:#0a1a2a;border:1px solid #00ff8833;padding:16px;max-width:280px;width:100%;">'+
+      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.8;text-align:center;">'+
+        '코어 크리스탈(◆)로 궁극기를 해금하세요.<br>'+
+        '강력한 스킬로 더 높은 웨이브에 도전!<br>'+
+        '<span style="color:#cc44ff;">◆ 보석은 웨이브 클리어 시 획득</span>'+
+      '</div>'+
+    '</div>'+
+    '<div style="color:#334455;font-family:monospace;font-size:10px;text-align:center;">잠금 해제 비용: ◆ 5 ~ 10</div>'+
+    '<button id="crystal-fv-ok" style="background:#030b10;border:2px solid #00ff88;color:#00ff88;font-family:monospace;font-size:13px;padding:12px 40px;cursor:pointer;">확인</button>';
+  document.body.appendChild(p);
+  document.getElementById('crystal-fv-ok').addEventListener('click',function(){ p.remove(); });
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURE 7: 유틸리티 탭 인게임 잠금 UI
+════════════════════════════════════════════════════════ */
+function _injectUtilTabInGame() {
+  var tabBar=document.getElementById('tab-bar');
+  if(!tabBar||tabBar.querySelector('#tab-util')) return;
+
+  var btn=document.createElement('button');
+  btn.id='tab-util';
+  btn.className='tab-btn';
+  btn.textContent='/ UTILITY';
+  tabBar.appendChild(btn);
+
+  var tabContent=document.getElementById('tab-content');
+  if(!tabContent) return;
+
+  var pane=document.createElement('div');
+  pane.id='pane-util';
+  pane.className='tab-pane';
+  // display handled by .tab-pane/.tab-pane.active CSS; override row→column and max-content→100%
+  pane.style.cssText='flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:16px;padding:20px;box-sizing:border-box;';
+  pane.innerHTML=
+    '<div style="font-size:40px;">🔨</div>'+
+    '<div style="color:#334455;font-family:monospace;font-size:13px;font-weight:bold;text-align:center;letter-spacing:2px;">유틸리티 잠금</div>'+
+    '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.8;max-width:220px;">'+
+      '유틸리티 업그레이드는<br>코어 랩(연구소)에서 해금할 수 있습니다.</div>'+
+    '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어 랩으로 이동</button>';
+  tabContent.appendChild(pane);
+
+  btn.addEventListener('click',function(){
+    // 탭 버튼 상태 업데이트
+    var allBtns=tabBar.querySelectorAll('.tab-btn');
+    for(var i=0;i<allBtns.length;i++){ allBtns[i].classList.remove('active'); }
+    btn.classList.add('active');
+    // 탭 패널 상태 업데이트
+    var allPanes=tabContent.querySelectorAll('.tab-pane');
+    for(var j=0;j<allPanes.length;j++){ allPanes[j].classList.remove('active'); }
+    pane.classList.add('active');
+  });
+
+  var goLabBtn=pane.querySelector('#util-go-lab');
+  if(goLabBtn) {
+    goLabBtn.addEventListener('click',function(){
+      // 인게임 → 홈 → 랩으로 이동
+      var toast=document.createElement('div');
+      toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 20px;z-index:9999;white-space:nowrap;pointer-events:none;opacity:1;transition:opacity 0.5s;';
+      toast.textContent='전투 종료 후 이용 가능합니다';
+      document.body.appendChild(toast);
+      setTimeout(function(){ toast.style.opacity='0'; setTimeout(function(){ toast.remove(); },500); }, 2000);
+    });
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   INITIALIZATION
+════════════════════════════════════════════════════════ */
+function _mainInit() {
+  // Feature 1: 카드 탭
+  _injectCardTab();
+
+  // Feature 2: 랭킹 화면
+  _buildRankingScreen();
+  var rankBtn=document.getElementById('side-ranking');
+  if(rankBtn) {
+    rankBtn.addEventListener('click', function() {
+      // 잠금 해제 상태일 때만 (data-sidelock이 비어있으면 해금됨)
+      if(!rankBtn.getAttribute('data-sidelock')) _openRanking();
+    }, true);  // capture phase
+  }
+
+  // Feature 3: 우편함
+  _buildMailScreen();
+  _injectMailButton();
+
+  // Feature 4: 설정 화면 버튼 추가
+  _injectSettingsButtons();
+
+  // Feature 5: 계정 관리 화면
+  _buildAccountScreen();
+
+  // Feature 6: 코어 크리스탈 첫 방문
+  _initCrystalTabFirstVisit();
+
+  // Feature 7: 유틸 인게임 탭
+  _injectUtilTabInGame();
+
+  // 홈 화면 가시성 감지 → 배지 갱신
+  var homeEl=document.getElementById('screen-home');
+  if(homeEl) {
+    new MutationObserver(function(){
+      if(homeEl.style.display!=='none') _updateMailBadge();
+    }).observe(homeEl,{attributes:true,attributeFilter:['style']});
+  }
+}
+
+setTimeout(_mainInit, 600);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 연사 / 도약탄 / 넉백 게임 메카닉
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ── createState 확장: 연사·도약탄 상태 초기화 ── */
+var _origCS_mech = window.createState;
+window.createState = function() {
+  var g = _origCS_mech.apply(this, arguments);
+  var ws = PERM.ws || {};
+  g.rapidChance    = (ws.rapidChance   || 0) * 0.005;
+  g.rapidBurstN    = 3 + Math.floor((ws.rapidDuration || 0) * 0.3);
+  g.bounceChance   = (ws.bounceChance  || 0) * 0.005;
+  g.bounceTargets  = 1 + (ws.bounceTargets || 0);
+  g.bounceRange    = 80 + (ws.bounceRange  || 0) * 8;
+  g._burstActive   = false;
+  g._burstCount    = 0;
+  g._burstTimer    = 0;
+  g._burstInterval = 110; // ms between burst shots
+  return g;
+};
+
+/* ── fireTower 확장: 넉백 + 연사 트리거 ── */
+var _origFire_mech = window.fireTower;
+window.fireTower = function() {
+  _origFire_mech.apply(this, arguments);
+  if (!G || !G.enemies.length) return;
+
+  // ① 넉백: 발사 시 최근접 적을 확률로 밀어냄
+  if (G.knockbackChance > 0) {
+    var kTgt = null, kMin = G.tower.range + 1;
+    for (var ki = 0; ki < G.enemies.length; ki++) {
+      var ke = G.enemies[ki];
+      var kdx = ke.x - G.cx, kdy = ke.y - G.cy;
+      var kd = Math.sqrt(kdx * kdx + kdy * kdy);
+      if (kd < kMin) { kMin = kd; kTgt = ke; }
+    }
+    if (kTgt && Math.random() < G.knockbackChance) {
+      var kf = 18 + G.knockbackForce * 12;
+      var ktd = Math.sqrt((kTgt.x - G.cx) * (kTgt.x - G.cx) + (kTgt.y - G.cy) * (kTgt.y - G.cy)) || 1;
+      kTgt.x += ((kTgt.x - G.cx) / ktd) * kf;
+      kTgt.y += ((kTgt.y - G.cy) / ktd) * kf;
+    }
+  }
+
+  // ② 연사 트리거
+  if (G.rapidChance > 0 && !G._burstActive && Math.random() < G.rapidChance) {
+    G._burstActive  = true;
+    G._burstCount   = G.rapidBurstN;
+    G._burstTimer   = 0;
+  }
+};
+
+/* ── update 확장: 연사 처리 + 도약탄 처리 ── */
+var _origUpd_mech = window.update;
+window.update = function(dt) {
+  // 도약탄 감지를 위해 발사 직전 적 목록 스냅샷
+  var prevEnemies = null;
+  if (G && G.phase === 'playing' && G.bounceChance > 0 && G.enemies.length > 0) {
+    prevEnemies = G.enemies.slice(0);
+  }
+
+  _origUpd_mech.apply(this, arguments);
+
+  if (!G || G.phase !== 'playing') return;
+
+  // ① 연사 처리
+  if (G._burstActive) {
+    G._burstTimer += dt;
+    if (G._burstTimer >= G._burstInterval) {
+      G._burstTimer -= G._burstInterval;
+      _mechBurstShot();
+      G._burstCount--;
+      if (G._burstCount <= 0) G._burstActive = false;
+    }
+  }
+
+  // ② 도약탄 처리: 스냅샷과 비교하여 죽은 적 위치에서 인근 적에게 탄 생성
+  if (prevEnemies && G.bounceChance > 0) {
+    for (var pi = 0; pi < prevEnemies.length; pi++) {
+      var pe = prevEnemies[pi];
+      if (G.enemies.indexOf(pe) === -1 && Math.random() < G.bounceChance) {
+        _mechSpawnBounce(pe.x, pe.y, G.bounceTargets, G.bounceRange);
+      }
+    }
+  }
+};
+
+/* ── 연사 단발 ── */
+function _mechBurstShot() {
+  if (!G || !G.enemies.length) return;
+  var t = null, md = G.tower.range + 1;
+  for (var i = 0; i < G.enemies.length; i++) {
+    var e = G.enemies[i];
+    var dx = e.x - G.cx, dy = e.y - G.cy;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (d < md) { md = d; t = e; }
+  }
+  if (!t) return;
+  var ang = Math.atan2(t.y - G.cy, t.x - G.cx);
+  var isCrit = G.critChance > 0 && Math.random() < G.critChance;
+  G.bullets.push({
+    x: G.cx, y: G.cy,
+    dx: Math.cos(ang), dy: Math.sin(ang),
+    crit: isCrit,
+    pierceLeft: G.pierce || 0,
+    hitSet: (G.pierce > 0) ? new Set() : null,
+  });
+}
+
+/* ── 도약탄 생성 ── */
+function _mechSpawnBounce(fromX, fromY, count, range) {
+  if (!G || !G.enemies.length) return;
+  var nearby = [];
+  for (var i = 0; i < G.enemies.length; i++) {
+    var e = G.enemies[i];
+    var dx = e.x - fromX, dy = e.y - fromY;
+    if (dx * dx + dy * dy < range * range) nearby.push(e);
+  }
+  nearby.sort(function(a, b) {
+    var da = (a.x - fromX) * (a.x - fromX) + (a.y - fromY) * (a.y - fromY);
+    var db = (b.x - fromX) * (b.x - fromX) + (b.y - fromY) * (b.y - fromY);
+    return da - db;
+  });
+  var n = Math.min(count, nearby.length);
+  for (var ti = 0; ti < n; ti++) {
+    var tgt = nearby[ti];
+    var ang = Math.atan2(tgt.y - fromY, tgt.x - fromX);
+    G.bullets.push({
+      x: fromX, y: fromY,
+      dx: Math.cos(ang), dy: Math.sin(ang),
+      crit: false,
+      pierceLeft: 0,
+      hitSet: null,
+    });
+  }
+}
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 미구현 워크샵 메카닉 패치
+     (dmgPerMeter / multiChance+multiTargets /
+      deathDefy / coinsPerWave)
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ── createState 확장: 분열탄·데스디파이·웨이브코인 ── */
+var _origCS_p = window.createState;
+window.createState = function() {
+  var g = _origCS_p.apply(this, arguments);
+  var ws = PERM.ws || {};
+  g.multiChance      = (ws.multiChance   || 0) * 0.005;
+  g.multiTargets     = 1 + (ws.multiTargets || 0);
+  g.coinsPerWaveExt2 = (ws.coinsPerWave  || 0) * 5;
+  g._deathDefyCD     = 0; // 코어 방어막 쿨다운 (ms)
+  return g;
+};
+
+/* ── applyPermStats 확장: dmgPerMeter 피해 배율 ── */
+var _origAPS_p = window.applyPermStats;
+window.applyPermStats = function() {
+  _origAPS_p.apply(this, arguments);
+  if (!G) return;
+  var dpm = (PERM.ws && PERM.ws.dmgPerMeter) || 0;
+  if (dpm > 0) G.tower.dmg = G.tower.dmg * (1 + dpm * 0.01);
+};
+
+/* ── fireTower 확장: 분열탄 트리거 ── */
+var _origFire_p = window.fireTower;
+window.fireTower = function() {
+  _origFire_p.apply(this, arguments);
+  if (!G || !G.enemies.length || !(G.multiChance > 0)) return;
+  if (Math.random() < G.multiChance) {
+    var t = null, md = G.tower.range + 1;
+    for (var i = 0; i < G.enemies.length; i++) {
+      var e = G.enemies[i];
+      var dx = e.x - G.cx, dy = e.y - G.cy;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < md) { md = d; t = e; }
+    }
+    if (!t) return;
+    var baseAng = Math.atan2(t.y - G.cy, t.x - G.cx);
+    var spread = 0.22, n = G.multiTargets;
+    for (var si = 0; si < n; si++) {
+      var ang = baseAng + (si - (n - 1) / 2) * spread;
+      var isCrit = G.critChance > 0 && Math.random() < G.critChance;
+      G.bullets.push({
+        x: G.cx, y: G.cy,
+        dx: Math.cos(ang), dy: Math.sin(ang),
+        crit: isCrit,
+        pierceLeft: G.pierce || 0,
+        hitSet: (G.pierce > 0) ? new Set() : null,
+      });
+    }
+  }
+};
+
+/* ── startWave 확장: coinsPerWave 골드 지급 ── */
+var _origSW_p = window.startWave;
+window.startWave = function() {
+  _origSW_p.apply(this, arguments);
+  if (G && G.coinsPerWaveExt2 > 0) {
+    G.gold += G.coinsPerWaveExt2;
+    G.goldEarned += G.coinsPerWaveExt2;
+  }
+};
+
+/* ── triggerGameOver 확장: deathDefy 코어 방어막 ── */
+var _origTGO_p = window.triggerGameOver;
+window.triggerGameOver = function() {
+  if (G && G.deathDefy > 0 && G._deathDefyCD <= 0 && Math.random() < G.deathDefy) {
+    G.tower.hp    = Math.max(1, Math.floor(G.tower.maxHp * 0.05));
+    G._deathDefyCD = 30000; // 30초 쿨다운
+    G.flashAlpha  = 1;
+    try { triggerShake(8); } catch(_) {}
+    try {
+      var bd = document.createElement('div');
+      bd.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);' +
+        'background:rgba(3,11,16,0.95);border:2px solid #00ffff;color:#00ffff;' +
+        'font-family:\'Courier New\',monospace;font-size:15px;font-weight:bold;' +
+        'padding:10px 22px;pointer-events:none;z-index:9999;white-space:nowrap;';
+      bd.textContent = '[ 코어 방어막 발동! ]';
+      document.body.appendChild(bd);
+      setTimeout(function() { if (bd.parentNode) bd.remove(); }, 2500);
+    } catch(_) {}
+    return; // 게임오버 취소
+  }
+  _origTGO_p.apply(this, arguments);
+};
+
+/* ── update 확장: deathDefy 쿨다운 감소 ── */
+var _origUpd_p = window.update;
+window.update = function(dt) {
+  if (G && G._deathDefyCD > 0) G._deathDefyCD = Math.max(0, G._deathDefyCD - dt);
+  _origUpd_p.apply(this, arguments);
+};
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 무료 업그레이드 시스템
+     (freeAtkUpgrade / freeDefUpgrade / freeUtlUpgrade)
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ── 아이템 정의 ── */
+var FREE_UPG_ITEMS = {
+  freeAtkUpgrade: { tab:'spc', name:'무료 공격 업글', tier:3, maxLv:99,
+    cost:function(lv){return 20+Math.floor(lv*3.5);},
+    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
+    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  freeDefUpgrade: { tab:'spc', name:'무료 방어 업글', tier:3, maxLv:99,
+    cost:function(lv){return 20+Math.floor(lv*3.5);},
+    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
+    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  freeUtlUpgrade: { tab:'spc', name:'무료 유틸 업글', tier:3, maxLv:99,
+    cost:function(lv){return 20+Math.floor(lv*3.5);},
+    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
+    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+};
+
+// 자기 자신은 무료 업그레이드 대상에서 제외
+var _freeKeys = { freeAtkUpgrade:true, freeDefUpgrade:true, freeUtlUpgrade:true };
+
+/* ── _wsExt.items에 등록 ── */
+(function _reg() {
+  if (window._wsExt && window._wsExt.items) {
+    Object.keys(FREE_UPG_ITEMS).forEach(function(k) {
+      window._wsExt.items[k] = FREE_UPG_ITEMS[k];
+    });
+  } else {
+    setTimeout(_reg, 200);
+  }
+}());
+
+/* ── SPC 탭 카드 주입 ── */
+var _fuInjecting = false, _fuTimer = null;
+var _fuContent = document.getElementById('ws-content');
+if (_fuContent) {
+  new MutationObserver(function() {
+    if (_fuInjecting) return;
+    clearTimeout(_fuTimer);
+    _fuTimer = setTimeout(function() {
+      _fuInjecting = true;
+      _injectFreeCards();
+      setTimeout(function() { _fuInjecting = false; }, 180);
+    }, 70);
+  }).observe(_fuContent, { childList: true });
+}
+
+function _injectFreeCards() {
+  if (!window._wsExt) return;
+  var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
+  if (activeTab !== 'spc') return;
+  var ws = PERM.ws || {};
+  if ((ws['tier_spc'] || 1) < 3) return;              // 3단계 미해금
+  if (document.querySelector('[data-freeupg]')) return; // 이미 주입됨
+  var container = document.getElementById('ws-content');
+  if (!container) return;
+  // 다음 단계 해금 버튼 바로 앞에 삽입
+  var tierBtn = null;
+  for (var ci = 0; ci < container.children.length; ci++) {
+    var ch = container.children[ci];
+    if (!ch.getAttribute('data-freeupg') && ch.querySelector && ch.querySelector('button')) {
+      var btnTxt = ch.querySelector('button').textContent || '';
+      if (btnTxt.indexOf('◈') !== -1 && (ch.textContent||'').indexOf('다음 단계') !== -1) {
+        tierBtn = ch; break;
+      }
+    }
+  }
+  Object.keys(FREE_UPG_ITEMS).forEach(function(k) {
+    _renderFreeCard(container, k, ws, tierBtn);
+  });
+}
+
+function _renderFreeCard(container, key, ws, insertBefore) {
+  var cfg    = FREE_UPG_ITEMS[key];
+  var lv     = ws[key] || 0;
+  var maxed  = lv >= cfg.maxLv;
+  var cost   = maxed ? 0 : cfg.cost(lv);
+  var afford = PERM.gold >= cost;
+
+  var card = document.createElement('div');
+  card.setAttribute('data-freeupg', key);
+  card.style.cssText =
+    'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;';
+
+  var rightHTML = maxed
+    ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
+    : '<div style="display:flex;flex-direction:column;align-items:flex-end;">' +
+        '<span style="font-size:13px;color:#00ffff;font-family:monospace;">' + cfg.cur(lv) +
+          '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span></span>' +
+        '<button data-fukey="' + key + '" style="background:#030b10;border:1px solid ' +
+          (afford ? '#0a3344' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
+          ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;' +
+          '-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>' +
+      '</div>';
+
+  card.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:3px;">' +
+      '<span style="font-size:12px;color:#94a3b8;font-family:monospace;">' + cfg.name + '</span>' +
+      '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
+    '</div>' + rightHTML;
+
+  if (!maxed) {
+    (function(k, crd) {
+      var btn = crd.querySelector('[data-fukey]');
+      if (!btn) return;
+      btn.addEventListener('click', function() {
+        var l2 = (PERM.ws || {})[k] || 0;
+        var co = FREE_UPG_ITEMS[k].cost(l2);
+        if (l2 >= FREE_UPG_ITEMS[k].maxLv) return;
+        if (PERM.gold < co) {
+          crd.style.borderColor = '#ef4444';
+          setTimeout(function(){ crd.style.borderColor = ''; }, 200);
+          return;
+        }
+        PERM.gold -= co;
+        if (!PERM.ws) PERM.ws = {};
+        PERM.ws[k] = l2 + 1;
+        savePerm();
+        try { window._wsExt.sync(); } catch(_) {}
+        setTimeout(function() {
+          try { document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {}
+        }, 10);
+      });
+    }(key, card));
+  }
+
+  if (insertBefore) container.insertBefore(card, insertBefore);
+  else container.appendChild(card);
+}
+
+/* ── createState 확장: 무료 업그레이드 확률 ── */
+var _origCS_fu = window.createState;
+window.createState = function() {
+  var g = _origCS_fu.apply(this, arguments);
+  var ws = PERM.ws || {};
+  g.freeAtkChance = (ws.freeAtkUpgrade || 0) * 0.005;
+  g.freeDefChance = (ws.freeDefUpgrade || 0) * 0.005;
+  g.freeUtlChance = (ws.freeUtlUpgrade || 0) * 0.005;
+  return g;
+};
+
+/* ── startWave 확장: 웨이브마다 확률 적용 ── */
+var _origSW_fu = window.startWave;
+window.startWave = function() {
+  _origSW_fu.apply(this, arguments);
+  if (!G) return;
+  if (G.freeAtkChance > 0 && Math.random() < G.freeAtkChance) _applyFreeUpgrade('atk');
+  if (G.freeDefChance > 0 && Math.random() < G.freeDefChance) _applyFreeUpgrade('def');
+  if (G.freeUtlChance > 0 && Math.random() < G.freeUtlChance) _applyFreeUpgrade('spc');
+};
+
+function _applyFreeUpgrade(tab) {
+  if (!window._wsExt) return;
+  var WS = window._wsExt.items;
+  var ws = PERM.ws || {};
+  var curTier = ws['tier_' + tab] || 1;
+
+  // 해금된 탭에서 레벨업 가능한 항목 수집 (자기 자신 제외)
+  var eligible = [];
+  Object.keys(WS).forEach(function(k) {
+    if (_freeKeys[k]) return;
+    var item = WS[k];
+    if (!item || item.tab !== tab) return;
+    if ((item.tier || 1) > curTier) return;
+    var lv = ws[k] || 0;
+    if (lv >= (item.maxLv || 99)) return;
+    eligible.push(k);
+  });
+  if (!eligible.length) return;
+
+  // 랜덤 선택 후 레벨업
+  var chosen = eligible[Math.floor(Math.random() * eligible.length)];
+  if (!PERM.ws) PERM.ws = {};
+  PERM.ws[chosen] = (PERM.ws[chosen] || 0) + 1;
+  savePerm();
+  try { window._wsExt.sync(); } catch(_) {}
+
+  // 인게임 토스트
+  var name = (WS[chosen] && WS[chosen].name) || chosen;
+  try {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:110px;left:50%;transform:translateX(-50%);' +
+      'background:rgba(3,11,16,0.92);border:1px solid #f59e0b;color:#f59e0b;' +
+      'font-family:\'Courier New\',monospace;font-size:11px;padding:5px 14px;' +
+      'pointer-events:none;z-index:9500;white-space:nowrap;';
+    t.textContent = '★ 무료 업글: ' + name;
+    document.body.appendChild(t);
+    setTimeout(function(){ if (t.parentNode) t.remove(); }, 2200);
+  } catch(_) {}
+}
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 이벤트 시스템 / 플로팅 보석 / 홈 배지
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ══════════════════════════════════════════
+   §A  이벤트 매니저
+══════════════════════════════════════════ */
+var EV_DUR  = 7 * 24 * 3600000;   // 7일
+var EV_COOL = 3 * 24 * 3600000;   // 3일 대기
+
+function _evLoad() { try { return JSON.parse(localStorage.getItem('td_event')||'{}'); } catch(_){ return {}; } }
+function _evSave(d){ try { localStorage.setItem('td_event', JSON.stringify(d)); } catch(_){} }
+function _evActive(){ var d=_evLoad(); return !!(d.endTime && Date.now()<d.endTime); }
+function _evRemain(){ var d=_evLoad(); return Math.max(0,(d.endTime||0)-Date.now()); }
+function _evNextTime(){ var d=_evLoad(); return (d.endTime||0)+EV_COOL; }
+function _evFmt(ms){
+  var d=Math.floor(ms/86400000),h=Math.floor((ms%86400000)/3600000),m=Math.floor((ms%3600000)/60000);
+  if(d>0) return d+'d '+h+'h'; if(h>0) return h+'h '+m+'m'; return m+'m';
+}
+function _evInitData(){
+  var d=_evLoad();
+  if(!d.endTime){
+    d={ endTime:Date.now()+EV_DUR, startTime:Date.now(),
+        progress:{}, tiers:{}, points:0, milestones:[], shopBought:{} };
+    _evSave(d);
+  }
+}
+
+/* ══════════════════════════════════════════
+   §B  미션 & 상점 & 마일스톤 데이터
+══════════════════════════════════════════ */
+var EV_MISSIONS = [
+  {id:'ev_kill_2000',   text:'적 2000마리 처치',              target:2000,    type:'kill',       points:30, maxTier:3},
+  {id:'ev_boss_500',    text:'보스 500마리 처치',              target:500,     type:'boss',       points:30, maxTier:3},
+  {id:'ev_wave_100',    text:'웨이브 100 달성',                target:100,     type:'wave',       points:40, maxTier:3},
+  {id:'ev_nodmg_1200',  text:'연속 1200웨이브 피해 없이',      target:1200,    type:'nodmg',      points:40, maxTier:3},
+  {id:'ev_orb_40000',   text:'에너지 구체로 적 40000처치',     target:40000,   type:'orb_kill',   points:40, maxTier:3},
+  {id:'ev_upgrade_400', text:'강화 400회 구매',                target:400,     type:'upgrade',    points:40, maxTier:3},
+  {id:'ev_card_80',     text:'카드 80장 구매',                 target:80,      type:'card_buy',   points:40, maxTier:3},
+  {id:'ev_lab_30d',     text:'연구소 총 30일 연구',            target:2592000, type:'lab_time',   points:30, maxTier:3},
+  {id:'ev_login_10',    text:'10일 연속 출석',                 target:10,      type:'login',      points:30, maxTier:3},
+  {id:'ev_tourn_3',     text:'토너먼트 3회 참가',              target:3,       type:'tournament', points:30, maxTier:3},
+  {id:'ev_ad_7',        text:'광고로 무료 보석 7회 수령',      target:7,       type:'ad',         points:20, maxTier:3},
+  {id:'ev_gem_tap_12',  text:'플로팅 보석 12개 수집',          target:12,      type:'gem_tap',    points:20, maxTier:3},
+  {id:'ev_range_boss',  text:'사거리 밖에서 보스 3마리 처치',  target:3,       type:'range_boss', points:40, maxTier:1},
+  {id:'ev_shield_10',   text:'에너지 방어막으로 10회 피해 차단', target:10,    type:'shield',     points:20, maxTier:3},
+];
+
+var EV_MILESTONES = [
+  {points:50,  gem:5,   crystal:0},  {points:100, gem:10,  crystal:0},
+  {points:200, gem:20,  crystal:2},  {points:350, gem:30,  crystal:3},
+  {points:500, gem:50,  crystal:5},  {points:750, gem:75,  crystal:8},
+  {points:1000,gem:100, crystal:15},
+];
+
+var EV_SHOP = [
+  {id:'es_gem_30',    name:'◆ 30 보석',         cost:100, type:'gem',     amount:30   },
+  {id:'es_crystal_5', name:'▲ 5 코어 크리스탈', cost:200, type:'crystal', amount:5    },
+  {id:'es_gold_500',  name:'◈ 500 골드',         cost:50,  type:'gold',    amount:500  },
+  {id:'es_boost_24h', name:'코인 부스트 24시간', cost:300, type:'boost',   amount:86400},
+  {id:'es_rush_3',    name:'연구 즉시 완료 3회', cost:500, type:'rush',    amount:3    },
+];
+
+function _evMission(id){ for(var i=0;i<EV_MISSIONS.length;i++) if(EV_MISSIONS[i].id===id) return EV_MISSIONS[i]; return null; }
+
+/* ══════════════════════════════════════════
+   §C  진행도 관리
+══════════════════════════════════════════ */
+function _evAddProgress(id, amt){
+  if(!_evActive() || amt<=0) return;
+  var m=_evMission(id); if(!m) return;
+  var d=_evLoad();
+  if(!d.progress) d.progress={}; if(!d.tiers) d.tiers={};
+  var tier=d.tiers[id]||0;
+  if(tier>=m.maxTier) return;
+  d.progress[id]=(d.progress[id]||0)+amt;
+  // Check tier completion
+  while(tier<m.maxTier && d.progress[id]>=m.target*(tier+1)){
+    tier++; d.tiers[id]=tier;
+    d.points=(d.points||0)+m.points;
+    _evToast('미션 달성! +'+m.points+'pts  「'+m.text+'」','#cc44ff');
+  }
+  _evSave(d);
+  _evCheckMS(d);
+  if(_evScrOpen) _renderEvScreen();
+}
+
+function _evTrack(type, amt){
+  if(!_evActive()) return; amt=amt||1;
+  switch(type){
+    case 'kill':       _evAddProgress('ev_kill_2000',   amt*2); break; // x2 부스트
+    case 'boss':       _evAddProgress('ev_boss_500',    amt);   break;
+    case 'wave':       _evAddProgress('ev_wave_100',    amt);   break;
+    case 'nodmg':      _evAddProgress('ev_nodmg_1200',  amt);   break;
+    case 'orb_kill':   _evAddProgress('ev_orb_40000',   amt);   break;
+    case 'upgrade':    _evAddProgress('ev_upgrade_400', amt);   break;
+    case 'card_buy':   _evAddProgress('ev_card_80',     amt);   break;
+    case 'lab_time':   _evAddProgress('ev_lab_30d',     amt);   break;
+    case 'login':      _evAddProgress('ev_login_10',    amt);   break;
+    case 'tournament': _evAddProgress('ev_tourn_3',     amt);   break;
+    case 'gem_tap':    _evAddProgress('ev_gem_tap_12',  amt);   break;
+    case 'range_boss': _evAddProgress('ev_range_boss',  amt);   break;
+    case 'shield':     _evAddProgress('ev_shield_10',   amt);   break;
+    case 'ad':         _evAddProgress('ev_ad_7',        amt);   break;
+  }
+}
+
+function _evCheckMS(d){
+  var pts=d.points||0; var claimed=d.milestones||[]; var changed=false;
+  for(var i=0;i<EV_MILESTONES.length;i++){
+    var m=EV_MILESTONES[i];
+    if(pts>=m.points && claimed.indexOf(m.points)===-1){
+      claimed.push(m.points);
+      PERM.gems=(PERM.gems||0)+m.gem;
+      if(m.crystal>0) PERM.crystals=(PERM.crystals||0)+m.crystal;
+      try{ savePerm(); }catch(_){}
+      _evToast(m.points+'pts 달성! ◆+'+m.gem+(m.crystal?' ▲+'+m.crystal:''),'#f59e0b');
+      changed=true;
+    }
+  }
+  if(changed){ d.milestones=claimed; _evSave(d); }
+}
+
+/* ══════════════════════════════════════════
+   §D  이벤트 화면 UI
+══════════════════════════════════════════ */
+var _evScr=null, _evScrOpen=false, _evTab='missions';
+
+function _buildEvScreen(){
+  if(document.getElementById('screen-event')){ _evScr=document.getElementById('screen-event'); return; }
+  _evScr=document.createElement('div');
+  _evScr.id='screen-event';
+  _evScr.style.cssText=
+    'display:none;flex-direction:column;width:100%;height:100%;background:#030b10;'+
+    'position:fixed;inset:0;z-index:600;overflow:hidden;';
+  document.body.appendChild(_evScr);
+}
+
+function _openEvScreen(){
+  if(!_evScr) _buildEvScreen();
+  _evScrOpen=true; _evScr.style.display='flex';
+  _renderEvScreen();
+}
+function _closeEvScreen(){
+  _evScrOpen=false; if(_evScr) _evScr.style.display='none';
+}
+
+function _renderEvScreen(){
+  if(!_evScr) return;
+  var d=_evLoad(); var pts=d.points||0; var active=_evActive();
+  _evScr.innerHTML='';
+
+  /* ─ HUD ─ */
+  var hud=document.createElement('div');
+  hud.style.cssText='display:flex;align-items:center;padding:6px 10px;background:#060f18;'+
+    'border-bottom:1px solid #0a1a2a;gap:10px;flex-shrink:0;';
+  hud.innerHTML=
+    '<span style="color:#f59e0b;font-family:monospace;font-size:11px;">◈ '+(PERM.gold||0)+'</span>'+
+    '<span style="color:#00ffff;font-family:monospace;font-size:11px;">◆ '+(PERM.gems||0)+'</span>'+
+    '<span style="color:#00ff88;font-family:monospace;font-size:11px;">▲ '+(PERM.crystals||0)+'</span>'+
+    '<span style="color:#cc44ff;font-family:monospace;font-size:11px;margin-left:auto;">'+pts+' pts</span>'+
+    '<button id="_ev_x" style="background:none;border:none;color:#334455;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;">✕</button>';
+  _evScr.appendChild(hud);
+  hud.querySelector('#_ev_x').addEventListener('click', _closeEvScreen);
+
+  /* ─ 타이틀 ─ */
+  var ttl=document.createElement('div');
+  ttl.style.cssText='text-align:center;padding:8px 12px;flex-shrink:0;';
+  if(active){
+    ttl.innerHTML=
+      '<div style="color:#f59e0b;font-family:monospace;font-size:18px;font-weight:bold;letter-spacing:3px;">NEON SURGE</div>'+
+      '<div style="color:#556677;font-family:monospace;font-size:10px;margin-top:2px;">코어를 지켜라!</div>'+
+      '<div style="color:#334455;font-family:monospace;font-size:9px;margin-top:3px;">'+
+        '<span style="color:#556677;">'+_evFmt(_evRemain())+'</span>에서 끝납니다</div>'+
+      '<div style="display:inline-block;border:1px solid rgba(245,158,11,0.4);color:#f59e0b;'+
+        'font-family:monospace;font-size:9px;padding:2px 10px;margin-top:4px;">이벤트 부스트 활성 x2</div>';
+  } else {
+    var nms=Math.max(0,_evNextTime()-Date.now());
+    ttl.innerHTML=
+      '<div style="color:#334455;font-family:monospace;font-size:15px;font-weight:bold;">NEON SURGE</div>'+
+      '<div style="color:#334455;font-family:monospace;font-size:9px;margin-top:6px;">다음 이벤트: '+_evFmt(nms)+' 후</div>';
+  }
+  _evScr.appendChild(ttl);
+
+  /* ─ 마일스톤 바 ─ */
+  _evScr.appendChild(_buildMSBar(pts, d.milestones||[]));
+
+  /* ─ 탭 바 ─ */
+  var tabBar=document.createElement('div');
+  tabBar.style.cssText='display:flex;background:#060f18;border-bottom:1px solid #0a1a2a;flex-shrink:0;';
+  [['missions','미션'],['shop','이벤트 상점']].forEach(function(p){
+    var cur=_evTab===p[0];
+    var btn=document.createElement('button');
+    btn.style.cssText='flex:1;padding:9px;background:none;border:none;border-bottom:2px solid '+
+      (cur?'#00ffff':'transparent')+';color:'+(cur?'#00ffff':'#334455')+
+      ';font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;';
+    btn.textContent=p[1];
+    (function(tab){ btn.addEventListener('click',function(){ _evTab=tab; _renderEvScreen(); }); }(p[0]));
+    tabBar.appendChild(btn);
+  });
+  _evScr.appendChild(tabBar);
+
+  /* ─ 콘텐츠 ─ */
+  var cnt=document.createElement('div');
+  cnt.style.cssText='flex:1;overflow-y:auto;padding:8px;-webkit-overflow-scrolling:touch;';
+  cnt.appendChild(_evTab==='missions' ? _buildMissionsUI(d) : _buildShopUI(d));
+  _evScr.appendChild(cnt);
+}
+
+/* ─ 마일스톤 바 ─ */
+function _buildMSBar(pts, claimed){
+  var maxPts=EV_MILESTONES[EV_MILESTONES.length-1].points;
+  var pct=Math.min(100,pts/maxPts*100);
+  var wrap=document.createElement('div');
+  wrap.style.cssText='padding:6px 10px 8px;border-bottom:1px solid #0a1a2a;flex-shrink:0;';
+  var top=document.createElement('div');
+  top.style.cssText='display:flex;justify-content:space-between;margin-bottom:4px;';
+  top.innerHTML='<span style="color:#556677;font-family:monospace;font-size:9px;">이벤트 포인트</span>'+
+    '<span style="color:#cc44ff;font-family:monospace;font-size:9px;">'+pts+' / '+maxPts+'</span>';
+  wrap.appendChild(top);
+  var track=document.createElement('div');
+  track.style.cssText='height:5px;background:#0a1a2a;border-radius:3px;margin-bottom:6px;overflow:hidden;';
+  var fill=document.createElement('div');
+  fill.style.cssText='height:100%;width:'+pct+'%;background:#cc44ff;border-radius:3px;';
+  track.appendChild(fill); wrap.appendChild(track);
+  var row=document.createElement('div');
+  row.style.cssText='display:flex;gap:3px;overflow-x:auto;padding-bottom:2px;';
+  EV_MILESTONES.forEach(function(m){
+    var done=claimed.indexOf(m.points)!==-1, reach=pts>=m.points;
+    var box=document.createElement('div');
+    box.style.cssText='display:flex;flex-direction:column;align-items:center;gap:1px;min-width:34px;';
+    box.innerHTML=
+      '<div style="width:26px;height:26px;background:'+(done?'#0a2a0a':reach?'#1a0a2a':'#0a1a2a')+
+        ';border:1px solid '+(done?'#00ff88':reach?'#cc44ff':'#0a2a3a')+
+        ';display:flex;align-items:center;justify-content:center;border-radius:2px;">'+
+        '<span style="font-size:10px;color:'+(done?'#00ff88':reach?'#cc44ff':'#334455')+';">'+
+        (done?'✓':reach?'◈':'')+'</span></div>'+
+      '<span style="font-size:7px;color:'+(done?'#00ff88':'#334455')+';font-family:monospace;">'+m.points+'</span>';
+    row.appendChild(box);
+  });
+  wrap.appendChild(row);
+  return wrap;
+}
+
+/* ─ 미션 목록 ─ */
+function _buildMissionsUI(d){
+  var wrap=document.createElement('div');
+  var prog=d.progress||{}, tiers=d.tiers||{};
+  EV_MISSIONS.forEach(function(m){
+    var tier=tiers[m.id]||0, p=prog[m.id]||0;
+    var maxed=tier>=m.maxTier, tgt=m.target*(tier+1);
+    var pct=maxed?100:Math.min(100,p/tgt*100);
+    var card=document.createElement('div');
+    card.style.cssText='background:'+(maxed?'#030b10':'#0a1a2a')+
+      ';border:1px solid '+(maxed?'#0a2a0a':'#0a3344')+
+      ';padding:8px 10px;margin-bottom:5px;border-radius:2px;';
+    var top=document.createElement('div');
+    top.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;';
+    top.innerHTML=
+      '<span style="font-size:11px;color:'+(maxed?'#334455':'#94a3b8')+
+        ';font-family:monospace;flex:1;margin-right:8px;line-height:1.4;">'+m.text+'</span>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0;">'+
+        '<span style="font-size:10px;color:#cc44ff;font-family:monospace;">◈ '+m.points+'</span>'+
+        '<span style="font-size:8px;color:#334455;font-family:monospace;">'+tier+'/'+m.maxTier+'</span>'+
+      '</div>';
+    card.appendChild(top);
+    if(maxed){
+      var comp=document.createElement('div');
+      comp.style.cssText='background:#050e14;border:1px dashed #0a2a0a;text-align:center;padding:3px;'+
+        'background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,'+
+        'rgba(0,255,136,0.04) 4px,rgba(0,255,136,0.04) 8px);';
+      comp.innerHTML='<span style="font-size:9px;color:#00ff88;font-family:monospace;letter-spacing:1px;">COMPLETED</span>';
+      card.appendChild(comp);
+    } else {
+      var bw=document.createElement('div');
+      bw.style.cssText='position:relative;height:16px;background:#0a2233;border:1px solid #0a3344;overflow:hidden;';
+      var bf=document.createElement('div');
+      bf.style.cssText='height:100%;width:'+pct+'%;background:linear-gradient(90deg,#004466,#00ffff);';
+      var bl=document.createElement('span');
+      bl.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'+
+        'font-size:8px;color:#fff;font-family:monospace;white-space:nowrap;';
+      bl.textContent=_numFmt(p)+' / '+_numFmt(tgt);
+      bw.appendChild(bf); bw.appendChild(bl); card.appendChild(bw);
+    }
+    wrap.appendChild(card);
+  });
+  return wrap;
+}
+
+/* ─ 이벤트 상점 ─ */
+function _buildShopUI(d){
+  var wrap=document.createElement('div');
+  var pts=d.points||0;
+  var hdr=document.createElement('div');
+  hdr.style.cssText='text-align:center;margin-bottom:10px;';
+  hdr.innerHTML='<span style="font-family:monospace;font-size:12px;color:#cc44ff;">이벤트 포인트: '+pts+' ◈</span>';
+  wrap.appendChild(hdr);
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+  EV_SHOP.forEach(function(item){
+    var ok=pts>=item.cost;
+    var card=document.createElement('div');
+    card.style.cssText='background:#0a1a2a;border:1px solid '+(ok?'#0a3344':'#0a1a2a')+
+      ';padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;border-radius:2px;';
+    card.innerHTML=
+      '<span style="font-size:11px;color:#94a3b8;font-family:monospace;text-align:center;line-height:1.4;">'+item.name+'</span>'+
+      '<span style="font-size:13px;color:#cc44ff;font-family:monospace;">◈ '+item.cost+'</span>';
+    var btn=document.createElement('button');
+    btn.textContent='구매';
+    btn.style.cssText='background:#030b10;border:1px solid '+(ok?'#0a3344':'#1a1a2a')+
+      ';color:'+(ok?'#f59e0b':'#334455')+
+      ';font-family:monospace;font-size:10px;padding:4px 0;width:100%;-webkit-appearance:none;cursor:'+(ok?'pointer':'default')+';';
+    if(ok)(function(it,b){
+      b.addEventListener('click',function(){
+        var ev=_evLoad(); if((ev.points||0)<it.cost) return;
+        ev.points=(ev.points||0)-it.cost;
+        if(!ev.shopBought) ev.shopBought={};
+        ev.shopBought[it.id]=(ev.shopBought[it.id]||0)+1;
+        _evGive(it); _evSave(ev); _renderEvScreen();
+        _evToast('구매 완료: '+it.name,'#00ffff');
+      });
+    }(item,btn));
+    card.appendChild(btn); grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function _evGive(item){
+  switch(item.type){
+    case 'gem':     PERM.gems=(PERM.gems||0)+item.amount; try{savePerm();}catch(_){} break;
+    case 'crystal': PERM.crystals=(PERM.crystals||0)+item.amount; try{savePerm();}catch(_){} break;
+    case 'gold':    PERM.gold=(PERM.gold||0)+item.amount; try{savePerm();}catch(_){} break;
+    case 'boost':   try{localStorage.setItem('td_boost_end',String(Date.now()+item.amount*1000));}catch(_){} break;
+    case 'rush':    try{var rt=parseInt(localStorage.getItem('td_rush_tokens')||'0'); localStorage.setItem('td_rush_tokens',String(rt+item.amount));}catch(_){} break;
+  }
+}
+
+/* ══════════════════════════════════════════
+   §E  플로팅 보석 시스템
+══════════════════════════════════════════ */
+var _fgems=[], _fgTimer=0;
+var FG_INTERVAL=45000, FG_LIFE=8000, FG_MAX=3;
+
+function _spawnFG(){
+  if(_fgems.length>=FG_MAX) return;
+  var cv=document.getElementById('canvas'); if(!cv) return;
+  var cw=cv.width,ch=cv.height,cx=cw/2,cy=ch/2, x,y,a=0;
+  do{ x=60+Math.random()*(cw-120); y=60+Math.random()*(ch-180); a++; }
+  while(a<30 && Math.sqrt((x-cx)*(x-cx)+(y-cy)*(y-cy))<100);
+  _fgems.push({x:x,y:y,life:FG_LIFE,phase:Math.random()*6.28,collected:false});
+}
+
+function _updateFG(dt){
+  _fgTimer+=dt;
+  if(_fgTimer>=FG_INTERVAL){ _fgTimer=0; _spawnFG(); }
+  for(var i=_fgems.length-1;i>=0;i--){
+    if(_fgems[i].collected){ _fgems.splice(i,1); continue; }
+    _fgems[i].life-=dt; _fgems[i].phase+=0.04;
+    if(_fgems[i].life<=0) _fgems.splice(i,1);
+  }
+}
+
+function _drawFG(ctx){
+  for(var i=0;i<_fgems.length;i++){
+    var g=_fgems[i]; if(g.collected) continue;
+    var alpha=Math.min(1,g.life/700);
+    var sc=1+Math.sin(g.phase)*0.13;
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.translate(g.x,g.y); ctx.scale(sc,sc);
+    ctx.shadowBlur=14; ctx.shadowColor='#00ffff';
+    ctx.fillStyle='#00ffff'; ctx.font='bold 18px Courier New';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('◆',0,0);
+    ctx.restore();
+  }
+}
+
+function _tapFG(tx,ty){
+  for(var i=0;i<_fgems.length;i++){
+    var g=_fgems[i]; if(g.collected) continue;
+    var dx=tx-g.x,dy=ty-g.y;
+    if(dx*dx+dy*dy<900){
+      g.collected=true;
+      PERM.gems=(PERM.gems||0)+1; try{savePerm();}catch(_){}
+      try{ if(G&&G.floatTexts) G.floatTexts.push({x:g.x,y:g.y,text:'+1◆',timer:0}); }catch(_){}
+      try{ spawnDeathParticles(g.x,g.y,'#00ffff',8); }catch(_){}
+      _evTrack('gem_tap',1); _updateBadges();
+    }
+  }
+}
+
+/* overlay canvas */
+var _fgOvl=null, _fgOctx=null;
+function _setupFGOverlay(){
+  var cv=document.getElementById('canvas'); if(!cv){ setTimeout(_setupFGOverlay,600); return; }
+  if(_fgOvl) return;
+  var par=cv.parentNode;
+  if(window.getComputedStyle(par).position==='static') par.style.position='relative';
+  _fgOvl=document.createElement('canvas');
+  _fgOvl.width=cv.width; _fgOvl.height=cv.height;
+  _fgOvl.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;';
+  par.appendChild(_fgOvl); _fgOctx=_fgOvl.getContext('2d');
+
+  // 탭/클릭 감지
+  function _onTap(cx,cy){
+    if(!G||G.phase!=='playing') return;
+    var r=cv.getBoundingClientRect();
+    var sx=cv.width/r.width, sy=cv.height/r.height;
+    _tapFG((cx-r.left)*sx,(cy-r.top)*sy);
+  }
+  cv.addEventListener('click',function(e){ _onTap(e.clientX,e.clientY); },false);
+  cv.addEventListener('touchstart',function(e){ var t=e.touches[0]; _onTap(t.clientX,t.clientY); },false);
+
+  // 렌더 루프
+  (function _rLoop(){
+    if(_fgOctx){
+      // sync size
+      if(_fgOvl.width!==cv.width||_fgOvl.height!==cv.height){ _fgOvl.width=cv.width; _fgOvl.height=cv.height; }
+      _fgOctx.clearRect(0,0,_fgOvl.width,_fgOvl.height);
+      if(G&&G.phase==='playing') _drawFG(_fgOctx);
+    }
+    requestAnimationFrame(_rLoop);
+  }());
+}
+
+/* ══════════════════════════════════════════
+   §F  게임 훅 (update / startWave / savePerm)
+══════════════════════════════════════════ */
+var _evPK=0,_evPB=0,_evPH=0,_evNodmg=0;
+window._evTookDmg=false;
+
+var _origUpd_ev=window.update;
+window.update=function(dt){
+  _origUpd_ev.apply(this,arguments);
+  if(!G||G.phase!=='playing') return;
+  _updateFG(dt);
+  // 킬 추적
+  var kills=PERM.totalKills||0, boss=PERM.bossKills||0;
+  if(kills>_evPK){ _evTrack('kill',kills-_evPK); _evPK=kills; }
+  if(boss>_evPB){  _evTrack('boss',boss-_evPB);  _evPB=boss;  }
+  // 피해 감지 (nodmg)
+  var hp=G.tower?G.tower.hp:0;
+  if(_evPH>0&&hp<_evPH) window._evTookDmg=true;
+  _evPH=hp;
+};
+
+var _origSW_ev=window.startWave;
+var _evLastLabSec=0;
+window.startWave=function(){
+  _origSW_ev.apply(this,arguments);
+  _evTrack('wave',1);
+  // nodmg 스트릭
+  if(!window._evTookDmg){
+    _evNodmg++; _evTrack('nodmg',1);
+  } else {
+    _evNodmg=0;
+    // 현재 tier 진행도 리셋
+    var dd=_evLoad(); var mm=_evMission('ev_nodmg_1200');
+    if(dd.progress&&mm){ var tierN=(dd.tiers&&dd.tiers['ev_nodmg_1200'])||0; dd.progress['ev_nodmg_1200']=tierN*mm.target; _evSave(dd); }
+  }
+  window._evTookDmg=false;
+  // 연구소 시간 추적
+  try{
+    var lab=JSON.parse(localStorage.getItem('td_lab')||'{}');
+    var now=Date.now(), active=0;
+    ['slot0','slot1','slot2'].forEach(function(k){
+      if(lab[k]&&lab[k].researchId&&(lab[k].endTime||0)>now) active++;
+    });
+    if(active>0){
+      var elapsed=(now-(window._evLastLabCheck||now))/1000*active;
+      if(elapsed>0) _evTrack('lab_time',elapsed);
+    }
+  }catch(_){}
+  window._evLastLabCheck=Date.now();
+};
+
+// savePerm 훅: 워크샵 업그레이드 횟수 추적
+var _evWsSnap='';
+var _origSP_ev=window.savePerm;
+window.savePerm=function(){
+  var prevSnap=_evWsSnap;
+  _origSP_ev.apply(this,arguments);
+  var newWs=PERM.ws||{};
+  var newSnap=JSON.stringify(newWs);
+  if(prevSnap!==''&&newSnap!==prevSnap){
+    try{
+      var prev=JSON.parse(prevSnap); var cnt=0;
+      Object.keys(newWs).forEach(function(k){
+        if(k.slice(0,5)==='tier_') return;
+        var nv=newWs[k]||0, pv=prev[k]||0;
+        if(nv>pv) cnt+=(nv-pv);
+      });
+      if(cnt>0) _evTrack('upgrade',cnt);
+    }catch(_){}
+  }
+  _evWsSnap=newSnap;
+};
+
+/* ══════════════════════════════════════════
+   §G  카드 / 토너먼트 훅
+══════════════════════════════════════════ */
+(function _hCard(){
+  if(typeof window._doDraw==='function'&&!window._doDraw._evH){
+    var o=window._doDraw;
+    window._doDraw=function(n){ o.apply(this,arguments); _evTrack('card_buy',n||1); };
+    window._doDraw._evH=true;
+  } else { setTimeout(_hCard,900); }
+}());
+
+// 토너먼트 참가 버튼 훅
+(function _hTrn(){
+  if(typeof window.openTournament==='function'&&!window.openTournament._evH){
+    var o=window.openTournament;
+    window.openTournament=function(){
+      o.apply(this,arguments);
+      setTimeout(function(){
+        var btns=document.querySelectorAll('#screen-tournament button,[id*="trn"] button');
+        for(var bi=0;bi<btns.length;bi++){
+          var b=btns[bi];
+          var txt=b.textContent||'';
+          if(!b._evTH&&(txt.indexOf('참가')!==-1||txt.indexOf('시작')!==-1)){
+            b._evTH=true;
+            b.addEventListener('click',function(){ _evTrack('tournament',1); },false);
+          }
+        }
+      },400);
+    };
+    window.openTournament._evH=true;
+  } else { setTimeout(_hTrn,900); }
+}());
+
+/* ══════════════════════════════════════════
+   §H  홈 배지 업데이트
+══════════════════════════════════════════ */
+function _updateBadges(){
+  // side-event
+  var eb=document.getElementById('side-event');
+  if(eb){
+    if(eb.getAttribute('data-sidelock')===''){          // 해금된 경우만
+      if(_evActive()){
+        eb.style.borderColor='#f59e0b';
+        eb.innerHTML='<span style="font-size:13px;color:#f59e0b;">◈</span><br>'+
+          '<span style="font-size:7px;color:#f59e0b;font-weight:bold;">이벤트</span>';
+      } else {
+        var nms=Math.max(0,_evNextTime()-Date.now());
+        eb.style.borderColor='';
+        eb.innerHTML='<span style="font-size:12px;color:#334455;">◈</span><br>'+
+          '<span style="font-size:6px;color:#334455;">Next '+_evFmt(nms)+'</span>';
+      }
+    }
+  }
+  // side-power: 토너먼트 기간 강조
+  var pb=document.getElementById('side-power');
+  if(pb&&pb.getAttribute('data-sidelock')===''){
+    try{
+      var td=JSON.parse(localStorage.getItem('td_trn')||'{}');
+      if(td.endTime&&Date.now()<td.endTime) pb.style.borderColor='#00ff88';
+    }catch(_){}
+  }
+}
+
+/* ══════════════════════════════════════════
+   §I  로그인 / side-event 클릭 훅
+══════════════════════════════════════════ */
+function _checkLogin(){
+  try{
+    var today=new Date().toDateString();
+    var last=localStorage.getItem('td_ev_login_day')||'';
+    if(last===today) return;
+    var yday=new Date(Date.now()-86400000).toDateString();
+    var streak=parseInt(localStorage.getItem('td_ev_login_streak')||'0');
+    streak=(last===yday)?streak+1:1;
+    localStorage.setItem('td_ev_login_day',today);
+    localStorage.setItem('td_ev_login_streak',String(streak));
+    _evTrack('login',1);
+  }catch(_){}
+}
+
+function _hookSideEvent(){
+  var btn=document.getElementById('side-event');
+  if(!btn){ setTimeout(_hookSideEvent,500); return; }
+  btn.addEventListener('click',function(e){
+    // 잠금 상태면 기존 핸들러에 위임
+    if(btn.getAttribute('data-sidelock')!=='') return;
+    e.stopPropagation();
+    _openEvScreen();
+  },true); // capture phase
+}
+
+/* ══════════════════════════════════════════
+   §J  유틸
+══════════════════════════════════════════ */
+function _numFmt(n){
+  if(typeof window.formatNumber==='function') return window.formatNumber(n);
+  if(n>=1e9) return (n/1e9).toFixed(1)+'B';
+  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return String(Math.floor(n));
+}
+
+function _evToast(msg,color){
+  try{
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);'+
+      'background:rgba(3,11,16,0.95);border:1px solid '+(color||'#00ffff')+';'+
+      'color:'+(color||'#00ffff')+';font-family:\'Courier New\',monospace;font-size:11px;'+
+      'padding:5px 14px;pointer-events:none;z-index:9700;white-space:nowrap;'+
+      'max-width:90vw;overflow:hidden;text-overflow:ellipsis;';
+    t.textContent=msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ if(t.parentNode) t.remove(); },2600);
+  }catch(_){}
+}
+
+/* ══════════════════════════════════════════
+   §K  초기화
+══════════════════════════════════════════ */
+function _initEvSystem(){
+  _evInitData();
+  _buildEvScreen();
+  _hookSideEvent();
+  _setupFGOverlay();
+  _checkLogin();
+  _updateBadges();
+  // WS 스냅 초기화
+  _evWsSnap=JSON.stringify(PERM.ws||{});
+  // 킬 카운터 초기화
+  _evPK=PERM.totalKills||0; _evPB=PERM.bossKills||0;
+  // 연구소 체크 타임 초기화
+  window._evLastLabCheck=Date.now();
+  // 배지 1분마다 갱신
+  setInterval(_updateBadges,60000);
+}
+
+setTimeout(_initEvSystem,950);
+
+/* 외부 스크립트 블록에서 사용할 수 있도록 전역 노출 */
+window._evTrack      = _evTrack;
+window._openEvScreen = _openEvScreen;
+window._evActive     = _evActive;
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: 주파수 전쟁 / 시그널 마켓 / pulseFragments
+══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+'use strict';
+
+/* ── §A. 새 화폐 변수 ── */
+window.pulseFragments = parseInt(localStorage.getItem('pulseFragments') || '0') || 0;
+
+/* ── §B. showScreen() — 새 화면 전환 함수 ── */
+var _FW_SCREENS = ['screen-frequency-wars', 'screen-signal-market',
+                   'screen-event', 'screen-ranking'];
+window.showScreen = function (name) {
+  // 새로 추가된 전체화면들 모두 숨기기
+  _FW_SCREENS.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  if (name === 'home') {
+    var h = document.getElementById('screen-home');
+    if (h) h.style.display = 'flex';
+  } else {
+    // 홈 화면 숨기고 대상 화면 표시
+    var hm = document.getElementById('screen-home');
+    if (hm) hm.style.display = 'none';
+    var target = document.getElementById('screen-' + name);
+    if (target) {
+      target.style.position = 'fixed';
+      target.style.zIndex   = '600';
+      target.style.display  = 'flex';
+      syncPulse();
+    }
+  }
+};
+
+/* ── §C. 화면 HTML 주입 ── */
+function _injectScreens() {
+
+  /* ── 주파수 전쟁 ── */
+  if (!document.getElementById('screen-frequency-wars')) {
+    var fw = document.createElement('div');
+    fw.id = 'screen-frequency-wars';
+    fw.style.cssText =
+      'display:none;flex-direction:column;width:100%;height:100%;' +
+      'background:#06061a;position:fixed;top:0;left:0;z-index:600;' +
+      'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
+    fw.innerHTML =
+      /* 상단 바 */
+      '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
+        '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
+        '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">주파수 전쟁</span>' +
+        '<span style="margin-left:auto;color:#ffc800;font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>' +
+      '</div>' +
+      /* 콘텐츠 */
+      '<div style="padding:14px;">' +
+        '<div style="text-align:center;margin-bottom:16px;">' +
+          '<div style="font-size:15px;letter-spacing:4px;color:#00dddd;">FREQUENCY WARS</div>' +
+          '<div style="font-size:9px;color:#334455;margin-top:4px;letter-spacing:2px;">실시간 순위 경쟁</div>' +
+        '</div>' +
+        /* 안내 카드 */
+        '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;text-align:center;font-size:11px;color:#7aacac;line-height:1.7;">' +
+          '매주 <span style="color:#00dddd;">월 / 목 오후 10시</span> 개최<br>' +
+          '24시간 진행 — 최고 스테이지로 순위 결정' +
+        '</div>' +
+        '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;text-align:center;font-size:11px;color:#7aacac;line-height:1.7;">' +
+          '종료 시 <span style="color:#ffc800;">✦ 펄스 조각</span> + <span style="color:#bb44ff;">◆ 보석</span> 지급<br>' +
+          '종료 후 <span style="color:#00dddd;">48시간</span> 내 수령 필수' +
+        '</div>' +
+        '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:16px;text-align:center;font-size:11px;color:#7aacac;line-height:1.7;">' +
+          '같은 티어 플레이어끼리 경쟁<br>' +
+          '매 이벤트마다 <span style="color:#00dddd;">승급 / 강등</span> 결정' +
+        '</div>' +
+        /* 티어 목록 */
+        '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 참가 티어</div>' +
+        _fwTierRow('#4488ff','#6699cc','TIER F','웨이브 1+') +
+        _fwTierRow('#44cc66','#44cc66','TIER E','웨이브 15+') +
+        _fwTierRow('#ffc800','#ffc800','TIER D','웨이브 30+') +
+        _fwTierRow('#ff8822','#ff8822','TIER C','웨이브 60+') +
+        _fwTierRow('#ff4444','#ff4444','TIER B','웨이브 100+') +
+        _fwTierRowS() +
+        /* 카운트다운 */
+        '<div style="text-align:center;padding:14px;background:#0a0a1a;border-radius:10px;border:1px solid #1a2a3a;">' +
+          '<div style="font-size:9px;color:#334455;margin-bottom:6px;letter-spacing:2px;">NEXT EVENT</div>' +
+          '<div id="fw-timer" style="font-size:20px;color:#00dddd;letter-spacing:5px;font-family:\'Courier New\',monospace;">--:--:--</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(fw);
+  }
+
+  /* ── 시그널 마켓 ── */
+  if (!document.getElementById('screen-signal-market')) {
+    var sm = document.createElement('div');
+    sm.id = 'screen-signal-market';
+    sm.style.cssText =
+      'display:none;flex-direction:column;width:100%;height:100%;' +
+      'background:#06061a;position:fixed;top:0;left:0;z-index:600;' +
+      'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
+    sm.innerHTML =
+      /* 상단 바 */
+      '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
+        '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
+        '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">시그널 마켓</span>' +
+        '<span style="margin-left:auto;color:#ffc800;font-size:12px;">✦ <span id="sm-pulse-display">0</span></span>' +
+      '</div>' +
+      /* 탭 바 */
+      '<div style="display:flex;border-bottom:1px solid #1a2a3a;flex-shrink:0;">' +
+        '<button id="sm-tab-mission" onclick="smTab(\'mission\')" style="flex:1;padding:10px;font-family:\'Courier New\',monospace;font-size:11px;background:transparent;border:none;border-bottom:2px solid #00dddd;color:#00dddd;cursor:pointer;">미션</button>' +
+        '<button id="sm-tab-market" onclick="smTab(\'market\')" style="flex:1;padding:10px;font-family:\'Courier New\',monospace;font-size:11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#445566;cursor:pointer;">시그널 마켓</button>' +
+      '</div>' +
+      /* 미션 탭 */
+      '<div id="sm-s-mission" style="padding:14px;">' +
+        '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:10px;">▸ 일일 미션 — 매일 자정 초기화</div>' +
+        _smMission('daily1','1게임 플레이',10,true) +
+        _smMissionBar('daily2','웨이브 30 도달',25,'0 / 30') +
+        _smMissionBar('daily3','강화 3회 실시',15,'0 / 3') +
+        '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin:14px 0 10px;">▸ 주간 미션 — 매주 월요일 초기화</div>' +
+        _smMissionBarW('weekly1','주파수 전쟁 TOP 10 진입',100,'0 / 1') +
+        _smMissionBar('weekly2','웨이브 100 도달',80,'0 / 100') +
+        '<div id="mission-toast" style="display:none;background:#0a1a1a;border:1px solid #00dddd;border-radius:8px;padding:8px 12px;font-size:11px;color:#00dddd;text-align:center;margin-top:8px;"></div>' +
+      '</div>' +
+      /* 마켓 탭 */
+      '<div id="sm-s-market" style="display:none;padding:14px;">' +
+        /* 잔액 */
+        '<div style="display:flex;gap:8px;margin-bottom:14px;">' +
+          '<div style="flex:1;background:#0a1018;border:1px solid #1a3444;border-radius:8px;padding:8px;text-align:center;">' +
+            '<div style="font-size:9px;color:#334455;margin-bottom:3px;">펄스 조각</div>' +
+            '<div style="font-size:14px;color:#ffc800;font-family:\'Courier New\',monospace;">✦ <span id="sm-pulse-val">0</span></div>' +
+          '</div>' +
+          '<div style="flex:1;background:#0a1018;border:1px solid #1a3444;border-radius:8px;padding:8px;text-align:center;">' +
+            '<div style="font-size:9px;color:#334455;margin-bottom:3px;">보석</div>' +
+            '<div style="font-size:14px;color:#00dddd;font-family:\'Courier New\',monospace;">◆ <span id="sm-gem-val">0</span></div>' +
+          '</div>' +
+        '</div>' +
+        /* 통화 교환 */
+        '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 통화 교환</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">' +
+          _smShopCard('◆','#00dddd','보석 x100','✦ 200','gem100',200) +
+          _smShopCard('✦','#ffc800','펄스 조각 x50','◆ 30','pulse50',30) +
+        '</div>' +
+        /* 테마 */
+        '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 테마 <span style="color:#cc44cc;font-size:9px;background:#2a0a2a;border:1px solid #660066;padding:1px 5px;border-radius:3px;">한정</span></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">' +
+          _smThemeCard('void','VOID CIRCUIT','타워 스킨','✦ 150',150,'#aa44ff','#160026','#6600aa','border:3px solid #aa44ff;border-radius:50%;') +
+          _smThemeCard('abyss','CYBER ABYSS','배경 테마','✦ 250',250,'#4488cc','#000e1a','#004466','border:2px solid #0088cc;transform:rotate(45deg);') +
+        '</div>' +
+        /* 부스트 */
+        '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 부스트 <span style="color:#445566;font-size:9px;">(1게임 지속 · 게임 시작 전 적용)</span></div>' +
+        _smBoost('boost_dmg','오버클럭 레이저','데미지 +3000% · 1게임','사거리 변동 없음',80,'#ff8822','#1a0a00','#884400','border:3px solid #ff8822;border-radius:50%;') +
+        _smBoost('boost_range','레이더 확장 펄스','사거리 +40m · 1게임','데미지 변동 없음',60,'#00ccaa','#001a14','#007755','border:2px solid #00cc88;border-radius:50%;') +
+        _smBoost('boost_hp','방어막 과충전','최대 HP +200% · 1게임','공격력 변동 없음',50,'#bb44ff','#1a001a','#660066','border:2px solid #bb44ff;transform:rotate(45deg);') +
+        '<div id="market-toast" style="display:none;background:#0a1a1a;border:1px solid #00dddd;border-radius:8px;padding:8px 12px;font-size:11px;color:#00dddd;text-align:center;margin-top:8px;"></div>' +
+      '</div>';
+    document.body.appendChild(sm);
+  }
+}
+
+/* 티어 행 빌더 */
+function _fwTierRow(dot, txt, tier, req) {
+  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0a1020;border:1px solid #152535;border-radius:8px;margin-bottom:6px;">' +
+    '<div style="width:10px;height:10px;border-radius:50%;background:' + dot + ';flex-shrink:0;"></div>' +
+    '<div style="flex:1;font-size:11px;color:' + txt + ';">' + tier + '</div>' +
+    '<div style="font-size:10px;color:#445566;">' + req + '</div>' +
+  '</div>';
+}
+function _fwTierRowS() {
+  return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#100820;border:1px solid #2a1040;border-radius:8px;margin-bottom:16px;">' +
+    '<div style="width:10px;height:10px;border-radius:50%;background:#bb44ff;flex-shrink:0;"></div>' +
+    '<div style="flex:1;font-size:11px;color:#bb44ff;">TIER S</div>' +
+    '<div style="font-size:10px;color:#445566;">웨이브 200+</div>' +
+  '</div>';
+}
+function _smMission(id, txt, pts, canClaim) {
+  return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<div style="font-size:11px;color:#00dddd;">' + txt + '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="color:#ffc800;font-size:11px;">✦ +' + pts + '</span>' +
+        (canClaim ? '<button id="m-' + id + '-btn" onclick="claimMission(\'' + id + '\',' + pts + ')" style="background:#00aa88;color:#001a14;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:10px;cursor:pointer;font-weight:bold;">수령</button>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div id="m-' + id + '-bar" style="background:#00dddd;height:100%;border-radius:3px;width:100%;"></div></div>' +
+    '<div id="m-' + id + '-text" style="font-size:9px;color:#557766;margin-top:3px;">1/1 완료</div>' +
+  '</div>';
+}
+function _smMissionBar(id, txt, pts, prog) {
+  return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<div style="font-size:11px;color:#00dddd;">' + txt + '</div>' +
+      '<span style="color:#ffc800;font-size:11px;">✦ +' + pts + '</span>' +
+    '</div>' +
+    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div id="m-' + id + '-bar" style="background:#00dddd;height:100%;border-radius:3px;width:0%;"></div></div>' +
+    '<div id="m-' + id + '-text" style="font-size:9px;color:#445566;margin-top:3px;">' + prog + '</div>' +
+  '</div>';
+}
+function _smMissionBarW(id, txt, pts, prog) {
+  return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<div style="font-size:11px;color:#00dddd;">' + txt + '</div>' +
+      '<span style="color:#ffc800;font-size:11px;">✦ +' + pts + '</span>' +
+    '</div>' +
+    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div style="background:#334;height:100%;border-radius:3px;width:0%;"></div></div>' +
+    '<div style="font-size:9px;color:#445566;margin-top:3px;">' + prog + '</div>' +
+  '</div>';
+}
+function _smShopCard(icon, iconColor, label, price, id, cost) {
+  return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;text-align:center;">' +
+    '<div style="font-size:22px;color:' + iconColor + ';margin-bottom:4px;">' + icon + '</div>' +
+    '<div style="font-size:10px;color:#778899;margin-bottom:6px;">' + label + '</div>' +
+    '<div style="font-size:11px;color:#ffc800;margin-bottom:8px;">' + price + '</div>' +
+    '<button onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
+  '</div>';
+}
+function _smThemeCard(id, name, type, price, cost, clr, bg, border, iconStyle) {
+  return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;text-align:center;position:relative;">' +
+    '<span style="position:absolute;top:8px;right:8px;background:#2a0a2a;color:#cc44cc;border:1px solid #660066;border-radius:4px;font-size:9px;padding:2px 5px;">한정</span>' +
+    '<div style="width:52px;height:52px;margin:0 auto 8px;background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;display:flex;align-items:center;justify-content:center;">' +
+      '<div style="width:28px;height:28px;' + iconStyle + '"></div>' +
+    '</div>' +
+    '<div style="font-size:10px;color:' + clr + ';margin-bottom:2px;">' + name + '</div>' +
+    '<div style="font-size:9px;color:#445566;margin-bottom:6px;">' + type + '</div>' +
+    '<div style="font-size:11px;color:#ffc800;margin-bottom:8px;">' + price + '</div>' +
+    '<button id="btn-' + id + '" onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
+  '</div>';
+}
+function _smBoost(id, name, desc1, desc2, cost, clr, bg, border, iconStyle) {
+  return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
+    '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<div style="width:44px;height:44px;background:' + bg + ';border:1px solid ' + border + ';border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<div style="width:20px;height:20px;' + iconStyle + '"></div>' +
+      '</div>' +
+      '<div style="flex:1;">' +
+        '<div style="font-size:11px;color:' + clr + ';margin-bottom:2px;">' + name + '</div>' +
+        '<div style="font-size:9px;color:#445566;margin-bottom:3px;">' + desc1 + '</div>' +
+        '<div style="font-size:9px;color:#334455;">' + desc2 + '</div>' +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0;">' +
+        '<div style="font-size:11px;color:#ffc800;margin-bottom:6px;">✦ ' + cost + '</div>' +
+        '<button onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ── §D. JS 함수들 ── */
+
+window.smTab = function (tab) {
+  document.getElementById('sm-s-mission').style.display = tab === 'mission' ? 'block' : 'none';
+  document.getElementById('sm-s-market').style.display  = tab === 'market'  ? 'block' : 'none';
+  ['mission','market'].forEach(function (t) {
+    var b = document.getElementById('sm-tab-' + t);
+    if (!b) return;
+    b.style.borderBottomColor = t === tab ? '#00dddd' : 'transparent';
+    b.style.color             = t === tab ? '#00dddd' : '#445566';
+  });
+  if (tab === 'market') syncPulse();
+};
+
+window.syncPulse = function () {
+  ['fw-pulse-display','sm-pulse-display','sm-pulse-val'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = window.pulseFragments;
+  });
+  var gEl = document.getElementById('sm-gem-val');
+  if (gEl) gEl.textContent = PERM.gems || 0;
+  try { localStorage.setItem('pulseFragments', window.pulseFragments); } catch(_) {}
+};
+
+/* 미션 수령 */
+var _claimedMissions = [];
+var _lastMDay = '';
+(function () {
+  try {
+    var today = new Date().toISOString().slice(0, 10);
+    _lastMDay = localStorage.getItem('smMissionDate') || '';
+    _claimedMissions = JSON.parse(localStorage.getItem('smClaimed') || '[]');
+    if (_lastMDay !== today) {
+      _claimedMissions = _claimedMissions.filter(function (m) { return m.indexOf('weekly') === 0; });
+      localStorage.setItem('smClaimed', JSON.stringify(_claimedMissions));
+      localStorage.setItem('smMissionDate', today);
+    }
+  } catch(_) {}
+}());
+
+window.claimMission = function (id, amount) {
+  if (_claimedMissions.indexOf(id) !== -1) return;
+  _claimedMissions.push(id);
+  try { localStorage.setItem('smClaimed', JSON.stringify(_claimedMissions)); } catch(_) {}
+  window.pulseFragments += amount;
+  syncPulse();
+  var btn = document.getElementById('m-' + id + '-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '완료'; btn.style.background = '#334'; btn.style.color = '#667'; }
+  var toast = document.getElementById('mission-toast');
+  if (toast) {
+    toast.textContent = '✦ +' + amount + ' 펄스 조각 획득!';
+    toast.style.display = 'block';
+    setTimeout(function () { toast.style.display = 'none'; }, 2200);
+  }
+};
+
+/* 마켓 구매 */
+var _ownedItems  = [];
+var _activeBoosts = [];
+try { _ownedItems   = JSON.parse(localStorage.getItem('smOwned')  || '[]'); } catch(_) {}
+try { _activeBoosts = JSON.parse(localStorage.getItem('smBoosts') || '[]'); } catch(_) {}
+window._smActiveBoosts = _activeBoosts; /* 다른 스크립트 블록에서 참조용 */
+window._smOwnedItems   = _ownedItems;   /* 스킨 체크용 전역 참조 */
+
+window.smBuy = function (item, cost) {
+  var isSkin    = item === 'void' || item === 'abyss';
+  var useGems   = item === 'pulse50';
+
+  if (isSkin && _ownedItems.indexOf(item) !== -1) {
+    _mktToast('이미 보유 중!', '#778899'); return;
+  }
+  if (useGems) {
+    if ((PERM.gems || 0) < cost) { _mktToast('보석이 부족합니다', '#ff4444'); return; }
+    PERM.gems -= cost;
+    window.pulseFragments += 50;
+    try { savePerm(); } catch(_) {}
+  } else {
+    if (window.pulseFragments < cost) { _mktToast('펄스 조각이 부족합니다', '#ff4444'); return; }
+    window.pulseFragments -= cost;
+    if (item === 'gem100') {
+      PERM.gems = (PERM.gems || 0) + 100;
+      try { savePerm(); } catch(_) {}
+    } else if (isSkin) {
+      _ownedItems.push(item);
+      try { localStorage.setItem('smOwned', JSON.stringify(_ownedItems)); } catch(_) {}
+      var btn = document.getElementById('btn-' + item);
+      if (btn) { btn.disabled = true; btn.textContent = '보유중'; }
+    } else if (item.indexOf('boost_') === 0) {
+      _activeBoosts.push(item);
+      try { localStorage.setItem('smBoosts', JSON.stringify(_activeBoosts)); } catch(_) {}
+    }
+  }
+  syncPulse();
+  var msgs = {
+    gem100:'보석 x100 획득!', pulse50:'펄스 조각 x50 획득!',
+    void:'VOID CIRCUIT 적용됨!', abyss:'CYBER ABYSS 적용됨!',
+    boost_dmg:'오버클럭 레이저 활성화!', boost_range:'레이더 확장 펄스 활성화!', boost_hp:'방어막 과충전 활성화!'
+  };
+  _mktToast(msgs[item] || '구매 완료!', '#00dddd');
+};
+
+function _mktToast(msg, color) {
+  var el = document.getElementById('market-toast');
+  if (!el) return;
+  el.textContent = msg; el.style.color = color || '#00dddd';
+  el.style.borderColor = color || '#00dddd';
+  el.style.display = 'block';
+  setTimeout(function () { el.style.display = 'none'; }, 2200);
+}
+
+/* 주파수 전쟁 카운트다운 */
+function _updateFWTimer() {
+  var el = document.getElementById('fw-timer'); if (!el) return;
+  var now = new Date();
+  var kst = new Date(now.getTime() + 9 * 3600000);
+  var day = kst.getUTCDay(), h = kst.getUTCHours(), m = kst.getUTCMinutes(), s = kst.getUTCSeconds();
+  var best = Infinity;
+  [1, 4].forEach(function (t) {
+    var d = ((t - day + 7) % 7) * 86400 + (22 - h) * 3600 - m * 60 - s;
+    if (d <= 0) d += 604800;
+    if (d < best) best = d;
+  });
+  var dd = Math.floor(best / 86400), hh = Math.floor((best % 86400) / 3600);
+  var mm = Math.floor((best % 3600) / 60), ss = best % 60;
+  var p = function (n) { return String(n).length < 2 ? '0' + n : String(n); };
+  el.textContent = dd > 0
+    ? dd + 'd ' + p(hh) + ':' + p(mm) + ':' + p(ss)
+    : p(hh) + ':' + p(mm) + ':' + p(ss);
+}
+setInterval(_updateFWTimer, 1000);
+
+/* ── §E. 홈 아이콘 연결 ── */
+function _hookFWButtons() {
+  /* side-ranking → 주파수 전쟁 */
+  var rankBtn = document.getElementById('side-ranking');
+  if (rankBtn) {
+    rankBtn.addEventListener('click', function () {
+      if (rankBtn.getAttribute('data-sidelock') !== '') return;
+      setTimeout(function () {
+        // 기존 랭킹 오버레이 닫기
+        var old = document.getElementById('screen-ranking');
+        if (old) old.style.display = 'none';
+        showScreen('frequency-wars');
+      }, 0);
+    }, true);
+  }
+
+  /* side-event → 시그널 마켓
+     (기존 _hookSideEvent 핸들러가 screen-event를 열면 즉시 닫고 signal-market 표시) */
+  var evBtn = document.getElementById('side-event');
+  if (evBtn) {
+    evBtn.addEventListener('click', function () {
+      if (evBtn.getAttribute('data-sidelock') !== '') return;
+      setTimeout(function () {
+        var old = document.getElementById('screen-event');
+        if (old) old.style.display = 'none';
+        showScreen('signal-market');
+      }, 0);
+    }, true);
+  }
+}
+
+/* ── §F. 초기화 ── */
+function _initFW() {
+  _injectScreens();
+  _hookFWButtons();
+  _updateFWTimer();
+  syncPulse();
+}
+
+setTimeout(_initFW, 1000);
+
+}());
+</script>
+
+<!-- 스크립트: 누락 전역 함수 브릿지 (updateFWTimer / showMissionToast / showMarketToast) -->
+<script>
+/* updateFWTimer — 기존 _updateFWTimer()의 전역 별칭 (setInterval은 이미 실행 중) */
+window.updateFWTimer = function () {
+  if (typeof window._updateFWTimer === 'function') window._updateFWTimer();
+};
+
+/* showMissionToast — 미션 수령 토스트 (claimMission 내부 toast와 동일) */
+window.showMissionToast = function (msg) {
+  var el = document.getElementById('mission-toast');
+  if (!el) return;
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(function () { el.style.display = 'none'; }, 2200);
+};
+
+/* showMarketToast — 마켓 구매 토스트 (기존 _mktToast의 전역 별칭) */
+window.showMarketToast = function (msg, color) {
+  if (typeof window._mktToast === 'function') { window._mktToast(msg, color); return; }
+  var el = document.getElementById('market-toast');
+  if (!el) return;
+  el.textContent = msg; el.style.color = color || '#00dddd'; el.style.borderColor = color || '#00dddd';
+  el.style.display = 'block';
+  setTimeout(function () { el.style.display = 'none'; }, 2200);
+};
+</script>
+
+<!-- 스크립트: 실드 초기화 + CustomEvent 리스너 (ev_range_boss / ev_shield_10) -->
+<script>
+(function () { 'use strict';
+
+/* ── §1. 실드 시스템 초기화 (applyPermStats 훅) ──
+   workshop shieldHP(Lv당 5HP), absorbPct(Lv당 2% 흡수) 적용 */
+(function _initShield() {
+  var _origAPS_shd = window.applyPermStats;
+  if (typeof _origAPS_shd !== 'function') { setTimeout(_initShield, 500); return; }
+  window.applyPermStats = function () {
+    _origAPS_shd.apply(this, arguments);
+    if (!window.G || !G.tower) return;
+    var ws = (window.PERM && window.PERM.ws) || {};
+    G.tower.shdMax = (ws.shieldHP || 0) * 5;   // 워크샵 shieldHP Lv당 5HP
+    G.tower.shdCur = G.tower.shdMax;            // 게임 시작 시 꽉 채워서 시작
+    G.tower.absorbPct = (ws.absorbPct || 0) * 0.02; // 0~60% 피해 흡수율 (미사용 예비)
+  };
+}());
+
+/* ── §2. ev_range_boss 이벤트 → _evTrack 연결 ── */
+document.addEventListener('ev_range_boss', function () {
+  if (window._evTrack) window._evTrack('range_boss', 1);
+});
+
+/* ── §3. ev_shield_10 이벤트 → _evTrack 연결 ── */
+document.addEventListener('ev_shield_10', function () {
+  if (window._evTrack) window._evTrack('shield', 1);
+});
+
+/* ── §4. 실드 재생: 웨이브 클리어 시 shdCur 50% 회복 ── */
+(function _hookShieldRegen() {
+  var _origOWC = window.onWaveComplete;
+  if (typeof _origOWC !== 'function') { setTimeout(_hookShieldRegen, 600); return; }
+  window.onWaveComplete = function () {
+    _origOWC.apply(this, arguments);
+    if (window.G && G.tower && G.tower.shdMax > 0) {
+      G.tower.shdCur = Math.min(G.tower.shdMax, (G.tower.shdCur || 0) + G.tower.shdMax * 0.5);
+    }
+  };
+}());
+
+}());
+</script>
+
+<!-- 스크립트: 누락 훅 패치 + 부스트 수정 + NEON SURGE 접근 경로 -->
+<script>
+(function () { 'use strict';
+
+/* ── §1. 광고 훅: window._missionProgress('ad') → _evTrack('ad') ── */
+(function _hookAd() {
+  var _origMP = window._missionProgress;
+  if (typeof _origMP !== 'function') { setTimeout(_hookAd, 800); return; }
+  window._missionProgress = function (type, amt) {
+    _origMP.apply(this, arguments);
+    if (type === 'ad' && window._evTrack) window._evTrack('ad', amt || 1);
+  };
+}());
+
+/* ── §2. 에너지 구체 킬 추적: _updateOrbs 패치 ── */
+(function _hookOrbs() {
+  var _origUO = window._updateOrbs;
+  if (typeof _origUO !== 'function') { setTimeout(_hookOrbs, 800); return; }
+  window._updateOrbs = function (dt) {
+    var pre = PERM.totalKills || 0;
+    _origUO.apply(this, arguments);
+    var orbKills = (PERM.totalKills || 0) - pre;
+    if (orbKills > 0 && window._evTrack) window._evTrack('orb_kill', orbKills);
+  };
+}());
+
+/* ── §3. NEON SURGE 이벤트 화면 접근 경로
+         시그널 마켓 미션 탭 상단에 "NEON SURGE" 배너 버튼 삽입 ── */
+(function _injectNSBanner() {
+  var smMission = document.getElementById('sm-s-mission');
+  if (!smMission) { setTimeout(_injectNSBanner, 1200); return; }
+  if (document.getElementById('ns-banner')) return;
+  var banner = document.createElement('div');
+  banner.id = 'ns-banner';
+  banner.style.cssText =
+    'background:linear-gradient(90deg,#0a1020,#1a0a20);' +
+    'border:1px solid #cc44ff;border-radius:10px;padding:10px 14px;' +
+    'margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;';
+  banner.innerHTML =
+    '<div>' +
+      '<div style="font-size:12px;color:#f59e0b;font-family:\'Courier New\',monospace;letter-spacing:2px;font-weight:bold;">NEON SURGE</div>' +
+      '<div style="font-size:9px;color:#556677;font-family:\'Courier New\',monospace;margin-top:2px;">시즌 이벤트 · 미션 & 마일스톤</div>' +
+    '</div>' +
+    '<span style="color:#cc44ff;font-size:14px;">▶</span>';
+  banner.addEventListener('click', function () {
+    if (window._openEvScreen) window._openEvScreen();
+  });
+  smMission.insertBefore(banner, smMission.firstChild);
+}());
+
+}());
+</script>
+
+<!-- 스크립트: 시그널 마켓 부스트 → 게임 스탯 적용 -->
+<script>
+(function () { 'use strict';
+
+/* boost_dmg  : 타워 공격력 ×31 (+3000%, UI 표기와 일치)
+   boost_range: 타워 사거리 +40 픽셀 (UI "+40m" 일치)
+   boost_hp   : 타워 최대 HP ×3 (+200%, UI 표기와 일치)
+   부스트는 게임 시작(createState) 시 소모 */
+
+var _origCS_boost = window.createState;
+window.createState = function () {
+  var g = _origCS_boost.apply(this, arguments);
+  var boosts = window._smActiveBoosts;
+  if (!boosts || !boosts.length) return g;
+
+  var hasDmg   = boosts.indexOf('boost_dmg')   !== -1;
+  var hasRange = boosts.indexOf('boost_range')  !== -1;
+  var hasHp    = boosts.indexOf('boost_hp')     !== -1;
+
+  /* UI 설명과 정확히 일치하는 수치 적용 */
+  if (hasDmg && g.tower)   g.tower.dmg   = Math.round((g.tower.dmg   || 0) * 31);      // +3000%
+  if (hasRange && g.tower) g.tower.range = (g.tower.range || 80) + 40;                  // +40 픽셀
+  if (hasHp && g.tower) {
+    var base = g.tower.maxHp || g.tower.hp || 100;
+    g.tower.maxHp = base * 3;    // +200% → 3배
+    g.tower.hp    = Math.min(g.tower.hp || base, g.tower.maxHp);
+  }
+
+  /* 사용된 부스트 제거 */
+  var used = [];
+  if (hasDmg)   used.push('boost_dmg');
+  if (hasRange) used.push('boost_range');
+  if (hasHp)    used.push('boost_hp');
+  used.forEach(function (b) {
+    var idx = boosts.indexOf(b);
+    if (idx !== -1) boosts.splice(idx, 1);
+  });
+  try { localStorage.setItem('smBoosts', JSON.stringify(boosts)); } catch(_) {}
+
+  /* 부스트 적용 알림 */
+  if (used.length) {
+    setTimeout(function () {
+      var labels = {
+        boost_dmg:   '⚡ 오버클럭 레이저 DMG +3000%',
+        boost_range: '📡 레이더 확장 RANGE +40',
+        boost_hp:    '🛡 방어막 과충전 MAX HP +200%'
+      };
+      used.forEach(function (b, i) {
+        setTimeout(function () {
+          var div = document.createElement('div');
+          div.textContent = labels[b] || b;
+          div.style.cssText = 'position:fixed;top:'+(80+i*36)+'px;left:50%;transform:translateX(-50%);' +
+            'background:#002233;border:1px solid #00dddd;color:#00dddd;' +
+            'font-family:\'Courier New\',monospace;font-size:12px;padding:6px 14px;border-radius:8px;' +
+            'z-index:9000;pointer-events:none;';
+          document.body.appendChild(div);
+          setTimeout(function () { if (div.parentNode) div.parentNode.removeChild(div); }, 2800);
+        }, i * 400);
+      });
+    }, 600);
+  }
+
+  return g;
+};
 
 }());
 </script>
