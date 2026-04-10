@@ -1527,9 +1527,9 @@ canvas {
   <!-- 카테고리 탭 -->
   <div id="ws-tab-bar" style="display:flex; height:36px; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
     <button class="ws-tab" data-tab="atk" data-tabcolor="#3b82f6" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid #3b82f6;color:#3b82f6;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">⚔</span><span style="letter-spacing:1px;">공격</span></button>
-    <button class="ws-tab" data-tab="def" data-tabcolor="#ef4444" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#334455;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">◎</span><span style="letter-spacing:1px;">방어</span></button>
-    <button class="ws-tab" data-tab="spc" data-tabcolor="#f59e0b" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#334455;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">★</span><span style="letter-spacing:1px;">특수</span></button>
-    <button class="ws-tab" data-tab="pwr" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#334455;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">◆</span><span style="letter-spacing:1px;">크리스탈</span></button>
+    <button class="ws-tab" data-tab="def" data-tabcolor="#ef4444" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">◎</span><span style="letter-spacing:1px;">방어</span></button>
+    <button class="ws-tab" data-tab="spc" data-tabcolor="#f59e0b" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">★</span><span style="letter-spacing:1px;">특수</span></button>
+    <button class="ws-tab" data-tab="pwr" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">◆</span><span style="letter-spacing:1px;">크리스탈</span></button>
   </div>
 
   <!-- 업그레이드 목록 -->
@@ -1816,9 +1816,9 @@ const SHOP_ITEMS = {
     baseCost: 7,  maxLv: 4,
     name: '// 공격속도',
     effect: () => {
-      const cur  = (Math.max(200, 1000 - PERM.spdLv * 40) / 1000).toFixed(2);
-      const next = (Math.max(200, 1000 - (PERM.spdLv + 1) * 40) / 1000).toFixed(2);
-      return cur + 's → ' + next + 's';
+      const cur  = 'x' + (1 + PERM.spdLv * 0.20).toFixed(2);
+      const next = 'x' + (1 + (PERM.spdLv + 1) * 0.20).toFixed(2);
+      return cur + ' → ' + next;
     },
   },
   rng: {
@@ -4133,8 +4133,18 @@ if (dailyClaimBtn) {
     var tabs = document.querySelectorAll('.ws-tab');
     for (var i = 0; i < tabs.length; i++) {
       var isAct = tabs[i].dataset.tab === tab;
-      tabs[i].style.color        = isAct ? '#00ffff' : (tabs[i].disabled ? '#1a2a3a' : '#334455');
+      var inactiveColor = tabs[i].disabled ? '#1a2a3a' : '#4a7a8a';
+      tabs[i].style.color        = isAct ? '#00ffff' : inactiveColor;
       tabs[i].style.borderBottom = isAct ? '2px solid #00ffff' : '2px solid transparent';
+      if (!isAct && !tabs[i].disabled) {
+        (function(t, ic) {
+          t.onmouseenter = function() { t.style.color = '#7ab8c8'; };
+          t.onmouseleave = function() { t.style.color = ic; };
+        }(tabs[i], inactiveColor));
+      } else {
+        tabs[i].onmouseenter = null;
+        tabs[i].onmouseleave = null;
+      }
     }
 
     var ws    = PERM.ws || {};
@@ -4157,7 +4167,7 @@ if (dailyClaimBtn) {
     var card = document.createElement('div');
     card.style.cssText =
       'background:' + (locked ? '#0a1520' : '#0a1a2a') + ';' +
-      'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
+      'border:1px solid ' + (locked ? '#1a2a3a' : (!maxed && !afford ? '#ff4444' : '#0a3344')) + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
       'padding:12px;display:flex;flex-direction:row;' +
       'justify-content:space-between;align-items:center;' +
@@ -4178,10 +4188,12 @@ if (dailyClaimBtn) {
           cfg.cur(lv) + '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span>' +
         '</span>' +
         '<button data-key="' + key + '" style="background:#030b10;border:1px solid ' +
-          (afford ? '#0a3344' : '#ef4444') + ';color:' +
-          (afford ? '#f59e0b' : '#ef4444') + ';font-size:11px;' +
+          (afford ? '#0a3344' : '#ff4444') + ';font-size:11px;' +
           'font-family:\'Courier New\',monospace;padding:4px 8px;cursor:pointer;' +
-          '-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>';
+          '-webkit-appearance:none;margin-top:3px;">' +
+          '<span style="color:#f59e0b;">◈</span>' +
+          '<span style="color:' + (afford ? '#f59e0b' : '#ff4444') + ';">' + cost + '</span>' +
+          '</button>';
     }
 
     card.innerHTML =
@@ -4219,9 +4231,11 @@ if (dailyClaimBtn) {
     var rightHTML = unlocked
       ? '<span style="font-size:12px;color:#00ffff;font-family:\'Courier New\',monospace;">✓ 해금됨</span>'
       : '<button style="background:#030b10;border:1px solid ' +
-          (afford ? '#0a3344' : '#ef4444') + ';color:' +
-          (afford ? '#f59e0b' : '#ef4444') + ';font-size:11px;' +
-          'font-family:\'Courier New\',monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">◈50</button>';
+          (afford ? '#0a3344' : '#ff4444') + ';font-size:11px;' +
+          'font-family:\'Courier New\',monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">' +
+          '<span style="color:#f59e0b;">◈</span>' +
+          '<span style="color:' + (afford ? '#f59e0b' : '#ff4444') + ';">50</span>' +
+          '</button>';
 
     card.innerHTML =
       '<div style="display:flex;flex-direction:column;gap:3px;">' +
@@ -7330,7 +7344,7 @@ setTimeout(_applyMaxOverrides, 300);
     btn.className = 'ws-tab';
     btn.setAttribute('data-tab', 'utl');
     btn.setAttribute('data-tabcolor', '#a78bfa');
-    btn.style.cssText = 'flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#334455;font-size:9px;font-family:\'Courier New\',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;';
+    btn.style.cssText = 'flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:\'Courier New\',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;';
     btn.innerHTML = '<span style="font-size:14px;line-height:1;">⚙</span><span style="letter-spacing:1px;">유틸</span>';
     bar.appendChild(btn);
   }
@@ -8297,8 +8311,8 @@ function _applyWsCostPatches() {
     items.hpRegen.nxt = function(lv) { return ((lv+1) * 0.05).toFixed(2) + '/s'; };
   }
   if (items.atkspd) {
-    items.atkspd.cur = function(lv) { return lv === 0 ? '기본' : '-' + (lv*3) + '%'; };
-    items.atkspd.nxt = function(lv) { return '-' + ((lv+1)*3) + '%'; };
+    items.atkspd.cur = function(lv) { return 'x' + (1.00 + lv * 0.20).toFixed(2); };
+    items.atkspd.nxt = function(lv) { return 'x' + (1.00 + (lv + 1) * 0.20).toFixed(2); };
   }
   if (items.goldGain) {
     items.goldGain.cur = function(lv) { return 'x' + (1 + lv*0.05).toFixed(2); };
