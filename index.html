@@ -3980,12 +3980,20 @@ if (dailyClaimBtn) {
     { name: '티어 4', mult: 3.0 },
     { name: '티어 5', mult: 5.0 },
   ];
-  var curTier = 0;
+  var TIER_REQS = [0, 10, 25, 50, 100]; // 티어 1~5 해금 요구 웨이브
+  function isTierUnlocked(idx) {
+    var best = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+    return best >= (TIER_REQS[idx] || 0);
+  }
+  var _savedTierIdx = parseInt(localStorage.getItem('td_tier') || '1', 10) - 1;
+  var curTier = Math.max(0, Math.min(_savedTierIdx, TIERS.length - 1));
+  while (curTier > 0 && !isTierUnlocked(curTier)) curTier--;
 
   function applyTier() {
     var t = TIERS[curTier];
     document.getElementById('tier-name').textContent       = t.name;
     document.getElementById('tier-multiplier').textContent = t.mult.toFixed(1);
+    try { localStorage.setItem('td_tier', curTier + 1); } catch(_) {}
   }
 
   function refreshHomeData() {
@@ -3993,16 +4001,28 @@ if (dailyClaimBtn) {
     try {
       document.getElementById('home-best-wave').textContent = (PERM.bestWave || 0);
     } catch (e) {}
+    // bestWave 갱신 후 잠금 상태 재계산
+    while (curTier > 0 && !isTierUnlocked(curTier)) curTier--;
     applyTier();
   }
 
   /* ── 난이도 화살표 ── */
   document.getElementById('tier-prev').addEventListener('click', function() {
-    curTier = (curTier - 1 + TIERS.length) % TIERS.length;
+    var prev = (curTier - 1 + TIERS.length) % TIERS.length;
+    if (!isTierUnlocked(prev)) {
+      try { showNavLockTooltip('웨이브 ' + TIER_REQS[prev] + ' 달성 후 해금'); } catch(_) {}
+      return;
+    }
+    curTier = prev;
     applyTier();
   });
   document.getElementById('tier-next').addEventListener('click', function() {
-    curTier = (curTier + 1) % TIERS.length;
+    var next = (curTier + 1) % TIERS.length;
+    if (!isTierUnlocked(next)) {
+      try { showNavLockTooltip('웨이브 ' + TIER_REQS[next] + ' 달성 후 해금'); } catch(_) {}
+      return;
+    }
+    curTier = next;
     applyTier();
   });
 
@@ -11177,6 +11197,79 @@ window.updateLeftIcons = function () {
 
 /* 초기 렌더링 (PERM 초기화 후 실행) */
 setTimeout(function () { try { window.updateLeftIcons(); } catch(e) {} }, 100);
+</script>
+
+<script>
+/* ── 총 코인 보너스 팝업 ── */
+window.showCoinBonusPopup = function () {
+  var popup = document.getElementById('coin-bonus-popup-new');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'coin-bonus-popup-new';
+    popup.style.cssText =
+      'display:none;position:absolute;top:50%;left:50%;' +
+      'transform:translate(-50%,-50%);' +
+      'background:#0a1a2a;border:1px solid #1a3444;' +
+      'border-radius:12px;padding:16px;width:260px;' +
+      'font-family:\'Courier New\',monospace;z-index:200;';
+    popup.innerHTML =
+      '<div style="text-align:center;font-size:13px;color:#ffc800;letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid #1a2a3a;padding-bottom:8px;">코인 보너스 내역</div>' +
+      '<div id="coin-bonus-list-new"></div>' +
+      '<div style="text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid #1a2a3a;font-size:12px;color:#ffc800;">총합: <span id="coin-bonus-total-new">x1.00</span></div>' +
+      '<button onclick="document.getElementById(\'coin-bonus-popup-new\').style.display=\'none\'" ' +
+        'style="width:100%;margin-top:10px;background:#030b10;border:1px solid #00ffff;color:#00ffff;' +
+        'font-family:\'Courier New\',monospace;font-size:11px;padding:7px;border-radius:6px;cursor:pointer;">닫기</button>';
+    popup.addEventListener('click', function(e) { e.stopPropagation(); });
+    var homeEl = document.getElementById('screen-home');
+    if (homeEl) homeEl.appendChild(popup);
+  }
+
+  /* 항목 계산 */
+  var ws = (window.PERM && window.PERM.ws) ? window.PERM.ws : {};
+  var adActive = Date.now() < (parseInt(localStorage.getItem('td_ad_bonus_expiry') || '0', 10));
+  var tierIdx  = parseInt(localStorage.getItem('td_tier') || '1', 10);
+  var tierMults = [1.0, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+  var tierMult  = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
+
+  var items = [{ label: '기본 코인 획득', value: 1.00 }];
+  var cashBonus   = ws.cashBonus   || 0;
+  var cashPerWave = ws.cashPerWave || 0;
+  var goldBoost   = ws.goldBoostPct || 0;
+  if (cashBonus   > 0) items.push({ label: '크레딧 보너스 강화', value: 1 + cashBonus * 0.05 });
+  if (cashPerWave > 0) items.push({ label: '웨이브 보너스 강화', value: 1 + cashPerWave * 0.02 });
+  if (goldBoost   > 0) items.push({ label: '골드 부스트',       value: 1 + goldBoost * 0.02 });
+  if (tierMult > 1.0)  items.push({ label: '난이도 티어 보너스', value: tierMult });
+  if (adActive)        items.push({ label: '광고 코인 보너스',   value: 1.5 });
+
+  var list = document.getElementById('coin-bonus-list-new');
+  var total = 1.0;
+  if (list) {
+    list.innerHTML = '';
+    items.forEach(function(item) {
+      total *= item.value;
+      list.innerHTML +=
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#7aacac;padding:4px 0;border-bottom:1px solid #0a1a2a;">' +
+        '<span>' + item.label + '</span>' +
+        '<span style="color:#ffc800;">x' + item.value.toFixed(2) + '</span>' +
+        '</div>';
+    });
+  }
+  var totalEl = document.getElementById('coin-bonus-total-new');
+  if (totalEl) totalEl.textContent = 'x' + total.toFixed(2);
+  var homeTot = document.getElementById('home-total-bonus');
+  if (homeTot) homeTot.textContent = '\xd7' + total.toFixed(2);
+
+  popup.style.display = 'block';
+};
+
+/* 기존 onclick(_showCoinBonusPopup) → 새 함수로 연결 */
+window._showCoinBonusPopup = window.showCoinBonusPopup;
+
+/* 팝업 바깥 클릭 시 닫기 */
+(document.getElementById('screen-home') || document.body).addEventListener('click', function () {
+  var p = document.getElementById('coin-bonus-popup-new');
+  if (p && p.style.display !== 'none') p.style.display = 'none';
+});
 </script>
 </body>
 </html>
