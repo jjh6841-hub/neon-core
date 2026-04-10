@@ -847,7 +847,7 @@ canvas {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(10,14,26,0.97);
+  background: #06061a;
   -webkit-flex-direction: column;
   flex-direction: column;
   -webkit-align-items: center;
@@ -859,17 +859,11 @@ canvas {
   gap: 8px;
 }
 #achieve-screen.show { display: -webkit-flex; display: flex; }
-.achieve-title {
-  font-size: 22px;
-  font-weight: 900;
-  color: #fbbf24;
-  margin-bottom: 4px;
-  letter-spacing: 1px;
-}
+.achieve-title { display: none; }
 #ach-list { width: 100%; max-width: 360px; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; gap: 8px; }
 .ach-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: #0c0c22;
+  border: 1px solid #1a3444;
   border-radius: 10px;
   padding: 12px 14px;
   display: -webkit-flex;
@@ -877,14 +871,22 @@ canvas {
   -webkit-align-items: center;
   align-items: center;
   gap: 12px;
+  font-family: 'Courier New', monospace;
 }
-.ach-item.claimed { opacity: 0.45; border-color: #1e293b; }
+.ach-item.claimed { background: #080818; border-color: #1a3444; }
+.ach-item.claimed .ach-name,
+.ach-item.claimed .ach-desc,
+.ach-item.claimed .ach-prog,
+.ach-item.claimed .ach-reward { color: #334455; }
+.ach-item.met .ach-reward { color: #ffc800; }
 .ach-icon { font-size: 22px; -webkit-flex-shrink: 0; flex-shrink: 0; }
 .ach-info { -webkit-flex: 1; flex: 1; }
-.ach-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-.ach-desc { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-.ach-prog { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-.ach-reward { font-size: 12px; font-weight: 700; color: #a78bfa; -webkit-flex-shrink: 0; flex-shrink: 0; text-align: right; }
+.ach-name { font-size: 13px; font-weight: 700; color: #00ffff; font-family: 'Courier New', monospace; }
+.ach-desc { font-size: 11px; color: #557788; margin-top: 2px; }
+.ach-prog { font-size: 11px; color: #ffc800; margin-top: 2px; }
+.ach-reward { font-size: 12px; font-weight: 700; color: #00ffff; -webkit-flex-shrink: 0; flex-shrink: 0; text-align: right; }
+.ach-bar { height: 4px; background: #1a2a3a; border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.ach-bar-fill { height: 100%; background: #00ffff; border-radius: 2px; }
 
 /* ── Settings screen ── */
 #settings-screen {
@@ -1257,9 +1259,12 @@ canvas {
 
 <!-- ── 업적 화면 ── -->
 <div id="achieve-screen">
-  <div class="achieve-title">★ 업적</div>
+  <button id="btn-achieve-back" style="position:absolute; top:14px; left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
+  <div style="text-align:center; padding:16px 0 12px; width:100%;">
+    <div style="font-size:9px; color:#334455; letter-spacing:4px; margin-bottom:6px; font-family:'Courier New',monospace;">ACHIEVEMENT</div>
+    <div style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">◈ 업적</div>
+  </div>
   <div id="ach-list"></div>
-  <button class="back-btn" id="btn-achieve-back">← 뒤로</button>
 </div>
 
 <!-- ── 설정 화면 ── -->
@@ -3474,11 +3479,18 @@ function buildAchieveUI() {
   const list = document.getElementById('ach-list');
   if (!list) return;
   list.innerHTML = '';
-  for (const ach of ACHIEVEMENTS) {
+  var sorted = ACHIEVEMENTS.slice().sort(function(a, b) {
+    var aC = PERM.achievements[a.key] === 'claimed';
+    var bC = PERM.achievements[b.key] === 'claimed';
+    var aOrder = aC ? 2 : (a.cond() ? 1 : 0);
+    var bOrder = bC ? 2 : (b.cond() ? 1 : 0);
+    return aOrder - bOrder;
+  });
+  for (const ach of sorted) {
     const claimed = PERM.achievements[ach.key] === 'claimed';
     const met     = ach.cond();
     const div = document.createElement('div');
-    div.className = 'ach-item' + (claimed ? ' claimed' : '');
+    div.className = 'ach-item' + (claimed ? ' claimed' : '') + (met && !claimed ? ' met' : '');
     div.innerHTML =
       '<span class="ach-icon">' + ach.icon + '</span>' +
       '<div class="ach-info">' +
