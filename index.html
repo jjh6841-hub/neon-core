@@ -6214,8 +6214,8 @@ if (storeBtn) {
 (function() {
 'use strict';
 
-var SPEED_STEPS = [1, 2, 3];
-var _sIdx = 0;
+var SPEED_STEPS = [0.5, 1, 1.5, 2, 3];
+var _sIdx = 1; // 기본값 ×1 (인덱스 1)
 
 function _updateDisplay() {
   var v = SPEED_STEPS[_sIdx];
@@ -7503,6 +7503,239 @@ setTimeout(function() {
   _patchLoop();
   _patchBuild();
 }, 80);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: [#5] 배속 소수점 지원 (×0.5 / ×1.5)
+     update(dt)를 래핑하여 dt 스케일로 속도를 구현
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ─ update 래퍼: 소수 속도 시 dt 보정 ─
+   ×0.5 → steps=1, dt*0.5  (절반 속도)
+   ×1.5 → steps=2, dt*0.75 (2회 * 0.75 = 1.5x)
+*/
+setTimeout(function() {
+  var orig = window.update;
+  if (typeof orig !== 'function' || orig._spFrac) return;
+  window.update = function(dt) {
+    var sp = window.G ? window.G.speed : 1;
+    var scale = (sp === 0.5) ? 0.5 : (sp === 1.5) ? 0.75 : 1;
+    return orig.call(this, scale !== 1 ? dt * scale : dt);
+  };
+  window.update._spFrac = true;
+}, 100);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: [#7] 강화 Max Level 확장 + 비용 공식 개편
+     WS_ITEMS maxLv 확장, 고레벨 지수 비용 적용
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* 스펙 기준 maxLv 매핑 (WS_ITEMS 키 기준) */
+var NEW_MAX = {
+  damage:    99,
+  atkspd:    50,
+  critChance:30,
+  critMult:  30,
+  maxHp:     99,
+  defense:   50,
+  hpRegen:   50,
+  lifeSteal: 30,
+  goldGain:  99,
+  gemGain:   30,
+};
+
+/* 지수 비용 공식: lv < 기존max → 기존 함수, 이후 1.4^n → 50 넘으면 1.6^n */
+function _expCost(origFn, origMax) {
+  return function(lv) {
+    if (lv < origMax) return origFn(lv);
+    var base = origFn(origMax);             // 기존 한도에서의 비용
+    var over = lv - origMax;
+    var mult = over < (50 - origMax)
+      ? Math.pow(1.4, over)
+      : Math.pow(1.4, 50 - origMax) * Math.pow(1.6, over - (50 - origMax));
+    return Math.floor(base * mult);
+  };
+}
+
+function _apply() {
+  var items = window._wsExt && window._wsExt.items;
+  if (!items || items._f7) return;
+  items._f7 = true;
+
+  Object.keys(NEW_MAX).forEach(function(k) {
+    if (!items[k]) return;
+    var oldMax = items[k].maxLv;
+    items[k].maxLv = NEW_MAX[k];
+    if (NEW_MAX[k] > oldMax) {
+      items[k].cost = _expCost(items[k].cost, oldMax);
+    }
+  });
+}
+
+/* _wsExt가 준비될 때까지 대기 */
+var _t = 0;
+var _iv = setInterval(function() {
+  if (window._wsExt && window._wsExt.items) { _apply(); clearInterval(_iv); }
+  if (++_t > 40) clearInterval(_iv);
+}, 150);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: [#9] 강화 탭 잠금 시스템
+     특수 탭: 골드 100 해금 / 크리스탈 탭: 보석 30 해금
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ─ 잠금 설정 ─ */
+var TAB_LOCKS = {
+  spc: { label:'특수', goldCost:100, gemCost:0,  permKey:'tab_spc_u', color:'#f59e0b' },
+  pwr: { label:'크리스탈', goldCost:0,  gemCost:30, permKey:'tab_pwr_u', color:'#00ff88' },
+};
+
+function _isUnlocked(tab) {
+  return !!(window.PERM && window.PERM.ws && window.PERM.ws[TAB_LOCKS[tab].permKey]);
+}
+
+/* ─ 팝업 ─ */
+var _popup = null;
+function _getPopup() {
+  if (_popup) return _popup;
+  _popup = document.createElement('div');
+  _popup.id = 'tab-lock-popup';
+  _popup.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(3,11,16,0.88);z-index:900;align-items:center;justify-content:center;';
+  _popup.innerHTML =
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;width:min(280px,90%);padding:24px 20px;text-align:center;position:relative;">' +
+      '<button id="tlp-close" style="position:absolute;top:8px;right:10px;background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;">×</button>' +
+      '<div id="tlp-icon" style="font-size:28px;margin-bottom:8px;"></div>' +
+      '<div id="tlp-title" style="font-size:13px;color:#f1f5f9;font-family:monospace;font-weight:bold;margin-bottom:6px;"></div>' +
+      '<div id="tlp-desc" style="font-size:10px;color:#556677;font-family:monospace;margin-bottom:16px;line-height:1.6;"></div>' +
+      '<button id="tlp-unlock" style="width:100%;height:40px;background:#030b10;font-family:monospace;font-size:12px;cursor:pointer;letter-spacing:1px;"></button>' +
+    '</div>';
+  document.body.appendChild(_popup);
+  document.getElementById('tlp-close').addEventListener('click', function() {
+    _popup.style.display = 'none';
+  });
+  return _popup;
+}
+
+function _showPopup(tab) {
+  var cfg = TAB_LOCKS[tab];
+  var p = _getPopup();
+  var borderC = cfg.color;
+  p.querySelector('div[style*="background:#0a1a2a"]').style.borderColor = borderC + '55';
+  document.getElementById('tlp-icon').textContent  = tab === 'spc' ? '★' : '◆';
+  document.getElementById('tlp-icon').style.color  = cfg.color;
+  document.getElementById('tlp-title').textContent = cfg.label + ' 탭 해금';
+  var costStr = cfg.goldCost > 0 ? ('◈ ' + cfg.goldCost + ' 골드') : ('◆ ' + cfg.gemCost + ' 보석');
+  document.getElementById('tlp-desc').textContent  = cfg.label + ' 업그레이드 탭을 영구 해금합니다.\n해금 비용: ' + costStr;
+  var btn = document.getElementById('tlp-unlock');
+  btn.textContent = costStr + ' — 해금하기';
+  btn.style.border = '1px solid ' + borderC + '55';
+  btn.style.color  = borderC;
+  btn.onclick = function() { _doUnlock(tab); };
+  p.style.display = 'flex';
+}
+
+function _doUnlock(tab) {
+  if (!window.PERM) return;
+  var cfg = TAB_LOCKS[tab];
+  if (cfg.goldCost > 0) {
+    if (PERM.gold < cfg.goldCost) { _flash('골드가 부족합니다'); return; }
+    PERM.gold -= cfg.goldCost;
+  } else {
+    if (PERM.gems < cfg.gemCost) { _flash('보석이 부족합니다'); return; }
+    PERM.gems -= cfg.gemCost;
+  }
+  if (!PERM.ws) PERM.ws = {};
+  PERM.ws[cfg.permKey] = 1;
+  window.savePerm && savePerm();
+  if (_popup) _popup.style.display = 'none';
+  _applyTabStyles();
+  if (window.showAchievementToast) showAchievementToast(cfg.label + ' 탭 해금!');
+}
+
+function _flash(msg) {
+  var d = document.getElementById('tlp-desc');
+  var orig = d.textContent;
+  d.textContent = '⚠ ' + msg;
+  d.style.color = '#ef4444';
+  setTimeout(function() { d.textContent = orig; d.style.color = ''; }, 1200);
+}
+
+/* ─ 탭 스타일 적용 ─ */
+function _applyTabStyles() {
+  Object.keys(TAB_LOCKS).forEach(function(tab) {
+    var btn = document.querySelector('.ws-tab[data-tab="' + tab + '"]');
+    if (!btn) return;
+    var unlocked = _isUnlocked(tab);
+    if (unlocked) {
+      btn.style.opacity = '1';
+      btn.removeAttribute('data-locked');
+    } else {
+      btn.style.opacity = '0.4';
+      btn.setAttribute('data-locked', '1');
+      // 잠금 아이콘 표시
+      var spans = btn.querySelectorAll('span');
+      if (spans[0] && !btn._lockPatched) {
+        btn._lockPatched = true;
+        var lock = document.createElement('span');
+        lock.className = 'tab-lock-icon';
+        lock.style.cssText = 'font-size:8px;position:absolute;top:2px;right:3px;color:#334455;';
+        lock.textContent = '🔒';
+        btn.style.position = 'relative';
+        btn.appendChild(lock);
+      }
+    }
+  });
+}
+
+/* ─ 클릭 인터셉터 (capture 단계) ─ */
+function _attachInterceptor() {
+  var bar = document.getElementById('ws-tab-bar');
+  if (!bar || bar._f9) return;
+  bar._f9 = true;
+
+  bar.addEventListener('click', function(e) {
+    var btn = e.target.closest ? e.target.closest('.ws-tab') : null;
+    if (!btn) return;
+    var tab = btn.getAttribute('data-tab');
+    if (TAB_LOCKS[tab] && !_isUnlocked(tab)) {
+      e.stopImmediatePropagation();
+      _showPopup(tab);
+    }
+  }, true); // capture 단계 — 기존 리스너보다 먼저 실행
+}
+
+/* ─ 워크샵 화면 열릴 때마다 스타일 재적용 ─ */
+function _init() {
+  _attachInterceptor();
+  _applyTabStyles();
+
+  var wsEl = document.getElementById('screen-workshop');
+  if (wsEl) {
+    new MutationObserver(function() {
+      if (wsEl.style.display !== 'none') _applyTabStyles();
+    }).observe(wsEl, { attributes: true, attributeFilter: ['style'] });
+  }
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init);
+else setTimeout(_init, 200);
 
 }());
 </script>
