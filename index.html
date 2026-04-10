@@ -7739,5 +7739,313 @@ else setTimeout(_init, 200);
 
 }());
 </script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: [#11] 게임 전체 밸런스 재설계
+     타워 기본 스탯 / 적 스케일링 / 웨이브 구성 / 보스 / 티어 / 목표 UI / 크리 텍스트
+══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+'use strict';
+
+/* ── 기본 스탯 상수 ── */
+var BASE_DMG   = 2;
+var BASE_ATKMS = 1200;
+var BASE_HP    = 20;
+var BASE_RANGE = 180;
+
+/* ── 티어 → enemyMult 매핑 ── */
+var _TIER_EMULT = [
+  [1.0, 1.0],
+  [1.5, 1.3],
+  [2.0, 1.6],
+  [3.0, 2.0],
+  [5.0, 2.5],
+];
+
+function _getTierInfo() {
+  var el = document.getElementById('tier-multiplier');
+  var gm = el ? parseFloat(el.textContent) || 1.0 : 1.0;
+  var em = 1.0;
+  for (var i = 0; i < _TIER_EMULT.length; i++) {
+    if (Math.abs(_TIER_EMULT[i][0] - gm) < 0.01) { em = _TIER_EMULT[i][1]; break; }
+  }
+  return { goldMult: gm, enemyMult: em };
+}
+
+/* ════════════════════════════════════════════════════════
+   1. getWaveEnemies 교체 — 웨이브 구성 재설계
+════════════════════════════════════════════════════════ */
+function _newGetWaveEnemies(wave) {
+  var list = [];
+
+  if (wave <= 3) {
+    // 튜토리얼: basic만
+    for (var i = 0; i < 3 + wave * 2; i++) list.push('basic');
+  } else if (wave <= 7) {
+    // 워밍업: basic + tank
+    for (var i = 0; i < 4 + wave * 2; i++) list.push('basic');
+    for (var i = 0; i < wave - 3; i++) list.push('tank');
+  } else if (wave <= 14) {
+    // 메인게임: basic + tank + rusher
+    for (var i = 0; i < 5 + wave * 2; i++) list.push('basic');
+    for (var i = 0; i < Math.floor(wave / 4); i++) list.push('tank');
+    for (var i = 0; i < Math.floor((wave - 5) / 2); i++) list.push('rusher');
+  } else if (wave <= 24) {
+    // 심화: basic + tank + rusher + sniper
+    for (var i = 0; i < 5 + wave; i++) list.push('basic');
+    for (var i = 0; i < Math.floor(wave / 4); i++) list.push('tank');
+    for (var i = 0; i < Math.floor(wave / 3); i++) list.push('rusher');
+    for (var i = 0; i < Math.max(0, Math.floor((wave - 12) / 3)); i++) list.push('sniper');
+  } else {
+    // 프로: 전 유형, 고밀도
+    for (var i = 0; i < wave + 10; i++) list.push('basic');
+    for (var i = 0; i < Math.floor(wave / 3); i++) list.push('tank');
+    for (var i = 0; i < Math.floor(wave / 2); i++) list.push('rusher');
+    for (var i = 0; i < Math.floor(wave / 5); i++) list.push('sniper');
+  }
+
+  // 셔플
+  for (var j = list.length - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var tmp = list[j]; list[j] = list[k]; list[k] = tmp;
+  }
+
+  if (wave % 5 === 0) list.push('boss'); // 보스는 항상 마지막
+  return list;
+}
+
+/* ════════════════════════════════════════════════════════
+   2. mkEnemy 래핑 — 적 스탯 재정의
+════════════════════════════════════════════════════════ */
+function _newMkEnemy(etype) {
+  var e  = window._balOrigMkEnemy.apply(this, arguments);
+  var w  = (window.G && G.wave) || 1;
+  var ti = _getTierInfo();
+
+  var baseHp   = 2 * Math.pow(1.18, w - 1) * ti.enemyMult;
+  var baseSpd  = 1 + (w - 1) * 0.025;
+  var baseGold = Math.max(1, Math.floor((1 + Math.floor(w / 5) * 0.5) * ti.goldMult));
+
+  if (etype === 'boss') {
+    var bossNum = Math.ceil(w / 5);
+    var elite   = (w % 10 === 0);
+    e.hp    = Math.floor(50 * Math.pow(1.4, bossNum - 1) * ti.enemyMult);
+    e.maxHp = e.hp;
+    e.spd   = Math.min(3, 0.55 + bossNum * 0.025) * baseSpd;
+    e.gold  = Math.floor(w * 3 * ti.goldMult);
+    e.gem   = elite ? 3 : 1;
+    e.r     = elite ? 30 : 24;
+  } else if (etype === 'tank') {
+    e.hp    = baseHp * 5;
+    e.maxHp = e.hp;
+    e.spd   = baseSpd * 0.45;
+    e.gold  = baseGold * 3;
+    e.r     = 15;
+  } else if (etype === 'rusher') {
+    e.hp    = Math.max(1, baseHp * 0.4);
+    e.maxHp = e.hp;
+    e.spd   = baseSpd * 3.0;
+    e.gold  = baseGold * 2;
+    e.r     = 6;
+  } else if (etype === 'sniper') {
+    e.hp    = baseHp * 0.7;
+    e.maxHp = e.hp;
+    e.spd   = baseSpd * 0.75;
+    e.gold  = baseGold * 5;
+    e.r     = 9;
+  } else {
+    // basic
+    e.hp    = baseHp;
+    e.maxHp = e.hp;
+    e.spd   = baseSpd;
+    e.gold  = baseGold;
+    e.r     = 9;
+  }
+
+  return e;
+}
+
+/* ════════════════════════════════════════════════════════
+   3. applyPermStats 래핑 — 타워 기본 스탯 교체
+════════════════════════════════════════════════════════ */
+function _patchApplyPermStats() {
+  var orig = window.applyPermStats;
+  if (typeof orig !== 'function' || orig._fBal) return;
+  window.applyPermStats = function () {
+    orig.apply(this, arguments);
+    if (!window.G || !G.tower) return;
+    var t  = G.tower;
+    var p  = window.PERM || {};
+    var ws = (p.ws) || {};
+    t.dmg   = BASE_DMG + (p.dmgLv || 0) + (ws.damage || 0);
+    t.atkMs = Math.max(200, BASE_ATKMS - (p.spdLv || 0) * 40 - (ws.atkspd || 0) * 20);
+    t.maxHp = BASE_HP + (p.hpLv || 0) * 2 + (ws.maxHp || 0) * 5;
+    t.hp    = Math.min(t.hp, t.maxHp);
+    t.range = BASE_RANGE + (p.rngLv || 0) * 30 + (ws.wsRange || 0) * 8;
+  };
+  window.applyPermStats._fBal = true;
+}
+
+/* ════════════════════════════════════════════════════════
+   4. startWave 래핑 — 스폰 간격 및 웨이브 골드 보너스
+════════════════════════════════════════════════════════ */
+function _patchStartWave() {
+  var orig = window.startWave;
+  if (typeof orig !== 'function' || orig._fBal) return;
+  window.startWave = function () {
+    orig.apply(this, arguments);
+    if (!window.G) return;
+    var w = G.wave;
+    // 스폰 간격 재정의
+    G.spawnIntvl = Math.max(300, 1200 - w * 15);
+    G.spawnTimer = G.spawnIntvl;
+    // 기존 w*2 보너스 취소 후 새 공식 적용
+    G.gold       -= w * 2;
+    G.goldEarned -= w * 2;
+    var bonus = Math.floor(w * 1.5 + 5) + (w % 5 === 0 ? Math.floor(w * 2) : 0);
+    G.gold       += bonus;
+    G.goldEarned += bonus;
+    G.waveBonusText = '+' + bonus + '골드 웨이브 보너스';
+  };
+  window.startWave._fBal = true;
+}
+
+/* ════════════════════════════════════════════════════════
+   5. 크리티컬 플로트 텍스트 — gameLoop + render 패치
+════════════════════════════════════════════════════════ */
+function _patchCritFloat() {
+  // gameLoop 래핑: 크리 탄환이 킬 유발 시 floatText에 ._crit 마킹
+  var origGL = window.gameLoop;
+  if (typeof origGL === 'function' && !origGL._fBal) {
+    window.gameLoop = function (gen, ts) {
+      if (!window.G || !G.floatTexts) return origGL.apply(this, arguments);
+      var prevLen = G.floatTexts.length;
+      var hasCrit = !!(G.bullets && G.bullets.some(function (b) { return b.crit; }));
+      origGL.apply(this, arguments);
+      if (hasCrit && window.G && G.floatTexts && G.floatTexts.length > prevLen) {
+        for (var i = prevLen; i < G.floatTexts.length; i++) {
+          G.floatTexts[i]._crit = true;
+        }
+      }
+    };
+    window.gameLoop._fBal = true;
+  }
+
+  // render 래핑: _crit 마킹된 floatText를 빨간색으로 재렌더
+  var origR = window.render;
+  if (typeof origR === 'function' && !origR._fBal) {
+    window.render = function () {
+      origR.apply(this, arguments);
+      if (!window.G || !G.floatTexts) return;
+      var c = ctx; // 전역 ctx
+      c.save();
+      c.font = 'bold 11px "Courier New", monospace';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      for (var i = 0; i < G.floatTexts.length; i++) {
+        var ft = G.floatTexts[i];
+        if (!ft._crit) continue;
+        var a = Math.max(0, 1 - ft.timer / 500);
+        c.globalAlpha = a;
+        c.fillStyle = '#ff4444';
+        c.fillText(ft.text, ft.x, ft.y - ft.timer * 0.04);
+      }
+      c.restore();
+    };
+    window.render._fBal = true;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   6. 다음 목표 UI — 홈 화면에 삽입
+════════════════════════════════════════════════════════ */
+var _GOALS = [
+  { wave:  5, gems:  2 },
+  { wave: 10, gems:  5 },
+  { wave: 15, gems:  8 },
+  { wave: 20, gems: 12 },
+  { wave: 25, gems: 20 },
+  { wave: 30, gems: 30 },
+  { wave: 40, gems: 50 },
+  { wave: 50, gems: 80 },
+];
+
+function _getNextGoal() {
+  var best = (window.PERM && PERM.bestWave) || 0;
+  for (var i = 0; i < _GOALS.length; i++) {
+    if (best < _GOALS[i].wave) return _GOALS[i];
+  }
+  return null;
+}
+
+function _updateGoalUI() {
+  var el = document.getElementById('next-goal-text');
+  if (!el) return;
+  var g = _getNextGoal();
+  if (!g) {
+    el.textContent = '모든 목표 달성 ★';
+    el.style.color = '#f59e0b';
+  } else {
+    el.textContent = '웨이브 ' + g.wave + ' 달성 → 💎 ' + g.gems;
+    el.style.color = '#cc44ff';
+  }
+}
+
+function _injectGoalUI() {
+  if (document.getElementById('next-goal-bar')) { _updateGoalUI(); return; }
+  var startBtn = document.getElementById('btn-start-game');
+  if (!startBtn || !startBtn.parentNode) return;
+  var bar = document.createElement('div');
+  bar.id = 'next-goal-bar';
+  bar.style.cssText = [
+    'width:100%;background:#0a1a2a;border:1px solid #0a3344;',
+    'border-left:2px solid #cc44ff;padding:8px 12px;',
+    'display:flex;justify-content:space-between;align-items:center;',
+    'box-sizing:border-box;',
+  ].join('');
+  bar.innerHTML =
+    '<span style="color:#556677;font-size:10px;font-family:monospace;">다음 목표</span>' +
+    '<span id="next-goal-text" style="font-size:11px;font-family:monospace;font-weight:bold;"></span>';
+  startBtn.parentNode.insertBefore(bar, startBtn);
+  _updateGoalUI();
+}
+
+function _watchHome() {
+  var homeEl = document.getElementById('screen-home');
+  if (!homeEl) return;
+  new MutationObserver(function () {
+    if (homeEl.style.display !== 'none') {
+      setTimeout(function () { _injectGoalUI(); }, 30);
+    }
+  }).observe(homeEl, { attributes: true, attributeFilter: ['style'] });
+}
+
+/* ════════════════════════════════════════════════════════
+   초기화
+════════════════════════════════════════════════════════ */
+function _init() {
+  // getWaveEnemies 교체
+  if (window.getWaveEnemies && !window.getWaveEnemies._fBal) {
+    window.getWaveEnemies = _newGetWaveEnemies;
+    window.getWaveEnemies._fBal = true;
+  }
+  // mkEnemy 래핑
+  if (window.mkEnemy && !window.mkEnemy._fBal) {
+    window._balOrigMkEnemy = window.mkEnemy;
+    window.mkEnemy = _newMkEnemy;
+    window.mkEnemy._fBal = true;
+  }
+  _patchApplyPermStats();
+  _patchStartWave();
+  _patchCritFloat();
+  _injectGoalUI();
+  _watchHome();
+}
+
+setTimeout(_init, 300);
+
+}());
+</script>
 </body>
 </html>
