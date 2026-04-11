@@ -9278,6 +9278,9 @@ function _showStatsPopup() {
     ['총 파워 코어 획득', _fn(parseInt(localStorage.getItem('stat_pc_earned')||'0',10))],
     ['총 접근 코드 획득', parseInt(localStorage.getItem('stat_ac_earned')||'0',10)+''],
     ['총 데이터 셀 획득', parseInt(localStorage.getItem('stat_dc_earned')||'0',10)+''],
+    ['총 치명타 횟수', _fn(parseInt(localStorage.getItem('stat_crit_cnt')||'0',10))],
+    ['총 치명타 대미지', _fn(parseFloat(localStorage.getItem('stat_crit_dmg')||'0'))],
+    ['총 에너지 흡수량', _fn(parseFloat(localStorage.getItem('stat_healed')||'0'))],
   ];
   var rowHtml=rows.map(function(r){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
@@ -9323,6 +9326,7 @@ function _showEncyclopedia() {
       ['치명타 확률','치명타 발생 확률 (%)'],
       ['치명타 배율','치명타 시 데미지 승수'],
       ['공격 범위','타워의 레이저 최대 사거리'],
+      ['에너지 흡수','적 처치 시 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭 방어 섹션에서 업그레이드 가능.'],
     ]},
     def:{ label:'방어', rows:[
       ['최대 HP','코어의 최대 체력'],
@@ -11739,6 +11743,81 @@ if (_settingsEl) {
   }).observe(_settingsEl, { attributes:true, attributeFilter:['class'] });
 }
 setTimeout(_injectSettingsFooter, 500);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     에너지 흡수(피해량 기반 %) + 치명타 통계
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+/* ── 에너지 흡수 강화 레벨 (워크샵 방어 탭) ── */
+// ws.energyAbsorb 로 저장 (0 ~ 20레벨, 레벨당 0.5% = 최대 10%)
+// 워크샵 확장 항목에 추가
+var _WS_ITEMS = window._wsExtItems;
+if (_WS_ITEMS) {
+  _WS_ITEMS.energyAbsorb = {
+    tab:'def', name:'에너지 흡수', tier:2, maxLv:20,
+    cost:function(lv){ return 8+Math.floor(lv*2); },
+    cur:function(lv){ return (lv*0.5).toFixed(1)+'%'; },
+    nxt:function(lv){ return ((lv+1)*0.5).toFixed(1)+'%'; }
+  };
+}
+
+/* ── 적 처치 시 에너지 흡수 적용 + 치명타 통계 ── */
+// update 래핑으로 bullet hit 직후 상태 감시는 어렵기 때문에
+// 적 처치 로직이 있는 곳을 직접 패치
+var _origFire = window.fireTower;
+if (typeof _origFire === 'function') {
+  // fireTower에서 치명타 판정 시 통계 기록
+  // 하지만 fireTower는 총알 생성만 하고 히트는 update에서 처리
+  // 대신 게임 루프 후에 G 상태에서 추적
+}
+
+// 더 안전한 방법: requestAnimationFrame으로 G 상태 폴링
+var _prevKills = 0, _prevHP = 0;
+function _trackCombat() {
+  if (window.G && G.phase === 'playing') {
+    // 에너지 흡수: 적 처치 시 HP 회복
+    var ws = (window.PERM && PERM.ws) || {};
+    var absorbPct = (ws.energyAbsorb || 0) * 0.5; // 레벨 × 0.5%
+    if (absorbPct > 0 && G.killCount > _prevKills) {
+      var newKills = G.killCount - _prevKills;
+      var healPerKill = G.tower.dmg * (absorbPct / 100);
+      var totalHeal = healPerKill * newKills;
+      G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + totalHeal);
+      // 통계
+      var prev = parseFloat(localStorage.getItem('stat_healed')||'0');
+      localStorage.setItem('stat_healed', (prev + totalHeal).toFixed(1));
+    }
+    _prevKills = G.killCount;
+  } else if (!window.G || G.phase !== 'playing') {
+    _prevKills = 0;
+  }
+  requestAnimationFrame(_trackCombat);
+}
+requestAnimationFrame(_trackCombat);
+
+/* ── 치명타 통계: fireTower 래핑 ── */
+var _origFireT = window.fireTower;
+if (typeof _origFireT === 'function') {
+  window.fireTower = function() {
+    _origFireT.apply(this, arguments);
+    // 마지막 발사된 총알이 치명타인지 확인
+    if (window.G && G.bullets && G.bullets.length > 0) {
+      var last = G.bullets[G.bullets.length - 1];
+      if (last && last.crit) {
+        var cnt = parseInt(localStorage.getItem('stat_crit_cnt')||'0',10);
+        localStorage.setItem('stat_crit_cnt', cnt + 1);
+        var dmg = G.tower.dmg * 2; // 치명타 데미지 추정
+        var prev = parseFloat(localStorage.getItem('stat_crit_dmg')||'0');
+        localStorage.setItem('stat_crit_dmg', (prev + dmg).toFixed(1));
+      }
+    }
+  };
+}
 
 }());
 </script>
