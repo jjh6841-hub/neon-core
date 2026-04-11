@@ -2718,6 +2718,13 @@ function onWaveComplete() {
   G.betweenTimer = 2500;
   if (G.wave % 10 === 0) G.gems += 2;
   if (G.wave > PERM.bestWave) { PERM.bestWave = G.wave; savePerm(); }
+  // 매 웨이브마다 티어별 최고 스테이지 갱신
+  try {
+    var _ct = parseInt(localStorage.getItem('td_tier')||'1',10);
+    var _tk = 'tier'+_ct+'_best';
+    var _pb = parseInt(localStorage.getItem(_tk)||'0',10);
+    if (G.wave > _pb) localStorage.setItem(_tk, G.wave);
+  } catch(_){}
   checkAchievements();
   const nextW    = G.wave + 1;
   const nextBoss = nextW % 5 === 0;
@@ -7640,11 +7647,11 @@ setTimeout(_applyMaxOverrides, 300);
     // 특수 임무 데이터
     function _getTierBest(t){ return parseInt(localStorage.getItem('tier'+t+'_best')||'0',10); }
     var SP_MISSIONS = [
-      { id:'sp_tier1',      title:'TIER 1 정복',    desc:'TIER 1에서 스테이지 200 클리어', cond:function(){ return _getTierBest(1)>=200; }, reward:{gold:500,gems:10} },
-      { id:'sp_tier2',      title:'TIER 2 정복',    desc:'TIER 2에서 스테이지 200 클리어', cond:function(){ return _getTierBest(2)>=200; }, reward:{gold:1000,gems:20} },
-      { id:'sp_tier3',      title:'TIER 3 정복',    desc:'TIER 3에서 스테이지 200 클리어', cond:function(){ return _getTierBest(3)>=200; }, reward:{gold:2000,gems:40} },
-      { id:'sp_tier4',      title:'TIER 4 정복',    desc:'TIER 4에서 스테이지 200 클리어', cond:function(){ return _getTierBest(4)>=200; }, reward:{gold:5000,gems:80} },
-      { id:'sp_tier5',      title:'TIER 5 정복',    desc:'TIER 5에서 스테이지 200 클리어', cond:function(){ return _getTierBest(5)>=200; }, reward:{gold:10000,gems:150} },
+      { id:'sp_tier1',      title:'TIER 1 정복',    desc:'TIER 1에서 스테이지 100 클리어', cond:function(){ return _getTierBest(1)>=100; }, reward:{gold:500,gems:10} },
+      { id:'sp_tier2',      title:'TIER 2 정복',    desc:'TIER 2에서 스테이지 100 클리어', cond:function(){ return _getTierBest(2)>=100; }, reward:{gold:1000,gems:20} },
+      { id:'sp_tier3',      title:'TIER 3 정복',    desc:'TIER 3에서 스테이지 100 클리어', cond:function(){ return _getTierBest(3)>=100; }, reward:{gold:2000,gems:40} },
+      { id:'sp_tier4',      title:'TIER 4 정복',    desc:'TIER 4에서 스테이지 100 클리어', cond:function(){ return _getTierBest(4)>=100; }, reward:{gold:5000,gems:80} },
+      { id:'sp_tier5',      title:'TIER 5 정복',    desc:'TIER 5에서 스테이지 100 클리어', cond:function(){ return _getTierBest(5)>=100; }, reward:{gold:10000,gems:150} },
       { id:'sp_first_boss', title:'첫 보스 처치',    desc:'코어 보스 1마리 처치',           cond:function(){ return parseInt(localStorage.getItem('stat_boss_kills')||'0',10)>=1; }, reward:{gold:300,gems:5} },
       { id:'sp_elite_boss', title:'엘리트 격파',     desc:'엘리트 코어 처치 (스테이지 50)', cond:function(){ return parseInt(localStorage.getItem('stat_elite_kills')||'0',10)>=1; }, reward:{gold:1000,gems:20} },
       { id:'sp_hyper_boss', title:'하이퍼 격파',     desc:'하이퍼 코어 처치 (스테이지 100)',cond:function(){ return parseInt(localStorage.getItem('stat_hyper_kills')||'0',10)>=1; }, reward:{gold:3000,gems:50} },
