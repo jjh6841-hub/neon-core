@@ -879,7 +879,7 @@ canvas {
 .ach-item.claimed .ach-prog,
 .ach-item.claimed .ach-reward { color: #334455; }
 .ach-item.met .ach-reward { color: #ffc800; }
-.ach-icon { font-size: 22px; -webkit-flex-shrink: 0; flex-shrink: 0; }
+.ach-icon { display: none; }
 .ach-info { -webkit-flex: 1; flex: 1; }
 .ach-name { font-size: 13px; font-weight: 700; color: #00ffff; font-family: 'Courier New', monospace; }
 .ach-desc { font-size: 11px; color: #557788; margin-top: 2px; }
@@ -1259,7 +1259,6 @@ canvas {
 <div id="achieve-screen">
   <button id="btn-achieve-back" style="position:absolute; top:14px; left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
   <div style="text-align:center; padding:16px 0 12px; width:100%;">
-    <div style="font-size:9px; color:#334455; letter-spacing:4px; margin-bottom:6px; font-family:'Courier New',monospace;">ACHIEVEMENT</div>
     <div style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">◈ 업적</div>
   </div>
   <div id="ach-list"></div>
@@ -3541,15 +3540,25 @@ function buildAchieveUI() {
     const met     = ach.cond();
     const div = document.createElement('div');
     div.className = 'ach-item' + (claimed ? ' claimed' : '') + (met && !claimed ? ' met' : '');
+    var progStr = ach.prog();
+    var progParts = progStr.split('/');
+    var progCur = parseFloat(progParts[0]) || 0;
+    var progMax = parseFloat(progParts[1]) || 1;
+    var progPct = Math.min(100, Math.round(progCur / progMax * 100));
+    var barHTML = claimed
+      ? '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:20px;overflow:hidden;margin-top:6px;">' +
+          '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:100%;"></div>' +
+          '<div style="position:absolute;width:100%;text-align:center;font-size:11px;line-height:20px;font-family:\'Courier New\',monospace;color:#ffffff;">달성!</div></div>'
+      : '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:20px;overflow:hidden;margin-top:6px;">' +
+          (progPct > 0 ? '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:' + progPct + '%;transition:width 0.3s;"></div>' : '') +
+          '<div style="position:absolute;width:100%;text-align:center;font-size:11px;line-height:20px;font-family:\'Courier New\',monospace;color:#ffffff;">' + progStr + '</div></div>';
     div.innerHTML =
-      '<span class="ach-icon">' + ach.icon + '</span>' +
       '<div class="ach-info">' +
         '<div class="ach-name">' + ach.name + '</div>' +
-        '<div class="ach-desc">' + ach.desc + '</div>' +
-        '<div class="ach-prog">' + ach.prog() + '</div>' +
+        barHTML +
       '</div>' +
       '<span class="ach-reward">' +
-        (claimed ? '수령 완료' : (met ? '+' + ach.gems + '◆ 수령!' : '+' + ach.gems + '◆')) +
+        (claimed ? '수령 완료' : (met ? '◆+' + ach.gems + ' 수령!' : '◆+' + ach.gems)) +
       '</span>';
     list.appendChild(div);
   }
