@@ -7638,14 +7638,16 @@ setTimeout(_applyMaxOverrides, 300);
     sc.appendChild(spcW);
 
     // 특수 임무 데이터
+    function _getTierBest(t){ return parseInt(localStorage.getItem('tier'+t+'_best')||'0',10); }
     var SP_MISSIONS = [
-      { id:'sp_tier1',      title:'TIER 1 클리어',  desc:'웨이브 10 도달',    cond:function(){ return (window.PERM&&PERM.bestWave||0)>=10; },  reward:{gold:200,gems:5} },
-      { id:'sp_tier2',      title:'TIER 2 클리어',  desc:'웨이브 25 도달',    cond:function(){ return (window.PERM&&PERM.bestWave||0)>=25; },  reward:{gold:500,gems:10} },
-      { id:'sp_tier3',      title:'TIER 3 클리어',  desc:'웨이브 50 도달',    cond:function(){ return (window.PERM&&PERM.bestWave||0)>=50; },  reward:{gold:1000,gems:20} },
-      { id:'sp_tier4',      title:'TIER 4 클리어',  desc:'웨이브 100 도달',   cond:function(){ return (window.PERM&&PERM.bestWave||0)>=100; }, reward:{gold:3000,gems:50} },
-      { id:'sp_tier5',      title:'TIER 5 클리어',  desc:'웨이브 200 도달',   cond:function(){ return (window.PERM&&PERM.bestWave||0)>=200; }, reward:{gold:10000,gems:100} },
-      { id:'sp_first_boss', title:'첫 보스 처치',    desc:'보스 1마리 처치',    cond:function(){ return (window.PERM&&PERM.bossKills||0)>=1; },  reward:{gold:300,gems:5} },
-      { id:'sp_upgrade10',  title:'강화의 시작',     desc:'강화 10회 달성',     cond:function(){ return (window.PERM&&PERM.upgradeCount||0)>=10;},reward:{gold:200,gems:3} },
+      { id:'sp_tier1',      title:'TIER 1 정복',    desc:'TIER 1에서 스테이지 200 클리어', cond:function(){ return _getTierBest(1)>=200; }, reward:{gold:500,gems:10} },
+      { id:'sp_tier2',      title:'TIER 2 정복',    desc:'TIER 2에서 스테이지 200 클리어', cond:function(){ return _getTierBest(2)>=200; }, reward:{gold:1000,gems:20} },
+      { id:'sp_tier3',      title:'TIER 3 정복',    desc:'TIER 3에서 스테이지 200 클리어', cond:function(){ return _getTierBest(3)>=200; }, reward:{gold:2000,gems:40} },
+      { id:'sp_tier4',      title:'TIER 4 정복',    desc:'TIER 4에서 스테이지 200 클리어', cond:function(){ return _getTierBest(4)>=200; }, reward:{gold:5000,gems:80} },
+      { id:'sp_tier5',      title:'TIER 5 정복',    desc:'TIER 5에서 스테이지 200 클리어', cond:function(){ return _getTierBest(5)>=200; }, reward:{gold:10000,gems:150} },
+      { id:'sp_first_boss', title:'첫 보스 처치',    desc:'코어 보스 1마리 처치',           cond:function(){ return parseInt(localStorage.getItem('stat_boss_kills')||'0',10)>=1; }, reward:{gold:300,gems:5} },
+      { id:'sp_elite_boss', title:'엘리트 격파',     desc:'엘리트 코어 처치 (스테이지 50)', cond:function(){ return parseInt(localStorage.getItem('stat_elite_kills')||'0',10)>=1; }, reward:{gold:1000,gems:20} },
+      { id:'sp_hyper_boss', title:'하이퍼 격파',     desc:'하이퍼 코어 처치 (스테이지 100)',cond:function(){ return parseInt(localStorage.getItem('stat_hyper_kills')||'0',10)>=1; }, reward:{gold:3000,gems:50} },
     ];
 
     function _renderSpc() {
@@ -9331,7 +9333,9 @@ function _showEncyclopedia() {
       { name:'실드 유닛',   color:'#aa44ff', shape:'square',  desc:'받는 피해를 50% 감소시키는 실드를 보유. 처치 시 골드 x3.' },
       { name:'분열 유닛',   color:'#ff44aa', shape:'square',  desc:'처치 시 체력 절반의 기본 유닛 2개로 분열한다. 처치 시 골드 x1.' },
       { name:'재생 유닛',   color:'#44ff88', shape:'square',  desc:'초당 최대 체력의 2%를 회복한다. 처치 시 골드 x3.' },
-      { name:'코어 보스',   color:'#ff00aa', shape:'hexagon', desc:'10웨이브마다 등장. 체력 5배, 이동 속도 60%. 50/100웨이브에는 더 강화된 보스가 출현한다.' },
+      { name:'코어 보스',   color:'#ff4444', shape:'hexagon', desc:'10스테이지마다 등장. 기본 적의 체력 5배, 이동 속도 60%. 처치 시 골드 x5.' },
+      { name:'엘리트 코어', color:'#ff8822', shape:'hexagon', desc:'50스테이지마다 등장하는 강화 보스. 체력 15배, 이동 속도 50%. 등장 시 ⚠ 위협 신호 감지 경고 표시. 처치 시 골드 x15.' },
+      { name:'하이퍼 코어', color:'#ff0044', shape:'hexagon', desc:'100스테이지마다 등장하는 최강 보스. 체력 40배, 이동 속도 40%. 등장 시 ⚠ 극한 위협 감지 경고 표시. 처치 시 골드 x30.' },
     ]}
   };
   var curTab='atk';
@@ -11620,8 +11624,60 @@ if (typeof _origTGO_stat === 'function') {
     var gold  = (window.G && G.goldEarned) || 0;
     _origTGO_stat.apply(this, arguments);
     updateStats(kills, waves, gold);
+    // 티어별 최고 스테이지 저장
+    var curTier = parseInt(localStorage.getItem('td_tier')||'1',10);
+    var curWave = (window.G && G.wave) || 0;
+    var tierKey = 'tier'+curTier+'_best';
+    var prevBest = parseInt(localStorage.getItem(tierKey)||'0',10);
+    if (curWave > prevBest) localStorage.setItem(tierKey, curWave);
   };
 }
+
+/* ── 보스 등급별 처치 카운트 (PERM.bossKills 래핑) ── */
+(function(){
+  // G.enemies에서 보스가 제거될 때를 감시하기 위해 update 래핑
+  var _origUpdate = window.update;
+  if (typeof _origUpdate !== 'function') return;
+  var _prevBossIds = {};
+  window.update = function(dt) {
+    // 업데이트 전 보스 목록 스냅샷
+    var beforeBosses = {};
+    if (window.G && G.enemies) {
+      for (var i=0; i<G.enemies.length; i++) {
+        var e = G.enemies[i];
+        if (e.boss && e.bossGrade) {
+          var bid = e.x.toFixed(0)+'_'+e.y.toFixed(0)+'_'+e.bossGrade;
+          beforeBosses[bid] = e.bossGrade;
+        }
+      }
+    }
+    _origUpdate.apply(this, arguments);
+    // 업데이트 후 사라진 보스 체크
+    if (window.G && G.enemies) {
+      var afterBosses = {};
+      for (var j=0; j<G.enemies.length; j++) {
+        var e2 = G.enemies[j];
+        if (e2.boss && e2.bossGrade) {
+          var bid2 = e2.x.toFixed(0)+'_'+e2.y.toFixed(0)+'_'+e2.bossGrade;
+          afterBosses[bid2] = true;
+        }
+      }
+      Object.keys(beforeBosses).forEach(function(bid) {
+        if (!afterBosses[bid]) {
+          var grade = beforeBosses[bid];
+          if (grade === 'elite') {
+            localStorage.setItem('stat_elite_kills', parseInt(localStorage.getItem('stat_elite_kills')||'0',10)+1);
+          } else if (grade === 'hyper') {
+            localStorage.setItem('stat_hyper_kills', parseInt(localStorage.getItem('stat_hyper_kills')||'0',10)+1);
+          }
+          if (grade) {
+            localStorage.setItem('stat_boss_kills', parseInt(localStorage.getItem('stat_boss_kills')||'0',10)+1);
+          }
+        }
+      });
+    }
+  };
+}());
 
 /* ── UID 복사 ── */
 window.copyUID = function() {
