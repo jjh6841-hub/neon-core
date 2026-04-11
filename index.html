@@ -11384,5 +11384,136 @@ window._showCoinBonusPopup = window.showCoinBonusPopup;
   if (p && p.style.display !== 'none') p.style.display = 'none';
 });
 </script>
+
+<!-- ══════════════════════════════════════════════════════
+     전투 화면 레이아웃 개편: 줌아웃 + 패널 접기
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── §1 GAME_SCALE — 줌아웃 0.65 ── */
+var GAME_SCALE = 0.65;
+var _origGetZoom = window.getTargetZoom;
+if (typeof _origGetZoom === 'function') {
+  window.getTargetZoom = function() {
+    return _origGetZoom.apply(this, arguments) * GAME_SCALE;
+  };
+}
+
+/* ── §2 패널 접기/펼치기 상태 ── */
+var _panelOpen = true;
+var _lastTab = 'atk';
+
+/* ── §3 CSS 오버라이드: screen-shop → 하단 패널 ── */
+var _style = document.createElement('style');
+_style.textContent =
+  '#screen-shop { position:absolute !important; bottom:0; left:0; right:0;' +
+  '  height:40vh; max-height:40vh; background:#06061a;' +
+  '  border-top:1px solid #1a3444; display:flex !important;' +
+  '  flex-direction:column !important; overflow:hidden;' +
+  '  transition:height 0.25s ease, border-top-color 0.25s; z-index:5; }' +
+  '#screen-shop.panel-closed { height:30px !important; max-height:30px !important; border-top-color:#0a1a2a; }' +
+  '#screen-shop.panel-closed #tab-content { display:none !important; }' +
+  '#tab-content { flex:1 !important; overflow-y:auto !important; overflow-x:hidden !important;' +
+  '  -webkit-overflow-scrolling:touch; padding:8px !important; }' +
+  '.tab-pane.active { flex-direction:column !important; flex-wrap:wrap !important;' +
+  '  width:100% !important; min-height:auto !important; gap:4px !important; }' +
+  '#canvas-area { flex:1; min-height:0; }';
+document.head.appendChild(_style);
+
+/* ── §4 resizeCanvas 래핑 — 패널 높이 반영 ── */
+var _origResize = window.resizeCanvas;
+window.resizeCanvas = function() {
+  var panel = document.getElementById('screen-shop');
+  var area = document.getElementById('canvas-area');
+  if (panel && area) {
+    var panelH = _panelOpen ? Math.floor(window.innerHeight * 0.40) : 30;
+    area.style.height = (window.innerHeight - panelH) + 'px';
+    area.style.maxHeight = (window.innerHeight - panelH) + 'px';
+  }
+  if (typeof _origResize === 'function') _origResize.apply(this, arguments);
+};
+
+/* ── §5 탭 토글 로직 ── */
+function _selectTab(tabKey) {
+  var panel = document.getElementById('screen-shop');
+  if (!panel) return;
+
+  if (tabKey === _lastTab && _panelOpen) {
+    // 같은 탭 재클릭 → 접기
+    _panelOpen = false;
+    panel.classList.add('panel-closed');
+  } else {
+    // 다른 탭 또는 펼치기
+    _panelOpen = true;
+    panel.classList.remove('panel-closed');
+    // 기존 setActiveTab 호출
+    if (typeof window.setActiveTab === 'function') window.setActiveTab(tabKey);
+  }
+  _lastTab = tabKey;
+  window.resizeCanvas();
+}
+
+/* 탭 버튼 이벤트 재바인딩 */
+function _rebindTabs() {
+  var tabs = document.querySelectorAll('#tab-bar .tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    (function(btn) {
+      var key = btn.id.replace('tab-','');
+      // 기존 이벤트 제거를 위해 clone
+      var clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+      clone.addEventListener('click', function(e) {
+        e.preventDefault();
+        _selectTab(key);
+      });
+      clone.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        _selectTab(key);
+      }, { passive: false });
+    })(tabs[i]);
+  }
+}
+
+/* ── §6 초기화 ── */
+function _initLayout() {
+  _rebindTabs();
+  // 초기 상태: 패널 열림
+  _panelOpen = true;
+  _lastTab = 'atk';
+  window.resizeCanvas();
+}
+
+// DOM 준비 후 실행
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { setTimeout(_initLayout, 200); });
+} else {
+  setTimeout(_initLayout, 200);
+}
+
+// startGame 후에도 재적용
+var _origStart = window.startGame;
+if (typeof _origStart === 'function') {
+  window.startGame = function() {
+    _origStart.apply(this, arguments);
+    _panelOpen = true;
+    _lastTab = 'atk';
+    var panel = document.getElementById('screen-shop');
+    if (panel) panel.classList.remove('panel-closed');
+    setTimeout(function() {
+      _rebindTabs();
+      window.resizeCanvas();
+      // GAME_SCALE 적용된 줌 반영
+      if (window.G) {
+        G.zoom = window.getTargetZoom();
+        G.targetZoom = G.zoom;
+      }
+    }, 100);
+  };
+}
+
+}());
+</script>
 </body>
 </html>
