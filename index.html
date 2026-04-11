@@ -12037,7 +12037,7 @@ var _WS_ITEMS = window._wsExtItems;
 if (_WS_ITEMS) {
   _WS_ITEMS.energyAbsorb = {
     tab:'def', name:'에너지 흡수', tier:2, maxLv:100,
-    cost:function(lv){ return Math.floor(1+lv*0.5); },
+    cost:function(lv){ return (lv+1)*10; },
     cur:function(lv){ return (lv*0.1).toFixed(1)+'%'; },
     nxt:function(lv){ return ((lv+1)*0.1).toFixed(1)+'%'; }
   };
