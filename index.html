@@ -1221,9 +1221,8 @@ canvas {
 
     <!-- 우측 퀵 버튼 그룹 -->
     <div id="ingame-quickbtns" style="position:absolute;top:8px;right:8px;z-index:52;display:flex;flex-direction:column;gap:4px;pointer-events:auto;">
-      <button id="ingame-store" title="스토어" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-size:15px;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;">◉</button>
       <button id="ingame-menu" title="메뉴" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-size:17px;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;">≡</button>
-      <button id="ingame-mission" title="임무" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-size:13px;cursor:pointer;-webkit-appearance:none;position:relative;display:flex;align-items:center;justify-content:center;">✓<span id="ingame-miss-badge" style="display:none;position:absolute;top:3px;right:3px;width:9px;height:9px;background:#ef4444;border-radius:50%;"></span></button>
+      <button id="ingame-mission" title="임무" style="font-family:'Courier New',monospace;font-size:9px;color:#00ffff;background:#0a1a2a;border:1px solid #0a3344;border-radius:6px;padding:4px 6px;cursor:pointer;-webkit-appearance:none;position:relative;">임무<span id="ingame-miss-badge" style="display:none;position:absolute;top:3px;right:3px;width:9px;height:9px;background:#ef4444;border-radius:50%;"></span></button>
     </div>
     <div id="screen-shop">
       <div id="tab-bar">
@@ -1233,9 +1232,9 @@ canvas {
           <button id="speed-plus" style="width:24px;height:24px;background:#030b10;border:1px solid #0a3344;color:#00ffff;font-size:15px;cursor:pointer;-webkit-appearance:none;line-height:1;font-family:monospace;padding:0;">+</button>
         </div>
         <button id="speed-btn" style="display:none;"></button>
-        <button class="tab-btn active" id="tab-atk">/ ATTACK</button>
-        <button class="tab-btn"        id="tab-def">/ DEFENSE</button>
-        <button class="tab-btn"        id="tab-spc">/ SPECIAL</button>
+        <button class="tab-btn active" id="tab-atk">ATTACK</button>
+        <button class="tab-btn"        id="tab-def">DEFENSE</button>
+        <button class="tab-btn"        id="tab-spc">SPECIAL</button>
       </div>
       <div id="tab-content">
         <div class="tab-pane active" id="pane-atk"></div>
@@ -1361,18 +1360,18 @@ canvas {
     <div id="r-gold-row" style="display:flex;align-items:center;justify-content:center;gap:6px;font-family:monospace;color:#94a3b8;margin:6px 0;">
       <div style="text-align:center;min-width:60px;">
         <div style="font-size:9px;color:#334455;margin-bottom:3px;">코인 획득</div>
-        <span id="r-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span><span style="color:#f59e0b;font-size:12px;"> ◈</span>
+        <span style="color:#f59e0b;font-size:12px;">◈ </span><span id="r-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span>
       </div>
       <span style="color:#0a3344;font-size:14px;font-weight:bold;">+</span>
       <div id="r-ad-gold-wrap" style="text-align:center;min-width:60px;cursor:pointer;padding:4px;border:1px solid #0a2233;background:#060f18;" onclick="window._showAdDoublePopup&&window._showAdDoublePopup()">
         <div style="font-size:9px;color:#334455;margin-bottom:3px;">광고 코인</div>
-        <span id="r-ad-gold" style="color:#00ccff;font-size:16px;font-weight:bold;">0</span><span style="color:#00ccff;font-size:12px;"> ◈</span>
+        <span style="color:#00ccff;font-size:12px;">◈ </span><span id="r-ad-gold" style="color:#00ccff;font-size:16px;font-weight:bold;">0</span>
         <div style="font-size:8px;color:#334455;margin-top:2px;">▶ 2배</div>
       </div>
       <span style="color:#0a3344;font-size:14px;font-weight:bold;">=</span>
       <div style="text-align:center;min-width:60px;">
         <div style="font-size:9px;color:#334455;margin-bottom:3px;">총 코인</div>
-        <span id="r-total-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span><span style="color:#f59e0b;font-size:12px;"> ◈</span>
+        <span style="color:#f59e0b;font-size:12px;">◈ </span><span id="r-total-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span>
       </div>
     </div>
     <div class="go-reward-row go-reward-gem" id="r-gem-row" style="display:none">◆ 획득 보석: <span id="r-gems">0</span></div>
@@ -1390,10 +1389,10 @@ canvas {
 
   <!-- JS 호환용 숨김 요소 (syncShopUI / buildUnlockUI 참조) -->
   <div style="display:none" aria-hidden="true">
-    <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">5◈</button>
-    <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">7◈</button>
-    <span id="sl-rng">Lv.0</span><span id="se-rng">기본</span><button id="sb-rng">6◈</button>
-    <span id="sl-hp">Lv.0</span><span id="se-hp">10→15</span><button id="sb-hp">8◈</button>
+    <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">◈5</button>
+    <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">◈7</button>
+    <span id="sl-rng">Lv.0</span><span id="se-rng">기본</span><button id="sb-rng">◈6</button>
+    <span id="sl-hp">Lv.0</span><span id="se-hp">10→15</span><button id="sb-hp">◈8</button>
     <div id="unlock-section"></div>
     <p id="shop-flash"></p>
   </div>
@@ -3340,9 +3339,9 @@ function renderHUD() {
   ctx.textBaseline = 'middle';
   ctx.font         = '700 12px "Courier New", monospace';
   ctx.fillStyle    = '#f59e0b';
-  ctx.fillText('\u25CF ' + G.gold, rightEdge, pad + 7);
+  ctx.fillText('\u25C8 ' + (typeof formatNumber==='function'?formatNumber(G.gold):G.gold), rightEdge, pad + 7);
   ctx.fillStyle    = '#00ffff';
-  ctx.fillText('\u25C6 ' + G.gems, rightEdge, pad + 24);
+  ctx.fillText('\u25C6 ' + (typeof formatNumber==='function'?formatNumber(G.gems):G.gems), rightEdge, pad + 24);
   ctx.fillStyle = '#94a3b8';
   ctx.font = '10px "Courier New", monospace';
   ctx.fillText('\u2620 ' + G.killCount, rightEdge, pad + 38);
@@ -9397,7 +9396,7 @@ function _injectUtilTabInGame() {
   var btn=document.createElement('button');
   btn.id='tab-util';
   btn.className='tab-btn';
-  btn.textContent='/ UTILITY';
+  btn.textContent='UTILITY';
   tabBar.appendChild(btn);
 
   var tabContent=document.getElementById('tab-content');
