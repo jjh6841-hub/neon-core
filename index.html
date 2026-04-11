@@ -8756,6 +8756,7 @@ var CARDS = [
   { id:'chrono_mod',    rarity:'epic',   name:'크로노모드',       icon:'⏱', color:'#cc44ff', desc:'공격속도 +15%' },
   { id:'quantum_armor', rarity:'epic',   name:'퀀텀아머',         icon:'🔮', color:'#cc44ff', desc:'+30% 최대HP' },
   { id:'gold_rush',     rarity:'epic',   name:'골드러시',         icon:'✨', color:'#cc44ff', desc:'+15% 골드' },
+  { id:'blood_circuit', rarity:'rare',   name:'블러드 서킷',     icon:'◆', color:'#3b82f6', desc:'에너지 흡수율 영구 +1%' },
 ];
 var CARD_RATES  = { common:70, rare:25, epic:5 };
 var CARD_LABEL  = { common:'일반', rare:'희귀', epic:'서사' };
@@ -8813,6 +8814,7 @@ function _applyCardEffects() {
   n=c.chrono_mod   ||0; if(n) t.atkMs=Math.max(200,Math.round((t.atkMs||1200)*Math.pow(0.85,n)));
   n=c.quantum_armor||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.30*n));
   n=c.gold_rush    ||0; if(n) window.G.goldMult=(window.G.goldMult||1)*(1+0.15*n);
+  n=c.blood_circuit||0; if(n) localStorage.setItem('card_absorb_bonus',(n*0.01).toFixed(3));
 }
 
 // 카드 효과를 applyPermStats에 연결
@@ -11762,6 +11764,7 @@ var LAB_ITEMS = [
   { id:'lab_regen_boost', name:'나노 수복 유닛',  desc:'이번 판 HP 재생 +5/s',      cost:2, effect:{type:'regen_add',value:5} },
   { id:'lab_crit_boost',  name:'정밀 조준 모드',  desc:'이번 판 치명타 확률 +10%',  cost:4, effect:{type:'crit_add',value:0.1} },
   { id:'lab_start_gold',  name:'선행 투자',       desc:'이번 판 시작 골드 +500',    cost:2, effect:{type:'start_gold',value:500} },
+  { id:'lab_absorb_boost',name:'흡혈 증폭기',    desc:'이번 판 에너지 흡수율 +3%', cost:4, effect:{type:'absorb_add',value:0.03} },
 ];
 
 function _getPC(){ return parseInt(localStorage.getItem('powerCores')||'0',10); }
@@ -11873,9 +11876,11 @@ if(typeof _origApplyLab==='function'){
       if(e.type==='regen_add')  G.regenRate=(G.regenRate||0)+e.value;
       if(e.type==='crit_add')   t.critChance=Math.min(0.9,(t.critChance||0)+e.value);
       if(e.type==='start_gold') G.gold+=e.value;
+      if(e.type==='absorb_add') localStorage.setItem('lab_absorb_bonus',(parseFloat(localStorage.getItem('lab_absorb_bonus')||'0')+e.value).toFixed(3));
     });
     // 적용 후 소멸
     _saveActiveBuffs([]);
+    localStorage.removeItem('lab_absorb_bonus');
   };
 }
 
@@ -12028,10 +12033,10 @@ _injectScreen();
 var _WS_ITEMS = window._wsExtItems;
 if (_WS_ITEMS) {
   _WS_ITEMS.energyAbsorb = {
-    tab:'def', name:'에너지 흡수', tier:2, maxLv:20,
-    cost:function(lv){ return 8+Math.floor(lv*2); },
-    cur:function(lv){ return (lv*0.5).toFixed(1)+'%'; },
-    nxt:function(lv){ return ((lv+1)*0.5).toFixed(1)+'%'; }
+    tab:'def', name:'에너지 흡수', tier:2, maxLv:100,
+    cost:function(lv){ return Math.floor(1+lv*0.5); },
+    cur:function(lv){ return (lv*0.1).toFixed(1)+'%'; },
+    nxt:function(lv){ return ((lv+1)*0.1).toFixed(1)+'%'; }
   };
 }
 
@@ -12045,29 +12050,50 @@ if (typeof _origFire === 'function') {
   // 대신 게임 루프 후에 G 상태에서 추적
 }
 
-// 더 안전한 방법: requestAnimationFrame으로 G 상태 폴링
-var _prevKills = 0, _prevHP = 0;
-function _trackCombat() {
-  if (window.G && G.phase === 'playing') {
-    // 에너지 흡수: 적 처치 시 HP 회복
-    var ws = (window.PERM && PERM.ws) || {};
-    var absorbPct = (ws.energyAbsorb || 0) * 0.5; // 레벨 × 0.5%
-    if (absorbPct > 0 && G.killCount > _prevKills) {
-      var newKills = G.killCount - _prevKills;
-      var healPerKill = G.tower.dmg * (absorbPct / 100);
-      var totalHeal = healPerKill * newKills;
-      G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + totalHeal);
-      // 통계
-      var prev = parseFloat(localStorage.getItem('stat_healed')||'0');
-      localStorage.setItem('stat_healed', (prev + totalHeal).toFixed(1));
-    }
-    _prevKills = G.killCount;
-  } else if (!window.G || G.phase !== 'playing') {
-    _prevKills = 0;
-  }
-  requestAnimationFrame(_trackCombat);
+/* ── 에너지 흡수: 레이저 적중 시 HP 회복 (update 래핑) ── */
+function _getAbsorbRate() {
+  var ws = (window.PERM && PERM.ws) || {};
+  var baseRate = (ws.energyAbsorb || 0) * 0.001; // 레벨 × 0.1%
+  var labBonus = parseFloat(localStorage.getItem('lab_absorb_bonus') || '0');
+  var cardBonus = parseFloat(localStorage.getItem('card_absorb_bonus') || '0');
+  return Math.min(baseRate + labBonus + cardBonus, 0.20); // 최대 20% 캡
 }
-requestAnimationFrame(_trackCombat);
+window._getAbsorbRate = _getAbsorbRate;
+
+var _origUpdate_abs = window.update;
+if (typeof _origUpdate_abs === 'function') {
+  var _prevTowerHP_abs = 0;
+  window.update = function(dt) {
+    // 업데이트 전 타워 HP 저장
+    var hpBefore = (window.G && G.tower) ? G.tower.hp : 0;
+    var killsBefore = (window.G) ? G.killCount : 0;
+    _origUpdate_abs.apply(this, arguments);
+    // 레이저 적중으로 적 HP가 감소하면 공격력 기반 흡혈
+    if (!window.G || !G.tower || G.phase !== 'playing') return;
+    var rate = _getAbsorbRate();
+    if (rate <= 0) return;
+    // 탄환 히트 수 추정: killCount 증가분이 아닌, 매 프레임 적중 기반
+    // 타워 공격이 적에게 피해를 주면 그 피해량의 rate% 회복
+    // update 내에서 직접 피해를 추적하기 어려우므로, 간단히 공격 속도 기반으로 계산
+    var atkPerSec = 1000 / Math.max(200, G.tower.atkMs || 1000);
+    var dmgPerFrame = G.tower.dmg * atkPerSec * (dt / 1000);
+    // 적이 1마리 이상 사거리 안에 있을 때만 적용
+    var hasTarget = false;
+    if (G.enemies) {
+      for (var i = 0; i < G.enemies.length; i++) {
+        var e = G.enemies[i];
+        var dx = e.x - G.cx, dy = e.y - G.cy;
+        if (Math.sqrt(dx*dx + dy*dy) <= G.tower.range) { hasTarget = true; break; }
+      }
+    }
+    if (hasTarget) {
+      var heal = dmgPerFrame * rate;
+      G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + heal);
+      var prev = parseFloat(localStorage.getItem('stat_healed') || '0');
+      localStorage.setItem('stat_healed', (prev + heal).toFixed(1));
+    }
+  };
+}
 
 /* ── 치명타 통계: fireTower 래핑 ── */
 var _origFireT = window.fireTower;
