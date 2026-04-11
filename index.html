@@ -1223,7 +1223,6 @@ canvas {
     <div id="ingame-quickbtns" style="position:absolute;top:8px;right:8px;z-index:52;display:flex;flex-direction:column;gap:4px;pointer-events:auto;">
       <button id="ingame-store" title="스토어" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-size:15px;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;">◉</button>
       <button id="ingame-menu" title="메뉴" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-size:17px;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;">≡</button>
-      <button id="ingame-bonus-btn" title="코인 보너스" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;font-size:7px;font-family:monospace;cursor:pointer;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;color:#556677;padding:0;">◈<br>BONUS<br><span id="ingame-bonus-status" style="color:#ef4444;">OFF</span></button>
       <button id="ingame-mission" title="임무" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-size:13px;cursor:pointer;-webkit-appearance:none;position:relative;display:flex;align-items:center;justify-content:center;">✓<span id="ingame-miss-badge" style="display:none;position:absolute;top:3px;right:3px;width:9px;height:9px;background:#ef4444;border-radius:50%;"></span></button>
     </div>
     <div id="screen-shop">
@@ -2112,6 +2111,10 @@ function applyPermStats() {
 }
 
 function startGame() {
+  // 게임 시작 시 온보딩 오버레이 제거
+  var _obEl = document.getElementById('ob-ov');
+  if (_obEl) { _obEl.style.display = 'none'; _obEl.remove(); }
+
   G = createState();
   G.gold  = PERM.gold;
   G.gems  = PERM.gems;
@@ -2425,31 +2428,37 @@ function update(dt) {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < TOWER_HIT_R + e.r) {
-      const dmgTaken = Math.max(1, Math.round(1 - G.armor * 0.05));
-      // 실드 흡수 처리
-      if (G.tower.shdCur > 0) {
-        const _sAbs = Math.min(G.tower.shdCur, dmgTaken);
-        G.tower.shdCur -= _sAbs;
-        shieldAbsorbCount++;
-        try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs } })); } catch(_) {}
-        if (shieldAbsorbCount >= 10) {
-          try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
-          shieldAbsorbCount = 0;
+      e.reachedTower = true;
+      // 타워에 도달한 적은 일정 간격으로 타워에 데미지
+      if (!e._atkTimer) e._atkTimer = 0;
+      e._atkTimer += dt;
+      var atkInterval = e.type === 'boss' ? 800 : 500;
+      if (e._atkTimer >= atkInterval) {
+        e._atkTimer -= atkInterval;
+        const dmgTaken = Math.max(1, Math.round(e.atk || 1));
+        // 실드 흡수 처리
+        if (G.tower.shdCur > 0) {
+          const _sAbs = Math.min(G.tower.shdCur, dmgTaken);
+          G.tower.shdCur -= _sAbs;
+          shieldAbsorbCount++;
+          try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs } })); } catch(_) {}
+          if (shieldAbsorbCount >= 10) {
+            try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
+            shieldAbsorbCount = 0;
+          }
+          if (_sAbs >= dmgTaken) {
+            addFx(e.x, e.y, e.r * 2, '#0088ff');
+            continue;
+          }
+          G.tower.hp = Math.max(0, G.tower.hp - (dmgTaken - _sAbs));
+        } else {
+          G.tower.hp = Math.max(0, G.tower.hp - dmgTaken);
         }
-        if (_sAbs >= dmgTaken) {
-          addFx(e.x, e.y, e.r * 2, '#0088ff');
-          G.enemies.splice(i, 1);
-          continue; // 완전 차단: HP 감소 없음
-        }
-        G.tower.hp = Math.max(0, G.tower.hp - (dmgTaken - _sAbs)); // 초과분만 HP 감소
-      } else {
-        G.tower.hp = Math.max(0, G.tower.hp - dmgTaken);
+        G.flashAlpha = 1;
+        triggerShake(4);
+        addFx(e.x, e.y, e.r * 2, '#f87171');
+        if (G.tower.hp <= 0) { triggerGameOver(); return; }
       }
-      G.flashAlpha = 1;
-      triggerShake(4);
-      addFx(e.x, e.y, e.r * 2, '#f87171');
-      G.enemies.splice(i, 1);
-      if (G.tower.hp <= 0) { triggerGameOver(); return; }
       continue;
     }
 
