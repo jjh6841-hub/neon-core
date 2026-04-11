@@ -2167,13 +2167,16 @@ function getWaveEnemies(wave) {
     var k = Math.floor(Math.random() * (j + 1));
     var tmp = list[j]; list[j] = list[k]; list[k] = tmp;
   }
-  if (wave % 5 === 0) list.push('boss'); // boss always last
+  if (wave % 100 === 0) list.push('boss_hyper');
+  else if (wave % 50 === 0) list.push('boss_elite');
+  else if (wave % 10 === 0) list.push('boss');
   return list;
 }
 
 function startWave() {
   const w = G.wave;
-  G.isBossWave  = (w % 5 === 0);
+  G.isBossWave  = (w % 10 === 0);
+  G.bossType    = (w % 100 === 0) ? 'hyper' : (w % 50 === 0) ? 'elite' : (w % 10 === 0) ? 'normal' : null;
   G.bossSpawned = false;
   G.spawnQ      = getWaveEnemies(w);
   G.spawnIdx    = 0;
@@ -2296,11 +2299,11 @@ function update(dt) {
     if (G.spawnTimer <= 0) {
       var etype = G.spawnQ[G.spawnIdx];
       G.enemies.push(mkEnemy(etype));
-      if (etype === 'boss') {
+      if (etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper') {
         G.bossSpawned = true;
         G.bossWarningTimer = 0;
         AudioManager.playSfx('boss');
-        triggerShake(8);
+        triggerShake(etype === 'boss_hyper' ? 16 : etype === 'boss_elite' ? 12 : 8);
       }
       G.spawnIdx++;
       G.spawnTimer = G.spawnIntvl;
@@ -2365,7 +2368,7 @@ function update(dt) {
           }
           // Colored particles by enemy type
           var _pColors = { basic:'#ef4444', tank:'#ff6600', rusher:'#ff0055', sniper:'#aa00ff', boss:'#ffcc00' };
-          spawnDeathParticles(e.x, e.y, _pColors[e.type] || '#ef4444', e.type === 'boss' ? 16 : 8);
+          spawnDeathParticles(e.x, e.y, _pColors[e.type] || '#ef4444', e.boss ? 16 : 8);
           // Life steal
           if (G.lifeSteal > 0) {
             G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + G.lifeSteal);
@@ -2432,7 +2435,7 @@ function update(dt) {
       // 타워에 도달한 적은 일정 간격으로 타워에 데미지
       if (!e._atkTimer) e._atkTimer = 0;
       e._atkTimer += dt;
-      var atkInterval = e.type === 'boss' ? 800 : 500;
+      var atkInterval = e.boss ? 800 : 500;
       if (e._atkTimer >= atkInterval) {
         e._atkTimer -= atkInterval;
         const dmgTaken = Math.max(1, Math.round(e.atk || 1));
@@ -2470,7 +2473,7 @@ function update(dt) {
     e.y += (dy / dist) * mv;
 
     // Boss enrage at 50% HP
-    if (e.type === 'boss' && !e.enraged && e.hp <= e.maxHp * 0.5) {
+    if (e.boss && !e.enraged && e.hp <= e.maxHp * 0.5) {
       e.enraged = true;
       e.spd *= 1.2;
     }
@@ -2561,12 +2564,15 @@ function mkEnemy(etype) {
 
   var hp, spd, r, gold, gem = 0;
 
-  if (etype === 'boss') {
-    hp   = w * 20;
-    spd  = baseSpd * 0.7;
-    r    = Math.round(baseR * 2.5);
-    gold = w * 2;
-    gem  = 1;
+  if (etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper') {
+    var bm = etype === 'boss_hyper' ? { hp:40, dmg:10, speed:0.4, reward:30 }
+           : etype === 'boss_elite' ? { hp:15, dmg:5,  speed:0.5, reward:15 }
+           :                          { hp:5,  dmg:2,  speed:0.6, reward:5  };
+    hp   = baseHp * bm.hp;
+    spd  = baseSpd * bm.speed;
+    r    = Math.round(baseR * (etype === 'boss_hyper' ? 3.5 : etype === 'boss_elite' ? 3.0 : 2.5));
+    gold = baseGold * bm.reward;
+    gem  = etype === 'boss_hyper' ? 5 : etype === 'boss_elite' ? 3 : 1;
   } else if (etype === 'tank') {
     hp   = baseHp * 4;
     spd  = baseSpd * 0.5;
@@ -2593,7 +2599,9 @@ function mkEnemy(etype) {
   return {
     x: x, y: y,
     type:      etype,
-    boss:      etype === 'boss',
+    boss:      etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper',
+    bossGrade: etype === 'boss_hyper' ? 'hyper' : etype === 'boss_elite' ? 'elite' : (etype === 'boss' ? 'normal' : null),
+    atk:       (etype === 'boss_hyper') ? 10 : (etype === 'boss_elite') ? 5 : (etype === 'boss') ? 2 : 1,
     hp:        hp,
     maxHp:     hp,
     r:         r,
@@ -2872,11 +2880,12 @@ function render() {
     ctx.save();
     ctx.translate(e.x, e.y);
 
-    if (e.type === 'boss') {
-      // Octagon
-      var bossColor = (e.enraged) ? '#ffbb33' : '#ff9900';
-      var bossStroke = (e.enraged) ? '#ffdd44' : '#ffcc00';
-      if (slowed) { bossColor = '#1e3a8a'; bossStroke = '#93c5fd'; }
+    if (e.boss) {
+      // Octagon — grade-based colors
+      var _bg = e.bossGrade === 'hyper' ? '#ff0044' : e.bossGrade === 'elite' ? '#ff8822' : '#ff9900';
+      var _bs = e.bossGrade === 'hyper' ? '#ff3366' : e.bossGrade === 'elite' ? '#ffaa44' : '#ffcc00';
+      if (e.enraged) { _bg = e.bossGrade === 'hyper' ? '#ff2255' : '#ffbb33'; _bs = '#ffdd44'; }
+      if (slowed) { _bg = '#1e3a8a'; _bs = '#93c5fd'; }
       ctx.beginPath();
       for (var oi = 0; oi < 8; oi++) {
         var oa = (Math.PI * 2 / 8) * oi - Math.PI / 8;
@@ -2884,15 +2893,18 @@ function render() {
         if (oi === 0) ctx.moveTo(opx, opy); else ctx.lineTo(opx, opy);
       }
       ctx.closePath();
-      ctx.fillStyle = bossColor;
+      ctx.fillStyle = _bg;
       ctx.fill();
-      ctx.strokeStyle = bossStroke;
+      ctx.strokeStyle = _bs;
       ctx.lineWidth = 2;
       ctx.stroke();
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold ' + Math.floor(e.r * 0.5) + 'px "Courier New", monospace';
+      // Boss name label
+      var _bn = e.bossGrade === 'hyper' ? '[ HYPER CORE ]' : e.bossGrade === 'elite' ? '[ ELITE CORE ]' : '[ CORE UNIT ]';
+      var _bc = e.bossGrade === 'hyper' ? '#ff0044' : e.bossGrade === 'elite' ? '#ff8822' : '#ff4444';
+      ctx.fillStyle = _bc;
+      ctx.font = 'bold ' + Math.max(8, Math.floor(e.r * 0.35)) + 'px "Courier New", monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('BOSS', 0, 0);
+      ctx.fillText(_bn, 0, -e.r - 8);
     } else if (e.type === 'tank') {
       // Hexagon
       var tankColor = slowed ? '#1e3a8a' : '#ff6600';
@@ -3159,17 +3171,47 @@ function render() {
   }
 
   // ── Boss warning text ──
-  if (G.bossWarningTimer >= 0 && G.bossWarningTimer < 1000) {
-    var bwAlpha = G.bossWarningTimer < 700 ? 1 : 1 - (G.bossWarningTimer - 700) / 300;
+  if (G.bossWarningTimer >= 0 && G.bossWarningTimer < 2000) {
+    var bwAlpha = G.bossWarningTimer < 1500 ? 1 : 1 - (G.bossWarningTimer - 1500) / 500;
     ctx.save();
     ctx.globalAlpha = Math.max(0, bwAlpha);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    var _bwMsg = G.bossType === 'hyper' ? '\u26A0 \uADF9\uD55C \uC704\uD611 \uAC10\uC9C0' : G.bossType === 'elite' ? '\u26A0 \uC704\uD611 \uC2E0\uD638 \uAC10\uC9C0' : '! BOSS';
+    var _bwClr = G.bossType === 'hyper' ? '#ff0044' : G.bossType === 'elite' ? '#ff8822' : '#ff9900';
     ctx.font = 'bold 24px "Courier New", monospace';
-    ctx.fillStyle = '#ff9900';
-    ctx.fillText('! BOSS', CW / 2, CH * 0.25);
+    ctx.fillStyle = _bwClr;
+    ctx.fillText(_bwMsg, CW / 2, CH * 0.25);
     ctx.restore();
   }
+
+  // ── Boss HP bar (top center) ──
+  (function() {
+    var _boss = null;
+    if (G.enemies) {
+      for (var bi = 0; bi < G.enemies.length; bi++) {
+        if (G.enemies[bi].boss) { _boss = G.enemies[bi]; break; }
+      }
+    }
+    if (!_boss) return;
+    var _bn = _boss.bossGrade === 'hyper' ? '[ HYPER CORE ]' : _boss.bossGrade === 'elite' ? '[ ELITE CORE ]' : '[ CORE UNIT ]';
+    var _bc = _boss.bossGrade === 'hyper' ? '#ff0044' : _boss.bossGrade === 'elite' ? '#ff8822' : '#ff4444';
+    ctx.save();
+    ctx.font = '11px "Courier New", monospace';
+    ctx.fillStyle = _bc;
+    ctx.textAlign = 'center';
+    ctx.fillText(_bn, CW / 2, 28);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px "Courier New", monospace';
+    ctx.fillText(Math.ceil(_boss.hp) + ' / ' + _boss.maxHp, CW / 2, 42);
+    var barW = CW * 0.6, barX = (CW - barW) / 2;
+    ctx.fillStyle = '#1a0000';
+    ctx.fillRect(barX, 46, barW, 8);
+    var pct = Math.max(0, _boss.hp / _boss.maxHp);
+    ctx.fillStyle = _bc;
+    ctx.fillRect(barX, 46, barW * pct, 8);
+    ctx.restore();
+  }());
 
   // ── Danger border (hp <= 30%) ─────────────────────────────────
   drawDangerBorder(ctx);
@@ -3255,7 +3297,7 @@ function renderHUD() {
   ctx.textBaseline = 'middle';
   ctx.font         = '700 12px "Courier New", monospace';
   ctx.fillStyle    = '#00ffff';
-  ctx.fillText('WAVE ' + String(G.wave).padStart(2, '0') + (G.isBossWave ? '  BOSS' : ''), pad, pad + 7);
+  ctx.fillText('WAVE ' + String(G.wave).padStart(2, '0') + (G.bossType === 'hyper' ? '  HYPER' : G.bossType === 'elite' ? '  ELITE' : G.isBossWave ? '  BOSS' : ''), pad, pad + 7);
 
   // ── HP bar (4px) ──
   const barW = Math.floor(CW * 0.36);
@@ -8182,10 +8224,14 @@ function _newGetWaveEnemies(wave) {
     for (var i = 0; i < Math.floor(total * 0.2); i++) list.push('sniper');
   }
 
-  // 5웨이브: 보스
-  if (wave % 5 === 0) list.push('boss');
-  // 10웨이브: 추가 보스 + 탱커 3 호위
-  if (wave % 10 === 0) {
+  // 보스 등장: 10웨이브마다 일반, 50 엘리트, 100 하이퍼
+  if (wave % 100 === 0) {
+    list.push('boss_hyper');
+    for (var i = 0; i < 5; i++) list.push('tank');
+  } else if (wave % 50 === 0) {
+    list.push('boss_elite');
+    for (var i = 0; i < 4; i++) list.push('tank');
+  } else if (wave % 10 === 0) {
     list.push('boss');
     for (var i = 0; i < 3; i++) list.push('tank');
   }
@@ -8207,15 +8253,21 @@ function _newMkEnemy(etype) {
   var spdScale = 1 + (w - 1) * 0.025;
   var killBase = 1 + Math.floor(w / 10);   // §5 킬 골드 기본값
 
-  if (etype === 'boss') {
-    // §9 보스 스케일링
-    var bossNum = Math.ceil(w / 5);
-    e.hp    = Math.floor(50 * Math.pow(1.4, bossNum - 1) * tc.enemyMult);
+  if (etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper') {
+    // 보스 등급별 스케일링
+    var bossNum = Math.ceil(w / 10);
+    var _bm = etype === 'boss_hyper' ? { hp:40, spd:0.4, reward:30, gem:5 }
+            : etype === 'boss_elite' ? { hp:15, spd:0.5, reward:15, gem:3 }
+            :                          { hp:5,  spd:0.6, reward:5,  gem:1 };
+    e.hp    = Math.floor(50 * _bm.hp / 5 * Math.pow(1.4, bossNum - 1) * tc.enemyMult);
     e.maxHp = e.hp;
-    e.spd   = 0.6 + bossNum * 0.02;  // §9 고정 공식 (spdScale 미적용)
-    e.gold  = Math.floor((20 + bossNum * 5) * tc.goldMult);
-    e.gem   = (bossNum % 3 === 0) ? 2 : 1;
-    e.r     = Math.round(Math.min(24 + bossNum * 1.5, 40));
+    e.spd   = _bm.spd + bossNum * 0.02;
+    e.gold  = Math.floor((20 + bossNum * 5) * _bm.reward / 5 * tc.goldMult);
+    e.gem   = _bm.gem;
+    e.r     = Math.round(Math.min(24 + bossNum * 1.5, etype === 'boss_hyper' ? 50 : etype === 'boss_elite' ? 45 : 40));
+    e.boss  = true;
+    e.bossGrade = etype === 'boss_hyper' ? 'hyper' : etype === 'boss_elite' ? 'elite' : 'normal';
+    e.atk   = etype === 'boss_hyper' ? 10 : etype === 'boss_elite' ? 5 : 2;
   } else {
     var base = TYPE_BASE[etype] || TYPE_BASE.basic;
     e.hp    = parseFloat((base.hp * hpScale * tc.enemyMult).toFixed(1));
