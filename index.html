@@ -1504,7 +1504,7 @@ canvas {
     <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
     <button class="nav-btn" id="h-nav-tournament" data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
     <button class="nav-btn" id="h-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
-    <button class="nav-btn" id="h-nav-season" data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button class="nav-btn" id="h-nav-season" data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
     <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 
@@ -1538,7 +1538,7 @@ canvas {
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◈</span><br>강화</button>
     <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
     <button id="ws-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
-    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
     <button id="ws-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 
@@ -1566,7 +1566,7 @@ canvas {
     <button id="st-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
     <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
     <button id="st-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
-    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◉</span><br>스토어</button>
   </div>
 </div>
@@ -3893,7 +3893,7 @@ document.addEventListener('touchend', function(e) {
 var navLockConditions = {
   tournament: { label: '토너먼트', wave: 30, tooltip: '웨이브 30 달성 시 해금' },
   lab:        { label: '연구소',   wave: 15, tooltip: '웨이브 15 달성 시 해금' },
-  season:     { label: '시즌',     wave: 50, tooltip: '웨이브 50 달성 시 해금' },
+  season:     { label: '코어 랩',  wave: 30, tooltip: '웨이브 30 달성 시 해금' },
 };
 
 function showNavLockTooltip(text) {
@@ -4822,7 +4822,7 @@ if (dailyClaimBtn) {
     <button id="lab-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
     <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">◈</span><br><span style="font-size:8px;">연구소</span></button>
-    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
     <button id="lab-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 </div>
@@ -4902,7 +4902,7 @@ if (dailyClaimBtn) {
     <button id="trn-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
     <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
     <button id="trn-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
-    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">시즌</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
     <button id="trn-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 </div>
@@ -9282,6 +9282,7 @@ function _showStatsPopup() {
     ['총 치명타 대미지', _fn(parseFloat(localStorage.getItem('stat_crit_dmg')||'0'))],
     ['총 에너지 흡수량', _fn(parseFloat(localStorage.getItem('stat_healed')||'0'))],
     ['총 연구 완료', parseInt(localStorage.getItem('stat_research_done')||'0',10)+'회'],
+    ['사용한 파워 코어 (랩)', parseInt(localStorage.getItem('stat_lab_pc_used')||'0',10)+''],
   ];
   var rowHtml=rows.map(function(r){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
@@ -11745,6 +11746,140 @@ if (_settingsEl) {
 }
 setTimeout(_injectSettingsFooter, 500);
 
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     코어 랩 (파워 코어 → 1판 버프)
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+var LAB_ITEMS = [
+  { id:'lab_dmg_boost',   name:'레이저 과부하',   desc:'이번 판 공격력 +50%',      cost:3, effect:{type:'dmg_mult',value:1.5} },
+  { id:'lab_hp_boost',    name:'보조 장갑 장착',  desc:'이번 판 최대 HP +100%',     cost:3, effect:{type:'hp_mult',value:2.0} },
+  { id:'lab_gold_boost',  name:'자원 스캐닝',     desc:'이번 판 골드 획득 +100%',   cost:2, effect:{type:'gold_mult',value:2.0} },
+  { id:'lab_regen_boost', name:'나노 수복 유닛',  desc:'이번 판 HP 재생 +5/s',      cost:2, effect:{type:'regen_add',value:5} },
+  { id:'lab_crit_boost',  name:'정밀 조준 모드',  desc:'이번 판 치명타 확률 +10%',  cost:4, effect:{type:'crit_add',value:0.1} },
+  { id:'lab_start_gold',  name:'선행 투자',       desc:'이번 판 시작 골드 +500',    cost:2, effect:{type:'start_gold',value:500} },
+];
+
+function _getPC(){ return parseInt(localStorage.getItem('powerCores')||'0',10); }
+function _getActiveBuffs(){ try{return JSON.parse(localStorage.getItem('activeLabBuffs')||'[]');}catch(_){return [];} }
+function _saveActiveBuffs(arr){ localStorage.setItem('activeLabBuffs',JSON.stringify(arr)); }
+
+/* ── HTML 삽입 ── */
+function _injectLabScreen(){
+  if(document.getElementById('screen-corelab')) return;
+  var sc=document.createElement('div');
+  sc.id='screen-corelab';
+  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:\"Courier New\",monospace;';
+  sc.innerHTML=
+    '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
+      '<button id="lab-back" style="background:none;border:none;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
+      '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#ff8822;">코어 랩</span>'+
+      '<span style="font-size:11px;color:#ff8822;">◉ <span id="lab-pc">0</span></span>'+
+    '</div>'+
+    '<div style="padding:14px;">'+
+      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">파워 코어를 소모하여 한 판 버프를 구매합니다.<br>효과는 다음 게임 1판에만 적용됩니다.</div>'+
+      '<div id="lab-list"></div>'+
+    '</div>';
+  document.body.appendChild(sc);
+  document.getElementById('lab-back').addEventListener('click',function(){
+    sc.style.display='none';
+    var home=document.getElementById('screen-home');
+    if(home) home.style.display='flex';
+  });
+}
+
+/* ── 렌더링 ── */
+function renderLab(){
+  _injectLabScreen();
+  var list=document.getElementById('lab-list');
+  if(!list) return;
+  var pc=_getPC();
+  var buffs=_getActiveBuffs();
+  var cellEl=document.getElementById('lab-pc');
+  if(cellEl) cellEl.textContent=pc;
+  list.innerHTML='';
+  LAB_ITEMS.forEach(function(item){
+    var owned=buffs.some(function(b){return b.id===item.id;});
+    var canAfford=pc>=item.cost;
+    var card=document.createElement('div');
+    card.style.cssText='background:#0c0c22;border:1px solid '+(owned?'#ff8822':'#1a3444')+';border-radius:10px;padding:12px;margin-bottom:8px;';
+    card.innerHTML=
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+        '<span style="font-size:12px;color:#ff8822;font-weight:bold;">'+item.name+'</span>'+
+        (owned?'<span style="font-size:10px;color:#ff8822;">적용됨</span>':'')+
+      '</div>'+
+      '<div style="font-size:10px;color:#556677;margin-bottom:8px;">'+item.desc+'</div>'+
+      '<div style="display:flex;justify-content:flex-end;">'+
+        (owned
+          ?'<span style="color:#334455;font-size:11px;">구매 완료</span>'
+          :'<button data-lab-buy="'+item.id+'" style="background:'+(canAfford?'#ff8822':'#1a2a3a')+';color:'+(canAfford?'#0a0500':'#334455')+';border:none;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◉ '+item.cost+'</button>')+
+      '</div>';
+    var btn=card.querySelector('[data-lab-buy]');
+    if(btn)(function(lid){
+      btn.addEventListener('click',function(){
+        var curPC=_getPC();
+        var it=LAB_ITEMS.filter(function(i){return i.id===lid;})[0];
+        if(!it) return;
+        var curBuffs=_getActiveBuffs();
+        if(curBuffs.some(function(b){return b.id===lid;})){ if(window.showAchievementToast) showAchievementToast('이미 적용된 버프입니다.'); return; }
+        if(curPC<it.cost){ if(window.showAchievementToast) showAchievementToast('파워 코어가 부족합니다.'); return; }
+        localStorage.setItem('powerCores',curPC-it.cost);
+        curBuffs.push({id:lid,effect:it.effect});
+        _saveActiveBuffs(curBuffs);
+        localStorage.setItem('stat_lab_pc_used',parseInt(localStorage.getItem('stat_lab_pc_used')||'0',10)+it.cost);
+        renderLab();
+        if(window.showAchievementToast) showAchievementToast(it.name+' 버프 적용!');
+      });
+    })(item.id);
+    list.appendChild(card);
+  });
+}
+window.renderLab=renderLab;
+
+/* ── 시즌(코어 랩) nav 버튼 → 화면 열기 ── */
+function _openCoreLab(){
+  ['screen-home','screen-workshop','screen-store'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  renderLab();
+  document.getElementById('screen-corelab').style.display='flex';
+}
+// season navlock 버튼들에 바인딩
+document.querySelectorAll('[data-navlock="season"]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    if(btn.getAttribute('data-locked')==='true') return;
+    _openCoreLab();
+  });
+});
+
+/* ── 게임 시작 시 랩 버프 적용 ── */
+var _origApplyLab=window.applyPermStats;
+if(typeof _origApplyLab==='function'){
+  window.applyPermStats=function(){
+    _origApplyLab.apply(this,arguments);
+    if(!window.G||!G.tower) return;
+    var buffs=_getActiveBuffs();
+    if(buffs.length===0) return;
+    var t=G.tower;
+    buffs.forEach(function(buff){
+      var e=buff.effect;
+      if(e.type==='dmg_mult')   t.dmg=Math.round(t.dmg*e.value);
+      if(e.type==='hp_mult')  { t.maxHp=Math.round(t.maxHp*e.value); t.hp=t.maxHp; }
+      if(e.type==='gold_mult')  G.goldBonus=(G.goldBonus||1)*e.value;
+      if(e.type==='regen_add')  G.regenRate=(G.regenRate||0)+e.value;
+      if(e.type==='crit_add')   t.critChance=Math.min(0.9,(t.critChance||0)+e.value);
+      if(e.type==='start_gold') G.gold+=e.value;
+    });
+    // 적용 후 소멸
+    _saveActiveBuffs([]);
+  };
+}
+
+_injectLabScreen();
 }());
 </script>
 
