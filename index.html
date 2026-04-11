@@ -9275,6 +9275,9 @@ function _showStatsPopup() {
     ['총 게임 플레이', totalGames+'회'],
     ['총 업그레이드', totalUpg+'회'],
     ['총 보스 처치', bossKills+''],
+    ['총 파워 코어 획득', _fn(parseInt(localStorage.getItem('stat_pc_earned')||'0',10))],
+    ['총 접근 코드 획득', parseInt(localStorage.getItem('stat_ac_earned')||'0',10)+''],
+    ['총 데이터 셀 획득', parseInt(localStorage.getItem('stat_dc_earned')||'0',10)+''],
   ];
   var rowHtml=rows.map(function(r){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
@@ -11446,7 +11449,10 @@ window.toggleCurrencyDropdown = function () {
     el.innerHTML =
       '<div style="color:#f59e0b;">◈ 골드: <span id="dd-gold">0</span></div>' +
       '<div style="color:#00ffff;">◆ 보석: <span id="dd-gem">0</span></div>' +
-      '<div style="color:#ffc800;">✦ 펄스 조각: <span id="dd-pulse">0</span></div>';
+      '<div style="color:#ffc800;">✦ 펄스 조각: <span id="dd-pulse">0</span></div>' +
+      '<div style="color:#ff8822;">◉ 파워 코어: <span id="dd-pc">0</span></div>' +
+      '<div style="color:#bb44ff;">⌘ 접근 코드: <span id="dd-ac">0</span></div>' +
+      '<div style="color:#00ff88;">▣ 데이터 셀: <span id="dd-dc">0</span></div>';
     var hud = document.getElementById('screen-home');
     if (hud) hud.appendChild(el);
   }
@@ -11459,6 +11465,12 @@ window.toggleCurrencyDropdown = function () {
     if (gEl) gEl.textContent = (typeof PERM !== 'undefined') ? (PERM.gold || 0) : 0;
     if (bEl) bEl.textContent = (typeof PERM !== 'undefined') ? (PERM.gems || 0) : 0;
     if (pEl) pEl.textContent = window.pulseFragments || 0;
+    var pcEl = document.getElementById('dd-pc');
+    var acEl = document.getElementById('dd-ac');
+    var dcEl = document.getElementById('dd-dc');
+    if (pcEl) pcEl.textContent = parseInt(localStorage.getItem('powerCores')||'0',10);
+    if (acEl) acEl.textContent = parseInt(localStorage.getItem('accessCodes')||'0',10);
+    if (dcEl) dcEl.textContent = parseInt(localStorage.getItem('dataCells')||'0',10);
   }
 };
 
@@ -11727,6 +11739,78 @@ if (_settingsEl) {
   }).observe(_settingsEl, { attributes:true, attributeFilter:['class'] });
 }
 setTimeout(_injectSettingsFooter, 500);
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     신규 화폐 3종: 파워 코어, 접근 코드, 데이터 셀
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+/* ── 파워 코어: 웨이브 클리어마다 획득 ── */
+var _origWC = window.onWaveComplete;
+if (typeof _origWC === 'function') {
+  window.onWaveComplete = function() {
+    _origWC.apply(this, arguments);
+    if (!window.G) return;
+    var earned = 1 + Math.floor(G.wave / 10);
+    var cur = parseInt(localStorage.getItem('powerCores')||'0',10);
+    localStorage.setItem('powerCores', cur + earned);
+    localStorage.setItem('stat_pc_earned', parseInt(localStorage.getItem('stat_pc_earned')||'0',10) + earned);
+    if (G.floatTexts) G.floatTexts.push({x:G.cx,y:G.cy-40,text:'+'+earned+' 파워코어',timer:0});
+  };
+}
+
+/* ── 접근 코드: 보스 처치 시 획득 (update 래핑 — 기존 보스 감시 확장) ── */
+var _origUpdate_ac = window.update;
+if (typeof _origUpdate_ac === 'function') {
+  var _acBossBefore = {};
+  window.update = function(dt) {
+    // 보스 스냅샷
+    var before = {};
+    if (window.G && G.enemies) {
+      for (var i=0; i<G.enemies.length; i++) {
+        var e = G.enemies[i];
+        if (e.boss) before[i+'_'+e.r+'_'+(e.bossGrade||'n')] = e.bossGrade||'normal';
+      }
+    }
+    _origUpdate_ac.apply(this, arguments);
+    // 처치 감지
+    if (window.G && G.enemies) {
+      var after = {};
+      for (var j=0; j<G.enemies.length; j++) {
+        var e2 = G.enemies[j];
+        if (e2.boss) after[j+'_'+e2.r+'_'+(e2.bossGrade||'n')] = true;
+      }
+      Object.keys(before).forEach(function(k) {
+        if (!after[k]) {
+          var grade = before[k];
+          var earned = grade==='hyper'?3:grade==='elite'?2:1;
+          var cur = parseInt(localStorage.getItem('accessCodes')||'0',10);
+          localStorage.setItem('accessCodes', cur + earned);
+          localStorage.setItem('stat_ac_earned', parseInt(localStorage.getItem('stat_ac_earned')||'0',10) + earned);
+        }
+      });
+    }
+  };
+}
+
+/* ── 데이터 셀: 게임 종료 시 고웨이브 보상 ── */
+var _origTGO_dc = window.triggerGameOver;
+if (typeof _origTGO_dc === 'function') {
+  window.triggerGameOver = function() {
+    var wave = (window.G && G.wave) || 0;
+    _origTGO_dc.apply(this, arguments);
+    if (wave >= 20) {
+      var earned = Math.floor(wave / 20);
+      var cur = parseInt(localStorage.getItem('dataCells')||'0',10);
+      localStorage.setItem('dataCells', cur + earned);
+      localStorage.setItem('stat_dc_earned', parseInt(localStorage.getItem('stat_dc_earned')||'0',10) + earned);
+    }
+  };
+}
 
 }());
 </script>
