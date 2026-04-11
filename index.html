@@ -1211,7 +1211,7 @@ canvas {
     <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
 
     <!-- 광고 코인 보너스 버튼 -->
-    <div id="ad-bonus-btn" style="position:absolute;top:8px;left:8px;z-index:52;background:#0a1a2a;border:1px solid #0a3344;padding:3px 8px;display:flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;" onclick="window._showAdBonusPopup&&window._showAdBonusPopup()">
+    <div id="ad-bonus-btn" style="position:absolute;top:56px;left:8px;z-index:52;background:#0a1a2a;border:1px solid #0a3344;padding:3px 8px;display:flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;" onclick="window._showAdBonusPopup&&window._showAdBonusPopup()">
       <span style="font-size:18px;line-height:1;">▶</span>
       <div style="display:flex;flex-direction:column;gap:0px;line-height:1.2;">
         <span style="color:#00ffff;font-size:9px;font-family:monospace;font-weight:bold;">◈ BONUS</span>
@@ -1850,7 +1850,7 @@ const UPGRADES = [
     canBuy() { return G.gold>=upgCost('spd',7) && G.tower.atkMs>200; },
     apply()  { var c=upgCost('spd',7); G.gold-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; G.tower.atkMs=Math.max(200,G.tower.atkMs-100); },
   },
-  { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:null,
+  { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
     stat()   { return 'Lv.'+G.rangeLevel; },
     canBuy() { return G.gold>=upgCost('rng',6); },
@@ -7874,6 +7874,9 @@ function _patchBuild() {
     var old = document.getElementById('rng-unlock-card');
     if (old && old.parentNode) old.parentNode.removeChild(old);
     if (window.PERM && window.PERM.ws && window.PERM.ws.rng_u) return; // 이미 해금
+    // 전투 화면에서는 해금 카드 표시하지 않음
+    var gameScr = document.getElementById('screen-game');
+    if (gameScr && gameScr.style.display !== 'none') return;
     var can = !!(window.G && G.gold >= 50);
     var borderC = can ? '#f59e0b66' : '#ef4444';
     var textC   = can ? '#f59e0b'   : '#ef4444';
@@ -7896,6 +7899,8 @@ function _patchBuild() {
       G.gold -= 50;
       if (!PERM.ws) PERM.ws = {};
       PERM.ws.rng_u = 1;
+      if (!PERM.unlocks) PERM.unlocks = {};
+      PERM.unlocks.rng = true;
       window.savePerm && savePerm();
       G.unlocks.rng = true;
       buildCards();
@@ -9392,6 +9397,11 @@ function _showCrystalFirstVisit() {
 function _injectUtilTabInGame() {
   var tabBar=document.getElementById('tab-bar');
   if(!tabBar||tabBar.querySelector('#tab-util')) return;
+  // 조건: bestWave >= 20 또는 총 강화 횟수 >= 10
+  var bw = 0; try { bw = parseInt(localStorage.getItem('bestWave')||'0',10); } catch(_){}
+  if (!bw && window.PERM) bw = PERM.bestWave || 0;
+  var uc = 0; try { uc = parseInt(localStorage.getItem('totalUpgrades')||'0',10); } catch(_){}
+  if (bw < 20 && uc < 10) return;
 
   var btn=document.createElement('button');
   btn.id='tab-util';
