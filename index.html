@@ -9248,14 +9248,24 @@ function _injectSettingsButtons() {
 function _showStatsPopup() {
   var p=document.createElement('div');
   p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:12px;';
-  var bw=(window.PERM&&window.PERM.bestWave)||0;
-  var tk=(window.PERM&&window.PERM.totalKills)||0;
-  var gold=(window.PERM&&window.PERM.gold)||0;
-  var gems=(window.PERM&&window.PERM.gems)||0;
+  var _fn=typeof window.formatNumber==='function'?window.formatNumber:function(n){return n;};
+  var startDate=localStorage.getItem('stat_start_date')||'-';
+  var totalGold=parseInt(localStorage.getItem('stat_gold')||'0',10);
+  var totalKills=parseInt(localStorage.getItem('stat_kills')||'0',10);
+  var totalWaves=parseInt(localStorage.getItem('stat_waves')||'0',10);
+  var totalGames=parseInt(localStorage.getItem('stat_games')||'0',10);
+  var totalUpg=parseInt(localStorage.getItem('stat_upgrades')||'0',10);
+  var bossKills=(window.PERM&&window.PERM.bossKills)||0;
+  var bestWave=(window.PERM&&window.PERM.bestWave)||parseInt(localStorage.getItem('bestWave')||'0',10);
   var rows=[
-    ['최고 웨이브', bw+''], ['총 처치 수', tk+''],
-    ['보유 골드', '◈ '+gold], ['보유 보석', '◆ '+gems],
-    ['수집 카드', Object.keys((window.PERM&&window.PERM.cards)||{}).filter(function(k){ return (window.PERM.cards[k]||0)>0; }).length+'/12'],
+    ['게임 시작일', startDate],
+    ['총 골드 획득', '◈ '+_fn(totalGold)],
+    ['총 적 처치', _fn(totalKills)+''],
+    ['총 웨이브 완료', totalWaves+''],
+    ['최고 웨이브', bestWave+''],
+    ['총 게임 플레이', totalGames+'회'],
+    ['총 업그레이드', totalUpg+'회'],
+    ['총 보스 처치', bossKills+''],
   ];
   var rowHtml=rows.map(function(r){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
@@ -11457,6 +11467,100 @@ window._showCoinBonusPopup = window.showCoinBonusPopup;
 });
 </script>
 
+<!-- ══════════════════════════════════════════════════════
+     통계 추적, 고유 ID, 설정 하단 정보
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+/* ── 고유 ID ── */
+function getOrCreateUID() {
+  var uid = localStorage.getItem('user_uid');
+  if (!uid) {
+    uid = Array.from(crypto.getRandomValues(new Uint8Array(8)))
+      .map(function(b){ return b.toString(16).padStart(2,'0'); })
+      .join('').toUpperCase();
+    localStorage.setItem('user_uid', uid);
+  }
+  return uid;
+}
+window.getOrCreateUID = getOrCreateUID;
+
+/* ── 게임 시작일 초기화 ── */
+if (!localStorage.getItem('stat_start_date')) {
+  localStorage.setItem('stat_start_date', new Date().toLocaleDateString('ko-KR'));
+}
+
+/* ── 통계 업데이트 (게임 종료 시 호출) ── */
+function updateStats(kills, waves, gold) {
+  localStorage.setItem('stat_kills', parseInt(localStorage.getItem('stat_kills')||'0',10) + (kills||0));
+  localStorage.setItem('stat_waves', parseInt(localStorage.getItem('stat_waves')||'0',10) + (waves||0));
+  localStorage.setItem('stat_gold',  parseInt(localStorage.getItem('stat_gold')||'0',10)  + (gold||0));
+  localStorage.setItem('stat_games', parseInt(localStorage.getItem('stat_games')||'0',10) + 1);
+  // 업그레이드 횟수는 PERM에서 동기화
+  if (window.PERM && PERM.upgradeCount) {
+    localStorage.setItem('stat_upgrades', PERM.upgradeCount);
+  }
+}
+window.updateStats = updateStats;
+
+/* ── triggerGameOver 래핑: 통계 자동 기록 ── */
+var _origTGO_stat = window.triggerGameOver;
+if (typeof _origTGO_stat === 'function') {
+  window.triggerGameOver = function() {
+    // 게임 종료 전 통계 수집
+    var kills = (window.G && G.killCount) || 0;
+    var waves = (window.G && G.wave) || 0;
+    var gold  = (window.G && G.goldEarned) || 0;
+    _origTGO_stat.apply(this, arguments);
+    updateStats(kills, waves, gold);
+  };
+}
+
+/* ── UID 복사 ── */
+window.copyUID = function() {
+  var uid = localStorage.getItem('user_uid') || '';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(uid).then(function(){
+      if (window.showAchievementToast) showAchievementToast('ID가 복사되었습니다');
+    });
+  }
+};
+
+/* ── 설정 화면 하단 정보 영역 삽입 ── */
+function _injectSettingsFooter() {
+  var sc = document.getElementById('settings-screen');
+  if (!sc || sc.querySelector('#settings-footer')) return;
+  var footer = document.createElement('div');
+  footer.id = 'settings-footer';
+  footer.style.cssText = 'margin-top:24px;padding-top:12px;border-top:1px solid #1a2a3a;font-family:\"Courier New\",monospace;font-size:10px;color:#334455;width:100%;max-width:320px;';
+  footer.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<span>ID: <span id="display-uid">' + getOrCreateUID() + '</span></span>' +
+      '<button onclick="copyUID()" style="background:transparent;border:1px solid #1a3444;color:#4a7a8a;font-family:\'Courier New\',monospace;font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer;-webkit-appearance:none;">복사</button>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;">' +
+      '<a href="privacy.html" target="_blank" style="color:#4a7a8a;text-decoration:none;">개인정보 처리방침</a>' +
+      '<span>v1.0.0</span>' +
+    '</div>';
+  sc.appendChild(footer);
+}
+
+// 설정 화면 열릴 때마다 footer 확인
+var _settingsEl = document.getElementById('settings-screen');
+if (_settingsEl) {
+  new MutationObserver(function() {
+    if (_settingsEl.classList.contains('show')) {
+      _injectSettingsFooter();
+      var uidEl = document.getElementById('display-uid');
+      if (uidEl) uidEl.textContent = getOrCreateUID();
+    }
+  }).observe(_settingsEl, { attributes:true, attributeFilter:['class'] });
+}
+setTimeout(_injectSettingsFooter, 500);
+
+}());
+</script>
 
 <!-- ══════════════════════════════════════════════════════
      전투 화면 레이아웃 개편 v2: 줌아웃 + 패널 접기
