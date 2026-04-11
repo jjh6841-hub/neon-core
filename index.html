@@ -9337,6 +9337,7 @@ function _showEncyclopedia() {
       ['HP 재생','초당 회복되는 코어 체력'],
       ['실드','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용'],
       ['방어율','받는 데미지를 % 비율로 감소'],
+      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭에서 기본 수치를 올리고, 코어 랩·연구소·스토어에서 추가로 확장 가능하다. 최대 흡수율은 20%.'],
     ]},
     utl:{ label:'유틸리티', rows:[
       ['골드 보너스','적 처치 시 획득 골드 배율'],
@@ -11901,6 +11902,7 @@ var RESEARCH = [
   { id:'res_crit_rate', name:'정밀 타격 연구',     desc:'치명타 확률 영구 +0.5%',     maxLv:20, cost:function(lv){return 2+Math.floor(lv/5);},  effect:function(lv){return lv*0.005;},cat:'공격', unit:'%' },
   { id:'res_regen',     name:'자가 수복 프로토콜', desc:'HP 재생 영구 +0.1/s',        maxLv:30, cost:function(lv){return 2+Math.floor(lv/10);}, effect:function(lv){return lv*0.1;},  cat:'방어', unit:'/s' },
   { id:'res_start_gold',name:'선행 자원 배분',     desc:'게임 시작 골드 +50',          maxLv:20, cost:function(lv){return 3;},                   effect:function(lv){return lv*50;},   cat:'유틸', unit:'' },
+  { id:'res_absorb',   name:'에너지 순환 연구',   desc:'에너지 흡수율 영구 +0.2%',    maxLv:10, cost:function(lv){return 3+lv;},                effect:function(lv){return lv*0.002;}, cat:'방어', unit:'%' },
 ];
 
 function _getResLv(id){ return parseInt(localStorage.getItem('res_'+id)||'0',10); }
@@ -12014,6 +12016,7 @@ if(typeof _origApply==='function'){
     var regenLv=_getResLv('res_regen');    if(regenLv>0) G.regenRate=(G.regenRate||0)+regenLv*0.1;
     var goldLv=_getResLv('res_gold_bonus');if(goldLv>0) G.goldBonus=(G.goldBonus||1)*(1+goldLv*0.02);
     var startLv=_getResLv('res_start_gold');if(startLv>0){ G.gold+=startLv*50; }
+    var absorbLv=_getResLv('res_absorb');if(absorbLv>0){ localStorage.setItem('res_absorb_bonus',(absorbLv*0.002).toFixed(4)); }
   };
 }
 
@@ -12053,10 +12056,12 @@ if (typeof _origFire === 'function') {
 /* ── 에너지 흡수: 레이저 적중 시 HP 회복 (update 래핑) ── */
 function _getAbsorbRate() {
   var ws = (window.PERM && PERM.ws) || {};
-  var baseRate = (ws.energyAbsorb || 0) * 0.001; // 레벨 × 0.1%
-  var labBonus = parseFloat(localStorage.getItem('lab_absorb_bonus') || '0');
-  var cardBonus = parseFloat(localStorage.getItem('card_absorb_bonus') || '0');
-  return Math.min(baseRate + labBonus + cardBonus, 0.20); // 최대 20% 캡
+  var baseRate = (ws.energyAbsorb || 0) * 0.001; // 강화: 레벨 × 0.1%, 최대 10%
+  var labBonus = parseFloat(localStorage.getItem('lab_absorb_bonus') || '0');   // 랩: 한 판 +3%
+  var resBonus = parseFloat(localStorage.getItem('res_absorb_bonus') || '0');   // 연구소: 영구
+  var shopBonus = parseFloat(localStorage.getItem('shop_absorb_bonus') || '0'); // 스토어: 영구
+  var cardBonus = parseFloat(localStorage.getItem('card_absorb_bonus') || '0'); // 카드: 영구
+  return Math.min(baseRate + labBonus + resBonus + shopBonus + cardBonus, 0.20);
 }
 window._getAbsorbRate = _getAbsorbRate;
 
@@ -12185,6 +12190,68 @@ if (typeof _origTGO_dc === 'function') {
     }
   };
 }
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스토어 흡혈 팩 + 백과사전 방어 탭 흡수 항목
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+/* ── 스토어 패키지 탭에 흡혈 코어 팩 주입 ── */
+var _origRenderStore = window.renderStoreTab;
+// renderStoreTab이 IIFE 내부 함수라서 직접 래핑 불가.
+// 대신 MutationObserver로 store-content 변경 시 흡혈 팩 주입
+function _injectAbsorbPack() {
+  var content = document.getElementById('store-content');
+  if (!content) return;
+  if (content.querySelector('#absorb-pack-card')) return;
+  // 패키지 탭이 열려있는지 확인
+  var activeTab = document.querySelector('.store-tab[style*="color: rgb(0, 255, 255)"]') ||
+                  document.querySelector('.store-tab[style*="color:#00ffff"]');
+  if (!activeTab || activeTab.getAttribute('data-tab') !== 'package') return;
+
+  var owned = localStorage.getItem('shop_absorb_bonus') === '0.03';
+  var afford = (window.PERM && PERM.gems >= 300);
+  var card = document.createElement('div');
+  card.id = 'absorb-pack-card';
+  card.style.cssText = 'background:#0a1a2a;border:1px solid #00ff88;border-left:4px solid #00ff88;padding:12px;display:flex;justify-content:space-between;align-items:center;margin:0 8px 8px;';
+  card.innerHTML =
+    '<div><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">흡혈 코어 팩</div>' +
+    '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:4px;">에너지 흡수율 영구 +3% (1회 구매)</div></div>' +
+    (owned
+      ? '<span style="color:#00ff88;font-family:monospace;font-size:11px;flex-shrink:0;margin-left:8px;">보유중</span>'
+      : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid ' + (afford ? '#00ff88' : '#ef4444') + ';color:' + (afford ? '#00ff88' : '#334455') + ';font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">◆300</button>');
+  content.appendChild(card);
+
+  if (!owned) {
+    var btn = document.getElementById('buy-absorb-pack');
+    if (btn) btn.addEventListener('click', function() {
+      if (!window.PERM || PERM.gems < 300) { btn.style.borderColor = '#ef4444'; return; }
+      if (localStorage.getItem('shop_absorb_bonus') === '0.03') return;
+      PERM.gems -= 300;
+      if (window.savePerm) savePerm();
+      localStorage.setItem('shop_absorb_bonus', '0.03');
+      if (window.showAchievementToast) showAchievementToast('흡혈 코어 팩 구매 완료!');
+      _injectAbsorbPack(); // 리렌더
+    });
+  }
+}
+
+// store-content 변경 감시
+var storeContent = document.getElementById('store-content');
+if (storeContent) {
+  new MutationObserver(function() { setTimeout(_injectAbsorbPack, 100); })
+    .observe(storeContent, { childList: true, subtree: true });
+}
+
+/* ── 백과사전 방어 탭에 에너지 흡수 항목 (이미 공격 탭에 있으면 방어로 이동) ── */
+// 백과사전 TABS.def.rows에 추가는 IIFE 안이라 직접 불가 → _showEncyclopedia 래핑
+var _origEnc = window._showEncyclopedia;
+// _showEncyclopedia는 전역이 아닐 수 있으므로 Grep으로 확인 후 처리
+// 대신 방어 탭 데이터가 렌더링될 때 DOM에 직접 주입하는 방식 사용
 
 }());
 </script>
