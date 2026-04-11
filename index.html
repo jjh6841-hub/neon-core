@@ -7634,9 +7634,66 @@ setTimeout(_applyMaxOverrides, 300);
 
     // 특수 래퍼
     var spcW = document.createElement('div');
-    spcW.id='ms4-spc'; spcW.style.cssText='display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:14px;';
-    spcW.innerHTML='<div style="font-size:36px;opacity:0.15;">★</div><div style="color:#334455;font-size:12px;font-family:monospace;letter-spacing:2px;">이벤트 준비 중</div><div style="color:#1a2a3a;font-size:10px;font-family:monospace;">곧 특별한 임무가 공개됩니다.</div>';
+    spcW.id='ms4-spc'; spcW.style.cssText='display:none;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px;gap:6px;';
     sc.appendChild(spcW);
+
+    // 특수 임무 데이터
+    var SP_MISSIONS = [
+      { id:'sp_tier1',      title:'TIER 1 클리어',  desc:'웨이브 10 도달',    cond:function(){ return (window.PERM&&PERM.bestWave||0)>=10; },  reward:{gold:200,gems:5} },
+      { id:'sp_tier2',      title:'TIER 2 클리어',  desc:'웨이브 25 도달',    cond:function(){ return (window.PERM&&PERM.bestWave||0)>=25; },  reward:{gold:500,gems:10} },
+      { id:'sp_tier3',      title:'TIER 3 클리어',  desc:'웨이브 50 도달',    cond:function(){ return (window.PERM&&PERM.bestWave||0)>=50; },  reward:{gold:1000,gems:20} },
+      { id:'sp_tier4',      title:'TIER 4 클리어',  desc:'웨이브 100 도달',   cond:function(){ return (window.PERM&&PERM.bestWave||0)>=100; }, reward:{gold:3000,gems:50} },
+      { id:'sp_tier5',      title:'TIER 5 클리어',  desc:'웨이브 200 도달',   cond:function(){ return (window.PERM&&PERM.bestWave||0)>=200; }, reward:{gold:10000,gems:100} },
+      { id:'sp_first_boss', title:'첫 보스 처치',    desc:'보스 1마리 처치',    cond:function(){ return (window.PERM&&PERM.bossKills||0)>=1; },  reward:{gold:300,gems:5} },
+      { id:'sp_upgrade10',  title:'강화의 시작',     desc:'강화 10회 달성',     cond:function(){ return (window.PERM&&PERM.upgradeCount||0)>=10;},reward:{gold:200,gems:3} },
+    ];
+
+    function _renderSpc() {
+      spcW.innerHTML='';
+      SP_MISSIONS.forEach(function(m) {
+        var claimed = false;
+        try { claimed = localStorage.getItem('sp_mission_claimed_'+m.id)==='true'; } catch(_){}
+        var met = m.cond();
+        var borderC = claimed ? '#0a3344' : met ? '#00ffff' : '#0a3344';
+        var card = document.createElement('div');
+        card.style.cssText='background:#0a1a2a;border:1px solid '+borderC+';border-left:2px solid '+(claimed?'#334455':met?'#00ffff':'rgba(0,255,255,0.12)')+';padding:12px;opacity:'+(claimed?'0.4':'1')+';';
+        var rightHTML;
+        if (claimed) {
+          rightHTML='<span style="color:#334455;font-size:10px;font-family:monospace;">완료</span>';
+        } else if (met) {
+          rightHTML='<button data-spc="'+m.id+'" style="background:#030b10;border:1px solid #00ffff44;color:#00ffff;font-size:10px;font-family:monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">수령</button>';
+        } else {
+          rightHTML='<span style="color:#334455;font-size:10px;font-family:monospace;">미달성</span>';
+        }
+        card.innerHTML=
+          '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+            '<div style="display:flex;flex-direction:column;gap:2px;">'+
+              '<span style="color:'+(claimed?'#334455':'#00ffff')+';font-size:12px;font-family:monospace;font-weight:bold;">'+m.title+'</span>'+
+              '<span style="color:#556677;font-size:10px;font-family:monospace;">'+m.desc+'</span>'+
+            '</div>'+
+            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">'+
+              '<span style="color:#f59e0b;font-size:9px;font-family:monospace;">◈'+m.reward.gold+' ◆'+m.reward.gems+'</span>'+
+              rightHTML+
+            '</div>'+
+          '</div>';
+        var btn=card.querySelector('[data-spc]');
+        if(btn)(function(mid,rw){
+          btn.addEventListener('click',function(){
+            var already=false; try{already=localStorage.getItem('sp_mission_claimed_'+mid)==='true';}catch(_){}
+            if(already) return;
+            try{localStorage.setItem('sp_mission_claimed_'+mid,'true');}catch(_){}
+            if(window.PERM){PERM.gold=(PERM.gold||0)+rw.gold;PERM.gems=(PERM.gems||0)+rw.gems;}
+            if(window.savePerm) savePerm();
+            if(window.showAchievementToast) showAchievementToast('◈+'+rw.gold+' ◆+'+rw.gems+' 획득!');
+            _renderSpc();
+          });
+        })(m.id,m.reward);
+        spcW.appendChild(card);
+      });
+    }
+
+    // 특수 탭 전환 시 렌더링 — MutationObserver
+    new MutationObserver(function(){ if(spcW.style.display!=='none') _renderSpc(); }).observe(spcW,{attributes:true,attributeFilter:['style']});
   }
 
   function _sw(id) {
