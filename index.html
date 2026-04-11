@@ -12213,29 +12213,30 @@ function _injectAbsorbPack() {
                   document.querySelector('.store-tab[style*="color:#00ffff"]');
   if (!activeTab || activeTab.getAttribute('data-tab') !== 'package') return;
 
-  var owned = localStorage.getItem('shop_absorb_bonus') === '0.03';
-  var afford = (window.PERM && PERM.gems >= 300);
+  var owned = !!localStorage.getItem('shop_absorb_bonus');
   var card = document.createElement('div');
   card.id = 'absorb-pack-card';
-  card.style.cssText = 'background:#0a1a2a;border:1px solid #00ff88;border-left:4px solid #00ff88;padding:12px;display:flex;justify-content:space-between;align-items:center;margin:0 8px 8px;';
+  card.style.cssText = 'background:#0a1a2a;border:1px solid #cc0044;border-left:4px solid #cc0044;padding:12px;display:flex;justify-content:space-between;align-items:center;margin:0 8px 8px;position:relative;';
   card.innerHTML =
+    '<div style="position:absolute;top:8px;right:8px;background:#cc0044;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-family:monospace;">유료</div>' +
     '<div><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">흡혈 코어 팩</div>' +
-    '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:4px;">에너지 흡수율 영구 +3% (1회 구매)</div></div>' +
+    '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:4px;">에너지 흡수율 영구 +5%<br>레이저 적중 시 추가 회복</div></div>' +
     (owned
       ? '<span style="color:#00ff88;font-family:monospace;font-size:11px;flex-shrink:0;margin-left:8px;">보유중</span>'
-      : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid ' + (afford ? '#00ff88' : '#ef4444') + ';color:' + (afford ? '#00ff88' : '#334455') + ';font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">◆300</button>');
+      : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid #cc0044;color:#cc0044;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">₩5,900</button>');
   content.appendChild(card);
 
   if (!owned) {
     var btn = document.getElementById('buy-absorb-pack');
     if (btn) btn.addEventListener('click', function() {
-      if (!window.PERM || PERM.gems < 300) { btn.style.borderColor = '#ef4444'; return; }
-      if (localStorage.getItem('shop_absorb_bonus') === '0.03') return;
-      PERM.gems -= 300;
-      if (window.savePerm) savePerm();
-      localStorage.setItem('shop_absorb_bonus', '0.03');
-      if (window.showAchievementToast) showAchievementToast('흡혈 코어 팩 구매 완료!');
-      _injectAbsorbPack(); // 리렌더
+      if (localStorage.getItem('shop_absorb_bonus')) return;
+      // 실제 결제 연동 전 테스트: 즉시 적용
+      localStorage.setItem('shop_absorb_bonus', '0.05');
+      if (window.showAchievementToast) showAchievementToast('흡혈 코어 팩 구매 완료! +5%');
+      // 리렌더
+      var old = document.getElementById('absorb-pack-card');
+      if (old) old.remove();
+      _injectAbsorbPack();
     });
   }
 }
@@ -12247,11 +12248,43 @@ if (storeContent) {
     .observe(storeContent, { childList: true, subtree: true });
 }
 
-/* ── 백과사전 방어 탭에 에너지 흡수 항목 (이미 공격 탭에 있으면 방어로 이동) ── */
-// 백과사전 TABS.def.rows에 추가는 IIFE 안이라 직접 불가 → _showEncyclopedia 래핑
-var _origEnc = window._showEncyclopedia;
-// _showEncyclopedia는 전역이 아닐 수 있으므로 Grep으로 확인 후 처리
-// 대신 방어 탭 데이터가 렌더링될 때 DOM에 직접 주입하는 방식 사용
+/* ── 워크샵 에너지 흡수 카드에 총 흡혈률 표시 ── */
+function _injectAbsorbTotal() {
+  if (typeof window._getAbsorbRate !== 'function') return;
+  // 워크샵 화면에서 energyAbsorb 카드를 찾아서 하단에 총합 표시
+  var wsScreen = document.getElementById('screen-workshop');
+  if (!wsScreen || wsScreen.style.display === 'none') return;
+  var cards = wsScreen.querySelectorAll('[data-ws-key="energyAbsorb"]');
+  if (cards.length === 0) {
+    // data-ws-key가 없을 수 있으므로 텍스트로 찾기
+    var allCards = wsScreen.querySelectorAll('.ws-card, [style*="background"]');
+    // 간단히 전체 워크샵에 총합 표시 배너 삽입
+    var existing = document.getElementById('absorb-total-banner');
+    if (existing) existing.remove();
+  }
+  var banner = document.getElementById('absorb-total-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'absorb-total-banner';
+    banner.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid #00ff88;padding:4px 12px;font-family:monospace;font-size:10px;color:#00ff88;z-index:250;border-radius:6px;pointer-events:none;display:none;';
+    document.body.appendChild(banner);
+  }
+  var rate = (window._getAbsorbRate() * 100).toFixed(1);
+  if (parseFloat(rate) > 0) {
+    banner.textContent = '현재 총 흡수율: ' + rate + '%';
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+// 워크샵 화면 열릴 때 표시
+var _wsEl = document.getElementById('screen-workshop');
+if (_wsEl) {
+  new MutationObserver(function() {
+    if (_wsEl.style.display !== 'none') setTimeout(_injectAbsorbTotal, 200);
+    else { var b = document.getElementById('absorb-total-banner'); if (b) b.style.display = 'none'; }
+  }).observe(_wsEl, { attributes: true, attributeFilter: ['style'] });
+}
 
 }());
 </script>
