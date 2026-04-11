@@ -9281,6 +9281,7 @@ function _showStatsPopup() {
     ['총 치명타 횟수', _fn(parseInt(localStorage.getItem('stat_crit_cnt')||'0',10))],
     ['총 치명타 대미지', _fn(parseFloat(localStorage.getItem('stat_crit_dmg')||'0'))],
     ['총 에너지 흡수량', _fn(parseFloat(localStorage.getItem('stat_healed')||'0'))],
+    ['총 연구 완료', parseInt(localStorage.getItem('stat_research_done')||'0',10)+'회'],
   ];
   var rowHtml=rows.map(function(r){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
@@ -11744,6 +11745,139 @@ if (_settingsEl) {
 }
 setTimeout(_injectSettingsFooter, 500);
 
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     신호 연구소 (데이터 셀 → 영구 패시브)
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+
+var RESEARCH = [
+  { id:'res_base_dmg',  name:'레이저 출력 강화',   desc:'기본 공격력 영구 +2%',       maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);}, effect:function(lv){return lv*0.02;}, cat:'공격', unit:'%' },
+  { id:'res_base_hp',   name:'코어 장갑 강화',     desc:'최대 HP 영구 +3%',           maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);}, effect:function(lv){return lv*0.03;}, cat:'방어', unit:'%' },
+  { id:'res_gold_bonus',name:'골드 회수율 향상',   desc:'골드 획득량 영구 +2%',       maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);}, effect:function(lv){return lv*0.02;}, cat:'유틸', unit:'%' },
+  { id:'res_crit_rate', name:'정밀 타격 연구',     desc:'치명타 확률 영구 +0.5%',     maxLv:20, cost:function(lv){return 2+Math.floor(lv/5);},  effect:function(lv){return lv*0.005;},cat:'공격', unit:'%' },
+  { id:'res_regen',     name:'자가 수복 프로토콜', desc:'HP 재생 영구 +0.1/s',        maxLv:30, cost:function(lv){return 2+Math.floor(lv/10);}, effect:function(lv){return lv*0.1;},  cat:'방어', unit:'/s' },
+  { id:'res_start_gold',name:'선행 자원 배분',     desc:'게임 시작 골드 +50',          maxLv:20, cost:function(lv){return 3;},                   effect:function(lv){return lv*50;},   cat:'유틸', unit:'' },
+];
+
+function _getResLv(id){ return parseInt(localStorage.getItem('res_'+id)||'0',10); }
+function _getDC(){ return parseInt(localStorage.getItem('dataCells')||'0',10); }
+
+/* ── HTML 삽입 ── */
+function _injectScreen() {
+  if(document.getElementById('screen-research')) return;
+  var sc=document.createElement('div');
+  sc.id='screen-research';
+  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:\"Courier New\",monospace;';
+  sc.innerHTML=
+    '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
+      '<button id="res-back" style="background:none;border:none;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
+      '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#00ff88;">신호 연구소</span>'+
+      '<span style="font-size:11px;color:#00ff88;">▣ <span id="research-cells">0</span></span>'+
+    '</div>'+
+    '<div style="padding:14px;">'+
+      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">데이터 셀을 소모하여 영구 능력치를 강화합니다.<br>효과는 모든 게임에 적용됩니다.</div>'+
+      '<div id="research-list"></div>'+
+    '</div>';
+  document.body.appendChild(sc);
+  document.getElementById('res-back').addEventListener('click',function(){
+    sc.style.display='none';
+    var home=document.getElementById('screen-home');
+    if(home) home.style.display='flex';
+  });
+}
+
+/* ── 렌더링 ── */
+function renderResearch() {
+  _injectScreen();
+  var list=document.getElementById('research-list');
+  if(!list) return;
+  var dc=_getDC();
+  var cellEl=document.getElementById('research-cells');
+  if(cellEl) cellEl.textContent=dc;
+  list.innerHTML='';
+  RESEARCH.forEach(function(item){
+    var lv=_getResLv(item.id);
+    var maxed=lv>=item.maxLv;
+    var cost=maxed?0:item.cost(lv);
+    var canAfford=dc>=cost;
+    var effVal=item.effect(lv);
+    var effStr=item.unit==='%'?'+'+(effVal*100).toFixed(1).replace(/\.0$/,'')+'%'
+              :item.unit==='/s'?'+'+effVal.toFixed(1)+'/s'
+              :'+'+effVal;
+    var card=document.createElement('div');
+    card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;';
+    card.innerHTML=
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+        '<span style="font-size:12px;color:#00ff88;font-weight:bold;">'+item.name+'</span>'+
+        '<span style="font-size:10px;color:#445566;">'+lv+' / '+item.maxLv+'</span>'+
+      '</div>'+
+      '<div style="font-size:10px;color:#556677;margin-bottom:8px;">'+item.desc+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+        '<span style="font-size:11px;color:#00ff88;">현재 효과: '+effStr+'</span>'+
+        (maxed
+          ?'<span style="color:#334455;font-size:11px;">MAX</span>'
+          :'<button data-res-buy="'+item.id+'" style="background:'+(canAfford?'#00ff88':'#1a2a3a')+';color:'+(canAfford?'#001a0a':'#334455')+';border:none;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">▣ '+cost+'</button>')+
+      '</div>';
+    var btn=card.querySelector('[data-res-buy]');
+    if(btn)(function(rid){
+      btn.addEventListener('click',function(){
+        var curDC=_getDC();
+        var curLv=_getResLv(rid);
+        var it=RESEARCH.filter(function(r){return r.id===rid;})[0];
+        if(!it||curLv>=it.maxLv) return;
+        var c=it.cost(curLv);
+        if(curDC<c) return;
+        localStorage.setItem('dataCells', curDC-c);
+        localStorage.setItem('res_'+rid, curLv+1);
+        localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1);
+        renderResearch();
+        if(window.showAchievementToast) showAchievementToast(it.name+' Lv.'+(curLv+1)+'!');
+      });
+    })(item.id);
+    list.appendChild(card);
+  });
+}
+window.renderResearch=renderResearch;
+
+/* ── 연구소 버튼 클릭 → 화면 열기 ── */
+function _openResearch() {
+  // 홈/워크샵/스토어 숨기기
+  ['screen-home','screen-workshop','screen-store'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  renderResearch();
+  document.getElementById('screen-research').style.display='flex';
+}
+// 연구소 nav 버튼에 클릭 바인딩
+['h-nav-lab','ws-nav-lab','st-nav-lab'].forEach(function(id){
+  var btn=document.getElementById(id);
+  if(btn) btn.addEventListener('click',function(){
+    if(btn.getAttribute('data-locked')==='true') return;
+    _openResearch();
+  });
+});
+
+/* ── 게임 시작 시 연구 효과 적용 ── */
+var _origApply=window.applyPermStats;
+if(typeof _origApply==='function'){
+  window.applyPermStats=function(){
+    _origApply.apply(this,arguments);
+    if(!window.G||!G.tower) return;
+    var t=G.tower;
+    var dmgLv=_getResLv('res_base_dmg');   if(dmgLv>0) t.dmg=Math.round(t.dmg*(1+dmgLv*0.02));
+    var hpLv=_getResLv('res_base_hp');     if(hpLv>0){ t.maxHp=Math.round(t.maxHp*(1+hpLv*0.03)); t.hp=t.maxHp; }
+    var critLv=_getResLv('res_crit_rate'); if(critLv>0) t.critChance=Math.min(0.9,(t.critChance||0)+critLv*0.005);
+    var regenLv=_getResLv('res_regen');    if(regenLv>0) G.regenRate=(G.regenRate||0)+regenLv*0.1;
+    var goldLv=_getResLv('res_gold_bonus');if(goldLv>0) G.goldBonus=(G.goldBonus||1)*(1+goldLv*0.02);
+    var startLv=_getResLv('res_start_gold');if(startLv>0){ G.gold+=startLv*50; }
+  };
+}
+
+_injectScreen();
 }());
 </script>
 
