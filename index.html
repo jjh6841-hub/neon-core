@@ -9228,7 +9228,7 @@ function _injectSettingsButtons() {
     { label:'백과사전',   icon:'📖', action:function(){ _showEncyclopedia(); } },
     { label:'패치노트',   icon:'🔧', action:function(){ _showPatchNotes(); } },
     { label:'크리에이터', icon:'🎁', action:function(){ _showCreatorCode(); } },
-    { label:'지원하기',   icon:'📧', action:function(){ window.location.href='mailto:support@neoncore.game'; } },
+    { label:'문의',       icon:'📧', action:function(){ _showContactPopup(); } },
     { label:'개인정보',   icon:'🔒', action:function(){ window.open('privacy.html','_blank'); } },
   ];
 
@@ -9391,6 +9391,59 @@ function _showPatchNotes() {
     '</div>';
   document.body.appendChild(p);
   document.getElementById('pn-close').addEventListener('click',function(){ p.remove(); });
+}
+
+function _showContactPopup() {
+  var p=document.createElement('div');
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;align-items:center;justify-content:center;padding:16px;';
+  p.innerHTML=
+    '<div style="background:#0a1a2a;border:1px solid #1a3444;border-radius:12px;padding:20px;width:88%;max-width:340px;font-family:\'Courier New\',monospace;">'+
+      '<div style="font-size:14px;color:#00ffff;text-align:center;margin-bottom:16px;">문의하기</div>'+
+      '<div style="font-size:11px;color:#7aacac;margin-bottom:6px;">카테고리</div>'+
+      '<select id="contact-type" style="width:100%;background:#060616;border:1px solid #1a3444;color:#00ffff;font-family:\'Courier New\',monospace;font-size:12px;padding:8px;border-radius:6px;margin-bottom:12px;-webkit-appearance:none;">'+
+        '<option value="bug">버그 신고</option>'+
+        '<option value="inquiry">문의</option>'+
+        '<option value="feedback">의견 제안</option>'+
+      '</select>'+
+      '<div style="font-size:11px;color:#7aacac;margin-bottom:6px;">내용</div>'+
+      '<textarea id="contact-content" rows="5" placeholder="내용을 입력해주세요..." style="width:100%;background:#060616;border:1px solid #1a3444;color:#00ffff;font-family:\'Courier New\',monospace;font-size:12px;padding:8px;border-radius:6px;resize:none;margin-bottom:12px;box-sizing:border-box;"></textarea>'+
+      '<div style="font-size:10px;color:#334455;margin-bottom:16px;line-height:1.6;">※ 고유 ID 및 디바이스 정보가 자동으로 첨부됩니다.</div>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<button id="contact-cancel" style="flex:1;padding:10px;background:transparent;border:1px solid #1a3444;color:#7aacac;font-family:\'Courier New\',monospace;font-size:12px;border-radius:6px;cursor:pointer;-webkit-appearance:none;">취소</button>'+
+        '<button id="contact-send" style="flex:1;padding:10px;background:#00dddd;border:none;color:#001a1a;font-family:\'Courier New\',monospace;font-size:12px;border-radius:6px;cursor:pointer;font-weight:bold;-webkit-appearance:none;">전송</button>'+
+      '</div>'+
+      '<div id="contact-result" style="margin-top:10px;font-size:11px;text-align:center;"></div>'+
+    '</div>';
+  document.body.appendChild(p);
+
+  document.getElementById('contact-cancel').addEventListener('click',function(){ p.remove(); });
+  document.getElementById('contact-send').addEventListener('click',function(){
+    var type=document.getElementById('contact-type').value;
+    var content=document.getElementById('contact-content').value.trim();
+    var result=document.getElementById('contact-result');
+    if(!content){ result.style.color='#ff4444'; result.textContent='내용을 입력해주세요.'; return; }
+
+    // EmailJS 연동 전 → 준비 중 메시지
+    if(typeof emailjs==='undefined'||!emailjs.send){
+      result.style.color='#f59e0b';
+      result.textContent='문의 기능 준비 중입니다. 빠른 시일 내 오픈됩니다.';
+      return;
+    }
+
+    var uid=localStorage.getItem('user_uid')||'unknown';
+    var templateParams={
+      category: type==='bug'?'버그 신고':type==='inquiry'?'문의':'의견 제안',
+      message: content,
+      user_id: uid,
+      device: navigator.userAgent.substring(0,80),
+      game_version: 'v1.0.0',
+      best_wave: localStorage.getItem('bestWave')||'0'
+    };
+    result.style.color='#7aacac'; result.textContent='전송 중...';
+    emailjs.send('YOUR_SERVICE_ID','YOUR_TEMPLATE_ID',templateParams)
+      .then(function(){ result.style.color='#00ff88'; result.textContent='전송 완료! 감사합니다.'; setTimeout(function(){p.remove();},2000); },
+            function(){ result.style.color='#ff4444'; result.textContent='전송 실패. 다시 시도해주세요.'; });
+  });
 }
 
 function _showCreatorCode() {
