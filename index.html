@@ -7724,10 +7724,18 @@ setTimeout(_applyMaxOverrides, 300);
   }
 
   function _dismiss() {
-    if(_cur>=0&&_cur<STEPS.length) _mark(STEPS[_cur].id);
+    var stepId = (_cur>=0&&_cur<STEPS.length) ? STEPS[_cur].id : null;
+    if(stepId) _mark(stepId);
     _cur=-1; _pending=false;
     if(_ov) _ov.style.display='none';
     clearTimeout(_ptid);
+    // 확인 후 해당 화면으로 이동
+    if(stepId==='ob_ms' && window._openMissions) {
+      setTimeout(function(){ window._openMissions(); },150);
+    } else if(stepId==='ob_ws') {
+      var wsBtn=document.getElementById('h-nav-workshop');
+      if(wsBtn) setTimeout(function(){ wsBtn.click(); },150);
+    }
   }
 
   function _tryFirst() {
