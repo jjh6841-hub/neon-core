@@ -9303,23 +9303,80 @@ function _showLanguageSelector() {
 function _showEncyclopedia() {
   var p=document.createElement('div');
   p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
-  p.innerHTML=
-    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;max-height:80vh;overflow-y:auto;">'+
-      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:8px;">📖 백과사전</div>'+
-      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.8;">'+
-        '<b style="color:#f59e0b;">일반 적</b> - 기본 체력과 속도를 가진 적<br>'+
-        '<b style="color:#3b82f6;">탱크</b> - 높은 체력, 낮은 속도<br>'+
-        '<b style="color:#ef4444;">돌격병</b> - 낮은 체력, 빠른 속도<br>'+
-        '<b style="color:#cc44ff;">저격병</b> - 중간 체력, 높은 처치 골드<br>'+
-        '<b style="color:#f59e0b;">보스</b> - 10웨이브마다 등장<br><br>'+
-        '<b style="color:#00ffff;">타워 공격</b> - 일정 간격으로 가장 먼 적 공격<br>'+
-        '<b style="color:#cc44ff;">치명타</b> - 확률로 2배 피해<br>'+
-        '<b style="color:#00ff88;">흡혈</b> - 피해량의 일부를 HP 회복<br>'+
-      '</div>'+
-      '<button id="enc-close" style="background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;">닫기</button>'+
-    '</div>';
+
+  var TABS={
+    atk:{ label:'공격', rows:[
+      ['피해','레이저가 적에게 입히는 기본 데미지'],
+      ['공격 속도','레이저 발사 간격. 배속으로 표시 (x1.00 기준)'],
+      ['치명타 확률','치명타 발생 확률 (%)'],
+      ['치명타 배율','치명타 시 데미지 승수'],
+      ['공격 범위','타워의 레이저 최대 사거리'],
+    ]},
+    def:{ label:'방어', rows:[
+      ['최대 HP','코어의 최대 체력'],
+      ['HP 재생','초당 회복되는 코어 체력'],
+      ['실드','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용'],
+      ['방어율','받는 데미지를 % 비율로 감소'],
+    ]},
+    utl:{ label:'유틸리티', rows:[
+      ['골드 보너스','적 처치 시 획득 골드 배율'],
+      ['골드/웨이브','웨이브 클리어 시 추가 지급 골드'],
+      ['이자','보유 골드의 일정 % 를 매 웨이브마다 추가 지급'],
+    ]},
+    enemy:{ label:'적', enemies:[
+      { name:'기본 유닛',   color:'#ff4444', shape:'square',  desc:'표준 적. 기본 체력과 이동 속도를 가짐. 처치 시 골드 x1.' },
+      { name:'러시 유닛',   color:'#ffaa00', shape:'square',  desc:'이동 속도가 2배 빠르다. 체력은 낮지만 순식간에 코어에 도달한다. 처치 시 골드 x2.' },
+      { name:'아머 코어',   color:'#ff8800', shape:'square',  desc:'이동 속도 50%, 체력 5배. 느리지만 매우 단단하다. 처치 시 골드 x4.' },
+      { name:'스나이퍼 유닛', color:'#00ffff', shape:'square', desc:'사거리 밖에서 투사체를 발사한다. 코어에 접근하지 않아도 공격 가능. 처치 시 골드 x2.' },
+      { name:'실드 유닛',   color:'#aa44ff', shape:'square',  desc:'받는 피해를 50% 감소시키는 실드를 보유. 처치 시 골드 x3.' },
+      { name:'분열 유닛',   color:'#ff44aa', shape:'square',  desc:'처치 시 체력 절반의 기본 유닛 2개로 분열한다. 처치 시 골드 x1.' },
+      { name:'재생 유닛',   color:'#44ff88', shape:'square',  desc:'초당 최대 체력의 2%를 회복한다. 처치 시 골드 x3.' },
+      { name:'코어 보스',   color:'#ff00aa', shape:'hexagon', desc:'10웨이브마다 등장. 체력 5배, 이동 속도 60%. 50/100웨이브에는 더 강화된 보스가 출현한다.' },
+    ]}
+  };
+  var curTab='atk';
+
+  function _render() {
+    var tabBar='';
+    Object.keys(TABS).forEach(function(k){
+      var act=k===curTab;
+      tabBar+='<button data-enc-tab="'+k+'" style="flex:1;padding:7px;background:transparent;border:none;border-bottom:2px solid '+(act?'#00ffff':'transparent')+';color:'+(act?'#00ffff':'#4a7a8a')+';font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">'+TABS[k].label+'</button>';
+    });
+    var body='';
+    var t=TABS[curTab];
+    if(t.rows){
+      t.rows.forEach(function(r){
+        body+='<div style="padding:8px 0;border-bottom:1px solid #0a2233;">'+
+          '<div style="color:#00ffff;font-family:monospace;font-size:11px;font-weight:bold;">'+r[0]+'</div>'+
+          '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:2px;line-height:1.6;">'+r[1]+'</div></div>';
+      });
+    }
+    if(t.enemies){
+      t.enemies.forEach(function(e){
+        var shape=e.shape==='hexagon'
+          ? '<div style="width:28px;height:28px;background:transparent;border:2px solid '+e.color+';clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0;"></div>'
+          : '<div style="width:24px;height:24px;background:transparent;border:2px solid '+e.color+';flex-shrink:0;"></div>';
+        body+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #0a2233;">'+
+          shape+
+          '<div><div style="color:'+e.color+';font-family:monospace;font-size:11px;font-weight:bold;">'+e.name+'</div>'+
+          '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:2px;line-height:1.6;">'+e.desc+'</div></div></div>';
+      });
+    }
+    p.innerHTML=
+      '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;width:100%;max-width:340px;display:flex;flex-direction:column;max-height:85vh;">'+
+        '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:10px;">백과사전</div>'+
+        '<div style="display:flex;border-bottom:1px solid #0a2233;margin-bottom:8px;flex-shrink:0;">'+tabBar+'</div>'+
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+body+'</div>'+
+        '<button id="enc-close" style="margin-top:12px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;flex-shrink:0;">닫기</button>'+
+      '</div>';
+    document.getElementById('enc-close').addEventListener('click',function(){ p.remove(); });
+    var btns=p.querySelectorAll('[data-enc-tab]');
+    for(var i=0;i<btns.length;i++){
+      (function(b){ b.addEventListener('click',function(){ curTab=b.getAttribute('data-enc-tab'); _render(); }); })(btns[i]);
+    }
+  }
   document.body.appendChild(p);
-  document.getElementById('enc-close').addEventListener('click',function(){ p.remove(); });
+  _render();
 }
 
 function _showPatchNotes() {
@@ -9327,14 +9384,10 @@ function _showPatchNotes() {
   p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
   p.innerHTML=
     '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:8px;max-height:80vh;overflow-y:auto;">'+
-      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:8px;">🔧 패치노트</div>'+
-      '<div style="color:#f59e0b;font-family:monospace;font-size:11px;font-weight:bold;">v1.1.0 (2026.04.10)</div>'+
-      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.7;">'+
-        '• 카드 컬렉션 시스템 추가<br>• 랭킹 시스템 추가<br>• 우편함 추가<br>• 설정 화면 기능 확장<br>• 밸런스 전반 조정<br>• 데미지 플로팅 텍스트 추가</div>'+
-      '<div style="color:#f59e0b;font-family:monospace;font-size:11px;font-weight:bold;margin-top:6px;">v1.0.0 (2026.03.01)</div>'+
-      '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.7;">'+
-        '• 게임 최초 출시<br>• 기본 타워 디펜스 시스템<br>• 강화 시스템<br>• 출석 보상</div>'+
-      '<button id="pn-close" style="background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;margin-top:8px;">닫기</button>'+
+      '<div style="text-align:center;font-size:14px;color:#00ffff;font-family:\'Courier New\',monospace;margin-bottom:16px;">패치 노트</div>'+
+      '<div style="text-align:center;color:#445566;font-family:\'Courier New\',monospace;font-size:12px;line-height:2;">'+
+        'v1.0.0 — 출시 버전<br>향후 업데이트 내역이 이곳에 표시됩니다.</div>'+
+      '<button id="pn-close" style="width:100%;margin-top:16px;padding:10px;background:transparent;border:1px solid #00ffff;color:#00ffff;font-family:\'Courier New\',monospace;font-size:12px;border-radius:6px;cursor:pointer;-webkit-appearance:none;">닫기</button>'+
     '</div>';
   document.body.appendChild(p);
   document.getElementById('pn-close').addEventListener('click',function(){ p.remove(); });
