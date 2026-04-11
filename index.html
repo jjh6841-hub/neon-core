@@ -9065,15 +9065,9 @@ function _closeRanking() {
 ════════════════════════════════════════════════════════ */
 var SYSTEM_MAILS = [
   { id:'welcome',  title:'🎮 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
-  { id:'update1',  title:'🔧 v1.1 패치 보상',  body:'밸런스 업데이트 기념 선물입니다. 항상 감사합니다!',                  gems:3,  gold:50  },
-  { id:'weekend',  title:'🎁 주말 이벤트',      body:'주말 특별 이벤트 보상을 받으세요!',                                  gems:10, gold:200 },
   { id:'battle1',  title:'⚔ 첫 전투 응원',     body:'첫 전투를 완료하셨습니다. 앞으로도 파이팅!',                         gems:2,  gold:30  },
 ];
-var NEWS_ITEMS = [
-  { id:'n1', title:'[패치] v1.1 밸런스 업데이트', date:'2026.04.10', body:'보스 HP 조정, 웨이브 클리어 보상 개선, 카드 시스템 추가.' },
-  { id:'n2', title:'[이벤트] 봄맞이 이벤트',      date:'2026.04.08', body:'4월 한 달간 카드 뽑기 확률 UP 이벤트 진행 중!' },
-  { id:'n3', title:'[공지] 정기 점검 완료',        date:'2026.04.05', body:'2026.04.05 점검이 완료되었습니다. 이용해주셔서 감사합니다.' },
-];
+var NEWS_ITEMS = [];
 
 var _newsExpanded = {};
 
@@ -9154,6 +9148,10 @@ function _renderMailTab() {
 function _renderNewsTab() {
   var cont=document.getElementById('mail-content');
   if(!cont) return;
+  if(NEWS_ITEMS.length===0){
+    cont.innerHTML='<div style="text-align:center;color:#334455;font-family:\'Courier New\',monospace;font-size:12px;margin-top:60px;">현재 소식이 없습니다.</div>';
+    return;
+  }
   var html='';
   NEWS_ITEMS.forEach(function(item){
     var exp=_newsExpanded[item.id];
