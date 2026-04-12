@@ -1455,7 +1455,7 @@ canvas {
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:40px; left:6px; width:44px; height:220px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:10;"></div>
+    <div id="left-icons-container" style="position:absolute; top:40px; left:6px; width:44px; height:220px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:10; display:flex; flex-direction:column;"></div>
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:20px 0;">NEON CORE</div>
@@ -1465,21 +1465,21 @@ canvas {
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
-        <div style="color:#94a3b8;font-size:9px;font-family:monospace;white-space:nowrap;">총 코인 보너스</div>
-        <div id="home-total-bonus" style="color:#00ffff;font-size:16px;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
-        <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:7px;font-family:monospace;">▶ 상세</div>
+        <div style="color:#94a3b8;font-size:10px;font-family:monospace;white-space:nowrap;">총 코인 보너스</div>
+        <div id="home-total-bonus" style="color:#00ffff;font-size:20px;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
+        <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:8px;font-family:monospace;">▶ 상세</div>
       </div>
 
       <!-- 난이도 카드 -->
-      <div style="flex:1; background:#0a1a2a; border:1px solid #0a3344; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:3px;">
-        <div style="color:#94a3b8; font-size:9px; font-family:monospace; white-space:nowrap;">난이도</div>
+      <div style="flex:1; background:#0a1a2a; border:1px solid #0a3344; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px;">
+        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">난이도</div>
         <div style="display:flex; flex-direction:row; align-items:center; gap:4px; width:100%; justify-content:center;">
-          <button id="tier-prev" style="background:none; border:none; color:#00ffff; font-size:12px; cursor:pointer; padding:6px 10px; min-width:36px; min-height:36px;">◀</button>
-          <span id="tier-name" style="color:#ffffff; font-size:13px; font-family:monospace; font-weight:bold; white-space:nowrap; min-width:36px; text-align:center;">티어 1</span>
-          <button id="tier-next" style="background:none; border:none; color:#00ffff; font-size:12px; cursor:pointer; padding:6px 10px; min-width:36px; min-height:36px;">▶</button>
+          <button id="tier-prev" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:6px 10px; min-width:40px; min-height:40px;">◀</button>
+          <span id="tier-name" style="color:#ffffff; font-size:14px; font-family:monospace; font-weight:bold; white-space:nowrap; min-width:40px; text-align:center;">티어 1</span>
+          <button id="tier-next" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:6px 10px; min-width:40px; min-height:40px;">▶</button>
         </div>
-        <div style="color:#94a3b8; font-size:9px; font-family:monospace; white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
-        <div style="color:#00ffff; font-size:9px; font-family:monospace; white-space:nowrap;">◆ x<span id="tier-multiplier">1.0</span></div>
+        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
+        <div style="color:#00ffff; font-size:10px; font-family:monospace; white-space:nowrap;">◆ x<span id="tier-multiplier">1.0</span></div>
       </div>
 
     </div>
@@ -3960,7 +3960,7 @@ function renderNavTabs(currentScreen) {
       btn.innerHTML =
         '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
           '<span style="font-size:15px;line-height:1;color:' + iconColor + ';">' + tab.icon + '</span>' +
-          '<span style="position:absolute;top:-3px;right:-6px;font-size:8px;color:#0a6666;">\u25A0</span>' +
+          '<span style="position:absolute;top:-3px;right:-6px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>' +
           '<span style="font-size:9px;color:' + labelColor + ';font-family:Courier New,monospace;">' + tab.label + '</span>' +
         '</div>';
     } else {
@@ -11658,7 +11658,7 @@ function renderLeftIcons() {
       var btn = document.createElement('button');
       btn.style.cssText = 'width:42px; height:42px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a2233') + '; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:pointer; margin-bottom:6px; opacity:' + (unlocked ? '1' : '0.6') + '; flex-shrink:0;';
       if (!unlocked) {
-        btn.innerHTML = '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:14px; color:#445566; line-height:1;">' + icon.icon + '</span><span style="position:absolute;top:-4px;right:-8px;font-size:8px;color:#0a6666;">\u25A0</span><span style="font-size:7px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span></div>';
+        btn.innerHTML = '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:14px; color:#445566; line-height:1;">' + icon.icon + '</span><span style="position:absolute;top:-4px;right:-8px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span><span style="font-size:7px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span></div>';
       } else {
         btn.innerHTML = '<span style="font-size:14px; color:#00ffff; line-height:1;">' + icon.icon + '</span><span style="font-size:7px; color:#7aacac; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
       }
