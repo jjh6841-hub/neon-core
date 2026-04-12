@@ -3922,7 +3922,7 @@ var navTabs = [
   { id: 'store',    label: '\uC2A4\uD1A0\uC5B4',  icon: '\u2299', screen: 'store',    unlock: 0 }
 ];
 
-var _navToastTime = 0;
+var _navToastTime = {};
 
 function renderNavTabs(currentScreen) {
   var nav = document.getElementById('bottom-nav');
@@ -3931,9 +3931,11 @@ function renderNavTabs(currentScreen) {
 
   var w = PERM.bestWave || 0;
 
-  navTabs.forEach(function(tab) {
+  navTabs.forEach(function(tab, index) {
     var unlocked = w >= tab.unlock;
     var active = currentScreen === tab.screen;
+    var clr = unlocked ? (active ? '#00ffff' : '#4a7a8a') : '#445566';
+    var isLast = index === navTabs.length - 1;
 
     var btn = document.createElement('button');
     btn.setAttribute('data-tab', tab.id);
@@ -3943,7 +3945,8 @@ function renderNavTabs(currentScreen) {
       'background:transparent',
       'border:none',
       'border-bottom:2px solid ' + (active ? '#00ffff' : 'transparent'),
-      'color:' + (unlocked ? (active ? '#00ffff' : '#4a7a8a') : '#1a2a3a'),
+      'border-right:' + (isLast ? 'none' : '0.5px solid #1a2a3a'),
+      'color:' + clr,
       'font-family:Courier New,monospace',
       'font-size:9px',
       'cursor:pointer',
@@ -3953,12 +3956,12 @@ function renderNavTabs(currentScreen) {
       'justify-content:center',
       'gap:2px',
       'padding:0',
-      'opacity:' + (unlocked ? '1' : '0.4')
+      'opacity:1'
     ].join(';');
 
     btn.innerHTML =
-      '<span style="font-size:15px;line-height:1;">' + tab.icon + '</span>' +
-      '<span>' + tab.label + '</span>';
+      '<span style="font-size:15px;line-height:1;color:' + clr + ';">' + tab.icon + '</span>' +
+      '<span style="color:' + clr + ';">' + tab.label + '</span>';
 
     if (unlocked) {
       (function(t) {
@@ -3967,13 +3970,10 @@ function renderNavTabs(currentScreen) {
     } else {
       (function(t) {
         btn.onclick = function() {
-          var now = Date.now();
-          if (now - _navToastTime < 3000) return;
-          _navToastTime = now;
           var msg = t.unlock === 999
             ? t.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
             : t.label + ' \u2014 \uC6E8\uC774\uBE0C ' + t.unlock + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg);
+          showNavToast(msg, t.id);
         };
       })(tab);
     }
@@ -3982,11 +3982,19 @@ function renderNavTabs(currentScreen) {
   });
 }
 
-function showNavToast(msg) {
-  var old = document.getElementById('nav-toast');
-  if (old) old.remove();
+var _navToastEl = null;
+
+function showNavToast(msg, tabId) {
+  var now = Date.now();
+  if (tabId && _navToastTime[tabId] && now - _navToastTime[tabId] < 3000) return;
+
+  if (_navToastEl && _navToastEl.parentNode) {
+    clearTimeout(_navToastEl._timer);
+    _navToastEl.remove();
+    _navToastEl = null;
+  }
+
   var t = document.createElement('div');
-  t.id = 'nav-toast';
   t.style.cssText = [
     'position:fixed',
     'bottom:62px',
@@ -3995,16 +4003,24 @@ function showNavToast(msg) {
     'background:#0a1a2a',
     'border:1px solid #00ffff',
     'border-radius:8px',
-    'padding:10px 18px',
+    'padding:8px 16px',
     'font-family:Courier New,monospace',
     'font-size:11px',
     'color:#00ffff',
     'z-index:1000',
-    'white-space:nowrap'
+    'white-space:nowrap',
+    'pointer-events:none'
   ].join(';');
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(function() { if (t.parentNode) t.remove(); }, 3000);
+
+  _navToastEl = t;
+  if (tabId) _navToastTime[tabId] = now;
+
+  t._timer = setTimeout(function() {
+    if (t.parentNode) t.remove();
+    if (_navToastEl === t) _navToastEl = null;
+  }, 1000);
 }
 
 // showNavLockTooltip 호환 (티어 시스템 등에서 사용)
