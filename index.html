@@ -3916,7 +3916,7 @@ var navTabs = [
   { id: 'battle',   label: '\uC804\uD22C',    icon: '\u2694', screen: 'home',     unlock: 0 },
   { id: 'workshop', label: '\uAC15\uD654',    icon: '\u25B2', screen: 'workshop', unlock: 0 },
   { id: 'module',   label: '\uBAA8\uB4C8',    icon: '\u22A1', screen: 'module',   unlock: 10 },
-  { id: 'research', label: '\uC5F0\uAD6C\uC18C',  icon: '\u2295', screen: 'research', unlock: 10 },
+  { id: 'research', label: '\uC5F0\uAD6C\uC18C',  icon: '\u2295', screen: 'lab',      unlock: 10 },
   { id: 'corelab',  label: '\uCF54\uC5B4\uB7A9',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
   { id: 'skin',     label: '\uC2A4\uD0A8',    icon: '\u2605', screen: 'skin',     unlock: 999 },
   { id: 'store',    label: '\uC2A4\uD1A0\uC5B4',  icon: '\u2299', screen: 'store',    unlock: 0 }
@@ -4587,6 +4587,13 @@ if (dailyClaimBtn) {
     document.getElementById('screen-workshop').style.display = 'none';
     openStore();
   });
+
+  /* ── 외부 확장용 노출 ── */
+  window._storeExt = {
+    open: openStore,
+    sync: syncStoreHUD,
+    render: function() { renderStoreTab(activeStoreTab); }
+  };
 
 }());
 </script>
@@ -10960,21 +10967,37 @@ window.showScreen = function (name) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
+  // 메인 화면들 모두 숨기기
+  ['home','workshop','store','lab','tournament','module','research','corelab','skin'].forEach(function(s) {
+    var el = document.getElementById('screen-' + s);
+    if (el) el.style.display = 'none';
+  });
 
-  if (name === 'home') {
-    var h = document.getElementById('screen-home');
-    if (h) h.style.display = 'flex';
-  } else {
-    // 홈 화면 숨기고 대상 화면 표시
-    var hm = document.getElementById('screen-home');
-    if (hm) hm.style.display = 'none';
-    var target = document.getElementById('screen-' + name);
-    if (target) {
+  // 대상 화면 표시
+  var target = document.getElementById('screen-' + name);
+  if (target) {
+    if (name !== 'home') {
       target.style.position = 'fixed';
       target.style.zIndex   = '600';
-      target.style.display  = 'flex';
-      syncPulse();
     }
+    target.style.display = 'flex';
+  }
+
+  // 화면별 초기화
+  if (name === 'home') {
+    try { syncShopUI(); } catch(_) {}
+  } else if (name === 'workshop') {
+    try { window._wsExt.sync(); window._wsExt.open(); } catch(_) {
+      try { window._wsExt.sync(); } catch(_2) {}
+    }
+  } else if (name === 'store') {
+    try { window._storeExt.sync(); window._storeExt.render(); } catch(_) {}
+  } else if (name === 'research' || name === 'lab') {
+    try { _syncLabHUD(); _buildLabSlots(); } catch(_) {}
+  } else if (name === 'tournament') {
+    try { _syncTrnHUD(); _renderTrnLeague(); _renderLeaderboard(); _updateTrnTimer(); } catch(_) {}
+  } else {
+    try { syncPulse(); } catch(_) {}
   }
 };
 
