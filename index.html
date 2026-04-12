@@ -3929,6 +3929,7 @@ function renderNavTabs(currentScreen) {
   var nav = document.getElementById('bottom-nav');
   if (!nav) return;
   nav.style.display = 'flex';
+  nav.style.borderTop = '1px solid #0a3344';
   nav.innerHTML = '';
 
   var w = PERM.bestWave || 0;
@@ -3936,19 +3937,34 @@ function renderNavTabs(currentScreen) {
   navTabs.forEach(function(tab, index) {
     var unlocked = w >= tab.unlock;
     var active = currentScreen === tab.screen;
-    var clr = unlocked ? (active ? '#00ffff' : '#4a7a8a') : '#445566';
-    var isLast = index === navTabs.length - 1;
+    var iconColor, labelColor, bg, bb;
+
+    if (!unlocked) {
+      bg = '#050d14';
+      bb = '2px solid transparent';
+      iconColor = '#334455';
+      labelColor = '#334455';
+    } else if (active) {
+      bg = '#061820';
+      bb = '2px solid #00ffff';
+      iconColor = '#00ffff';
+      labelColor = '#00ffff';
+    } else {
+      bg = 'transparent';
+      bb = '2px solid transparent';
+      iconColor = '#4a7a8a';
+      labelColor = '#4a7a8a';
+    }
 
     var btn = document.createElement('button');
     btn.setAttribute('data-tab', tab.id);
     btn.style.cssText = [
       'flex:1',
       'height:52px',
-      'background:transparent',
+      'background:' + bg,
       'border:none',
-      'border-bottom:2px solid ' + (active ? '#00ffff' : 'transparent'),
-      'border-right:' + (isLast ? 'none' : '0.5px solid #1a2a3a'),
-      'color:' + clr,
+      'border-bottom:' + bb,
+      (index < navTabs.length - 1 ? 'border-right:0.5px solid #0a3344' : ''),
       'font-family:Courier New,monospace',
       'font-size:9px',
       'cursor:pointer',
@@ -3957,13 +3973,21 @@ function renderNavTabs(currentScreen) {
       'align-items:center',
       'justify-content:center',
       'gap:2px',
-      'padding:0',
-      'opacity:1'
+      'padding:0'
     ].join(';');
 
-    btn.innerHTML =
-      '<span style="font-size:15px;line-height:1;color:' + clr + ';">' + tab.icon + '</span>' +
-      '<span style="color:' + clr + ';">' + tab.label + '</span>';
+    if (!unlocked) {
+      btn.innerHTML =
+        '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
+          '<span style="font-size:15px;line-height:1;color:' + iconColor + ';">' + tab.icon + '</span>' +
+          '<span style="position:absolute;top:-3px;right:-6px;font-size:9px;color:#556677;">\uD83D\uDD12</span>' +
+          '<span style="font-size:9px;color:' + labelColor + ';font-family:Courier New,monospace;">' + tab.label + '</span>' +
+        '</div>';
+    } else {
+      btn.innerHTML =
+        '<span style="font-size:15px;line-height:1;color:' + iconColor + ';">' + tab.icon + '</span>' +
+        '<span style="color:' + labelColor + ';">' + tab.label + '</span>';
+    }
 
     if (unlocked) {
       (function(t) {
