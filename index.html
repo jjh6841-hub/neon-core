@@ -1452,10 +1452,11 @@ canvas {
         <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#94a3b8;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#f59e0b;font-size:7px;">0/8</span></button>
         <div id="home-miss-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1px solid #06061a;"></div>
       </div>
+      <button id="btn-right-ranking" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;line-height:1.3;padding:0;">▲<br><span style="font-size:7px;">랭킹</span></button>
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:16px; left:6px; width:46px; height:182px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; z-index:10; display:flex; flex-direction:column;"></div>
+    <div id="left-icons-container" style="position:absolute; top:20px; left:8px; display:flex; flex-direction:column; gap:8px; z-index:10;"></div>
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:50px 0 16px 0;">NEON CORE</div>
@@ -11637,19 +11638,11 @@ document.addEventListener('click', function (e) {
 var LEFT_ICONS = [
   { id: 'achievement',  label: '\uC5C5\uC801',      icon: '\u2605', screen: 'achievements', unlockWave: 30 },
   { id: 'event',        label: '\uC774\uBCA4\uD2B8',    icon: '\u25C8', screen: 'signal-market', unlockWave: 100 },
-  { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',   unlockWave: 100 },
-  { id: 'ranking',      label: '\uB7AD\uD0B9',      icon: '\u25B2', screen: 'ranking',      unlockWave: 70 },
-  { id: 'season',       label: '\uC2DC\uC98C',      icon: '\u25CC', screen: 'season',       unlockWave: 70 }
+  { id: 'season',       label: '\uC2DC\uC98C\uD328\uC2A4',  icon: '\u25CC', screen: 'season',       unlockWave: 70 },
+  { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',   unlockWave: 100 }
 ];
 
 var lastLeftToast = 0;
-
-// 스크롤바 완전 숨김
-(function() {
-  var s = document.createElement('style');
-  s.textContent = '#left-icons-container::-webkit-scrollbar{display:none;}';
-  document.head.appendChild(s);
-}());
 
 function renderLeftIcons() {
   var container = document.getElementById('left-icons-container');
@@ -11663,11 +11656,11 @@ function renderLeftIcons() {
       var unlocked = w >= icon.unlockWave;
 
       var btn = document.createElement('button');
-      btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a1520') + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:pointer; margin-bottom:6px; flex-shrink:0;';
+      btn.style.cssText = 'width:36px; height:36px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#0a3344' : '#0a1520') + '; color:' + (unlocked ? '#00ffff' : '#334455') + '; font-family:monospace; font-size:10px; cursor:pointer; line-height:1.3; padding:0;';
       if (!unlocked) {
-        btn.innerHTML = '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:15px; color:#445566; line-height:1;">' + icon.icon + '</span><span style="position:absolute;top:-3px;right:-7px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span><span style="font-size:7px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span></div>';
+        btn.innerHTML = '<div style="position:relative;">' + icon.icon + '<span style="position:absolute;top:-6px;right:-6px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span></div><span style="font-size:7px;color:#334455;">' + icon.label + '</span>';
       } else {
-        btn.innerHTML = '<span style="font-size:15px; color:#00ffff; line-height:1;">' + icon.icon + '</span><span style="font-size:7px; color:#7aacac; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
+        btn.innerHTML = icon.icon + '<br><span style="font-size:7px;">' + icon.label + '</span>';
       }
 
       if (unlocked) {
@@ -11688,34 +11681,30 @@ function renderLeftIcons() {
     })(LEFT_ICONS[i]);
   }
 
-  // 스크롤 이벤트 연결 + 초기 페이드
-  container.removeEventListener('scroll', container._fadeHandler);
-  container._fadeHandler = function() { updateLeftFade(container); };
-  container.addEventListener('scroll', container._fadeHandler);
-  setTimeout(function() { updateLeftFade(container); }, 50);
 }
 
-function updateLeftFade(container) {
-  var scrollTop = container.scrollTop;
-  var scrollHeight = container.scrollHeight;
-  var clientHeight = container.clientHeight;
-  var atTop = scrollTop <= 0;
-  var atBottom = scrollTop + clientHeight >= scrollHeight - 2;
-
-  var mask;
-  if (atTop && atBottom) {
-    mask = 'none';
-  } else if (atTop) {
-    mask = 'linear-gradient(to bottom, black 60%, transparent 100%)';
-  } else if (atBottom) {
-    mask = 'linear-gradient(to top, black 60%, transparent 100%)';
-  } else {
-    mask = 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)';
+/* 우측 랭킹 버튼 바인딩 */
+(function() {
+  var rankBtn = document.getElementById('btn-right-ranking');
+  if (rankBtn) {
+    rankBtn.addEventListener('click', function() {
+      var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+      if (w >= 70) {
+        showScreen('ranking');
+      } else {
+        showNavToast('\uB7AD\uD0B9 \u2014 \uC6E8\uC774\uBE0C 70 \uB2EC\uC131 \uC2DC \uD574\uAE08');
+      }
+    });
   }
-
-  container.style.webkitMaskImage = mask;
-  container.style.maskImage = mask;
-}
+  // 랭킹 버튼 해금 상태 갱신
+  window._updateRankBtn = function() {
+    var rb = document.getElementById('btn-right-ranking');
+    if (!rb) return;
+    var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+    rb.style.color = w >= 70 ? '#00ffff' : '#334455';
+    rb.style.borderColor = w >= 70 ? '#0a3344' : '#0a1520';
+  };
+}());
 
 /* showScreen('home') 호출 시 아이콘 갱신 */
 (function () {
@@ -11723,7 +11712,10 @@ function updateLeftFade(container) {
   if (typeof _orig === 'function') {
     window.showScreen = function (name) {
       _orig.apply(this, arguments);
-      if (name === 'home') { try { renderLeftIcons(); } catch(e) {} }
+      if (name === 'home') {
+        try { renderLeftIcons(); } catch(e) {}
+        try { window._updateRankBtn(); } catch(e) {}
+      }
     };
   }
 }());
