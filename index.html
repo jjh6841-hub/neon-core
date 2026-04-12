@@ -1455,7 +1455,7 @@ canvas {
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:80px; left:8px; width:52px; height:208px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; z-index:10; display:flex; flex-direction:column; -webkit-mask-image:linear-gradient(to bottom, black 0%, black 70%, transparent 100%); mask-image:linear-gradient(to bottom, black 0%, black 70%, transparent 100%);"></div>
+    <div id="left-icons-container" style="position:absolute; top:40px; left:6px; width:46px; height:182px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; z-index:10; display:flex; flex-direction:column; -webkit-mask-image:linear-gradient(to bottom, black 0%, black 70%, transparent 100%); mask-image:linear-gradient(to bottom, black 0%, black 70%, transparent 100%);"></div>
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:20px 0;">NEON CORE</div>
@@ -11663,11 +11663,11 @@ function renderLeftIcons() {
       var unlocked = w >= icon.unlockWave;
 
       var btn = document.createElement('button');
-      btn.style.cssText = 'width:52px; height:52px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a1520') + '; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; margin-bottom:8px; flex-shrink:0;';
+      btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a1520') + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:pointer; margin-bottom:6px; flex-shrink:0;';
       if (!unlocked) {
-        btn.innerHTML = '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;"><span style="font-size:16px; color:#445566; line-height:1;">' + icon.icon + '</span><span style="position:absolute;top:-4px;right:-8px;font-size:8px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span><span style="font-size:8px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span></div>';
+        btn.innerHTML = '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;"><span style="font-size:15px; color:#445566; line-height:1;">' + icon.icon + '</span><span style="position:absolute;top:-3px;right:-7px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span><span style="font-size:7px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span></div>';
       } else {
-        btn.innerHTML = '<span style="font-size:16px; color:#00ffff; line-height:1;">' + icon.icon + '</span><span style="font-size:8px; color:#7aacac; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
+        btn.innerHTML = '<span style="font-size:15px; color:#00ffff; line-height:1;">' + icon.icon + '</span><span style="font-size:7px; color:#7aacac; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
       }
 
       if (unlocked) {
