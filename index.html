@@ -1455,7 +1455,7 @@ canvas {
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:16px; left:6px; width:46px; height:182px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; z-index:10; display:flex; flex-direction:column; -webkit-mask-image:linear-gradient(to bottom, black 0%, black 70%, transparent 100%); mask-image:linear-gradient(to bottom, black 0%, black 70%, transparent 100%);"></div>
+    <div id="left-icons-container" style="position:absolute; top:16px; left:6px; width:46px; height:182px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; -ms-overflow-style:none; z-index:10; display:flex; flex-direction:column;"></div>
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:50px 0 16px 0;">NEON CORE</div>
@@ -11687,6 +11687,34 @@ function renderLeftIcons() {
       container.appendChild(btn);
     })(LEFT_ICONS[i]);
   }
+
+  // 스크롤 이벤트 연결 + 초기 페이드
+  container.removeEventListener('scroll', container._fadeHandler);
+  container._fadeHandler = function() { updateLeftFade(container); };
+  container.addEventListener('scroll', container._fadeHandler);
+  setTimeout(function() { updateLeftFade(container); }, 50);
+}
+
+function updateLeftFade(container) {
+  var scrollTop = container.scrollTop;
+  var scrollHeight = container.scrollHeight;
+  var clientHeight = container.clientHeight;
+  var atTop = scrollTop <= 0;
+  var atBottom = scrollTop + clientHeight >= scrollHeight - 2;
+
+  var mask;
+  if (atTop && atBottom) {
+    mask = 'none';
+  } else if (atTop) {
+    mask = 'linear-gradient(to bottom, black 60%, transparent 100%)';
+  } else if (atBottom) {
+    mask = 'linear-gradient(to top, black 60%, transparent 100%)';
+  } else {
+    mask = 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)';
+  }
+
+  container.style.webkitMaskImage = mask;
+  container.style.maskImage = mask;
 }
 
 /* showScreen('home') 호출 시 아이콘 갱신 */
