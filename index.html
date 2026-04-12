@@ -741,50 +741,7 @@ canvas {
 }
 
 /* ── Pause menu ── */
-#pause-screen {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(10,14,26,0.92);
-  -webkit-flex-direction: column;
-  flex-direction: column;
-  -webkit-align-items: center;
-  align-items: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  z-index: 200;
-  gap: 8px;
-  padding: 24px;
-}
-#pause-screen.show { display: -webkit-flex; display: flex; }
-.pause-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-.pause-btn {
-  width: 240px;
-  height: 48px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0 16px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: center;
-  -webkit-appearance: none;
-  -webkit-transition: filter 0.1s;
-  transition: filter 0.1s;
-}
-.pause-btn:active { filter: brightness(1.3); }
-.pause-btn.green { border-color: var(--accent-green); }
-.pause-btn.red   { border-color: var(--accent-red); }
+/* pause-overlay uses inline styles */
 
 /* ── Confirm popup ── */
 #confirm-popup {
@@ -893,7 +850,7 @@ canvas {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(3,11,16,0.95);
+  background: #030b10;
   -webkit-flex-direction: column;
   flex-direction: column;
   -webkit-align-items: center;
@@ -901,8 +858,10 @@ canvas {
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   z-index: 250;
-  padding: 40px 20px 20px;
+  padding: 0;
   gap: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 #settings-screen.show { display: -webkit-flex; display: flex; }
 .settings-title {
@@ -1210,19 +1169,42 @@ canvas {
     <!-- 궁극 무기 쿨타임 HUD -->
     <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
 
-    <!-- 광고 코인 보너스 버튼 -->
-    <div id="ad-bonus-btn" style="position:absolute;top:56px;left:8px;z-index:52;background:#0a1a2a;border:1px solid #0a3344;padding:3px 8px;display:flex;align-items:center;gap:5px;cursor:pointer;pointer-events:auto;" onclick="window._showAdBonusPopup&&window._showAdBonusPopup()">
-      <span style="font-size:18px;line-height:1;">▶</span>
-      <div style="display:flex;flex-direction:column;gap:0px;line-height:1.2;">
-        <span style="color:#00ffff;font-size:9px;font-family:monospace;font-weight:bold;">◈ BONUS</span>
-        <span id="ad-bonus-label" style="color:#556677;font-size:8px;font-family:monospace;">광고 보기</span>
+    <!-- ═══ HUD 좌측 영역 ═══ -->
+    <div id="hud-left" style="position:absolute;top:8px;left:8px;z-index:52;pointer-events:none;font-family:'Courier New',monospace;display:flex;flex-direction:column;gap:4px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="hud-wave" style="font-size:12px;color:#00ffff;letter-spacing:2px;font-weight:bold;">WAVE 01</span>
+        <div style="width:80px;height:5px;background:#1a2a3a;border-radius:3px;overflow:hidden;">
+          <div id="hud-wave-bar" style="height:100%;background:#00ffff;border-radius:3px;width:0%;transition:width 0.3s;"></div>
+        </div>
       </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span style="font-size:9px;color:#445566;">HP</span>
+        <div style="width:100px;height:7px;background:#1a0000;border-radius:3px;overflow:hidden;">
+          <div id="hud-hp-bar" style="height:100%;background:#ff4444;border-radius:3px;width:100%;transition:width 0.2s;"></div>
+        </div>
+        <span id="hud-hp-text" style="font-size:9px;color:#ff4444;"></span>
+      </div>
+      <div style="color:#f59e0b;font-size:12px;">◈ <span id="hud-gold-battle">0</span></div>
+      <div style="color:#00ffff;font-size:12px;">◆ <span id="hud-gems-battle">0</span></div>
+      <div style="color:#ff6600;font-size:12px;">▸ <span id="hud-chips">0</span></div>
     </div>
 
-    <!-- 우측 퀵 버튼 그룹 -->
-    <div id="ingame-quickbtns" style="position:absolute;top:8px;right:8px;z-index:52;display:flex;flex-direction:column;gap:4px;pointer-events:auto;">
-      <button id="ingame-menu" title="메뉴" style="width:34px;height:34px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-size:17px;cursor:pointer;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;">≡</button>
-      <button id="ingame-mission" title="임무" style="font-family:'Courier New',monospace;font-size:9px;color:#00ffff;background:#0a1a2a;border:1px solid #0a3344;border-radius:6px;padding:4px 6px;cursor:pointer;-webkit-appearance:none;position:relative;">임무<span id="ingame-miss-badge" style="display:none;position:absolute;top:3px;right:3px;width:9px;height:9px;background:#ef4444;border-radius:50%;"></span></button>
+    <!-- ═══ HUD 우측 영역 ═══ -->
+    <div id="hud-right" style="position:absolute;top:8px;right:8px;z-index:52;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:auto;">
+      <button id="ingame-menu" title="메뉴" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #1a3444;border-radius:6px;color:#00ffff;font-size:16px;cursor:pointer;-webkit-appearance:none;">☰</button>
+      <div style="position:relative;">
+        <button id="ingame-mission" title="임무" style="background:#0a1a2a;border:1px solid #0a3344;border-radius:6px;padding:4px 8px;color:#00ffff;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;-webkit-appearance:none;">임무</button>
+        <div id="ingame-miss-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1px solid #06061a;"></div>
+      </div>
+      <div id="bonus-btn-area">
+        <div id="ad-bonus-btn" style="background:#0a1a2a;border:1px solid #0a3344;padding:3px 8px;display:flex;align-items:center;gap:5px;cursor:pointer;" onclick="window._showAdBonusPopup&&window._showAdBonusPopup()">
+          <span style="font-size:18px;line-height:1;">▶</span>
+          <div style="display:flex;flex-direction:column;gap:0px;line-height:1.2;">
+            <span style="color:#00ffff;font-size:9px;font-family:monospace;font-weight:bold;">◈ BONUS</span>
+            <span id="ad-bonus-label" style="color:#556677;font-size:8px;font-family:monospace;">광고 보기</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="screen-shop">
       <div id="tab-bar">
@@ -1246,13 +1228,12 @@ canvas {
 </div>
 
 <!-- ── 일시정지 메뉴 ── -->
-<div id="pause-screen">
-  <div class="pause-title">|| 일시정지</div>
-  <button class="pause-btn green" id="btn-resume">▶ 계속하기</button>
-  <button class="pause-btn" id="btn-restart">:: 다시하기</button>
-  <button class="pause-btn" id="btn-home">[] 홈화면으로</button>
-  <button class="pause-btn" id="btn-achieve">★ 업적</button>
-  <button class="pause-btn" id="btn-settings">설정</button>
+<div id="pause-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(3,11,16,0.92);flex-direction:column;align-items:center;justify-content:center;z-index:500;gap:10px;">
+  <div style="font-family:'Courier New',monospace;font-size:16px;color:#00ffff;letter-spacing:4px;margin-bottom:32px;">‖ 일시정지</div>
+  <button id="btn-resume" style="width:240px;padding:14px;background:transparent;border:1px solid #00ffff;border-radius:8px;color:#00ffff;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">▶ 계속하기</button>
+  <button id="btn-restart" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#7aacac;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">↺ 다시하기</button>
+  <button id="btn-home" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#7aacac;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⌂ 홈화면으로</button>
+  <button id="btn-settings" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#445566;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">◎ 설정</button>
 </div>
 
 <!-- ── 업적 화면 ── -->
@@ -1266,33 +1247,63 @@ canvas {
 
 <!-- ── 설정 화면 ── -->
 <div id="settings-screen">
-  <div class="settings-title">설정 SETTINGS</div>
-  <div class="settings-card">
-    <div class="setting-row">
-      <span class="setting-label">SFX 효과음</span>
-      <button class="toggle-track on" id="tog-sound"><span class="toggle-knob"></span></button>
+
+  <!-- 좌측 상단 뒤로가기 -->
+  <button id="btn-settings-back" style="position:absolute;top:14px;left:14px;background:none;border:none;color:#00ffff;font-family:'Courier New',monospace;font-size:12px;cursor:pointer;padding:4px;-webkit-appearance:none;">◀ 뒤로</button>
+
+  <!-- 타이틀 -->
+  <div style="text-align:center;padding:48px 0 24px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
+
+  <div style="padding:0 16px;display:flex;flex-direction:column;gap:0;width:100%;max-width:340px;">
+
+    <!-- 사운드 섹션 -->
+    <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;overflow:hidden;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1a2a3a;">
+        <div style="font-family:'Courier New',monospace;font-size:12px;color:#00ffff;">SFX 효과음</div>
+        <button class="toggle-track on" id="tog-sound"><span class="toggle-knob"></span></button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1a2a3a;">
+        <div style="font-family:'Courier New',monospace;font-size:12px;color:#00ffff;">BGM 배경음악</div>
+        <button class="toggle-track on" id="tog-music"><span class="toggle-knob"></span></button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
+        <div style="font-family:'Courier New',monospace;font-size:12px;color:#00ffff;">VIB 진동</div>
+        <button class="toggle-track on" id="tog-vibration"><span class="toggle-knob"></span></button>
+      </div>
     </div>
-    <div class="setting-row">
-      <span class="setting-label">BGM 배경음악</span>
-      <button class="toggle-track on" id="tog-music"><span class="toggle-knob"></span></button>
+
+    <!-- 버튼 섹션 — 2열 그리드 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <button onclick="if(typeof _openAccount==='function')_openAccount()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◉<br>계정</button>
+      <button onclick="if(typeof _showStatsPopup==='function')_showStatsPopup()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">▣<br>통계</button>
+      <button onclick="if(typeof _showEncyclopedia==='function')_showEncyclopedia()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◈<br>백과사전</button>
+      <button onclick="if(typeof _showPatchNotes==='function')_showPatchNotes()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◌<br>패치노트</button>
+      <button onclick="if(typeof _showContactPopup==='function')_showContactPopup()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">✉<br>문의하기</button>
+      <button id="btn-data-reset" style="padding:16px 8px;background:#0c0c22;border:1px solid #ef4444;border-radius:10px;color:#ef4444;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">✕<br>초기화</button>
     </div>
-    <div class="setting-row">
-      <span class="setting-label">VIB 진동</span>
-      <button class="toggle-track on" id="tog-vibration"><span class="toggle-knob"></span></button>
+
+    <!-- 하단 정보 -->
+    <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #1a2a3a;cursor:pointer;" onclick="window.open('privacy.html','_blank')">
+        <span style="font-family:'Courier New',monospace;font-size:11px;color:#7aacac;">개인정보 처리방침</span>
+        <span style="color:#445566;font-size:12px;">▶</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;cursor:pointer;" onclick="window.open('terms.html','_blank')">
+        <span style="font-family:'Courier New',monospace;font-size:11px;color:#7aacac;">이용약관</span>
+        <span style="color:#445566;font-size:12px;">▶</span>
+      </div>
     </div>
-    <div class="setting-row">
-      <span class="setting-label">LNG 언어</span>
-      <button class="toggle-track" id="tog-lang"><span class="toggle-knob"></span></button>
+
+    <!-- 고유 ID + 버전 -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px;margin-bottom:24px;">
+      <div style="font-family:'Courier New',monospace;font-size:10px;color:#334455;display:flex;align-items:center;gap:6px;">
+        <span>ID: <span id="display-uid">...</span></span>
+        <button onclick="copyUID()" style="background:transparent;border:1px solid #1a3444;color:#4a7a8a;font-family:'Courier New',monospace;font-size:9px;padding:2px 6px;border-radius:4px;cursor:pointer;-webkit-appearance:none;">복사</button>
+      </div>
+      <span style="font-family:'Courier New',monospace;font-size:10px;color:#334455;">v1.0.0</span>
     </div>
+
   </div>
-  <div class="settings-btn-row">
-    <button class="settings-back-btn" id="btn-settings-back">← 뒤로</button>
-    <button class="settings-reset-btn" id="btn-data-reset">데이터 초기화</button>
-  </div>
-  <a href="privacy.html" target="_blank"
-     style="color:#334455; font-size:10px; font-family:monospace; text-decoration:none;">
-    개인정보처리방침
-  </a>
 </div>
 
 <!-- ── 확인 팝업 ── -->
@@ -1437,7 +1448,10 @@ canvas {
     <!-- 우측 아이콘 버튼 -->
     <div style="position:absolute; right:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
       <button id="home-btn-settings" title="설정" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;line-height:1.3;padding:0;">⚙<br><span style="font-size:7px;">설정</span></button>
-      <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#94a3b8;position:relative;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#f59e0b;font-size:7px;">0/8</span><span id="home-miss-badge" style="display:none;position:absolute;top:3px;right:3px;width:8px;height:8px;background:#ef4444;border-radius:50%;"></span></button>
+      <div style="position:relative;display:inline-block;">
+        <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#94a3b8;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#f59e0b;font-size:7px;">0/8</span></button>
+        <div id="home-miss-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1px solid #06061a;"></div>
+      </div>
     </div>
 
     <!-- 좌측 아이콘 버튼 -->
@@ -1840,94 +1854,94 @@ const UPGRADES = [
   { key:'dmg',     tab:'atk', icon:'/',  name:'공격력',   baseCost:5,  unlock:null,
     cost()   { return upgCost('dmg',5); },
     stat()   { return '피해 '+G.tower.dmg; },
-    canBuy() { return G.gold>=upgCost('dmg',5); },
-    apply()  { var c=upgCost('dmg',5); G.gold-=c; G.upgLvl.dmg=(G.upgLvl.dmg||0)+1; G.tower.dmg++; },
+    canBuy() { return coreChips>=upgCost('dmg',5); },
+    apply()  { var c=upgCost('dmg',5); coreChips-=c; G.upgLvl.dmg=(G.upgLvl.dmg||0)+1; G.tower.dmg++; },
   },
   { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null,
     cost()   { return upgCost('spd',7); },
-    stat()   { return (G.tower.atkMs/1000).toFixed(2)+'s'; },
-    canBuy() { return G.gold>=upgCost('spd',7) && G.tower.atkMs>200; },
-    apply()  { var c=upgCost('spd',7); G.gold-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; G.tower.atkMs=Math.max(200,G.tower.atkMs-100); },
+    stat()   { return 'x'+(1.00 + (G.upgLvl.spd||0) * 0.05).toFixed(2); },
+    canBuy() { return coreChips>=upgCost('spd',7) && G.tower.atkMs>200; },
+    apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var speedMult=1.00+(G.upgLvl.spd)*0.05; G.tower.atkMs=Math.max(200,Math.round(1000/speedMult)); },
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
     stat()   { return 'Lv.'+G.rangeLevel; },
-    canBuy() { return G.gold>=upgCost('rng',6); },
-    apply()  { var c=upgCost('rng',6); G.gold-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
+    canBuy() { return coreChips>=upgCost('rng',6); },
+    apply()  { var c=upgCost('rng',6); coreChips-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
   },
   { key:'crit',    tab:'atk', icon:'!',  name:'치명타',   baseCost:8,  unlock:'crit',
     cost()   { return upgCost('crit',8); },
     stat()   { return Math.round(G.critChance*100)+'%'; },
-    canBuy() { return G.gold>=upgCost('crit',8); },
-    apply()  { var c=upgCost('crit',8); G.gold-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.08); },
+    canBuy() { return coreChips>=upgCost('crit',8); },
+    apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.08); },
   },
   { key:'multi',   tab:'atk', icon:'+',  name:'다발',     baseCost:10, unlock:'multi',
     cost()   { return upgCost('multi',10); },
     stat()   { return G.multiShot+'발'; },
-    canBuy() { return G.gold>=upgCost('multi',10); },
-    apply()  { var c=upgCost('multi',10); G.gold-=c; G.upgLvl.multi=(G.upgLvl.multi||0)+1; G.multiShot++; },
+    canBuy() { return coreChips>=upgCost('multi',10); },
+    apply()  { var c=upgCost('multi',10); coreChips-=c; G.upgLvl.multi=(G.upgLvl.multi||0)+1; G.multiShot++; },
   },
   { key:'pierce',  tab:'atk', icon:'>',  name:'관통',     baseCost:10, unlock:'pierce',
     cost()   { return upgCost('pierce',10); },
     stat()   { return G.pierce+'관'; },
-    canBuy() { return G.gold>=upgCost('pierce',10); },
-    apply()  { var c=upgCost('pierce',10); G.gold-=c; G.upgLvl.pierce=(G.upgLvl.pierce||0)+1; G.pierce++; },
+    canBuy() { return coreChips>=upgCost('pierce',10); },
+    apply()  { var c=upgCost('pierce',10); coreChips-=c; G.upgLvl.pierce=(G.upgLvl.pierce||0)+1; G.pierce++; },
   },
   // ─ 방어 탭 ─
   { key:'heal',    tab:'def', icon:'+',  name:'회복',     baseCost:8,  unlock:null,
     cost()   { return upgCost('heal',8); },
     stat()   { return G.tower.hp+'/'+G.tower.maxHp; },
-    canBuy() { return G.gold>=upgCost('heal',8) && G.tower.hp<G.tower.maxHp; },
-    apply()  { var c=upgCost('heal',8); G.gold-=c; G.upgLvl.heal=(G.upgLvl.heal||0)+1; G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.ceil(G.tower.maxHp*0.4)); },
+    canBuy() { return coreChips>=upgCost('heal',8) && G.tower.hp<G.tower.maxHp; },
+    apply()  { var c=upgCost('heal',8); coreChips-=c; G.upgLvl.heal=(G.upgLvl.heal||0)+1; G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.ceil(G.tower.maxHp*0.4)); },
   },
   { key:'maxhp',   tab:'def', icon:'+',  name:'최대체력',  baseCost:7,  unlock:null,
     cost()   { return upgCost('maxhp',7); },
     stat()   { return '최대 '+G.tower.maxHp; },
-    canBuy() { return G.gold>=upgCost('maxhp',7); },
-    apply()  { var c=upgCost('maxhp',7); G.gold-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; G.tower.maxHp+=3; G.tower.hp+=3; },
+    canBuy() { return coreChips>=upgCost('maxhp',7); },
+    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; G.tower.maxHp+=3; G.tower.hp+=3; },
   },
   { key:'armor',   tab:'def', icon:'[]',  name:'방어구',   baseCost:6,  unlock:null,
     cost()   { return upgCost('armor',6); },
     stat()   { return G.armor+'중첩'; },
-    canBuy() { return G.gold>=upgCost('armor',6); },
-    apply()  { var c=upgCost('armor',6); G.gold-=c; G.upgLvl.armor=(G.upgLvl.armor||0)+1; G.armor++; },
+    canBuy() { return coreChips>=upgCost('armor',6); },
+    apply()  { var c=upgCost('armor',6); coreChips-=c; G.upgLvl.armor=(G.upgLvl.armor||0)+1; G.armor++; },
   },
   { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp',
     cost()   { return upgCost('vamp',9); },
     stat()   { return G.lifeSteal+'/킬'; },
-    canBuy() { return G.gold>=upgCost('vamp',9); },
-    apply()  { var c=upgCost('vamp',9); G.gold-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal++; },
+    canBuy() { return coreChips>=upgCost('vamp',9); },
+    apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal++; },
   },
   { key:'regen',   tab:'def', icon:'~',  name:'재생',     baseCost:11, unlock:'regen',
     cost()   { return upgCost('regen',11); },
     stat()   { return G.regenRate+'/s'; },
-    canBuy() { return G.gold>=upgCost('regen',11); },
-    apply()  { var c=upgCost('regen',11); G.gold-=c; G.upgLvl.regen=(G.upgLvl.regen||0)+1; G.regenRate++; },
+    canBuy() { return coreChips>=upgCost('regen',11); },
+    apply()  { var c=upgCost('regen',11); coreChips-=c; G.upgLvl.regen=(G.upgLvl.regen||0)+1; G.regenRate++; },
   },
   // ─ 특수 탭 ─
   { key:'explode', tab:'spc', icon:'*',  name:'폭발',     baseCost:15, unlock:'explode',
     cost()   { return upgCost('explode',15); },
     stat()   { return 'r='+G.explodeR; },
-    canBuy() { return G.gold>=upgCost('explode',15); },
-    apply()  { var c=upgCost('explode',15); G.gold-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
+    canBuy() { return coreChips>=upgCost('explode',15); },
+    apply()  { var c=upgCost('explode',15); coreChips-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
   },
   { key:'slow',    tab:'spc', icon:'#',  name:'감속',     baseCost:12, unlock:'slow',
     cost()   { return upgCost('slow',12); },
     stat()   { return Math.round(G.slowPct*100)+'%'; },
-    canBuy() { return G.gold>=upgCost('slow',12); },
-    apply()  { var c=upgCost('slow',12); G.gold-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
+    canBuy() { return coreChips>=upgCost('slow',12); },
+    apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
   },
   { key:'gemup',   tab:'spc', icon:'◆',  name:'젬증폭',   baseCost:12, unlock:'gemup',
     cost()   { return upgCost('gemup',12); },
     stat()   { return 'x'+G.gemBonus.toFixed(1); },
-    canBuy() { return G.gold>=upgCost('gemup',12); },
-    apply()  { var c=upgCost('gemup',12); G.gold-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
+    canBuy() { return coreChips>=upgCost('gemup',12); },
+    apply()  { var c=upgCost('gemup',12); coreChips-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
   },
   { key:'goldup',  tab:'spc', icon:'G',  name:'골드증폭',  baseCost:11, unlock:'goldup',
     cost()   { return upgCost('goldup',11); },
     stat()   { return 'x'+G.goldBonus.toFixed(1); },
-    canBuy() { return G.gold>=upgCost('goldup',11); },
-    apply()  { var c=upgCost('goldup',11); G.gold-=c; G.upgLvl.goldup=(G.upgLvl.goldup||0)+1; G.goldBonus=parseFloat((G.goldBonus+0.5).toFixed(1)); },
+    canBuy() { return coreChips>=upgCost('goldup',11); },
+    apply()  { var c=upgCost('goldup',11); coreChips-=c; G.upgLvl.goldup=(G.upgLvl.goldup||0)+1; G.goldBonus=parseFloat((G.goldBonus+0.5).toFixed(1)); },
   },
 ];
 
@@ -2003,6 +2017,10 @@ let loopGen  = 0;
 let gameSpeed = 1;
 let _pauseBtnRect = { x: 0, y: 0, w: 28, h: 28 };
 let _confirmCb    = null;
+var coreChips = 0;
+var baseStartChips = 0;
+var killCountForGold = 0;
+var isPaused = false;
 
 function createState() {
   return {
@@ -2117,6 +2135,11 @@ function startGame() {
   G.gold  = PERM.gold;
   G.gems  = PERM.gems;
   G.speed = gameSpeed;
+  coreChips = baseStartChips;
+  killCountForGold = 0;
+  isPaused = false;
+  var _pov = document.getElementById('pause-overlay');
+  if (_pov) _pov.style.display = 'none';
   const _sb = document.getElementById('speed-btn');
   if (_sb) _sb.textContent = G.speed + '×';
   applyPermStats();
@@ -2181,11 +2204,10 @@ function startWave() {
   G.spawnIntvl  = 800;  // fixed 0.8s between spawns
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
-  // Wave start gold bonus
+  // Wave start core chip bonus
   var bonus = w * 2;
-  G.gold += bonus;
-  G.goldEarned += bonus;
-  G.waveBonusText = '+' + bonus + '골드 웨이브 보너스';
+  coreChips += bonus;
+  G.waveBonusText = '+' + bonus + ' \uD83D\uDD38 웨이브 보너스';
   G.waveBonusTimer = 0;
 }
 
@@ -2194,10 +2216,22 @@ function startWave() {
 ═══════════════════════════════════════════════════════════════ */
 function gameLoop(gen, ts) {
   if (gen !== loopGen) return;
+  if (isPaused) {
+    G.lastTime = ts;
+    render();
+    requestAnimationFrame(function(nts) { gameLoop(gen, nts); });
+    return;
+  }
   const rawDt = Math.min(ts - G.lastTime, 50);
   G.lastTime = ts;
-  const steps = (G.speed > 1 && G.phase === 'playing') ? G.speed : 1;
-  for (let i = 0; i < steps; i++) update(rawDt);
+  var spd = (G.phase === 'playing' || G.phase === 'between') ? (G.speed || 1) : 1;
+  if (spd <= 2) {
+    update(rawDt * spd);
+  } else {
+    var half = rawDt * spd / 2;
+    update(half);
+    update(half);
+  }
   updateShake();
   render();
   if (G.phase !== 'gameover') {
@@ -2343,23 +2377,31 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          const gEarned  = Math.floor(e.gold * G.goldBonus);
+          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1);
+          coreChips += chipEarned;
+          if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
           const gmEarned = e.gem ? Math.floor(e.gem * G.gemBonus) : 0;
-          G.gold       += gEarned;
           G.gems       += gmEarned;
           G.killCount++;
-          G.goldEarned += gEarned;
           PERM.totalKills++;
           if (e.boss) {
             PERM.bossKills++;
+            G.gold += 5; G.goldEarned += 5; PERM.gold += 5;
+            G.floatTexts.push({ x: e.x, y: e.y + 12, text: '+5 \u25C8', color: '#f59e0b', timer: 0 });
             // ev_range_boss: 보스가 사거리 밖에서 처치됐는지 확인
             var _rbDx = e.x - G.cx, _rbDy = e.y - G.cy;
             if (Math.sqrt(_rbDx * _rbDx + _rbDy * _rbDy) > G.tower.range) {
               try { document.dispatchEvent(new CustomEvent('ev_range_boss', { detail: { x: e.x, y: e.y } })); } catch(_) {}
             }
+          } else {
+            killCountForGold++;
+            if (killCountForGold >= 10) {
+              killCountForGold -= 10;
+              G.gold += 1; G.goldEarned += 1; PERM.gold += 1;
+              G.floatTexts.push({ x: e.x, y: e.y + 12, text: '+1 \u25C8', color: '#f59e0b', timer: 0 });
+            }
           }
           // Float text & death particles
-          if (gEarned > 0) G.floatTexts.push({ x: e.x, y: e.y, text: '+' + gEarned, timer: 0 });
           for (let dp = 0; dp < 4; dp++) {
             const da = Math.PI / 2 * dp + Math.PI / 4;
             G.deathParticles.push({ x: e.x, y: e.y, vx: Math.cos(da) * 40, vy: Math.sin(da) * 40, timer: 0 });
@@ -2383,13 +2425,13 @@ function update(dt) {
               if (edx * edx + edy * edy < G.explodeR * G.explodeR) {
                 ek.hp -= exDmg;
                 if (ek.hp <= 0) {
-                  const ekGold = Math.floor(ek.gold * G.goldBonus);
-                  G.gold       += ekGold;
+                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1);
+                  coreChips += ekChip;
                   G.killCount++;
-                  G.goldEarned += ekGold;
                   PERM.totalKills++;
-                  if (ek.boss) PERM.bossKills++;
-                  if (ekGold > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekGold, timer: 0 });
+                  if (ek.boss) { PERM.bossKills++; G.gold += 5; G.goldEarned += 5; PERM.gold += 5; }
+                  else { killCountForGold++; if (killCountForGold >= 10) { killCountForGold -= 10; G.gold += 1; G.goldEarned += 1; PERM.gold += 1; } }
+                  if (ekChip > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekChip + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
                   for (let dp2 = 0; dp2 < 4; dp2++) {
                     const da2 = Math.PI / 2 * dp2 + Math.PI / 4;
                     G.deathParticles.push({ x: ek.x, y: ek.y, vx: Math.cos(da2) * 40, vy: Math.sin(da2) * 40, timer: 0 });
@@ -2534,6 +2576,7 @@ function update(dt) {
 }
 
 function mkEnemy(etype) {
+  if (typeof unlockEnemyEntry === 'function') unlockEnemyEntry(etype);
   var zoom  = G.zoom;
   var halfW = CW / (2 * zoom);
   var halfH = CH / (2 * zoom);
@@ -3098,13 +3141,13 @@ function render() {
     ctx.restore();
   }
 
-  // Float texts (gold pickup)
+  // Float texts (currency pickup)
   for (const ft of G.floatTexts) {
     const ftAlpha = 1 - ft.timer / 500;
     ctx.save();
     ctx.globalAlpha = Math.max(0, ftAlpha);
     ctx.font = 'bold 11px "Courier New", monospace';
-    ctx.fillStyle = '#f59e0b';
+    ctx.fillStyle = ft.color || '#f59e0b';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(ft.text, ft.x, ft.y - ft.timer * 0.04);
@@ -3243,7 +3286,7 @@ function renderTowerPopup() {
   if (!G || !G.showTowerStats) return;
   const lines = [
     'ATK 공격력: ' + G.tower.dmg,
-    'SPD 속도: '   + (G.tower.atkMs / 1000).toFixed(2) + 's',
+    'SPD 속도: x'  + (1000 / Math.max(200, G.tower.atkMs)).toFixed(2),
     'RNG 범위: '   + Math.round(G.tower.range),
     'DEF 방어구: ' + G.armor,
     'HP: '     + Math.ceil(G.tower.hp) + '/' + G.tower.maxHp,
@@ -3283,88 +3326,45 @@ function rrect(x, y, w, h, r) {
 }
 
 function renderHUD() {
-  const pad  = 8;
-  const panH = 50;
+  // ── HTML HUD 업데이트 ──
+  var waveEl = document.getElementById('hud-wave');
+  if (waveEl) {
+    var suffix = G.bossType === 'hyper' ? ' HYPER' : G.bossType === 'elite' ? ' ELITE' : G.isBossWave ? ' BOSS' : '';
+    waveEl.textContent = 'WAVE ' + String(G.wave).padStart(2, '0') + suffix;
+  }
+  var waveBar = document.getElementById('hud-wave-bar');
+  if (waveBar && G.spawnQ) {
+    var prog = G.spawnQ.length > 0 ? ((G.spawnQ.length - G.enemies.length) / G.spawnQ.length * 100) : 0;
+    if (G.spawnIdx < G.spawnQ.length) prog = (G.spawnIdx / G.spawnQ.length * 50);
+    else prog = G.enemies.length === 0 ? 100 : (50 + (1 - G.enemies.length / G.spawnQ.length) * 50);
+    waveBar.style.width = Math.min(100, Math.max(0, prog)) + '%';
+  }
+  var hpBar = document.getElementById('hud-hp-bar');
+  var hpText = document.getElementById('hud-hp-text');
+  if (hpBar) {
+    var hr = G.tower.hp / G.tower.maxHp;
+    hpBar.style.width = Math.max(0, hr * 100) + '%';
+    hpBar.style.background = hr <= 0.3 ? '#ef4444' : hr <= 0.5 ? '#f59e0b' : '#00ff88';
+  }
+  if (hpText) hpText.textContent = Math.ceil(G.tower.hp) + '/' + Math.ceil(G.tower.maxHp);
+  var goldEl = document.getElementById('hud-gold-battle');
+  if (goldEl) goldEl.textContent = G.gold;
+  var gemsEl = document.getElementById('hud-gems-battle');
+  if (gemsEl) gemsEl.textContent = G.gems;
+  var chipsEl = document.getElementById('hud-chips');
+  if (chipsEl) chipsEl.textContent = coreChips;
 
-  ctx.save();
-
-  // ── HUD background panel ──
-  ctx.fillStyle = '#030b10';
-  ctx.fillRect(0, 0, CW, panH);
-  ctx.strokeStyle = 'rgba(0,255,255,0.20)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, panH);
-  ctx.lineTo(CW, panH);
-  ctx.stroke();
-
-  // ── Wave label ──
-  ctx.textBaseline = 'middle';
-  ctx.font         = '700 12px "Courier New", monospace';
-  ctx.fillStyle    = '#00ffff';
-  ctx.fillText('WAVE ' + String(G.wave).padStart(2, '0') + (G.bossType === 'hyper' ? '  HYPER' : G.bossType === 'elite' ? '  ELITE' : G.isBossWave ? '  BOSS' : ''), pad, pad + 7);
-
-  // ── HP bar (4px) ──
-  const barW = Math.floor(CW * 0.36);
-  const barH = 4;
-  const barX = pad;
-  const barY = pad + 22;
-  const hr   = G.tower.hp / G.tower.maxHp;
-
-  ctx.fillStyle = '#0a1a2a';
-  ctx.fillRect(barX, barY, barW, barH);
-  ctx.fillStyle = '#00ff88';
-  if (hr <= 0.3) ctx.fillStyle = '#ef4444';
-  else if (hr <= 0.5) ctx.fillStyle = '#f59e0b';
-  ctx.fillRect(barX, barY, Math.max(0, barW * hr), barH);
-
-  ctx.font         = '400 10px "Courier New", monospace';
-  ctx.fillStyle    = '#94a3b8';
-  ctx.textBaseline = 'top';
-  ctx.fillText((G.tower.hp).toFixed(1) + ' / ' + (G.tower.maxHp).toFixed(1), barX, barY + barH + 3);
-
-  // ── Pause button (top right 28×28, square) ──
-  const pbW = 28, pbH = 28;
-  const pbX = CW - pad - pbW;
-  const pbY = (panH - pbH) / 2;
-  _pauseBtnRect = { x: pbX, y: pbY, w: pbW, h: pbH };
-  ctx.fillStyle = '#030b10';
-  ctx.fillRect(pbX, pbY, pbW, pbH);
-  ctx.strokeStyle = '#0a3344';
-  ctx.lineWidth   = 1;
-  ctx.strokeRect(pbX, pbY, pbW, pbH);
-  ctx.font         = '14px "Courier New", monospace';
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle    = '#00ffff';
-  ctx.fillText('||', pbX + pbW / 2, pbY + pbH / 2);
-
-  // ── Gold & Gems (right, shifted left of pause btn) ──
-  const rightEdge = pbX - 6;
-  ctx.textAlign    = 'right';
-  ctx.textBaseline = 'middle';
-  ctx.font         = '700 12px "Courier New", monospace';
-  ctx.fillStyle    = '#f59e0b';
-  ctx.fillText('\u25C8 ' + (typeof formatNumber==='function'?formatNumber(G.gold):G.gold), rightEdge, pad + 7);
-  ctx.fillStyle    = '#00ffff';
-  ctx.fillText('\u25C6 ' + (typeof formatNumber==='function'?formatNumber(G.gems):G.gems), rightEdge, pad + 24);
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '10px "Courier New", monospace';
-  ctx.fillText('\u2620 ' + G.killCount, rightEdge, pad + 38);
-  ctx.textAlign    = 'left';
-
-  // ── Buff timer ──
+  // ── Buff timer (canvas) ──
   if (G.tower.buffMs > 0) {
-    const sec = Math.ceil(G.tower.buffMs / 1000);
+    var sec = Math.ceil(G.tower.buffMs / 1000);
+    ctx.save();
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.font         = 'bold 11px "Courier New", monospace';
     ctx.fillStyle    = '#fb923c';
-    ctx.fillText('x2  ' + sec + 's', CW / 2, pad + 8);
-    ctx.textAlign = 'left';
+    ctx.fillText('x2  ' + sec + 's', CW / 2, 16);
+    ctx.restore();
   }
-
-  ctx.restore();
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3393,7 +3393,7 @@ function buildCards() {
         '<span class="card-icon">'  + upg.icon + '</span>' +
         '<span class="card-name">'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
-        '<span class="card-cost" id="cc-' + upg.key + '">'  + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '◈</span>';
+        '<span class="card-cost" id="cc-' + upg.key + '">'  + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '\uD83D\uDD38</span>';
       btn.addEventListener('touchstart', function(ev) { ev.preventDefault(); }, { passive: false });
       btn.addEventListener('touchend',   function(ev) { ev.preventDefault(); doUpgrade(upg.key); }, { passive: false });
       btn.addEventListener('click', function() { doUpgrade(upg.key); });
@@ -3420,7 +3420,7 @@ function syncUI() {
     const statEl = document.getElementById('cs-' + upg.key);
     if (statEl) statEl.textContent = upg.stat();
     const costEl = document.getElementById('cc-' + upg.key);
-    if (costEl) costEl.textContent = (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '◈';
+    if (costEl) costEl.textContent = (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '\uD83D\uDD38';
     card.classList.toggle('no-gold', !upg.canBuy());
   }
 }
@@ -3465,13 +3465,6 @@ function applyPendingHighlight() {
 function handleCanvasTap(tx, ty) {
   if (!G || G.phase === 'gameover') return;
 
-  // Pause button hit test
-  const pb = _pauseBtnRect;
-  if (tx >= pb.x && tx <= pb.x + pb.w && ty >= pb.y && ty <= pb.y + pb.h) {
-    openPauseMenu();
-    return;
-  }
-
   // Tower tap hit test (tower always at CW/2, CH/2 in screen coords)
   const tdx = tx - CW / 2, tdy = ty - CH / 2;
   if (tdx * tdx + tdy * tdy < 34 * 34) {
@@ -3501,15 +3494,48 @@ function handleCanvasTap(tx, ty) {
 /* ═══════════════════════════════════════════════════════════════
    PAUSE / SPEED / CONFIRM / ACHIEVEMENTS / SETTINGS
 ═══════════════════════════════════════════════════════════════ */
+function togglePause() {
+  if (!G || G.phase === 'gameover') return;
+  isPaused = !isPaused;
+  var overlay = document.getElementById('pause-overlay');
+  if (overlay) overlay.style.display = isPaused ? 'flex' : 'none';
+}
+window.togglePause = togglePause;
+
+function resumeGame() {
+  isPaused = false;
+  var overlay = document.getElementById('pause-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+window.resumeGame = resumeGame;
+
+function restartGame() {
+  isPaused = false;
+  var overlay = document.getElementById('pause-overlay');
+  if (overlay) overlay.style.display = 'none';
+  startNewGame();
+}
+window.restartGame = restartGame;
+
+function goHome() {
+  isPaused = false;
+  var overlay = document.getElementById('pause-overlay');
+  if (overlay) overlay.style.display = 'none';
+  PERM.gold = G.gold;
+  PERM.gems = G.gems;
+  savePerm();
+  G.phase = 'gameover';
+  openShop();
+}
+window.goHome = goHome;
+
 function openPauseMenu() {
   if (!G || G.phase === 'gameover') return;
-  G.phase = 'paused';
-  document.getElementById('pause-screen').classList.add('show');
+  togglePause();
 }
 
 function closePauseMenu() {
-  document.getElementById('pause-screen').classList.remove('show');
-  if (G && G.phase === 'paused') G.phase = 'playing';
+  resumeGame();
 }
 
 function cycleSpeed() {
@@ -3577,12 +3603,6 @@ function syncSettingsUI() {
     if (!btn) continue;
     const on = PERM.settings[key];
     btn.className = 'toggle-track' + (on ? ' on' : '');
-  }
-  // Language toggle
-  var langBtn = document.getElementById('tog-lang');
-  if (langBtn) {
-    var isKo = (PERM.settings.lang || 'ko') === 'ko';
-    langBtn.className = 'toggle-track' + (isKo ? '' : ' on');
   }
 }
 
@@ -3724,6 +3744,7 @@ function startNewGame() {
 /* ─── 버튼 이벤트 (touch + click) ─────────────────────────────── */
 function bindOverlayBtn(id, fn) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
   el.addEventListener('touchend',   function(e) { e.preventDefault(); fn(); }, { passive: false });
   el.addEventListener('click', fn);
@@ -3746,28 +3767,18 @@ for (const key of Object.keys(SHOP_ITEMS)) {
 bindOverlayBtn('speed-btn', cycleSpeed);
 
 // Pause menu
-bindOverlayBtn('btn-resume', closePauseMenu);
+bindOverlayBtn('btn-resume', resumeGame);
 bindOverlayBtn('btn-restart', function() {
   showConfirm('다시 시작할까요?\n현재 진행 사항이 사라져요', function() {
     closeConfirm();
-    document.getElementById('pause-screen').classList.remove('show');
-    startNewGame();
+    restartGame();
   });
 });
 bindOverlayBtn('btn-home', function() {
   showConfirm('홈으로 이동할까요?\n현재 진행 사항이 사라져요', function() {
     closeConfirm();
-    document.getElementById('pause-screen').classList.remove('show');
-    PERM.gold = G.gold;
-    PERM.gems = G.gems;
-    savePerm();
-    G.phase = 'gameover';
-    openShop();
+    goHome();
   });
-});
-bindOverlayBtn('btn-achieve', function() {
-  buildAchieveUI();
-  document.getElementById('achieve-screen').classList.add('show');
 });
 bindOverlayBtn('btn-settings', function() {
   syncSettingsUI();
@@ -3784,7 +3795,7 @@ bindOverlayBtn('btn-settings-back', function() {
   document.getElementById('settings-screen').classList.remove('show');
 });
 (function() {
-  for (const k of ['sound', 'music', 'vibration', 'lang']) {
+  for (const k of ['sound', 'music', 'vibration']) {
     (function(key) {
       bindOverlayBtn('tog-' + key, function() { toggleSetting(key); });
     }(k));
@@ -5008,11 +5019,11 @@ window.startWave = function() {
   _origStartWave.apply(this, arguments);
   if (!G) return;
   if (G.interestRate > 0) {
-    var interest = Math.floor(G.gold * G.interestRate);
-    if (interest > 0) { G.gold += interest; G.goldEarned += interest; }
+    var interest = Math.floor(coreChips * G.interestRate);
+    if (interest > 0) { coreChips += interest; }
   }
   if (G.cashPerWaveExt > 0) {
-    G.gold += G.cashPerWaveExt; G.goldEarned += G.cashPerWaveExt;
+    coreChips += G.cashPerWaveExt;
   }
 };
 
@@ -5041,9 +5052,10 @@ function _updateOrbs(dt) {
       if (edx * edx + edy * edy < (e.r + 7) * (e.r + 7)) {
         e.hp -= orbDmg * (dt / 300);
         if (e.hp <= 0) {
-          var ge = Math.floor(e.gold * (G.goldMult || 1));
-          G.gold += ge; G.goldEarned += ge; G.killCount++; PERM.totalKills++;
-          if (e.boss) PERM.bossKills++;
+          var _oc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _oc;
+          G.killCount++; PERM.totalKills++;
+          if (e.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
+          else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
           try { spawnDeathParticles(e.x, e.y, '#00ffff', 5); } catch(_) {}
           G.enemies.splice(ei, 1);
         }
@@ -5081,9 +5093,10 @@ function _updateMines(dt) {
           if (ekDx * ekDx + ekDy * ekDy < mR * mR) {
             ek.hp -= mDmg;
             if (ek.hp <= 0) {
-              var mkGe = Math.floor(ek.gold * (G.goldMult || 1));
-              G.gold += mkGe; G.goldEarned += mkGe; G.killCount++; PERM.totalKills++;
-              if (ek.boss) PERM.bossKills++;
+              var _mc = ek.boss ? 0 : Math.ceil((ek.gold||1)*0.1); coreChips += _mc;
+              G.killCount++; PERM.totalKills++;
+              if (ek.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
+              else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
               try { spawnDeathParticles(ek.x, ek.y, '#00ff88', 5); } catch(_) {}
               G.enemies.splice(eki, 1);
               if (eki <= emi) emi--;
@@ -5104,9 +5117,10 @@ function _updateThorn(dt) {
     if (Math.sqrt(tdx * tdx + tdy * tdy) < G.tower.range) {
       te.hp -= G.thornDamage * G.tower.dmg * (dt / 1000);
       if (te.hp <= 0) {
-        var tge = Math.floor(te.gold * (G.goldMult || 1));
-        G.gold += tge; G.goldEarned += tge; G.killCount++; PERM.totalKills++;
-        if (te.boss) PERM.bossKills++;
+        var _tc = te.boss ? 0 : Math.ceil((te.gold||1)*0.1); coreChips += _tc;
+        G.killCount++; PERM.totalKills++;
+        if (te.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
+        else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
         try { spawnDeathParticles(te.x, te.y, '#ff8888', 4); } catch(_) {}
         G.enemies.splice(ti, 1);
       }
@@ -5150,9 +5164,10 @@ function _triggerDeathWave() {
   for (var i = G.enemies.length - 1; i >= 0; i--) {
     G.enemies[i].hp -= dmg;
     if (G.enemies[i].hp <= 0) {
-      var ge = Math.floor(G.enemies[i].gold * (G.goldMult || 1));
-      G.gold += ge; G.goldEarned += ge; G.killCount++; PERM.totalKills++;
-      if (G.enemies[i].boss) PERM.bossKills++;
+      var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1); coreChips += _dwc;
+      G.killCount++; PERM.totalKills++;
+      if (G.enemies[i].boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
+      else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
       try { spawnDeathParticles(G.enemies[i].x, G.enemies[i].y, '#ef4444', 8); } catch(_) {}
       G.enemies.splice(i, 1); killed++;
     }
@@ -5171,9 +5186,10 @@ function _triggerPlasma() {
     if (Math.abs(-ex * sin + ey * cos) < bw + e.r) {
       e.hp -= G.tower.dmg * 4;
       if (e.hp <= 0) {
-        var ge = Math.floor(e.gold * (G.goldMult || 1));
-        G.gold += ge; G.goldEarned += ge; G.killCount++; PERM.totalKills++;
-        if (e.boss) PERM.bossKills++;
+        var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _psc;
+        G.killCount++; PERM.totalKills++;
+        if (e.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
+        else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
         try { spawnDeathParticles(e.x, e.y, '#f59e0b', 8); } catch(_) {}
         G.enemies.splice(i, 1);
       }
@@ -6645,11 +6661,10 @@ function _updateDisplay() {
   var v = SPEED_STEPS[_sIdx];
   var disp = document.getElementById('speed-display');
   if (disp) disp.textContent = '×' + v;
-  // 기존 G/gameSpeed 업데이트
+  // G.speed + gameSpeed 전역 변수 동기화
   try {
     if (window.G) { window.G.speed = v; }
-    // gameSpeed는 전역 변수이므로 직접 접근 불가 → cycleSpeed 우회로 동기화
-    // speed-btn hidden 클릭 대신 직접 값 설정
+    window.gameSpeed = v;
     var hiddenSb = document.getElementById('speed-btn');
     if (hiddenSb) hiddenSb.textContent = v + '×';
   } catch(_) {}
@@ -6679,8 +6694,8 @@ setInterval(function() {
   var g = window.G;
   if (!g || g === _lastG) return;
   _lastG = g;
-  // 새 게임 시작 시 인덱스 리셋
-  _sIdx = 0; _updateDisplay();
+  // 새 게임 시작 시 인덱스 리셋 (×1)
+  _sIdx = 1; _updateDisplay();
   var m = document.getElementById('speed-minus');
   if (m) m.style.color = '#334455';
   var p = document.getElementById('speed-plus');
@@ -6851,16 +6866,11 @@ if (watchBtn) {
 /* ── 인게임 퀵버튼 이벤트 ── */
 var ingameStore = document.getElementById('ingame-store');
 if (ingameStore) ingameStore.addEventListener('click', function() {
-  // 게임 일시정지 후 스토어 (홈으로 이동)
-  var pauseEl = document.getElementById('pause-screen');
-  if (pauseEl) pauseEl.classList.add('show');
-  if (window.G && window.G.phase === 'playing') window.G.phase = 'paused';
+  if (typeof window.togglePause === 'function') window.togglePause();
 });
 var ingameMenu = document.getElementById('ingame-menu');
 if (ingameMenu) ingameMenu.addEventListener('click', function() {
-  var pauseEl = document.getElementById('pause-screen');
-  if (pauseEl) pauseEl.classList.add('show');
-  if (window.G && window.G.phase === 'playing') window.G.phase = 'paused';
+  if (typeof window.togglePause === 'function') window.togglePause();
 });
 var ingameCoins = document.getElementById('ingame-bonus-btn');
 if (ingameCoins) ingameCoins.addEventListener('click', function() { window._showAdBonusPopup && window._showAdBonusPopup(); });
@@ -7895,11 +7905,11 @@ function _patchUpgrades() {
       stat:   function() { return '×' + (window.G ? (G.critMult || 2).toFixed(1) : '2.0'); },
       canBuy: function() {
         var c = Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0));
-        return !!(window.G && G.gold >= c && G.critChance > 0);
+        return !!(window.G && coreChips >= c && G.critChance > 0);
       },
       apply: function() {
         var c = Math.floor(10 * Math.pow(1.4, G.upgLvl.critMult || 0));
-        G.gold -= c;
+        coreChips -= c;
         G.upgLvl.critMult = (G.upgLvl.critMult || 0) + 1;
         G.critMult = (G.critMult || 2) + 0.1;
       },
@@ -8414,10 +8424,10 @@ function _patchStartWave() {
     var w = G.wave;
     G.spawnIntvl = Math.max(300, 1200 - w * 15);
     G.spawnTimer = G.spawnIntvl;
-    G.gold -= w * 2; G.goldEarned -= w * 2;  // 기존 w*2 취소
+    coreChips -= w * 2;  // 기존 w*2 취소
     var bonus = Math.floor(w * 1.5 + 5) + (w % 5 === 0 ? Math.floor(w * 2) : 0);
-    G.gold += bonus; G.goldEarned += bonus;
-    G.waveBonusText = '+' + bonus + '골드 웨이브 보너스';
+    coreChips += bonus;
+    G.waveBonusText = '+' + bonus + ' \uD83D\uDD38 웨이브 보너스';
   };
   window.startWave._fBal = true;
 }
@@ -9222,39 +9232,9 @@ function _closeMail() {
 }
 
 /* ════════════════════════════════════════════════════════
-   FEATURE 4: 설정 화면 기능 추가
+   FEATURE 4: 설정 화면 (버튼은 HTML에 직접 포함됨)
 ════════════════════════════════════════════════════════ */
-function _injectSettingsButtons() {
-  var sc=document.getElementById('settings-screen');
-  if(!sc||sc.querySelector('#settings-ext-grid')) return;
-
-  var grid=document.createElement('div');
-  grid.id='settings-ext-grid';
-  grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px;';
-
-  var buttons=[
-    { label:'계정',       icon:'👤', action:function(){ _openAccount(); } },
-    { label:'통계',       icon:'📊', action:function(){ _showStatsPopup(); } },
-    { label:'언어',       icon:'🌐', action:function(){ _showLanguageSelector(); } },
-    { label:'백과사전',   icon:'📖', action:function(){ _showEncyclopedia(); } },
-    { label:'패치노트',   icon:'🔧', action:function(){ _showPatchNotes(); } },
-    { label:'크리에이터', icon:'🎁', action:function(){ _showCreatorCode(); } },
-    { label:'문의',       icon:'📧', action:function(){ _showContactPopup(); } },
-    { label:'개인정보',   icon:'🔒', action:function(){ window.open('privacy.html','_blank'); } },
-  ];
-
-  buttons.forEach(function(b){
-    var btn=document.createElement('button');
-    btn.style.cssText='background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-family:monospace;font-size:10px;padding:12px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;-webkit-appearance:none;';
-    btn.innerHTML='<span style="font-size:18px;">'+b.icon+'</span><span>'+b.label+'</span>';
-    btn.addEventListener('click',b.action);
-    grid.appendChild(btn);
-  });
-
-  // 기존 settings-btn-row 앞에 삽입
-  var btnRow=sc.querySelector('.settings-btn-row');
-  sc.insertBefore(grid, btnRow);
-}
+function _injectSettingsButtons() { /* 이미 HTML에 포함 */ }
 
 function _showStatsPopup() {
   var p=document.createElement('div');
@@ -9319,6 +9299,19 @@ function _showLanguageSelector() {
   document.getElementById('lang-close').addEventListener('click',function(){ p.remove(); });
 }
 
+/* ── 백과사전 해금 시스템 ── */
+function unlockEnemyEntry(enemyType) {
+  var key = 'enc_enemy_' + enemyType;
+  if (!localStorage.getItem(key)) localStorage.setItem(key, 'true');
+}
+window.unlockEnemyEntry = unlockEnemyEntry;
+
+function unlockUtilEntry(utilId) {
+  var key = 'enc_util_' + utilId;
+  if (!localStorage.getItem(key)) localStorage.setItem(key, 'true');
+}
+window.unlockUtilEntry = unlockUtilEntry;
+
 function _showEncyclopedia() {
   var p=document.createElement('div');
   p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
@@ -9330,38 +9323,37 @@ function _showEncyclopedia() {
       ['치명타 확률','치명타 발생 확률 (%)'],
       ['치명타 배율','치명타 시 데미지 승수'],
       ['공격 범위','타워의 레이저 최대 사거리'],
-      ['에너지 흡수','적 처치 시 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭 방어 섹션에서 업그레이드 가능.'],
     ]},
     def:{ label:'방어', rows:[
       ['최대 HP','코어의 최대 체력'],
       ['HP 재생','초당 회복되는 코어 체력'],
       ['실드','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용'],
       ['방어율','받는 데미지를 % 비율로 감소'],
-      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭에서 기본 수치를 올리고, 코어 랩·연구소·스토어에서 추가로 확장 가능하다. 최대 흡수율은 20%.'],
+      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭에서 기본 수치를 올리고, 코어 랩·연구소·스토어에서 추가로 확장 가능. 최대 20%.'],
     ]},
-    utl:{ label:'유틸리티', rows:[
-      ['골드 보너스','적 처치 시 획득 골드 배율'],
-      ['골드/웨이브','웨이브 클리어 시 추가 지급 골드'],
-      ['이자','보유 골드의 일정 % 를 매 웨이브마다 추가 지급'],
+    utl:{ label:'유틸리티', items:[
+      { id:'gold_bonus', name:'골드 보너스', desc:'적 처치 시 획득 골드 배율' },
+      { id:'gold_wave',  name:'골드/웨이브', desc:'웨이브 클리어 시 추가 지급 골드' },
+      { id:'interest',   name:'이자',        desc:'보유 골드의 일정 % 를 매 웨이브마다 추가 지급' },
     ]},
     enemy:{ label:'적', enemies:[
-      { name:'기본 유닛',   color:'#ff4444', shape:'square',  desc:'표준 적. 기본 체력과 이동 속도를 가짐. 처치 시 골드 x1.' },
-      { name:'러시 유닛',   color:'#ffaa00', shape:'square',  desc:'이동 속도가 2배 빠르다. 체력은 낮지만 순식간에 코어에 도달한다. 처치 시 골드 x2.' },
-      { name:'아머 코어',   color:'#ff8800', shape:'square',  desc:'이동 속도 50%, 체력 5배. 느리지만 매우 단단하다. 처치 시 골드 x4.' },
-      { name:'스나이퍼 유닛', color:'#00ffff', shape:'square', desc:'사거리 밖에서 투사체를 발사한다. 코어에 접근하지 않아도 공격 가능. 처치 시 골드 x2.' },
-      { name:'실드 유닛',   color:'#aa44ff', shape:'square',  desc:'받는 피해를 50% 감소시키는 실드를 보유. 처치 시 골드 x3.' },
-      { name:'분열 유닛',   color:'#ff44aa', shape:'square',  desc:'처치 시 체력 절반의 기본 유닛 2개로 분열한다. 처치 시 골드 x1.' },
-      { name:'재생 유닛',   color:'#44ff88', shape:'square',  desc:'초당 최대 체력의 2%를 회복한다. 처치 시 골드 x3.' },
-      { name:'코어 보스',   color:'#ff4444', shape:'hexagon', desc:'10스테이지마다 등장. 기본 적의 체력 5배, 이동 속도 60%. 처치 시 골드 x5.' },
-      { name:'엘리트 코어', color:'#ff8822', shape:'hexagon', desc:'50스테이지마다 등장하는 강화 보스. 체력 15배, 이동 속도 50%. 등장 시 ⚠ 위협 신호 감지 경고 표시. 처치 시 골드 x15.' },
-      { name:'하이퍼 코어', color:'#ff0044', shape:'hexagon', desc:'100스테이지마다 등장하는 최강 보스. 체력 40배, 이동 속도 40%. 등장 시 ⚠ 극한 위협 감지 경고 표시. 처치 시 골드 x30.' },
+      { id:'basic',      name:'기본 유닛',     color:'#ff4444', boss:false, desc:'표준 적. 기본 체력과 이동 속도를 가짐. 처치 시 골드 x1.' },
+      { id:'rusher',     name:'러시 유닛',     color:'#ffaa00', boss:false, desc:'이동 속도가 2배 빠르다. 체력은 낮지만 순식간에 코어에 도달한다. 처치 시 골드 x2.' },
+      { id:'tank',       name:'아머 코어',     color:'#ff8800', boss:false, desc:'이동 속도 50%, 체력 5배. 느리지만 매우 단단하다. 처치 시 골드 x4.' },
+      { id:'sniper',     name:'스나이퍼 유닛', color:'#00ffff', boss:false, desc:'사거리 밖에서 투사체를 발사한다. 코어에 접근하지 않아도 공격 가능. 처치 시 골드 x2.' },
+      { id:'shield',     name:'실드 유닛',     color:'#aa44ff', boss:false, desc:'받는 피해를 50% 감소시키는 실드를 보유. 처치 시 골드 x3.' },
+      { id:'split',      name:'분열 유닛',     color:'#ff44aa', boss:false, desc:'처치 시 체력 절반의 기본 유닛 2개로 분열한다. 처치 시 골드 x1.' },
+      { id:'regen',      name:'재생 유닛',     color:'#44ff88', boss:false, desc:'초당 최대 체력의 2%를 회복한다. 처치 시 골드 x3.' },
+      { id:'boss',       name:'코어 보스',     color:'#ff4444', boss:true,  desc:'10스테이지마다 등장. 기본 적의 체력 5배, 이동 속도 60%. 처치 시 골드 x5.' },
+      { id:'boss_elite', name:'엘리트 코어',   color:'#ff8822', boss:true,  desc:'50스테이지마다 등장하는 강화 보스. 체력 15배, 이동 속도 50%. 등장 시 ⚠ 위협 신호 감지 경고 표시. 처치 시 골드 x15.' },
+      { id:'boss_hyper', name:'하이퍼 코어',   color:'#ff0044', boss:true,  desc:'100스테이지마다 등장하는 최강 보스. 체력 40배, 이동 속도 40%. 등장 시 ⚠ 극한 위협 감지 경고 표시. 처치 시 골드 x30.' },
     ]}
   };
   var curTab='atk';
 
   function _render() {
     var tabBar='';
-    Object.keys(TABS).forEach(function(k){
+    ['atk','def','utl','enemy'].forEach(function(k){
       var act=k===curTab;
       tabBar+='<button data-enc-tab="'+k+'" style="flex:1;padding:7px;background:transparent;border:none;border-bottom:2px solid '+(act?'#00ffff':'transparent')+';color:'+(act?'#00ffff':'#4a7a8a')+';font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">'+TABS[k].label+'</button>';
     });
@@ -9374,23 +9366,48 @@ function _showEncyclopedia() {
           '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:2px;line-height:1.6;">'+r[1]+'</div></div>';
       });
     }
+    if(t.items){
+      t.items.forEach(function(u){
+        var unlocked=localStorage.getItem('enc_util_'+u.id)==='true';
+        if(!unlocked){
+          body+='<div style="padding:8px 0;border-bottom:1px solid #0a2233;opacity:0.4;">'+
+            '<div style="color:#334455;font-family:monospace;font-size:11px;font-weight:bold;">???</div>'+
+            '<div style="color:#223344;font-family:monospace;font-size:10px;margin-top:2px;">???</div></div>';
+        } else {
+          body+='<div style="padding:8px 0;border-bottom:1px solid #0a2233;">'+
+            '<div style="color:#00ffff;font-family:monospace;font-size:11px;font-weight:bold;">'+u.name+'</div>'+
+            '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:2px;line-height:1.6;">'+u.desc+'</div></div>';
+        }
+      });
+    }
     if(t.enemies){
       t.enemies.forEach(function(e){
-        var shape=e.shape==='hexagon'
-          ? '<div style="width:28px;height:28px;background:transparent;border:2px solid '+e.color+';clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0;"></div>'
-          : '<div style="width:24px;height:24px;background:transparent;border:2px solid '+e.color+';flex-shrink:0;"></div>';
-        body+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #0a2233;">'+
-          shape+
-          '<div><div style="color:'+e.color+';font-family:monospace;font-size:11px;font-weight:bold;">'+e.name+'</div>'+
-          '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:2px;line-height:1.6;">'+e.desc+'</div></div></div>';
+        var unlocked=localStorage.getItem('enc_enemy_'+e.id)==='true';
+        if(!unlocked){
+          body+='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #0a1a2a;opacity:0.4;">'+
+            '<div style="width:36px;height:36px;border:2px solid #334455;border-radius:4px;flex-shrink:0;"></div>'+
+            '<div><div style="font-size:12px;color:#334455;font-weight:500;font-family:monospace;">???</div>'+
+            '<div style="font-size:11px;color:#223344;margin-top:3px;font-family:monospace;">???</div></div></div>';
+        } else {
+          var icon;
+          if(e.boss){
+            icon='<div style="width:32px;height:32px;border:2px solid '+e.color+';border-radius:4px;transform:rotate(45deg);flex-shrink:0;margin:2px;"></div>';
+          } else {
+            icon='<div style="width:36px;height:36px;border:2px solid '+e.color+';border-radius:4px;flex-shrink:0;"></div>';
+          }
+          body+='<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #0a1a2a;">'+
+            icon+
+            '<div><div style="font-size:12px;color:'+e.color+';font-weight:500;font-family:monospace;">'+e.name+'</div>'+
+            '<div style="font-size:11px;color:#7aacac;margin-top:3px;line-height:1.5;font-family:monospace;">'+e.desc+'</div></div></div>';
+        }
       });
     }
     p.innerHTML=
-      '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;width:100%;max-width:340px;display:flex;flex-direction:column;max-height:85vh;">'+
-        '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:10px;">백과사전</div>'+
-        '<div style="display:flex;border-bottom:1px solid #0a2233;margin-bottom:8px;flex-shrink:0;">'+tabBar+'</div>'+
-        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+body+'</div>'+
-        '<button id="enc-close" style="margin-top:12px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;flex-shrink:0;">닫기</button>'+
+      '<div style="background:#0a1a2a;border:1px solid #0a3344;width:88%;max-width:340px;height:70vh;max-height:500px;display:flex;flex-direction:column;overflow:hidden;">'+
+        '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;padding:16px 16px 10px;flex-shrink:0;">백과사전</div>'+
+        '<div style="display:flex;border-bottom:1px solid #0a2233;flex-shrink:0;padding:0 16px;">'+tabBar+'</div>'+
+        '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px;">'+body+'</div>'+
+        '<button id="enc-close" style="margin:12px 16px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;flex-shrink:0;-webkit-appearance:none;">닫기</button>'+
       '</div>';
     document.getElementById('enc-close').addEventListener('click',function(){ p.remove(); });
     var btns=p.querySelectorAll('[data-enc-tab]');
@@ -9944,8 +9961,7 @@ var _origSW_p = window.startWave;
 window.startWave = function() {
   _origSW_p.apply(this, arguments);
   if (G && G.coinsPerWaveExt2 > 0) {
-    G.gold += G.coinsPerWaveExt2;
-    G.goldEarned += G.coinsPerWaveExt2;
+    coreChips += G.coinsPerWaveExt2;
   }
 };
 
@@ -11717,23 +11733,10 @@ window.copyUID = function() {
   }
 };
 
-/* ── 설정 화면 하단 정보 영역 삽입 ── */
+/* ── 설정 화면 하단 정보 (HTML에 직접 포함) ── */
 function _injectSettingsFooter() {
-  var sc = document.getElementById('settings-screen');
-  if (!sc || sc.querySelector('#settings-footer')) return;
-  var footer = document.createElement('div');
-  footer.id = 'settings-footer';
-  footer.style.cssText = 'margin-top:24px;padding-top:12px;border-top:1px solid #1a2a3a;font-family:\"Courier New\",monospace;font-size:10px;color:#334455;width:100%;max-width:320px;';
-  footer.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-      '<span>ID: <span id="display-uid">' + getOrCreateUID() + '</span></span>' +
-      '<button onclick="copyUID()" style="background:transparent;border:1px solid #1a3444;color:#4a7a8a;font-family:\'Courier New\',monospace;font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer;-webkit-appearance:none;">복사</button>' +
-    '</div>' +
-    '<div style="display:flex;justify-content:space-between;">' +
-      '<a href="privacy.html" target="_blank" style="color:#4a7a8a;text-decoration:none;">개인정보 처리방침</a>' +
-      '<span>v1.0.0</span>' +
-    '</div>';
-  sc.appendChild(footer);
+  var uidEl = document.getElementById('display-uid');
+  if (uidEl && uidEl.textContent === '...') uidEl.textContent = getOrCreateUID();
 }
 
 // 설정 화면 열릴 때마다 footer 확인
@@ -11876,7 +11879,7 @@ if(typeof _origApplyLab==='function'){
       if(e.type==='gold_mult')  G.goldBonus=(G.goldBonus||1)*e.value;
       if(e.type==='regen_add')  G.regenRate=(G.regenRate||0)+e.value;
       if(e.type==='crit_add')   t.critChance=Math.min(0.9,(t.critChance||0)+e.value);
-      if(e.type==='start_gold') G.gold+=e.value;
+      if(e.type==='start_gold') coreChips+=e.value;
       if(e.type==='absorb_add') localStorage.setItem('lab_absorb_bonus',(parseFloat(localStorage.getItem('lab_absorb_bonus')||'0')+e.value).toFixed(3));
     });
     // 적용 후 소멸
@@ -11903,6 +11906,7 @@ var RESEARCH = [
   { id:'res_regen',     name:'자가 수복 프로토콜', desc:'HP 재생 영구 +0.1/s',        maxLv:30, cost:function(lv){return 2+Math.floor(lv/10);}, effect:function(lv){return lv*0.1;},  cat:'방어', unit:'/s' },
   { id:'res_start_gold',name:'선행 자원 배분',     desc:'게임 시작 골드 +50',          maxLv:20, cost:function(lv){return 3;},                   effect:function(lv){return lv*50;},   cat:'유틸', unit:'' },
   { id:'res_absorb',   name:'에너지 순환 연구',   desc:'에너지 흡수율 영구 +0.2%',    maxLv:10, cost:function(lv){return 3+lv;},                effect:function(lv){return lv*0.002;}, cat:'방어', unit:'%' },
+  { id:'res_start_chips',name:'선행 보급 연구',     desc:'전투 시작 코어 칩 +5',        maxLv:10, cost:function(lv){return 2+lv;},                effect:function(lv){return lv*5;},     cat:'유틸', unit:'' },
 ];
 
 function _getResLv(id){ return parseInt(localStorage.getItem('res_'+id)||'0',10); }
@@ -12016,6 +12020,7 @@ if(typeof _origApply==='function'){
     var regenLv=_getResLv('res_regen');    if(regenLv>0) G.regenRate=(G.regenRate||0)+regenLv*0.1;
     var goldLv=_getResLv('res_gold_bonus');if(goldLv>0) G.goldBonus=(G.goldBonus||1)*(1+goldLv*0.02);
     var startLv=_getResLv('res_start_gold');if(startLv>0){ G.gold+=startLv*50; }
+    var chipLv=_getResLv('res_start_chips');if(chipLv>0){ window.baseStartChips=chipLv*5; window.coreChips=window.baseStartChips; }
     var absorbLv=_getResLv('res_absorb');if(absorbLv>0){ localStorage.setItem('res_absorb_bonus',(absorbLv*0.002).toFixed(4)); }
   };
 }
@@ -12313,7 +12318,7 @@ var lastTab = 'atk';
 var _css = document.createElement('style');
 _css.textContent =
   '#screen-shop { position:absolute !important; bottom:0; left:0; right:0;' +
-  '  height:40vh; background:#06061a; border-top:1px solid #1a3444;' +
+  '  background:#06061a; border-top:1px solid #1a3344;' +
   '  display:flex !important; flex-direction:column !important;' +
   '  overflow:hidden; transition:height 0.25s ease; z-index:5; }' +
   '#tab-bar { display:flex !important; border-bottom:1px solid #1a2a3a;' +
@@ -12323,8 +12328,9 @@ _css.textContent =
   '  font-family:"Courier New",monospace; font-size:11px; color:#4a7a8a;' +
   '  cursor:pointer; height:auto !important; -webkit-appearance:none; }' +
   '#tab-bar .tab-btn.active { color:#00ffff !important; border-bottom:2px solid #00ffff !important; }' +
-  '#tab-content { flex:1 !important; overflow-y:auto !important; overflow-x:hidden !important;' +
-  '  -webkit-overflow-scrolling:touch; padding:8px !important; background:#06061a !important; }' +
+  '#tab-content { overflow-y:auto !important; overflow-x:hidden !important;' +
+  '  -webkit-overflow-scrolling:touch; padding:8px !important; background:#06061a !important;' +
+  '  transition:height 0.25s ease; }' +
   '.tab-pane.active { flex-direction:column !important; flex-wrap:nowrap !important;' +
   '  width:100% !important; min-height:auto !important; gap:4px !important; }' +
   '#canvas-area { flex:1 !important; min-height:0 !important; }';
@@ -12335,14 +12341,22 @@ var _origResize = window.resizeCanvas;
 window.resizeCanvas = function() {
   var area = document.getElementById('canvas-area');
   var shop = document.getElementById('screen-shop');
+  var tabContent = document.getElementById('tab-content');
+  var tabBar = document.getElementById('tab-bar');
   var gameScr = document.getElementById('screen-game');
   if (gameScr && gameScr.style.display !== 'none' && shop && area) {
-    var panelH = isPanelOpen ? Math.floor(window.innerHeight * 0.40) : 0;
-    var canvasH = window.innerHeight - panelH;
+    var tabBarH = tabBar ? tabBar.offsetHeight || 36 : 36;
+    var contentH = isPanelOpen ? Math.floor(window.innerHeight * 0.38) - tabBarH : 0;
+    var shopH = tabBarH + contentH;
+    var canvasH = window.innerHeight - shopH;
     area.style.height = canvasH + 'px';
     area.style.maxHeight = canvasH + 'px';
-    shop.style.height = isPanelOpen ? '40vh' : '0px';
-    shop.style.borderTop = isPanelOpen ? '1px solid #1a3444' : 'none';
+    shop.style.height = shopH + 'px';
+    shop.style.borderTop = '1px solid #1a3344';
+    if (tabContent) {
+      tabContent.style.height = isPanelOpen ? contentH + 'px' : '0px';
+      tabContent.style.overflow = isPanelOpen ? 'auto' : 'hidden';
+    }
   }
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
