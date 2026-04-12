@@ -1396,6 +1396,8 @@ canvas {
 
   </div>
 
+  <!-- 하단 네비게이션 (동적 렌더링) -->
+  <div class="bottom-nav" style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);"></div>
 
 </div>
 
@@ -1421,6 +1423,8 @@ canvas {
   <!-- 업그레이드 목록 -->
   <div id="ws-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
 
+  <!-- 하단 네비게이션 (동적 렌더링) -->
+  <div class="bottom-nav" style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 
 </div>
 
@@ -1440,6 +1444,8 @@ canvas {
   </div>
   <!-- 콘텐츠 -->
   <div id="store-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
+  <!-- 하단 네비게이션 (동적 렌더링) -->
+  <div class="bottom-nav" style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);"></div>
 </div>
 
 <script>
@@ -2480,7 +2486,7 @@ function triggerGameOver() {
   }
 
   // Nav unlock notification
-  renderNavTabs('home');
+  renderNavTabs();
   var unlockRow = document.getElementById('r-unlock-row');
   var newUnlocks = getNewUnlocks();
   if (newUnlocks.length > 0) {
@@ -3481,103 +3487,68 @@ document.addEventListener('touchend', function(e) {
 ═══════════════════════════════════════════════════════════════ */
 
 // ── Tab navigation system ──
+var currentScreen = 'home';
 var screenHandlers = {};
+var lastTabToast = 0;
 
-var navTabs = [
-  { id: 'battle',   label: '전투',    icon: '\u2694', screen: 'home',     unlock: 0 },
-  { id: 'workshop', label: '강화',    icon: '\u25B2', screen: 'workshop', unlock: 0 },
-  { id: 'module',   label: '모듈',    icon: '\u22A1', screen: 'module',   unlock: 10 },
-  { id: 'research', label: '연구소',  icon: '\u2295', screen: 'research', unlock: 10 },
-  { id: 'corelab',  label: '코어랩',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
-  { id: 'skin',     label: '스킨',    icon: '\u2605', screen: 'skin',     unlock: 999 },
-  { id: 'store',    label: '스토어',  icon: '\u2299', screen: 'store',    unlock: 0 }
+var NAV_TABS = [
+  { id: 'battle',   label: '전투',    icon: '\u2694', screen: 'home',     unlockWave: 0 },
+  { id: 'workshop', label: '강화',    icon: '\u25B2', screen: 'workshop', unlockWave: 0 },
+  { id: 'module',   label: '모듈',    icon: '\u22A1', screen: 'module',   unlockWave: 10 },
+  { id: 'research', label: '연구소',  icon: '\u2295', screen: 'research', unlockWave: 10 },
+  { id: 'corelab',  label: '코어 랩', icon: '\u232C', screen: 'corelab',  unlockWave: 30 },
+  { id: 'skin',     label: '스킨',    icon: '\u2605', screen: 'skin',     unlockWave: 999 },
+  { id: 'store',    label: '스토어',  icon: '\u2299', screen: 'store',    unlockWave: 0 }
 ];
 
-var _navToastTime = 0;
+function renderNavTabs() {
+  var navs = document.querySelectorAll('.bottom-nav');
+  for (var n = 0; n < navs.length; n++) {
+    var nav = navs[n];
+    nav.innerHTML = '';
+    for (var i = 0; i < NAV_TABS.length; i++) {
+      (function(tab) {
+        var bestWave = PERM.bestWave || 0;
+        var unlocked = bestWave >= tab.unlockWave;
+        var isActive = currentScreen === tab.screen;
 
-function renderNavTabs(currentScreen) {
-  var nav = document.getElementById('bottom-nav');
-  if (!nav) return;
-  nav.innerHTML = '';
+        var btn = document.createElement('button');
+        btn.style.cssText = 'flex:1; height:52px; background:transparent; border:none; border-bottom:2px solid ' + (isActive ? '#00ffff' : 'transparent') + '; color:' + (unlocked ? (isActive ? '#00ffff' : '#4a7a8a') : '#1a2a3a') + '; font-family:"Courier New",monospace; font-size:9px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:0;';
+        btn.innerHTML = '<span style="font-size:15px; line-height:1;">' + tab.icon + '</span><span>' + tab.label + '</span>';
 
-  var w = PERM.bestWave || 0;
-
-  for (var i = 0; i < navTabs.length; i++) {
-    (function(tab) {
-      var unlocked = w >= tab.unlock;
-      var active = currentScreen === tab.screen;
-
-      var btn = document.createElement('button');
-      btn.setAttribute('data-tab', tab.id);
-      btn.style.cssText = [
-        'flex:1',
-        'height:52px',
-        'background:transparent',
-        'border:none',
-        'border-bottom:2px solid ' + (active ? '#00ffff' : 'transparent'),
-        'color:' + (unlocked ? (active ? '#00ffff' : '#4a7a8a') : '#1a2a3a'),
-        'font-family:Courier New,monospace',
-        'font-size:9px',
-        'cursor:pointer',
-        'display:flex',
-        'flex-direction:column',
-        'align-items:center',
-        'justify-content:center',
-        'gap:2px',
-        'padding:0',
-        'opacity:' + (unlocked ? '1' : '0.4')
-      ].join(';');
-
-      btn.innerHTML =
-        '<span style="font-size:15px;line-height:1;">' + tab.icon + '</span>' +
-        '<span>' + tab.label + '</span>';
-
-      if (unlocked) {
-        btn.onclick = function() { showScreen(tab.screen); };
-      } else {
-        btn.onclick = function() {
-          var now = Date.now();
-          if (now - _navToastTime < 3000) return;
-          _navToastTime = now;
-          var msg = tab.unlock === 999
-            ? tab.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
-            : tab.label + ' \u2014 \uC6E8\uC774\uBE0C ' + tab.unlock + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg);
-        };
-      }
-
-      nav.appendChild(btn);
-    })(navTabs[i]);
+        if (unlocked) {
+          btn.onclick = function() { showScreen(tab.screen); };
+        } else {
+          btn.onclick = function() {
+            var now = Date.now();
+            if (now - lastTabToast < 3000) return;
+            lastTabToast = now;
+            showUnlockToast(tab.label, tab.unlockWave);
+          };
+        }
+        nav.appendChild(btn);
+      })(NAV_TABS[i]);
+    }
   }
 }
 
-function showNavToast(msg) {
-  var old = document.getElementById('nav-toast');
-  if (old) old.remove();
-  var t = document.createElement('div');
-  t.id = 'nav-toast';
-  t.style.cssText = [
-    'position:fixed',
-    'bottom:62px',
-    'left:50%',
-    'transform:translateX(-50%)',
-    'background:#0a1a2a',
-    'border:1px solid #00ffff',
-    'border-radius:8px',
-    'padding:10px 18px',
-    'font-family:Courier New,monospace',
-    'font-size:11px',
-    'color:#00ffff',
-    'z-index:1000',
-    'white-space:nowrap'
-  ].join(';');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(function() { if (t.parentNode) t.remove(); }, 3000);
+function showUnlockToast(tabName, wave) {
+  var existing = document.getElementById('unlock-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'unlock-toast';
+  toast.style.cssText = 'position:fixed; bottom:70px; left:50%; transform:translateX(-50%); background:#0a1a2a; border:1px solid #00ffff; border-radius:8px; padding:10px 18px; font-family:"Courier New",monospace; font-size:11px; color:#00ffff; z-index:1000; white-space:nowrap; text-align:center;';
+  if (wave === 999) {
+    toast.textContent = tabName + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08';
+  } else {
+    toast.textContent = tabName + ' \u2014 \uC6E8\uC774\uBE0C ' + wave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
+  }
+  document.body.appendChild(toast);
+  setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
 }
 
 function showScreen(screenName) {
-  renderNavTabs(screenName);
+  currentScreen = screenName;
   var screens = ['home', 'workshop', 'store', 'module', 'research', 'corelab', 'skin'];
   for (var i = 0; i < screens.length; i++) {
     var el = document.getElementById('screen-' + screens[i]);
@@ -3586,6 +3557,7 @@ function showScreen(screenName) {
   var target = document.getElementById('screen-' + screenName);
   if (target) target.style.display = 'flex';
   if (screenHandlers[screenName]) screenHandlers[screenName]();
+  renderNavTabs();
 }
 
 function getNewUnlocks() {
@@ -3593,9 +3565,9 @@ function getNewUnlocks() {
   var unlocked = [];
   try {
     var saved = JSON.parse(localStorage.getItem('td_nav_unlocked') || '{}');
-    for (var i = 0; i < navTabs.length; i++) {
-      var tab = navTabs[i];
-      if (tab.unlock > 0 && best >= tab.unlock && !saved[tab.id]) {
+    for (var i = 0; i < NAV_TABS.length; i++) {
+      var tab = NAV_TABS[i];
+      if (tab.unlockWave > 0 && best >= tab.unlockWave && !saved[tab.id]) {
         saved[tab.id] = true;
         unlocked.push(tab.label);
       }
@@ -3638,10 +3610,7 @@ function renderLeftIcons() {
           var now = Date.now();
           if (now - lastLeftToast < 3000) return;
           lastLeftToast = now;
-          var msg = icon.unlockWave === 999
-            ? icon.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
-            : icon.label + ' \u2014 \uC6E8\uC774\uBE0C ' + icon.unlockWave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg);
+          showUnlockToast(icon.label, icon.unlockWave);
         };
       }
 
@@ -3651,7 +3620,7 @@ function renderLeftIcons() {
 }
 
 // Initial render
-renderNavTabs('home');
+renderNavTabs();
 renderLeftIcons();
 
 // Daily reward claim
@@ -4110,9 +4079,5 @@ if (dailyClaimBtn) {
 
 }());
 </script>
-
-<!-- ── 하단 네비게이션 (전역 공유) ── -->
-<div id="bottom-nav" style="display:flex; position:fixed; bottom:0; left:0; width:100%; height:52px; background:#040c14; border-top:1px solid #1a2a3a; z-index:200; padding-bottom:env(safe-area-inset-bottom, 0px);"></div>
-
 </body>
 </html>
