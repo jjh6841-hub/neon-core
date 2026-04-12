@@ -1453,6 +1453,7 @@ canvas {
         <div id="home-miss-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1px solid #06061a;"></div>
       </div>
       <button id="btn-right-ranking" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a1520;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;"><div style="display:flex;align-items:flex-end;gap:1px;height:14px;"><div style="width:5px;height:9px;background:#334455;border-radius:1px 1px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:4px;color:#001a2a;font-family:Courier New;">2</span></div><div style="width:5px;height:14px;background:#334455;border-radius:1px 1px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:4px;color:#001a2a;font-family:Courier New;">1</span></div><div style="width:5px;height:6px;background:#334455;border-radius:1px 1px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:4px;color:#001a2a;font-family:Courier New;">3</span></div></div><span style="font-size:7px;">랭킹</span><span id="ranking-lock-icon" style="position:absolute;top:0px;right:0px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">🔒</span></button>
+      <button id="btn-right-attend" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a1520;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;"><div style="position:relative;width:18px;height:18px;"><div style="width:18px;height:15px;border:1.5px solid #334455;border-radius:2px;background:#0a1a2a;position:absolute;bottom:0;"></div><div style="position:absolute;top:0;left:3px;width:3px;height:5px;border:1px solid #334455;border-radius:1px;background:#0a1a2a;"></div><div style="position:absolute;top:0;right:3px;width:3px;height:5px;border:1px solid #334455;border-radius:1px;background:#0a1a2a;"></div><div style="position:absolute;bottom:9px;left:1px;width:16px;height:1px;background:#334455;opacity:0.5;"></div><div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:8px;color:#334455;font-family:Courier New;line-height:1;">✓</div></div><span style="font-size:7px;">출석</span><span id="attend-lock-icon" style="position:absolute;top:0px;right:0px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">🔒</span></button>
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
@@ -11729,6 +11730,36 @@ function renderLeftIcons() {
   };
 }());
 
+/* 우측 출석 버튼 바인딩 */
+(function() {
+  var attendBtn = document.getElementById('btn-right-attend');
+  if (attendBtn) {
+    attendBtn.addEventListener('click', function() {
+      var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+      if (w >= 50) {
+        showScreen('attendance');
+      } else {
+        showNavToast('\uCD9C\uC11D \u2014 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08', 'attendance');
+      }
+    });
+  }
+  window._updateAttendBtn = function() {
+    var ab = document.getElementById('btn-right-attend');
+    var lk = document.getElementById('attend-lock-icon');
+    if (!ab) return;
+    var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+    var unlocked = w >= 50;
+    ab.style.color = unlocked ? '#00ffff' : '#334455';
+    ab.style.borderColor = unlocked ? '#0a3344' : '#0a1520';
+    if (lk) lk.style.display = unlocked ? 'none' : '';
+    var parts = ab.querySelectorAll('div[style*="border:1.5px"], div[style*="border:1px"], div[style*="font-size:8px"]');
+    for (var i = 0; i < parts.length; i++) {
+      parts[i].style.borderColor = unlocked ? '#00ffff' : '#334455';
+      if (parts[i].style.color) parts[i].style.color = unlocked ? '#00ffff' : '#334455';
+    }
+  };
+}());
+
 /* showScreen('home') 호출 시 아이콘 갱신 */
 (function () {
   var _orig = window.showScreen;
@@ -11738,6 +11769,7 @@ function renderLeftIcons() {
       if (name === 'home') {
         try { renderLeftIcons(); } catch(e) {}
         try { window._updateRankBtn(); } catch(e) {}
+        try { window._updateAttendBtn(); } catch(e) {}
       }
     };
   }
