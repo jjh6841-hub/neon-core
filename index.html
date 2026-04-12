@@ -3892,6 +3892,7 @@ document.addEventListener('touchend', function(e) {
               home.style.transition = 'opacity 0.4s';
               buildUnlockUI();
               syncShopUI();
+              renderNavTabs('home');
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
             }, 400);
