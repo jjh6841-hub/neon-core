@@ -11643,7 +11643,7 @@ var LEFT_ICONS = [
   { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',   unlockWave: 100 }
 ];
 
-var lastLeftToast = 0;
+// lastLeftToast removed — uses showNavToast per-tab cooldown
 
 var _ACHIEVE_ICON = '<div style="position:relative;width:22px;height:26px;display:flex;flex-direction:column;align-items:center;"><div style="width:18px;height:18px;background:CLC;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);position:relative;"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#001a1a;border-radius:50%;"></div></div><div style="display:flex;gap:1px;margin-top:-1px;"><div style="width:5px;height:7px;background:CLC;clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%);"></div><div style="width:5px;height:7px;background:CLC;clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%);"></div></div></div>';
 var _EVENT_ICON = '<div style="font-family:Courier New,monospace;font-size:8px;font-weight:bold;color:CLC;letter-spacing:1px;line-height:1.2;text-align:center;">EVT</div>';
@@ -11685,13 +11685,10 @@ function renderLeftIcons() {
         btn.onclick = function() { showScreen(icon.screen); };
       } else {
         btn.onclick = function() {
-          var now = Date.now();
-          if (now - lastLeftToast < 3000) return;
-          lastLeftToast = now;
           var msg = icon.unlockWave === 999
             ? icon.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
             : icon.label + ' \u2014 \uC6E8\uC774\uBE0C ' + icon.unlockWave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg);
+          showNavToast(msg, icon.id);
         };
       }
 
@@ -11710,7 +11707,7 @@ function renderLeftIcons() {
       if (w >= 70) {
         showScreen('ranking');
       } else {
-        showNavToast('\uB7AD\uD0B9 \u2014 \uC6E8\uC774\uBE0C 70 \uB2EC\uC131 \uC2DC \uD574\uAE08');
+        showNavToast('\uB7AD\uD0B9 \u2014 \uC6E8\uC774\uBE0C 70 \uB2EC\uC131 \uC2DC \uD574\uAE08', 'ranking');
       }
     });
   }
