@@ -4399,6 +4399,7 @@ if (dailyClaimBtn) {
     sync:    syncWorkshopHUD,
     upgrade: wsUpgrade,
     open:    openWorkshop,
+    build:   function() { buildWorkshopContent(wsActiveTab); },
     activeTab: function() { return wsActiveTab; }
   };
 
@@ -10960,7 +10961,6 @@ window.pulseFragments = parseInt(localStorage.getItem('pulseFragments') || '0') 
 var _FW_SCREENS = ['screen-frequency-wars', 'screen-signal-market',
                    'screen-event', 'screen-ranking'];
 window.showScreen = function (name) {
-  renderNavTabs(name);
   // 새로 추가된 전체화면들 모두 숨기기
   _FW_SCREENS.forEach(function (id) {
     var el = document.getElementById(id);
@@ -10980,15 +10980,14 @@ window.showScreen = function (name) {
       target.style.zIndex   = '600';
     }
     target.style.display = 'flex';
+    target.style.paddingBottom = '52px';
   }
 
   // 화면별 초기화
   if (name === 'home') {
     try { syncShopUI(); } catch(_) {}
   } else if (name === 'workshop') {
-    try { window._wsExt.sync(); window._wsExt.open(); } catch(_) {
-      try { window._wsExt.sync(); } catch(_2) {}
-    }
+    try { window._wsExt.sync(); window._wsExt.build(); } catch(_) {}
   } else if (name === 'store') {
     try { window._storeExt.sync(); window._storeExt.render(); } catch(_) {}
   } else if (name === 'research' || name === 'lab') {
@@ -10997,6 +10996,13 @@ window.showScreen = function (name) {
     try { _syncTrnHUD(); _renderTrnLeague(); _renderLeaderboard(); _updateTrnTimer(); } catch(_) {}
   } else {
     try { syncPulse(); } catch(_) {}
+  }
+
+  // 하단 탭 항상 표시 유지
+  var nav = document.getElementById('bottom-nav');
+  if (nav) {
+    nav.style.display = 'flex';
+    renderNavTabs(name);
   }
 };
 
