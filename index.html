@@ -2021,6 +2021,31 @@ var coreChips = 0;
 var baseStartChips = 0;
 var killCountForGold = 0;
 var isPaused = false;
+function _infKill(enemyType) {
+  try {
+    // 무한 임무 카운트
+    var k = parseInt(localStorage.getItem('inf_kills_total')||'0',10);
+    localStorage.setItem('inf_kills_total', k+1);
+    // 주간 적 처치 카운트
+    var wk = parseInt(localStorage.getItem('wk_kills_progress')||'0',10);
+    localStorage.setItem('wk_kills_progress', wk+1);
+    // 일일 적 처치 카운트
+    var dk = parseInt(localStorage.getItem('daily_kills_progress')||'0',10);
+    localStorage.setItem('daily_kills_progress', dk+1);
+    if (enemyType === 'boss' || enemyType === 'boss_elite' || enemyType === 'boss_hyper') {
+      // 주간 보스 카운트
+      var wb = parseInt(localStorage.getItem('wk_boss_progress')||'0',10);
+      localStorage.setItem('wk_boss_progress', wb+1);
+      // 일일 보스 카운트
+      var db = parseInt(localStorage.getItem('daily_boss_progress')||'0',10);
+      localStorage.setItem('daily_boss_progress', db+1);
+    }
+    if (enemyType === 'boss') { var b=parseInt(localStorage.getItem('inf_boss_total')||'0',10); localStorage.setItem('inf_boss_total',b+1); }
+    else if (enemyType === 'boss_elite') { var b=parseInt(localStorage.getItem('inf_elite_total')||'0',10); localStorage.setItem('inf_elite_total',b+1); }
+    else if (enemyType === 'boss_hyper') { var b=parseInt(localStorage.getItem('inf_hyper_total')||'0',10); localStorage.setItem('inf_hyper_total',b+1); }
+    if(typeof _updateDailyAllProgress==='function') _updateDailyAllProgress();
+  } catch(_){}
+}
 
 function createState() {
   return {
@@ -2140,6 +2165,8 @@ function startGame() {
   isPaused = false;
   var _pov = document.getElementById('pause-overlay');
   if (_pov) _pov.style.display = 'none';
+  try { var _wg=parseInt(localStorage.getItem('wk_games_progress')||'0',10); localStorage.setItem('wk_games_progress',_wg+1); } catch(_){}
+  try { var _dg=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',_dg+1); } catch(_){}
   const _sb = document.getElementById('speed-btn');
   if (_sb) _sb.textContent = G.speed + '×';
   applyPermStats();
@@ -2384,6 +2411,7 @@ function update(dt) {
           G.gems       += gmEarned;
           G.killCount++;
           PERM.totalKills++;
+          _infKill(e.type);
           if (e.boss) {
             PERM.bossKills++;
             G.gold += 5; G.goldEarned += 5; PERM.gold += 5;
@@ -2429,6 +2457,7 @@ function update(dt) {
                   coreChips += ekChip;
                   G.killCount++;
                   PERM.totalKills++;
+                  _infKill(ek.type);
                   if (ek.boss) { PERM.bossKills++; G.gold += 5; G.goldEarned += 5; PERM.gold += 5; }
                   else { killCountForGold++; if (killCountForGold >= 10) { killCountForGold -= 10; G.gold += 1; G.goldEarned += 1; PERM.gold += 1; } }
                   if (ekChip > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekChip + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
@@ -2761,6 +2790,10 @@ function onWaveComplete() {
   G.betweenTimer = 2500;
   if (G.wave % 10 === 0) G.gems += 2;
   if (G.wave > PERM.bestWave) { PERM.bestWave = G.wave; savePerm(); }
+  // 주간 웨이브 기록 갱신
+  try { var _cwb=parseInt(localStorage.getItem('wk_wave_progress')||'0',10); if(G.wave>_cwb) localStorage.setItem('wk_wave_progress',G.wave); } catch(_){}
+  // 일일 웨이브 기록 갱신
+  try { var _dwb=parseInt(localStorage.getItem('daily_wave_progress')||'0',10); if(G.wave>_dwb) localStorage.setItem('daily_wave_progress',G.wave); var _dtw=parseInt(localStorage.getItem('daily_total_wave_progress')||'0',10); localStorage.setItem('daily_total_wave_progress',_dtw+1); } catch(_){}
   // 매 웨이브마다 티어별 최고 스테이지 갱신
   try {
     var _ct = parseInt(localStorage.getItem('td_tier')||'1',10);
@@ -3432,6 +3465,7 @@ function doUpgrade(key) {
   upg.apply();
   AudioManager.playSfx('upgrade');
   PERM.upgradeCount++;
+  try { var _su=parseInt(localStorage.getItem('stat_upgrades')||'0',10); localStorage.setItem('stat_upgrades',_su+1); } catch(_){}
   checkAchievements();
   syncUI();
 }
@@ -3656,6 +3690,8 @@ function shopUpgrade(key) {
   PERM.gold -= cost;
   PERM[key + 'Lv']++;
   savePerm();
+  try { var _wu=parseInt(localStorage.getItem('wk_upgrade_progress')||'0',10); localStorage.setItem('wk_upgrade_progress',_wu+1); } catch(_){}
+  try { var _du=parseInt(localStorage.getItem('daily_upgrade_progress')||'0',10); localStorage.setItem('daily_upgrade_progress',_du+1); } catch(_){}
   showShopFlash();
   syncShopUI();
 }
@@ -5053,7 +5089,7 @@ function _updateOrbs(dt) {
         e.hp -= orbDmg * (dt / 300);
         if (e.hp <= 0) {
           var _oc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _oc;
-          G.killCount++; PERM.totalKills++;
+          G.killCount++; PERM.totalKills++; _infKill(e.type);
           if (e.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
           else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
           try { spawnDeathParticles(e.x, e.y, '#00ffff', 5); } catch(_) {}
@@ -5094,7 +5130,7 @@ function _updateMines(dt) {
             ek.hp -= mDmg;
             if (ek.hp <= 0) {
               var _mc = ek.boss ? 0 : Math.ceil((ek.gold||1)*0.1); coreChips += _mc;
-              G.killCount++; PERM.totalKills++;
+              G.killCount++; PERM.totalKills++; _infKill(ek.type);
               if (ek.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
               else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
               try { spawnDeathParticles(ek.x, ek.y, '#00ff88', 5); } catch(_) {}
@@ -5118,7 +5154,7 @@ function _updateThorn(dt) {
       te.hp -= G.thornDamage * G.tower.dmg * (dt / 1000);
       if (te.hp <= 0) {
         var _tc = te.boss ? 0 : Math.ceil((te.gold||1)*0.1); coreChips += _tc;
-        G.killCount++; PERM.totalKills++;
+        G.killCount++; PERM.totalKills++; _infKill(te.type);
         if (te.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
         else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
         try { spawnDeathParticles(te.x, te.y, '#ff8888', 4); } catch(_) {}
@@ -5165,7 +5201,7 @@ function _triggerDeathWave() {
     G.enemies[i].hp -= dmg;
     if (G.enemies[i].hp <= 0) {
       var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1); coreChips += _dwc;
-      G.killCount++; PERM.totalKills++;
+      G.killCount++; PERM.totalKills++; _infKill(G.enemies[i].type);
       if (G.enemies[i].boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
       else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
       try { spawnDeathParticles(G.enemies[i].x, G.enemies[i].y, '#ef4444', 8); } catch(_) {}
@@ -5187,7 +5223,7 @@ function _triggerPlasma() {
       e.hp -= G.tower.dmg * 4;
       if (e.hp <= 0) {
         var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _psc;
-        G.killCount++; PERM.totalKills++;
+        G.killCount++; PERM.totalKills++; _infKill(e.type);
         if (e.boss) { PERM.bossKills++; G.gold+=5; G.goldEarned+=5; PERM.gold+=5; }
         else { killCountForGold++; if(killCountForGold>=10){killCountForGold-=10;G.gold+=1;G.goldEarned+=1;PERM.gold+=1;} }
         try { spawnDeathParticles(e.x, e.y, '#f59e0b', 8); } catch(_) {}
@@ -6486,8 +6522,9 @@ if (storeBtn) {
   <div style="display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;border-bottom:1px solid rgba(0,255,255,0.12);flex-shrink:0;background:#040c14;">
     <button id="miss-back" style="background:none;border:none;color:#00ffff;font-size:13px;font-family:monospace;cursor:pointer;padding:6px 10px 6px 0;">← 뒤로</button>
     <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:3px;">일일 임무</span>
-    <div style="width:60px;text-align:right;">
-      <span style="color:#f59e0b;font-size:11px;font-family:monospace;">◈ <span id="miss-gold-display">0</span></span>
+    <div style="display:flex;gap:8px;align-items:center;font-family:'Courier New',monospace;font-size:11px;">
+      <span style="color:#f59e0b;">◈ <span id="miss-gold-display">0</span></span>
+      <span style="color:#00ffff;">◆ <span id="miss-gems-display">0</span></span>
     </div>
   </div>
 
@@ -7081,90 +7118,82 @@ if (homeEl) {
 
 /* ── 임무 정의 ── */
 var DAILY_MISSIONS = [
-  { id:'m1', text:'강화 업그레이드 1회 구매',  target:1,  type:'upgrade', reward:{ gold:25, gem:3 } },
-  { id:'m2', text:'웨이브 3 달성',             target:3,  type:'wave',    reward:{ gold:25, gem:3 } },
-  { id:'m3', text:'적 50마리 처치',            target:50, type:'kill',    reward:{ gold:30, gem:3 } },
-  { id:'m4', text:'광고 보기 1회',             target:1,  type:'ad',      reward:{ gold:20, gem:5 } },
-  { id:'m5', text:'게임 2판 플레이',           target:2,  type:'play',    reward:{ gold:25, gem:3 } },
-  { id:'m6', text:'보스 처치 1회',             target:1,  type:'boss',    reward:{ gold:40, gem:5 } },
-  { id:'m7', text:'스킬 카드 선택 3회',        target:3,  type:'skill',   reward:{ gold:30, gem:3 } },
-  { id:'m8', text:'웨이브 5 달성',             target:5,  type:'wave',    reward:{ gold:50, gem:5 } },
+  { id:'daily_upgrade',    text:'강화 업그레이드 1회',  target:1,   trackKey:'daily_upgrade_progress',    reward:{ gold:25, gem:0 } },
+  { id:'daily_wave',       text:'웨이브 10 달성',       target:10,  trackKey:'daily_wave_progress',       reward:{ gold:25, gem:0 } },
+  { id:'daily_kills',      text:'적 100마리 처치',      target:100, trackKey:'daily_kills_progress',      reward:{ gold:30, gem:0 } },
+  { id:'daily_ad',         text:'광고 보기 1회',        target:1,   trackKey:'daily_ad_progress',         reward:{ gold:20, gem:0 } },
+  { id:'daily_games',      text:'게임 2판 플레이',      target:2,   trackKey:'daily_games_progress',      reward:{ gold:25, gem:0 } },
+  { id:'daily_boss',       text:'보스 처치 3회',        target:3,   trackKey:'daily_boss_progress',       reward:{ gold:40, gem:0 } },
+  { id:'daily_total_wave', text:'총 웨이브 50 도달',    target:50,  trackKey:'daily_total_wave_progress', reward:{ gold:30, gem:0 } },
+  { id:'daily_all',        text:'일일 임무 모두 완료',  target:7,   trackKey:'daily_all_progress',        reward:{ gold:100, gem:0 } },
 ];
 
-var WEEKLY_NODES = [
-  { req:5,  gem:5  },
-  { req:10, gem:10 },
-  { req:15, gem:20 },
-  { req:20, gem:30 },
-  { req:25, gem:50 },
-];
-
-/* ── 저장/로드 ── */
-var _MISS_KEY   = 'td_missions';
-var _WEEKLY_KEY = 'td_missions_weekly';
-var _REFRESH_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2시간
-
-function _loadMiss() {
-  try { return JSON.parse(localStorage.getItem(_MISS_KEY) || 'null') || _freshState(); } catch(_) { return _freshState(); }
-}
-function _saveMiss(d) {
-  try { localStorage.setItem(_MISS_KEY, JSON.stringify(d)); } catch(_) {}
-}
-function _loadWeekly() {
-  try { return JSON.parse(localStorage.getItem(_WEEKLY_KEY) || 'null') || { claimed:[], total:0 }; } catch(_) { return { claimed:[], total:0 }; }
-}
-function _saveWeekly(d) {
-  try { localStorage.setItem(_WEEKLY_KEY, JSON.stringify(d)); } catch(_) {}
-}
-function _freshState() {
-  return {
-    date:      new Date().toDateString(),
-    progress:  {},  // id → 진행 수치
-    claimed:   {},  // id → true
-    nextRefresh: Date.now() + _REFRESH_INTERVAL_MS,
-    activeCount: 8, // 현재 활성 임무 수 (2시간마다 2개씩 갱신됨)
-  };
-}
-
-/* ── 일일 리셋 체크 ── */
-function _checkReset() {
-  var d = _loadMiss();
-  var today = new Date().toDateString();
-  if (d.date !== today) {
-    d = _freshState();
-    _saveMiss(d);
-  }
-  return d;
-}
-
-/* ── 임무 진행 (외부에서 호출) ── */
-window._missionProgress = function(type, amount) {
-  var d = _checkReset();
-  var changed = false;
+function _updateDailyAllProgress() {
+  var completed = 0;
   DAILY_MISSIONS.forEach(function(m) {
-    if (m.type !== type) return;
-    if (d.claimed[m.id]) return;
-    d.progress[m.id] = Math.min((d.progress[m.id] || 0) + amount, m.target);
-    changed = true;
+    if (m.id === 'daily_all') return;
+    var prog = parseInt(localStorage.getItem(m.trackKey)||'0',10);
+    if (prog >= m.target) completed++;
   });
-  if (changed) { _saveMiss(d); _updateBadge(); }
+  localStorage.setItem('daily_all_progress', completed);
+}
+
+/* ── 일일 리셋 체크 (KST 자정 기준) ── */
+function _checkDailyReset() {
+  var now=new Date(); var kst=new Date(now.getTime()+9*3600000);
+  var todayStr=kst.toISOString().slice(0,10);
+  var last=localStorage.getItem('daily_reset_date');
+  if(last!==todayStr){
+    DAILY_MISSIONS.forEach(function(m){
+      localStorage.setItem(m.trackKey,'0');
+      localStorage.removeItem('daily_claimed_'+m.id);
+    });
+    localStorage.setItem('daily_reset_date',todayStr);
+  }
+}
+function _checkReset() { _checkDailyReset(); return {}; }
+
+/* ── 갱신 타이머 ── */
+function _getTimeUntilMidnight() {
+  var now=new Date(); var kst=new Date(now.getTime()+9*3600000);
+  var tmrw=new Date(kst); tmrw.setUTCDate(kst.getUTCDate()+1); tmrw.setUTCHours(0,0,0,0);
+  var diff=tmrw-kst;
+  var h=Math.floor(diff/3600000); var m=Math.floor((diff%3600000)/60000); var s=Math.floor((diff%60000)/1000);
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+/* ── 임무 진행 (외부 호환 유지) ── */
+window._missionProgress = function(type, amount) {
+  // 기존 호환: type에 따라 daily 카운터 증가
+  try {
+    if(type==='kill')    { var v=parseInt(localStorage.getItem('daily_kills_progress')||'0',10); localStorage.setItem('daily_kills_progress',v+(amount||1)); }
+    if(type==='boss')    { var v=parseInt(localStorage.getItem('daily_boss_progress')||'0',10); localStorage.setItem('daily_boss_progress',v+(amount||1)); }
+    if(type==='wave')    { var cur=parseInt(localStorage.getItem('daily_wave_progress')||'0',10); if((amount||1)>cur) localStorage.setItem('daily_wave_progress',amount||1); var tw=parseInt(localStorage.getItem('daily_total_wave_progress')||'0',10); localStorage.setItem('daily_total_wave_progress',tw+1); }
+    if(type==='upgrade') { var v=parseInt(localStorage.getItem('daily_upgrade_progress')||'0',10); localStorage.setItem('daily_upgrade_progress',v+(amount||1)); }
+    if(type==='play')    { var v=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',v+(amount||1)); }
+    if(type==='ad')      { localStorage.setItem('daily_ad_progress','1'); }
+    _updateDailyAllProgress();
+  } catch(_){}
+  _updateBadge();
 };
 
 /* ── 완료된 미수령 임무 수 ── */
 function _getPendingCount() {
-  var d = _checkReset();
+  _checkDailyReset();
   var count = 0;
   DAILY_MISSIONS.forEach(function(m) {
-    if (!d.claimed[m.id] && (d.progress[m.id] || 0) >= m.target) count++;
+    var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
+    var claimed=localStorage.getItem('daily_claimed_'+m.id)==='true';
+    if (!claimed && prog >= m.target) count++;
   });
   return count;
 }
 
 /* ── 완료 임무 수 ── */
 function _getCompletedCount() {
-  var d = _checkReset();
+  _checkDailyReset();
   var count = 0;
-  DAILY_MISSIONS.forEach(function(m) { if (d.claimed[m.id]) count++; });
+  DAILY_MISSIONS.forEach(function(m) { if (localStorage.getItem('daily_claimed_'+m.id)==='true') count++; });
   return count;
 }
 
@@ -7182,73 +7211,81 @@ function _updateBadge() {
 
 /* ── 임무 화면 렌더링 ── */
 function _renderMissions() {
-  var d      = _checkReset();
-  var list   = document.getElementById('miss-list');
-  var wkly   = _loadWeekly();
+  _checkDailyReset();
+  _updateDailyAllProgress();
+  var list = document.getElementById('miss-list');
   if (!list) return;
-
   list.innerHTML = '';
+  var anyClaimable = false;
 
   DAILY_MISSIONS.forEach(function(m) {
-    var prog    = d.progress[m.id] || 0;
-    var claimed = !!d.claimed[m.id];
+    var prog    = parseInt(localStorage.getItem(m.trackKey)||'0',10);
+    var claimed = localStorage.getItem('daily_claimed_'+m.id)==='true';
     var done    = prog >= m.target;
     var pct     = Math.min(100, Math.round(prog / m.target * 100));
+    if (done && !claimed) anyClaimable = true;
 
     var card = document.createElement('div');
-    card.className = 'miss-card' + (done && !claimed ? ' done' : '') + (claimed ? ' claimed' : '');
-
-    var claimHTML = '';
-    if (claimed) {
-      claimHTML = '<div style="margin-top:8px;text-align:right;"><span style="color:#334455;font-size:10px;font-family:monospace;">✓ 완료</span></div>';
-    } else if (done) {
-      claimHTML = '<div style="margin-top:8px;text-align:right;"><button data-miss-id="' + m.id + '" class="miss-claim-btn" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 12px;cursor:pointer;">수령하기</button></div>';
-    }
-
+    card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;opacity:'+(claimed?'0.4':'1')+';';
     card.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
-        '<span style="color:#94a3b8;font-size:11px;font-family:monospace;flex:1;">' + m.text + '</span>' +
-        '<div style="text-align:right;flex-shrink:0;">' +
-          '<span style="color:#f59e0b;font-size:10px;font-family:monospace;">◈' + m.reward.gold + '</span>' +
-          '<span style="color:#334455;font-size:10px;font-family:monospace;"> </span>' +
-          '<span style="color:#cc44ff;font-size:10px;font-family:monospace;">◆' + m.reward.gem + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div style="margin-top:8px;">' +
-        '<div style="display:flex;justify-content:space-between;margin-bottom:3px;">' +
-          '<span style="color:#334455;font-size:9px;font-family:monospace;">' + prog + ' / ' + m.target + '</span>' +
-          '<span style="color:#334455;font-size:9px;font-family:monospace;">' + pct + '%</span>' +
-        '</div>' +
-        '<div class="miss-prog-bar-bg"><div class="miss-prog-bar-fill" style="width:' + pct + '%;background:' + (done?'#00ffff':'#3b82f6') + ';"></div></div>' +
-      '</div>' + claimHTML;
-
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+        '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.text+'</span>'+
+        '<span style="font-size:9px;font-family:monospace;color:#f59e0b;">◈'+m.reward.gold+'</span>'+
+      '</div>'+
+      '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:18px;overflow:hidden;margin-bottom:6px;">'+
+        '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:'+pct+'%;transition:width 0.3s;"></div>'+
+        '<div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#fff;font-family:monospace;">'+Math.min(prog,m.target)+' / '+m.target+'</div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:flex-end;">'+
+        (done&&!claimed?'<button data-miss-id="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◈'+m.reward.gold+' 수령</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">'+(claimed?'완료':'진행 중')+'</span>')+
+      '</div>';
     list.appendChild(card);
   });
 
   // 수령 버튼 이벤트
-  list.querySelectorAll('.miss-claim-btn').forEach(function(btn) {
+  list.querySelectorAll('[data-miss-id]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var mId = btn.getAttribute('data-miss-id');
       var miss = DAILY_MISSIONS.filter(function(x){return x.id===mId;})[0];
-      if (!miss) return;
-      d.claimed[mId] = true;
-      _saveMiss(d);
+      if (!miss || localStorage.getItem('daily_claimed_'+mId)==='true') return;
+      localStorage.setItem('daily_claimed_'+mId,'true');
       if (window.PERM) {
-        window.PERM.gold = (window.PERM.gold||0) + miss.reward.gold;
-        window.PERM.gems = (window.PERM.gems||0) + miss.reward.gem;
-        if (window.savePerm) window.savePerm();
+        PERM.gold = (PERM.gold||0) + miss.reward.gold;
+        if (window.savePerm) savePerm();
       }
-      // 주간 누적
-      var wk = _loadWeekly();
-      wk.total = (wk.total||0) + 1;
-      _saveWeekly(wk);
+      _updateDailyAllProgress();
       _renderMissions();
-      _renderWeeklyNodes();
       _updateBadge();
       var goldEl = document.getElementById('miss-gold-display');
-      if (goldEl && window.PERM) goldEl.textContent = window.PERM.gold || 0;
+      if (goldEl && window.PERM) goldEl.textContent = PERM.gold || 0;
     });
   });
+
+  // 갱신 타이머
+  var timerEl = document.createElement('div');
+  timerEl.style.cssText='text-align:center;font-size:10px;color:#334455;font-family:monospace;margin-top:8px;';
+  timerEl.textContent='갱신까지 '+_getTimeUntilMidnight();
+  list.appendChild(timerEl);
+
+  // 모두 받기 버튼
+  var claimAllBtn=document.createElement('button');
+  claimAllBtn.style.cssText='width:100%;padding:14px;margin-top:8px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
+  claimAllBtn.textContent='◈ 모두 받기';
+  if(anyClaimable) claimAllBtn.addEventListener('click',function(){
+    DAILY_MISSIONS.forEach(function(m){
+      var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
+      if(prog>=m.target && localStorage.getItem('daily_claimed_'+m.id)!=='true'){
+        localStorage.setItem('daily_claimed_'+m.id,'true');
+        if(window.PERM) PERM.gold=(PERM.gold||0)+m.reward.gold;
+      }
+    });
+    if(window.savePerm) savePerm();
+    _updateDailyAllProgress();
+    _renderMissions();
+    _updateBadge();
+    var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
+  });
+  list.appendChild(claimAllBtn);
 
   // 임무 수 텍스트
   var cnt = document.getElementById('miss-count-label');
@@ -7325,11 +7362,13 @@ setInterval(function() {
 
 /* ── 임무 화면 열기/닫기 ── */
 window._openMissions = function() {
+  _checkDailyReset();
   var goldEl = document.getElementById('miss-gold-display');
   if (goldEl && window.PERM) goldEl.textContent = window.PERM.gold || 0;
+  var gemsEl = document.getElementById('miss-gems-display');
+  if (gemsEl && window.PERM) gemsEl.textContent = window.PERM.gems || 0;
   _renderMissions();
-  _renderWeeklyNodes();
-  _updateRefreshTimer();
+  _updateBadge();
   document.getElementById('screen-missions').style.display = 'flex';
 };
 
@@ -7561,32 +7600,28 @@ setTimeout(_applyMaxOverrides, 300);
 ════════════════════════════════════════ */
 (function() {
   var WMISS = [
-    { id:'w1', text:'웨이브 10 달성',       target:10,  type:'wave',    reward:{gold:100,gem:10} },
-    { id:'w2', text:'적 300마리 처치',      target:300, type:'kill',    reward:{gold:120,gem:10} },
-    { id:'w3', text:'보스 5마리 처치',      target:5,   type:'boss',    reward:{gold:150,gem:15} },
-    { id:'w4', text:'강화 업그레이드 10회', target:10,  type:'upgrade', reward:{gold:100,gem:10} },
-    { id:'w5', text:'게임 7판 플레이',      target:7,   type:'play',    reward:{gold:120,gem:12} },
+    { id:'wk_wave',    text:'웨이브 50 클리어',      target:50,   trackKey:'wk_wave_progress',    reward:{gold:300,gem:0} },
+    { id:'wk_kills',   text:'적 1000마리 처치',      target:1000, trackKey:'wk_kills_progress',   reward:{gold:300,gem:0} },
+    { id:'wk_boss',    text:'보스 20마리 처치',      target:20,   trackKey:'wk_boss_progress',    reward:{gold:300,gem:0} },
+    { id:'wk_upgrade', text:'강화 업그레이드 10회',  target:10,   trackKey:'wk_upgrade_progress', reward:{gold:300,gem:0} },
+    { id:'wk_games',   text:'게임 10판 플레이',      target:10,   trackKey:'wk_games_progress',   reward:{gold:300,gem:0} },
   ];
+  var WK_CHECKPOINTS = [5,10,15,20,25,30,35];
+  var WK_CP_REWARDS  = {5:10,10:10,15:10,20:10,25:10,30:10,35:20};
 
-  function _wkey() { var d=new Date(); d.setDate(d.getDate()-d.getDay()); return 'td_w_'+d.toISOString().slice(0,10); }
-  function _loadW() { try{return JSON.parse(localStorage.getItem(_wkey())||'{}');}catch(_){return{};} }
-  function _saveW(d) { try{localStorage.setItem(_wkey(),JSON.stringify(d));}catch(_){} }
-
-  // weekly 진행 추적 — _missionProgress 패치
-  setTimeout(function() {
-    var orig = window._missionProgress;
-    if (typeof orig !== 'function') return;
-    window._missionProgress = function(type, amount) {
-      orig.apply(this, arguments);
-      var wd = _loadW(); var changed = false;
-      WMISS.forEach(function(m) {
-        if (m.type !== type) return;
-        var k = 'p_'+m.id;
-        if ((wd[k]||0) < m.target) { wd[k] = Math.min(m.target,(wd[k]||0)+(amount||1)); changed=true; }
-      });
-      if (changed) _saveW(wd);
-    };
-  }, 200);
+  function _checkWeeklyReset() {
+    var now=new Date(); var kst=new Date(now.getTime()+9*3600000);
+    var day=kst.getUTCDay(); var mon=new Date(kst);
+    mon.setUTCDate(kst.getUTCDate()-((day+6)%7));
+    var monStr=mon.toISOString().slice(0,10);
+    var last=localStorage.getItem('weekly_reset_date');
+    if(last!==monStr){
+      ['wk_wave_progress','wk_kills_progress','wk_boss_progress','wk_upgrade_progress','wk_games_progress','weekly_challenge_count'].forEach(function(k){localStorage.setItem(k,'0');});
+      WK_CHECKPOINTS.forEach(function(n){localStorage.removeItem('weekly_challenge_claimed_'+n);});
+      WMISS.forEach(function(m){localStorage.removeItem('wk_claimed_'+m.id);});
+      localStorage.setItem('weekly_reset_date',monStr);
+    }
+  }
 
   function _setup() {
     var sc = document.getElementById('screen-missions');
@@ -7607,8 +7642,8 @@ setTimeout(_applyMaxOverrides, 300);
     var tb = document.createElement('div');
     tb.id = 'ms4-bar';
     tb.style.cssText = 'display:flex;height:34px;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;';
-    ['일일','주간','무한','특수'].forEach(function(label,i) {
-      var ids=['daily','weekly','infinite','special'];
+    ['일일','주간','무한'].forEach(function(label,i) {
+      var ids=['daily','weekly','infinite'];
       var b = document.createElement('button');
       b.setAttribute('data-ms4',''+ids[i]);
       b.style.cssText='flex:1;height:34px;background:none;border:none;border-bottom:2px solid '+(i===0?'#00ffff':'transparent')+';color:'+(i===0?'#00ffff':'#334455')+';font-size:10px;font-family:monospace;cursor:pointer;padding:0;';
@@ -7628,7 +7663,11 @@ setTimeout(_applyMaxOverrides, 300);
     // 주간 래퍼
     var wkW = document.createElement('div');
     wkW.id='ms4-weekly'; wkW.style.cssText='display:none;flex-direction:column;flex:1;overflow:hidden;';
-    wkW.appendChild(weeklyDv);
+    // 기존 weeklyDv(주간 도전 바)는 숨기고 새로 만듦
+    if(weeklyDv) weeklyDv.style.display='none';
+    var wkGauge = document.createElement('div');
+    wkGauge.id='ms4-wgauge'; wkGauge.style.cssText='padding:14px 16px 10px;border-bottom:1px solid #0a2233;flex-shrink:0;background:#040c14;';
+    wkW.appendChild(wkGauge);
     var wkList = document.createElement('div');
     wkList.id='ms4-wlist'; wkList.style.cssText='flex:1;overflow-y:auto;padding:12px;';
     wkW.appendChild(wkList);
@@ -7636,83 +7675,97 @@ setTimeout(_applyMaxOverrides, 300);
 
     // 무한 래퍼
     var infW = document.createElement('div');
-    infW.id='ms4-inf'; infW.style.cssText='display:none;flex-direction:column;flex:1;overflow-y:auto;padding:12px;';
-    [
-      { text:'적 100마리 처치 (이번 판)',         reward:{gold:25,gem:3} },
-      { text:'이번 판 웨이브 최고 기록 경신',     reward:{gold:30,gem:5} },
-      { text:'보스 처치 (이번 판)',               reward:{gold:50,gem:5} },
-    ].forEach(function(m) {
-      var r=document.createElement('div');
-      r.style.cssText='background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(245,158,11,0.3);padding:12px;margin-bottom:6px;';
-      r.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#94a3b8;font-size:11px;font-family:monospace;">'+m.text+'</span><span style="color:#f59e0b;font-size:10px;font-family:monospace;">◈'+m.reward.gold+' ◆'+m.reward.gem+'</span></div><div style="margin-top:5px;font-size:9px;color:#334455;font-family:monospace;">반복 달성 가능</div>';
-      infW.appendChild(r);
-    });
+    infW.id='ms4-inf'; infW.style.cssText='display:none;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
     sc.appendChild(infW);
 
-    // 특수 래퍼
-    var spcW = document.createElement('div');
-    spcW.id='ms4-spc'; spcW.style.cssText='display:none;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px;gap:6px;';
-    sc.appendChild(spcW);
-
-    // 특수 임무 데이터
-    function _getTierBest(t){ return parseInt(localStorage.getItem('tier'+t+'_best')||'0',10); }
-    var SP_MISSIONS = [
-      { id:'sp_tier1',      title:'TIER 1 정복',    desc:'TIER 1에서 스테이지 100 클리어', cond:function(){ return _getTierBest(1)>=100; }, reward:{gold:500,gems:10} },
-      { id:'sp_tier2',      title:'TIER 2 정복',    desc:'TIER 2에서 스테이지 100 클리어', cond:function(){ return _getTierBest(2)>=100; }, reward:{gold:1000,gems:20} },
-      { id:'sp_tier3',      title:'TIER 3 정복',    desc:'TIER 3에서 스테이지 100 클리어', cond:function(){ return _getTierBest(3)>=100; }, reward:{gold:2000,gems:40} },
-      { id:'sp_tier4',      title:'TIER 4 정복',    desc:'TIER 4에서 스테이지 100 클리어', cond:function(){ return _getTierBest(4)>=100; }, reward:{gold:5000,gems:80} },
-      { id:'sp_tier5',      title:'TIER 5 정복',    desc:'TIER 5에서 스테이지 100 클리어', cond:function(){ return _getTierBest(5)>=100; }, reward:{gold:10000,gems:150} },
-      { id:'sp_first_boss', title:'첫 보스 처치',    desc:'코어 보스 1마리 처치',           cond:function(){ return parseInt(localStorage.getItem('stat_boss_kills')||'0',10)>=1; }, reward:{gold:300,gems:5} },
-      { id:'sp_elite_boss', title:'엘리트 격파',     desc:'엘리트 코어 처치 (스테이지 50)', cond:function(){ return parseInt(localStorage.getItem('stat_elite_kills')||'0',10)>=1; }, reward:{gold:1000,gems:20} },
-      { id:'sp_hyper_boss', title:'하이퍼 격파',     desc:'하이퍼 코어 처치 (스테이지 100)',cond:function(){ return parseInt(localStorage.getItem('stat_hyper_kills')||'0',10)>=1; }, reward:{gold:3000,gems:50} },
+    // 무한 임무 데이터
+    function _getTierBestInf(t){ return parseInt(localStorage.getItem('tier'+t+'_best')||'0',10); }
+    var tierRw = {1:500,2:1000,3:2000,4:4000,5:8000};
+    var INF_MISSIONS = [
+      { id:'inf_kills',  title:'적 처치',           storageKey:'inf_kills_total',  interval:100, reward:{gold:25,gems:0},  desc:'적 100마리 처치마다 ◈25 지급' },
+      { id:'inf_boss',   title:'코어 보스 처치',    storageKey:'inf_boss_total',   interval:5,   reward:{gold:50,gems:0},  desc:'10스테이지 보스 5마리마다 ◈50 지급' },
+      { id:'inf_elite',  title:'엘리트 코어 처치',  storageKey:'inf_elite_total',  interval:5,   reward:{gold:100,gems:0}, desc:'50스테이지 보스 5마리마다 ◈100 지급' },
+      { id:'inf_hyper',  title:'하이퍼 코어 처치',  storageKey:'inf_hyper_total',  interval:5,   reward:{gold:500,gems:0}, desc:'100스테이지 보스 5마리마다 ◈500 지급' },
+      { id:'inf_upgrades',title:'강화 달인',         storageKey:'stat_upgrades',    interval:50,  reward:{gold:200,gems:0}, desc:'강화 50회마다 ◈200 지급' },
     ];
+    for(var ti=1;ti<=5;ti++){
+      INF_MISSIONS.push({ id:'inf_tier'+ti+'_wave', title:'TIER '+ti+' 웨이브 도전', storageKey:'inf_tier'+ti+'_wave', interval:100, reward:{gold:tierRw[ti],gems:0}, desc:'TIER '+ti+'에서 100스테이지마다 ◈'+tierRw[ti]+' 지급', tier:ti });
+    }
+    window._INF_MISSIONS = INF_MISSIONS;
 
-    function _renderSpc() {
-      spcW.innerHTML='';
-      SP_MISSIONS.forEach(function(m) {
-        var claimed = false;
-        try { claimed = localStorage.getItem('sp_mission_claimed_'+m.id)==='true'; } catch(_){}
-        var met = m.cond();
-        var borderC = claimed ? '#0a3344' : met ? '#00ffff' : '#0a3344';
-        var card = document.createElement('div');
-        card.style.cssText='background:#0a1a2a;border:1px solid '+borderC+';border-left:2px solid '+(claimed?'#334455':met?'#00ffff':'rgba(0,255,255,0.12)')+';padding:12px;opacity:'+(claimed?'0.4':'1')+';';
-        var rightHTML;
-        if (claimed) {
-          rightHTML='<span style="color:#334455;font-size:10px;font-family:monospace;">완료</span>';
-        } else if (met) {
-          rightHTML='<button data-spc="'+m.id+'" style="background:#030b10;border:1px solid #00ffff44;color:#00ffff;font-size:10px;font-family:monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">수령</button>';
-        } else {
-          rightHTML='<span style="color:#334455;font-size:10px;font-family:monospace;">미달성</span>';
-        }
-        card.innerHTML=
-          '<div style="display:flex;justify-content:space-between;align-items:center;">'+
-            '<div style="display:flex;flex-direction:column;gap:2px;">'+
-              '<span style="color:'+(claimed?'#334455':'#00ffff')+';font-size:12px;font-family:monospace;font-weight:bold;">'+m.title+'</span>'+
-              '<span style="color:#556677;font-size:10px;font-family:monospace;">'+m.desc+'</span>'+
-            '</div>'+
-            '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">'+
-              '<span style="color:#f59e0b;font-size:9px;font-family:monospace;">◈'+m.reward.gold+' ◆'+m.reward.gems+'</span>'+
-              rightHTML+
-            '</div>'+
-          '</div>';
-        var btn=card.querySelector('[data-spc]');
-        if(btn)(function(mid,rw){
-          btn.addEventListener('click',function(){
-            var already=false; try{already=localStorage.getItem('sp_mission_claimed_'+mid)==='true';}catch(_){}
-            if(already) return;
-            try{localStorage.setItem('sp_mission_claimed_'+mid,'true');}catch(_){}
-            if(window.PERM){PERM.gold=(PERM.gold||0)+rw.gold;PERM.gems=(PERM.gems||0)+rw.gems;}
-            if(window.savePerm) savePerm();
-            if(window.showAchievementToast) showAchievementToast('◈+'+rw.gold+' ◆+'+rw.gems+' 획득!');
-            _renderSpc();
-          });
-        })(m.id,m.reward);
-        spcW.appendChild(card);
-      });
+    function _getInfState(m) {
+      var total;
+      if (m.tier) { total = _getTierBestInf(m.tier); }
+      else { total = parseInt(localStorage.getItem(m.storageKey)||'0',10); }
+      var claimed = parseInt(localStorage.getItem(m.id+'_claimed')||'0',10);
+      var completions = Math.floor(total / m.interval);
+      var claimable = Math.max(0, completions - claimed);
+      var progress = total % m.interval;
+      return { total:total, claimed:claimed, completions:completions, claimable:claimable, progress:progress, interval:m.interval };
     }
 
-    // 특수 탭 전환 시 렌더링 — MutationObserver
-    new MutationObserver(function(){ if(spcW.style.display!=='none') _renderSpc(); }).observe(spcW,{attributes:true,attributeFilter:['style']});
+    function _renderInf() {
+      infW.innerHTML='';
+      INF_MISSIONS.forEach(function(m) {
+        var s = _getInfState(m);
+        var pct = Math.round(s.progress/s.interval*100);
+        var rwText = '◈'+m.reward.gold+(m.reward.gems>0?' ◆'+m.reward.gems:'');
+        var canClaim = s.claimable > 0;
+        var card = document.createElement('div');
+        card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;';
+        card.innerHTML=
+          '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+            '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.title+'</span>'+
+            (canClaim?'<span style="background:#cc4400;color:#fff;font-size:9px;padding:2px 6px;border-radius:8px;font-family:monospace;">+'+s.claimable+'회 수령 가능</span>':'')+
+          '</div>'+
+          '<div style="font-size:10px;color:#445566;margin-bottom:8px;font-family:monospace;">'+m.desc+'</div>'+
+          '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:18px;overflow:hidden;margin-bottom:6px;">'+
+            '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:'+pct+'%;transition:width 0.3s;"></div>'+
+            '<div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#fff;font-family:monospace;">'+s.progress+' / '+s.interval+'</div>'+
+          '</div>'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+            '<span style="font-size:10px;color:#334455;font-family:monospace;">총 '+s.claimed+'회 수령</span>'+
+            '<button data-inf-id="'+m.id+'" style="background:'+(canClaim?'#00dddd':'#1a2a3a')+';color:'+(canClaim?'#001a1a':'#334455')+';border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">'+(canClaim?rwText+' 수령 ('+s.claimable+'회)':'진행 중')+'</button>'+
+          '</div>';
+        var btn=card.querySelector('[data-inf-id]');
+        if(btn && canClaim)(function(mission){
+          btn.addEventListener('click',function(){
+            var st=_getInfState(mission);
+            if(st.claimable<=0) return;
+            var gGold=mission.reward.gold*st.claimable;
+            var gGems=mission.reward.gems*st.claimable;
+            if(window.PERM){ PERM.gold=(PERM.gold||0)+gGold; PERM.gems=(PERM.gems||0)+gGems; }
+            localStorage.setItem(mission.id+'_claimed', st.claimed+st.claimable);
+            if(window.savePerm) savePerm();
+            if(window.showAchievementToast) showAchievementToast('◈+'+gGold+(gGems>0?' ◆+'+gGems:'')+' 획득!');
+            var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
+            var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
+            _renderInf();
+          });
+        })(m);
+        infW.appendChild(card);
+      });
+      // 모두 받기 버튼
+      var anyInfClaim=INF_MISSIONS.some(function(m){ return _getInfState(m).claimable>0; });
+      var infClaimAll=document.createElement('button');
+      infClaimAll.style.cssText='width:100%;padding:14px;margin-top:12px;background:transparent;border:1px solid '+(anyInfClaim?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyInfClaim?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
+      infClaimAll.textContent='◈ 모두 받기';
+      if(anyInfClaim) infClaimAll.addEventListener('click',function(){
+        INF_MISSIONS.forEach(function(m){
+          var st=_getInfState(m); if(st.claimable<=0) return;
+          if(window.PERM){ PERM.gold=(PERM.gold||0)+m.reward.gold*st.claimable; PERM.gems=(PERM.gems||0)+m.reward.gems*st.claimable; }
+          localStorage.setItem(m.id+'_claimed',st.claimed+st.claimable);
+        });
+        if(window.savePerm) savePerm();
+        var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
+        var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
+        _renderInf();
+      });
+      infW.appendChild(infClaimAll);
+    }
+    window._renderInfMissions = _renderInf;
+    new MutationObserver(function(){ if(infW.style.display!=='none') _renderInf(); }).observe(infW,{attributes:true,attributeFilter:['style']});
+
   }
 
   function _sw(id) {
@@ -7721,35 +7774,115 @@ setTimeout(_applyMaxOverrides, 300);
       b.style.color=act?'#00ffff':'#334455';
       b.style.borderBottom=act?'2px solid #00ffff':'2px solid transparent';
     });
-    var map={daily:'ms4-daily',weekly:'ms4-weekly',infinite:'ms4-inf',special:'ms4-spc'};
+    var map={daily:'ms4-daily',weekly:'ms4-weekly',infinite:'ms4-inf'};
     Object.keys(map).forEach(function(k){ var el=document.getElementById(map[k]); if(el) el.style.display=(k===id)?'flex':'none'; });
     if (id==='weekly') _renderW();
   }
 
+  function _renderWGauge() {
+    var gauge=document.getElementById('ms4-wgauge'); if(!gauge) return;
+    var cnt=parseInt(localStorage.getItem('weekly_challenge_count')||'0',10);
+    var html='<div style="font-size:9px;color:#556677;font-family:monospace;letter-spacing:2px;margin-bottom:10px;">◇ 주간 도전</div>';
+    html+='<div style="overflow-x:auto;padding-bottom:8px;"><div style="display:flex;align-items:center;gap:0;min-width:max-content;padding:8px 0;">';
+    html+='<div style="width:8px;height:8px;background:#00ffff;border-radius:50%;flex-shrink:0;"></div>';
+    WK_CHECKPOINTS.forEach(function(cp){
+      var reached=cnt>=cp;
+      var claimed=localStorage.getItem('weekly_challenge_claimed_'+cp)==='true';
+      var prevCp=WK_CHECKPOINTS[WK_CHECKPOINTS.indexOf(cp)-1]||0;
+      var segProg=Math.min(1,Math.max(0,(cnt-prevCp)/(cp-prevCp)));
+      if(cnt>=cp) segProg=1;
+      html+='<div style="flex-shrink:0;width:40px;height:2px;background:#1a3444;position:relative;">'+
+        '<div style="height:100%;background:#00ffff;width:'+(segProg*100)+'%;"></div></div>';
+      html+='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">';
+      if(reached && !claimed){
+        html+='<button data-wcp="'+cp+'" style="width:28px;height:28px;border:2px solid #00ffff;border-radius:4px;background:#003333;color:#00ffff;font-size:12px;font-family:monospace;cursor:pointer;-webkit-appearance:none;">◆</button>';
+      } else {
+        html+='<div style="width:28px;height:28px;border:2px solid '+(reached?'#00ffff':'#1a3444')+';border-radius:4px;background:'+(claimed?'#003333':'transparent')+';display:flex;align-items:center;justify-content:center;color:#00ffff;font-size:12px;font-family:monospace;">'+(claimed?'✓':'')+'</div>';
+      }
+      html+='<div style="font-size:9px;color:#445566;font-family:monospace;">'+cp+'</div>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+    gauge.innerHTML=html;
+    gauge.querySelectorAll('[data-wcp]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var cp=parseInt(btn.getAttribute('data-wcp'));
+        if(localStorage.getItem('weekly_challenge_claimed_'+cp)==='true') return;
+        var rw=WK_CP_REWARDS[cp]||10;
+        localStorage.setItem('weekly_challenge_claimed_'+cp,'true');
+        if(window.PERM){ PERM.gems=(PERM.gems||0)+rw; }
+        if(window.savePerm) savePerm();
+        if(window.showAchievementToast) showAchievementToast('◆+'+rw+' 획득!');
+        var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
+        _renderWGauge();
+      });
+    });
+  }
+
   function _renderW() {
+    _checkWeeklyReset();
+    _renderWGauge();
     var list=document.getElementById('ms4-wlist'); if(!list) return;
-    var wd=_loadW(); list.innerHTML='';
+    list.innerHTML='';
+    var anyClaimable=false;
     WMISS.forEach(function(m) {
-      var prog=Math.min(wd['p_'+m.id]||0,m.target);
-      var done=prog>=m.target; var clmd=!!wd['c_'+m.id];
-      var pct=Math.round(prog/m.target*100);
+      var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
+      if(m.id==='wk_wave') prog=Math.min(prog,m.target); // 웨이브는 최대치 cap
+      var done=prog>=m.target;
+      var clmd=localStorage.getItem('wk_claimed_'+m.id)==='true';
+      var pct=Math.min(100,Math.round(prog/m.target*100));
+      if(done && !clmd) anyClaimable=true;
       var row=document.createElement('div');
-      row.style.cssText='background:#0a1a2a;border:1px solid '+(done?'#00ffff':'#0a3344')+';border-left:2px solid rgba(0,255,255,'+(done?'1':'0.12')+');padding:12px;margin-bottom:6px;opacity:'+(clmd?'0.4':'1')+';';
-      row.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#94a3b8;font-size:11px;font-family:monospace;">'+m.text+'</span>'+(done&&!clmd?'<button data-wc="'+m.id+'" style="background:#030b10;border:1px solid #00ffff44;color:#00ffff;font-size:10px;font-family:monospace;padding:3px 8px;cursor:pointer;-webkit-appearance:none;">수령</button>':'<span style="color:#f59e0b;font-size:10px;font-family:monospace;">◈'+m.reward.gold+' ◆'+m.reward.gem+'</span>')+'</div><div style="height:3px;background:#0a3344;margin-top:8px;border-radius:2px;"><div style="height:3px;background:#00ffff;border-radius:2px;width:'+pct+'%;transition:width 0.3s;"></div></div><div style="font-size:9px;color:#334455;font-family:monospace;margin-top:3px;">'+prog+' / '+m.target+'</div>';
+      row.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;opacity:'+(clmd?'0.4':'1')+';';
+      row.innerHTML=
+        '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+          '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.text+'</span>'+
+          '<span style="font-size:9px;font-family:monospace;color:#f59e0b;">◈'+m.reward.gold+'</span>'+
+        '</div>'+
+        '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:18px;overflow:hidden;margin-bottom:6px;">'+
+          '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:'+pct+'%;transition:width 0.3s;"></div>'+
+          '<div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#fff;font-family:monospace;">'+Math.min(prog,m.target)+' / '+m.target+'</div>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:flex-end;">'+
+          (done&&!clmd?'<button data-wc="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◈'+m.reward.gold+' 수령</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">'+(clmd?'완료':'진행 중')+'</span>')+
+        '</div>';
       var cb=row.querySelector('[data-wc]');
-      if (cb) (function(mid) {
-        cb.addEventListener('click',function() {
-          var wm=WMISS.filter(function(x){return x.id===mid;})[0];
-          var wd2=_loadW(); if(!wm||wd2['c_'+mid]) return;
-          wd2['c_'+mid]=1; _saveW(wd2);
-          if(window.PERM){window.PERM.gold=(window.PERM.gold||0)+wm.reward.gold;window.PERM.gems=(window.PERM.gems||0)+wm.reward.gem;}
-          if(window.savePerm) window.savePerm();
-          if(window.showAchievementToast) window.showAchievementToast('◈+'+wm.reward.gold+' ◆+'+wm.reward.gem+' 획득!');
+      if(cb)(function(mid){
+        cb.addEventListener('click',function(){
+          var wm=WMISS.filter(function(x){return x.id===mid;})[0]; if(!wm) return;
+          if(localStorage.getItem('wk_claimed_'+mid)==='true') return;
+          localStorage.setItem('wk_claimed_'+mid,'true');
+          if(window.PERM){ PERM.gold=(PERM.gold||0)+wm.reward.gold; }
+          if(window.savePerm) savePerm();
+          // 주간 도전 카운트 +1
+          var wcc=parseInt(localStorage.getItem('weekly_challenge_count')||'0',10);
+          localStorage.setItem('weekly_challenge_count',wcc+1);
+          if(window.showAchievementToast) showAchievementToast('◈+'+wm.reward.gold+' 획득!');
+          var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
           _renderW();
         });
       })(m.id);
       list.appendChild(row);
     });
+    // 모두 받기 버튼
+    var claimAllBtn=document.createElement('button');
+    claimAllBtn.style.cssText='width:100%;padding:14px;margin-top:12px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
+    claimAllBtn.textContent='◈ 모두 받기';
+    if(anyClaimable) claimAllBtn.addEventListener('click',function(){
+      WMISS.forEach(function(m){
+        var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
+        if(prog>=m.target && localStorage.getItem('wk_claimed_'+m.id)!=='true'){
+          localStorage.setItem('wk_claimed_'+m.id,'true');
+          if(window.PERM) PERM.gold=(PERM.gold||0)+m.reward.gold;
+          var wcc=parseInt(localStorage.getItem('weekly_challenge_count')||'0',10);
+          localStorage.setItem('weekly_challenge_count',wcc+1);
+        }
+      });
+      if(window.savePerm) savePerm();
+      var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
+      _renderW();
+    });
+    list.appendChild(claimAllBtn);
   }
 
   var _mssEl=document.getElementById('screen-missions');
