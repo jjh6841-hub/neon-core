@@ -11668,17 +11668,12 @@ function renderLeftIcons() {
       var customIcon = _getLeftIcon(icon.id, unlocked);
 
       var btn = document.createElement('button');
-      btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a1520') + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:pointer; flex-shrink:0;';
+      var lockHtml = !unlocked ? '<span style="position:absolute;top:2px;right:2px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>' : '';
+      btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a1520') + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:pointer; flex-shrink:0; position:relative;';
       if (customIcon) {
-        if (!unlocked) {
-          btn.innerHTML = '<div style="position:relative;display:inline-block;">' + customIcon + '<span style="position:absolute;top:-3px;right:-7px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span></div><span style="font-size:7px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
-        } else {
-          btn.innerHTML = customIcon + '<span style="font-size:7px; color:#7aacac; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
-        }
-      } else if (!unlocked) {
-        btn.innerHTML = '<div style="position:relative;display:inline-block;"><span style="font-size:15px; color:#445566; line-height:1;">' + icon.icon + '</span><span style="position:absolute;top:-3px;right:-7px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span></div><span style="font-size:7px; color:#334455; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
+        btn.innerHTML = customIcon + '<span style="font-size:7px; color:' + (unlocked ? '#7aacac' : '#334455') + '; font-family:\'Courier New\',monospace;">' + icon.label + '</span>' + lockHtml;
       } else {
-        btn.innerHTML = '<span style="font-size:15px; color:#00ffff; line-height:1;">' + icon.icon + '</span><span style="font-size:7px; color:#7aacac; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
+        btn.innerHTML = '<span style="font-size:15px; color:' + (unlocked ? '#00ffff' : '#445566') + '; line-height:1;">' + icon.icon + '</span><span style="font-size:7px; color:' + (unlocked ? '#7aacac' : '#334455') + '; font-family:\'Courier New\',monospace;">' + icon.label + '</span>' + lockHtml;
       }
 
       if (unlocked) {
