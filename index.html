@@ -1454,8 +1454,29 @@ canvas {
       </div>
     </div>
 
-    <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:80px; left:8px; width:48px; height:196px; overflow:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; z-index:10;"></div>
+    <!-- 좌측 아이콘 버튼 -->
+    <div style="position:absolute; left:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
+      <button onclick="window._openAchieve&&window._openAchieve()"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;color:#00ffff;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
+        <span style="font-size:15px;line-height:1;">★</span>
+        <span>업적</span>
+      </button>
+      <button id="btn-left-event" onclick="window._openLeft&&window._openLeft(10,'signal-market')"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#1a2a3a;">
+        <span style="font-size:15px;line-height:1;">◈</span>
+        <span>이벤트</span>
+      </button>
+      <button id="btn-left-rank" onclick="window._openLeft&&window._openLeft(20,'frequency-wars')"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#1a2a3a;">
+        <span style="font-size:15px;line-height:1;">⊞</span>
+        <span>랭킹</span>
+      </button>
+      <button id="btn-left-store" onclick="window._openLeft&&window._openLeft(30,'store')"
+        style="width:40px;height:40px;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#1a2a3a;">
+        <span style="font-size:15px;line-height:1;">◉</span>
+        <span>상점</span>
+      </button>
+    </div>
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:20px 0;">NEON CORE</div>
@@ -1491,6 +1512,15 @@ canvas {
 
   </div>
 
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);">
+    <button class="nav-btn active" data-screen="home" style="flex:1; height:52px; background:none; border:none; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer; border-bottom:2px solid #00ffff;"><span style="font-size:16px; color:#00ffff;">X</span><br>전투</button>
+    <button class="nav-btn" id="h-nav-workshop" data-screen="workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
+    <button class="nav-btn" id="h-nav-tournament" data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button class="nav-btn" id="h-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
+    <button class="nav-btn" id="h-nav-season" data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
+    <button class="nav-btn" id="h-nav-store" data-screen="shop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
+  </div>
 
 </div>
 
@@ -1516,6 +1546,15 @@ canvas {
   <!-- 업그레이드 목록 -->
   <div id="ws-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
 
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
+    <button id="ws-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◈</span><br>강화</button>
+    <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button id="ws-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
+    <button id="ws-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
+  </div>
 
 </div>
 
@@ -1535,6 +1574,15 @@ canvas {
   </div>
   <!-- 콘텐츠 -->
   <div id="store-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom, 0px);">
+    <button id="st-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
+    <button id="st-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
+    <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button id="st-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#00ffff;">◉</span><br>스토어</button>
+  </div>
 </div>
 
 <script>
@@ -2812,7 +2860,7 @@ function triggerGameOver() {
   }
 
   // Nav unlock notification
-  renderNavTabs('home');
+  checkNavUnlocks();
   var unlockRow = document.getElementById('r-unlock-row');
   var newUnlocks = getNewUnlocks();
   if (newUnlocks.length > 0) {
@@ -3610,10 +3658,12 @@ function toggleSetting(key) {
 function openShop() {
   document.getElementById('results-screen').classList.remove('show');
   document.getElementById('screen-game').style.display = 'none';
+  const home = document.getElementById('screen-home');
+  home.style.display = 'flex';
   buildUnlockUI();
   syncShopUI();
-  showScreen('home');
-  renderLeftIcons();
+  checkNavUnlocks();
+  checkSideUnlocks();
 }
 
 function syncShopUI() {
@@ -3886,115 +3936,54 @@ document.addEventListener('touchend', function(e) {
    BOOT  (called from loading screen above)
 ═══════════════════════════════════════════════════════════════ */
 
-// ── Tab navigation system ──
-var screenHandlers = {};
+// Nav lock system
+var navLockConditions = {
+  tournament: { label: '토너먼트', wave: 30, tooltip: '웨이브 30 달성 시 해금' },
+  lab:        { label: '연구소',   wave: 15, tooltip: '웨이브 15 달성 시 해금' },
+  season:     { label: '코어 랩',  wave: 30, tooltip: '웨이브 30 달성 시 해금' },
+};
 
-var navTabs = [
-  { id: 'battle',   label: '전투',    icon: '\u2694', screen: 'home',     unlock: 0 },
-  { id: 'workshop', label: '강화',    icon: '\u25B2', screen: 'workshop', unlock: 0 },
-  { id: 'module',   label: '모듈',    icon: '\u22A1', screen: 'module',   unlock: 10 },
-  { id: 'research', label: '연구소',  icon: '\u2295', screen: 'research', unlock: 10 },
-  { id: 'corelab',  label: '코어랩',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
-  { id: 'skin',     label: '스킨',    icon: '\u2605', screen: 'skin',     unlock: 999 },
-  { id: 'store',    label: '스토어',  icon: '\u2299', screen: 'store',    unlock: 0 }
-];
+function showNavLockTooltip(text) {
+  var existing = document.querySelector('.nav-lock-tooltip');
+  if (existing) existing.remove();
+  var tip = document.createElement('div');
+  tip.className = 'nav-lock-tooltip';
+  tip.textContent = text;
+  document.body.appendChild(tip);
+  setTimeout(function() { if (tip.parentNode) tip.remove(); }, 1500);
+}
 
-var _navToastTime = 0;
-
-function renderNavTabs(currentScreen) {
-  var nav = document.getElementById('bottom-nav');
-  if (!nav) return;
-  nav.innerHTML = '';
-
-  var w = PERM.bestWave || 0;
-
-  for (var i = 0; i < navTabs.length; i++) {
-    (function(tab) {
-      var unlocked = w >= tab.unlock;
-      var active = currentScreen === tab.screen;
-
-      var btn = document.createElement('button');
-      btn.setAttribute('data-tab', tab.id);
-      btn.style.cssText = [
-        'flex:1',
-        'height:52px',
-        'background:transparent',
-        'border:none',
-        'border-bottom:2px solid ' + (active ? '#00ffff' : 'transparent'),
-        'color:' + (unlocked ? (active ? '#00ffff' : '#4a7a8a') : '#1a2a3a'),
-        'font-family:Courier New,monospace',
-        'font-size:9px',
-        'cursor:pointer',
-        'display:flex',
-        'flex-direction:column',
-        'align-items:center',
-        'justify-content:center',
-        'gap:2px',
-        'padding:0',
-        'opacity:' + (unlocked ? '1' : '0.4')
-      ].join(';');
-
-      btn.innerHTML =
-        '<span style="font-size:15px;line-height:1;">' + tab.icon + '</span>' +
-        '<span>' + tab.label + '</span>';
-
-      if (unlocked) {
-        btn.onclick = function() { showScreen(tab.screen); };
-      } else {
-        btn.onclick = function() {
-          var now = Date.now();
-          if (now - _navToastTime < 3000) return;
-          _navToastTime = now;
-          var msg = tab.unlock === 999
-            ? tab.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
-            : tab.label + ' \u2014 \uC6E8\uC774\uBE0C ' + tab.unlock + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg);
-        };
-      }
-
-      nav.appendChild(btn);
-    })(navTabs[i]);
+function checkNavUnlocks() {
+  var best = PERM.bestWave || 0;
+  var allBtns = document.querySelectorAll('[data-navlock]');
+  for (var i = 0; i < allBtns.length; i++) {
+    var btn = allBtns[i];
+    var key = btn.getAttribute('data-navlock');
+    var cfg = navLockConditions[key];
+    if (!cfg) continue;
+    if (best >= cfg.wave) {
+      btn.setAttribute('data-locked', 'false');
+      btn.style.color = '#00ffff';
+      var spans = btn.querySelectorAll('span');
+      for (var s = 0; s < spans.length; s++) spans[s].style.color = '#00ffff';
+    } else {
+      btn.setAttribute('data-locked', 'true');
+      btn.style.color = '#1a2a3a';
+      var spans2 = btn.querySelectorAll('span');
+      for (var s2 = 0; s2 < spans2.length; s2++) spans2[s2].style.color = '#1a2a3a';
+    }
   }
 }
-
-function showNavToast(msg) {
-  var old = document.getElementById('nav-toast');
-  if (old) old.remove();
-  var t = document.createElement('div');
-  t.id = 'nav-toast';
-  t.style.cssText = [
-    'position:fixed',
-    'bottom:62px',
-    'left:50%',
-    'transform:translateX(-50%)',
-    'background:#0a1a2a',
-    'border:1px solid #00ffff',
-    'border-radius:8px',
-    'padding:10px 18px',
-    'font-family:Courier New,monospace',
-    'font-size:11px',
-    'color:#00ffff',
-    'z-index:1000',
-    'white-space:nowrap'
-  ].join(';');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(function() { if (t.parentNode) t.remove(); }, 3000);
-}
-
-// showNavLockTooltip 호환 (티어 시스템 등에서 사용)
-function showNavLockTooltip(text) { showNavToast(text); }
 
 function getNewUnlocks() {
   var best = PERM.bestWave || 0;
   var unlocked = [];
   try {
     var saved = JSON.parse(localStorage.getItem('td_nav_unlocked') || '{}');
-    for (var i = 0; i < navTabs.length; i++) {
-      var tab = navTabs[i];
-      if (tab.unlock > 0 && best >= tab.unlock && !saved[tab.id]) {
-        saved[tab.id] = true;
-        unlocked.push(tab.label);
+    for (var key in navLockConditions) {
+      if (best >= navLockConditions[key].wave && !saved[key]) {
+        saved[key] = true;
+        unlocked.push(navLockConditions[key].label);
       }
     }
     localStorage.setItem('td_nav_unlocked', JSON.stringify(saved));
@@ -4002,54 +3991,83 @@ function getNewUnlocks() {
   return unlocked;
 }
 
-// ── Left icon system ──
-var LEFT_ICONS = [
-  { id: 'achievement',  label: '업적',      icon: '\u2605', screen: 'achievements', unlockWave: 30 },
-  { id: 'event',        label: '이벤트',    icon: '\u25C8', screen: 'signal-market', unlockWave: 100 },
-  { id: 'tournament',   label: '토너먼트',  icon: '\u229E', screen: 'tournament',   unlockWave: 100 },
-  { id: 'ranking',      label: '랭킹',      icon: '\u25B2', screen: 'ranking',      unlockWave: 70 },
-  { id: 'season',       label: '시즌',      icon: '\u25CC', screen: 'season',       unlockWave: 70 }
-];
+// Bind click on all nav-lock buttons
+(function() {
+  var allBtns = document.querySelectorAll('[data-navlock]');
+  for (var i = 0; i < allBtns.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        if (btn.getAttribute('data-locked') === 'true') {
+          var key = btn.getAttribute('data-navlock');
+          var cfg = navLockConditions[key];
+          if (cfg) showNavLockTooltip(cfg.tooltip);
+        }
+      });
+      btn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (btn.getAttribute('data-locked') === 'true') {
+          var key = btn.getAttribute('data-navlock');
+          var cfg = navLockConditions[key];
+          if (cfg) showNavLockTooltip(cfg.tooltip);
+        }
+      });
+    })(allBtns[i]);
+  }
+}());
 
-var lastLeftToast = 0;
+// Side button unlock conditions
+var sideLockConditions = {
+  event:   { wave: 10, tooltip: '웨이브 10 달성 시 해금' },
+  ranking: { wave: 20, tooltip: '웨이브 20 달성 시 해금' },
+  power:   { wave: 30, tooltip: '코어 크리스탈 (웨이브 30 달성 시 해금)' },
+};
 
-function renderLeftIcons() {
-  var container = document.getElementById('left-icons-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  var w = PERM.bestWave || 0;
-
-  for (var i = 0; i < LEFT_ICONS.length; i++) {
-    (function(icon) {
-      var unlocked = w >= icon.unlockWave;
-
-      var btn = document.createElement('button');
-      btn.style.cssText = 'width:48px; height:48px; background:#0a1a2a; border:1px solid ' + (unlocked ? '#1a3444' : '#0a1520') + '; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; margin-bottom:8px; opacity:' + (unlocked ? '1' : '0.35') + '; flex-shrink:0;';
-      btn.innerHTML = '<span style="font-size:16px; color:' + (unlocked ? '#00ffff' : '#445566') + '; line-height:1;">' + icon.icon + '</span><span style="font-size:8px; color:' + (unlocked ? '#7aacac' : '#334455') + '; font-family:\'Courier New\',monospace;">' + icon.label + '</span>';
-
-      if (unlocked) {
-        btn.onclick = function() { showScreen(icon.screen); };
-      } else {
-        btn.onclick = function() {
-          var now = Date.now();
-          if (now - lastLeftToast < 3000) return;
-          lastLeftToast = now;
-          var msg = icon.unlockWave === 999
-            ? icon.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
-            : icon.label + ' \u2014 \uC6E8\uC774\uBE0C ' + icon.unlockWave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg);
-        };
-      }
-
-      container.appendChild(btn);
-    })(LEFT_ICONS[i]);
+function checkSideUnlocks() {
+  var best = PERM.bestWave || 0;
+  var sideBtns = document.querySelectorAll('[data-sidelock]');
+  for (var i = 0; i < sideBtns.length; i++) {
+    var btn = sideBtns[i];
+    var key = btn.getAttribute('data-sidelock');
+    var cfg = sideLockConditions[key];
+    if (!cfg) continue;
+    if (best >= cfg.wave) {
+      btn.style.color = '#00ffff';
+      btn.style.background = '#0a1a2a';
+      btn.style.borderColor = '#0a3344';
+      var spans = btn.querySelectorAll('span');
+      for (var s = 0; s < spans.length; s++) spans[s].style.color = '#00ffff';
+      btn.setAttribute('data-sidelock', '');
+    }
   }
 }
 
-// Initial render
-renderNavTabs('home');
-renderLeftIcons();
+// Side button click handlers
+(function() {
+  var sideAchieve = document.getElementById('side-achieve');
+  if (sideAchieve) {
+    sideAchieve.addEventListener('click', function() {
+      try {
+        buildAchieveUI();
+        document.getElementById('achieve-screen').classList.add('show');
+      } catch(e) {}
+    });
+  }
+  var sideBtns = document.querySelectorAll('[data-sidelock]');
+  for (var i = 0; i < sideBtns.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var key = btn.getAttribute('data-sidelock');
+        if (key && sideLockConditions[key]) {
+          showNavLockTooltip(sideLockConditions[key].tooltip);
+        }
+      });
+    })(sideBtns[i]);
+  }
+}());
+
+// Initial unlock check
+checkNavUnlocks();
+checkSideUnlocks();
 
 // Daily reward claim
 var dailyClaimBtn = document.getElementById('daily-claim-btn');
@@ -4193,15 +4211,21 @@ if (dailyClaimBtn) {
 
   var wsActiveTab = 'atk';
 
-  /* ══ 화면 열기 (showScreen 연동) ══ */
-  screenHandlers.workshop = function() {
+  /* ══ 화면 열기 / 닫기 ══ */
+  function openWorkshop() {
+    document.getElementById('screen-home').style.display = 'none';
+    var el = document.getElementById('screen-workshop');
+    el.style.display = 'flex';
     syncWorkshopHUD();
     buildWorkshopContent(wsActiveTab);
-  };
-  screenHandlers.home = function() {
+  }
+
+  function closeWorkshop() {
+    document.getElementById('screen-workshop').style.display = 'none';
+    var home = document.getElementById('screen-home');
+    home.style.display = 'flex';
     try { syncShopUI(); } catch (e) {}
-    renderLeftIcons();
-  };
+  }
 
   /* ══ HUD 동기화 ══ */
   function syncWorkshopHUD() {
@@ -4385,13 +4409,20 @@ if (dailyClaimBtn) {
     });
   }
 
+  /* ══ 네비게이션 ══ */
+  var navHome = document.getElementById('ws-nav-home');
+  if (navHome) navHome.addEventListener('click', closeWorkshop);
+
+  var workshopBtn = document.getElementById('h-nav-workshop');
+  if (workshopBtn) workshopBtn.addEventListener('click', openWorkshop);
+
   /* ── 외부 확장용 노출 ── */
   window._wsExt = {
     items:   WS_ITEMS,
     flash:   flashCard,
     sync:    syncWorkshopHUD,
     upgrade: wsUpgrade,
-    open:    function() { showScreen('workshop'); },
+    open:    openWorkshop,
     activeTab: function() { return wsActiveTab; }
   };
 
@@ -4533,11 +4564,26 @@ if (dailyClaimBtn) {
     }
   }
 
-  /* ══ 화면 열기 (showScreen 연동) ══ */
-  screenHandlers.store = function() {
+  function openStore() {
+    document.getElementById('screen-home').style.display = 'none';
+    document.getElementById('screen-workshop').style.display = 'none';
+    var el = document.getElementById('screen-store');
+    el.style.display = 'flex';
     syncStoreHUD();
     renderStoreTab(activeStoreTab);
-  };
+  }
+
+  function closeStoreToHome() {
+    document.getElementById('screen-store').style.display = 'none';
+    var home = document.getElementById('screen-home');
+    home.style.display = 'flex';
+    try { syncShopUI(); } catch (e) {}
+  }
+
+  function closeStoreToWorkshop() {
+    document.getElementById('screen-store').style.display = 'none';
+    document.getElementById('screen-workshop').style.display = 'flex';
+  }
 
   /* ── 탭 바인딩 ── */
   var storeTabs = document.querySelectorAll('.store-tab');
@@ -4548,6 +4594,22 @@ if (dailyClaimBtn) {
       });
     })(storeTabs[ti]);
   }
+
+  /* ── 네비게이션 바인딩 ── */
+  var stNavHome = document.getElementById('st-nav-home');
+  if (stNavHome) stNavHome.addEventListener('click', closeStoreToHome);
+
+  var stNavWorkshop = document.getElementById('st-nav-workshop');
+  if (stNavWorkshop) stNavWorkshop.addEventListener('click', closeStoreToWorkshop);
+
+  var hNavStore = document.getElementById('h-nav-store');
+  if (hNavStore) hNavStore.addEventListener('click', openStore);
+
+  var wsNavStore = document.getElementById('ws-nav-store');
+  if (wsNavStore) wsNavStore.addEventListener('click', function() {
+    document.getElementById('screen-workshop').style.display = 'none';
+    openStore();
+  });
 
 }());
 </script>
@@ -4801,6 +4863,15 @@ if (dailyClaimBtn) {
   </div>
   <!-- 슬롯 목록 -->
   <div id="lab-slots" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
+    <button id="lab-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
+    <button id="lab-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
+    <button data-navlock="tournament" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">◈</span><br><span style="font-size:8px;">연구소</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
+    <button id="lab-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
+  </div>
 </div>
 <!-- 연구 선택 팝업 -->
 <div id="lab-popup" style="display:none; position:fixed; inset:0; background:rgba(3,11,16,0.97); z-index:2000; flex-direction:column; overflow:hidden;">
@@ -4871,6 +4942,15 @@ if (dailyClaimBtn) {
     <button id="trn-join-btn" style="width:100%; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-family:'Courier New',monospace; font-size:16px; font-weight:bold; padding:14px; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff;">
       참가하기
     </button>
+  </div>
+  <!-- 하단 네비게이션 -->
+  <div style="display:flex; flex-direction:row; border-top:1px solid #0a2233; background:#040c14; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0px);">
+    <button id="trn-nav-home" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">X</span><br>전투</button>
+    <button id="trn-nav-workshop" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◈</span><br>강화</button>
+    <button style="flex:1; height:52px; background:none; border:none; border-bottom:2px solid #00ffff; color:#00ffff; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">토너먼트</span></button>
+    <button id="trn-nav-lab" data-navlock="lab" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">연구소</span></button>
+    <button data-navlock="season" data-locked="true" style="flex:1; height:52px; background:none; border:none; color:#1a2a3a; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:14px;">■</span><br><span style="font-size:8px;">코어 랩</span></button>
+    <button id="trn-nav-store" style="flex:1; height:52px; background:none; border:none; color:#334455; font-size:11px; font-family:monospace; cursor:pointer;"><span style="font-size:16px; color:#334455;">◉</span><br>스토어</button>
   </div>
 </div>
 <!-- 상금 팝업 -->
@@ -5849,7 +5929,7 @@ function openLab() {
   el.style.display = 'flex';
   _syncLabHUD();
   _buildLabSlots();
-  renderNavTabs('research');
+  checkNavUnlocks();
 }
 function closeLab() {
   document.getElementById('screen-lab').style.display = 'none';
@@ -6077,6 +6157,27 @@ function _buildLabPopupList() {
   });
 }
 
+// 연구소 버튼 바인딩
+var labBtns = document.querySelectorAll('#h-nav-lab, #ws-nav-lab, #st-nav-lab');
+for (var li = 0; li < labBtns.length; li++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.getAttribute('data-locked') === 'true') return;
+      openLab();
+    });
+  }(labBtns[li]));
+}
+
+document.getElementById('lab-nav-home')  && document.getElementById('lab-nav-home').addEventListener('click', closeLab);
+document.getElementById('lab-nav-workshop') && document.getElementById('lab-nav-workshop').addEventListener('click', function() {
+  _hideAll();
+  try { window._wsExt.open(); } catch(_) { document.getElementById('screen-workshop').style.display = 'flex'; }
+});
+document.getElementById('lab-nav-store') && document.getElementById('lab-nav-store').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-store').style.display = 'flex';
+});
+
 document.getElementById('lab-popup-close') && document.getElementById('lab-popup-close').addEventListener('click', function() {
   document.getElementById('lab-popup').style.display = 'none';
 });
@@ -6144,7 +6245,7 @@ function openTournament() {
   _renderTrnLeague();
   _renderLeaderboard();
   _updateTrnTimer();
-  renderNavTabs('home');
+  checkNavUnlocks();
 }
 
 function _syncTrnHUD() {
@@ -6241,6 +6342,30 @@ function _buildPrizeContent(leagueId) {
 }
 
 // 토너먼트 nav 바인딩
+var trnNavBtns = document.querySelectorAll('#h-nav-tournament');
+for (var ti = 0; ti < trnNavBtns.length; ti++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      if (btn.getAttribute('data-locked') === 'true') return;
+      openTournament();
+    });
+  }(trnNavBtns[ti]));
+}
+
+document.getElementById('trn-nav-home') && document.getElementById('trn-nav-home').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-home').style.display = 'flex';
+  try { syncShopUI(); } catch(_) {}
+});
+document.getElementById('trn-nav-workshop') && document.getElementById('trn-nav-workshop').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-workshop').style.display = 'flex';
+});
+document.getElementById('trn-nav-store') && document.getElementById('trn-nav-store').addEventListener('click', function() {
+  _hideAll();
+  document.getElementById('screen-store').style.display = 'flex';
+});
+
 // 닉네임 저장
 document.getElementById('trn-name-save') && document.getElementById('trn-name-save').addEventListener('click', function() {
   var val = (document.getElementById('trn-name-input').value || '').trim().slice(0, 12);
@@ -6380,7 +6505,8 @@ var storeBtn = document.getElementById('panel-store-btn');
 if (storeBtn) {
   storeBtn.addEventListener('click', function() {
     closePanel();
-    showScreen('store');
+    var navStore = document.getElementById('h-nav-store');
+    if (navStore) navStore.click();
   });
 }
 
@@ -7816,7 +7942,8 @@ setTimeout(_applyMaxOverrides, 300);
     if(stepId==='ob_ms' && window._openMissions) {
       setTimeout(function(){ window._openMissions(); },150);
     } else if(stepId==='ob_ws') {
-      setTimeout(function(){ showScreen('workshop'); },150);
+      var wsBtn=document.getElementById('h-nav-workshop');
+      if(wsBtn) setTimeout(function(){ wsBtn.click(); },150);
     }
   }
 
@@ -10867,31 +10994,28 @@ window.pulseFragments = parseInt(localStorage.getItem('pulseFragments') || '0') 
 /* ── §B. showScreen() — 새 화면 전환 함수 ── */
 var _FW_SCREENS = ['screen-frequency-wars', 'screen-signal-market',
                    'screen-event', 'screen-ranking'];
-var _ALL_SCREENS = ['home', 'workshop', 'store', 'lab', 'tournament', 'module', 'research', 'corelab', 'skin'];
 window.showScreen = function (name) {
-  renderNavTabs(name);
-
-  // 기존 전체화면들 숨기기
+  // 새로 추가된 전체화면들 모두 숨기기
   _FW_SCREENS.forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  // 메인 화면들 숨기기
-  _ALL_SCREENS.forEach(function (s) {
-    var el = document.getElementById('screen-' + s);
-    if (el) el.style.display = 'none';
-  });
 
-  var target = document.getElementById('screen-' + name);
-  if (target) {
-    if (name !== 'home') {
+  if (name === 'home') {
+    var h = document.getElementById('screen-home');
+    if (h) h.style.display = 'flex';
+  } else {
+    // 홈 화면 숨기고 대상 화면 표시
+    var hm = document.getElementById('screen-home');
+    if (hm) hm.style.display = 'none';
+    var target = document.getElementById('screen-' + name);
+    if (target) {
       target.style.position = 'fixed';
       target.style.zIndex   = '600';
+      target.style.display  = 'flex';
+      syncPulse();
     }
-    target.style.display = 'flex';
-    if (name !== 'home') { try { syncPulse(); } catch(_) {} }
   }
-  if (screenHandlers[name]) screenHandlers[name]();
 };
 
 /* ── §C. 화면 HTML 주입 ── */
@@ -11517,8 +11641,44 @@ document.addEventListener('click', function (e) {
 </script>
 
 <script>
-/* ── 좌측 아이콘: renderLeftIcons()가 처리하므로 초기 갱신만 ── */
-setTimeout(function () { try { renderLeftIcons(); } catch(e) {} }, 100);
+/* ── 좌측 아이콘 버튼 함수 ── */
+window._openAchieve = function () {
+  try { buildAchieveUI(); document.getElementById('achieve-screen').classList.add('show'); } catch(e) {}
+};
+
+window._openLeft = function (minWave, screen) {
+  var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+  if (w < minWave) return;
+  if (screen === 'store') {
+    var sb = document.getElementById('h-nav-store');
+    if (sb) { sb.click(); return; }
+  }
+  if (typeof showScreen === 'function') showScreen(screen);
+};
+
+window.updateLeftIcons = function () {
+  var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
+  var ev = document.getElementById('btn-left-event');
+  var rk = document.getElementById('btn-left-rank');
+  var st = document.getElementById('btn-left-store');
+  if (ev) ev.style.color = w >= 10 ? '#ffc800' : '#1a2a3a';
+  if (rk) rk.style.color = w >= 20 ? '#bb44ff' : '#1a2a3a';
+  if (st) st.style.color = w >= 30 ? '#00ffff' : '#1a2a3a';
+};
+
+/* showScreen('home') 호출 시 아이콘 잠금 상태 갱신 */
+(function () {
+  var _orig = window.showScreen;
+  if (typeof _orig === 'function') {
+    window.showScreen = function (name) {
+      _orig.apply(this, arguments);
+      if (name === 'home') { try { window.updateLeftIcons(); } catch(e) {} }
+    };
+  }
+}());
+
+/* 초기 렌더링 (PERM 초기화 후 실행) */
+setTimeout(function () { try { window.updateLeftIcons(); } catch(e) {} }, 100);
 </script>
 
 <script>
@@ -12403,9 +12563,5 @@ if (typeof _origStart === 'function') {
 
 }());
 </script>
-
-<!-- ── 하단 네비게이션 (전역 공유) ── -->
-<div id="bottom-nav" style="display:flex; position:fixed; bottom:0; left:0; width:100%; height:52px; background:#040c14; border-top:1px solid #1a2a3a; z-index:200; padding-bottom:env(safe-area-inset-bottom, 0px);"></div>
-
 </body>
 </html>
