@@ -1460,20 +1460,20 @@ canvas {
     <div id="left-icons-container" style="position:absolute; top:16px; left:6px; display:flex; flex-direction:column; gap:6px; z-index:10;"></div>
 
     <!-- 타이틀 -->
-    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:50px 0 16px 0;">NEON CORE</div>
+    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:8px 0 12px 0;">NEON CORE</div>
 
-    <!-- 정보 카드 2개 -->
-    <div style="display:flex; flex-direction:row; gap:8px; width:100%;">
+    <!-- 정보 카드 (column: 코인 보너스 → 난이도) -->
+    <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
-      <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
-        <div style="color:#94a3b8;font-size:10px;font-family:monospace;white-space:nowrap;">총 코인 보너스</div>
-        <div id="home-total-bonus" style="color:#00ffff;font-size:20px;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
+      <div id="coin-bonus-card" style="background:#0a1a2a;border:1px solid #0a3344;padding:8px 12px;min-height:0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
+        <div style="color:#94a3b8;font-size:9px;font-family:monospace;white-space:nowrap;">총 코인 보너스</div>
+        <div id="home-total-bonus" style="color:#00ffff;font-size:16px;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
         <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:8px;font-family:monospace;">▶ 상세</div>
       </div>
 
       <!-- 난이도 카드 -->
-      <div style="flex:1; background:#0a1a2a; border:1px solid #0a3344; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px;">
+      <div style="background:#0a1a2a; border:1px solid #0a3344; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px;">
         <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">난이도</div>
         <div style="display:flex; flex-direction:row; align-items:center; gap:4px; width:100%; justify-content:center;">
           <button id="tier-prev" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:6px 10px; min-width:40px; min-height:40px;">◀</button>
@@ -1487,7 +1487,7 @@ canvas {
     </div>
 
     <!-- 전투 시작 버튼 -->
-    <button id="btn-start-game" style="width:200px; height:52px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
+    <button id="btn-start-game" style="width:200px; height:52px; margin-top:20px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
       전투 시작
     </button>
 
@@ -8714,34 +8714,37 @@ function _initTierSystem() {
 }
 
 /* ════════════════════════════════════════════════════════
-   §12 — 다음 목표 UI (웨이브 + 처치 수 목표)
+   §12 — 다음 해금 콘텐츠 UI
 ════════════════════════════════════════════════════════ */
-var _GOALS = [
-  { cond: function(b,k){return b<5;},    text:'웨이브 5 달성',    reward:'💎 2'  },
-  { cond: function(b,k){return b<10;},   text:'웨이브 10 달성',   reward:'💎 5'  },
-  { cond: function(b,k){return k<100;},  text:'적 100마리 처치',  reward:'💎 3'  },
-  { cond: function(b,k){return b<20;},   text:'웨이브 20 달성',   reward:'💎 10' },
-  { cond: function(b,k){return b<30;},   text:'웨이브 30 달성',   reward:'💎 15' },
-  { cond: function(b,k){return k<500;},  text:'적 500마리 처치',  reward:'💎 10' },
-  { cond: function(b,k){return b<50;},   text:'웨이브 50 달성',   reward:'💎 30' },
-  { cond: function(b,k){return b<100;},  text:'웨이브 100 달성',  reward:'💎 50' },
+var _UNLOCK_MILESTONES = [
+  { wave: 10,  label: '연구소, 임무, 모듈 해금' },
+  { wave: 30,  label: '업적, 전투 전 버프 해금' },
+  { wave: 50,  label: '출석 보상 해금' },
+  { wave: 70,  label: '랭킹, 시즌 패스 해금' },
+  { wave: 100, label: '2티어, 토너먼트 해금' }
 ];
 
-function _getNextGoal() {
-  var best  = (window.PERM && PERM.bestWave)   || 0;
-  var kills = (window.PERM && PERM.totalKills) || 0;
-  for (var i = 0; i < _GOALS.length; i++) {
-    if (_GOALS[i].cond(best, kills)) return _GOALS[i];
+function _getNextUnlock() {
+  var best = (window.PERM && PERM.bestWave) || 0;
+  for (var i = 0; i < _UNLOCK_MILESTONES.length; i++) {
+    if (best < _UNLOCK_MILESTONES[i].wave) return _UNLOCK_MILESTONES[i];
   }
-  return { text:'무한 도전 중!', reward:'' };
+  return null; // 모두 해금
 }
 
 function _updateGoalUI() {
-  var el = document.getElementById('next-goal-text');
-  if (!el) return;
-  var g = _getNextGoal();
-  el.textContent = g.reward ? (g.text + '  →  ' + g.reward) : g.text;
-  el.style.color  = g.reward ? '#cc44ff' : '#f59e0b';
+  var bar = document.getElementById('next-goal-bar');
+  if (!bar) return;
+  var next = _getNextUnlock();
+  if (!next) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  bar.innerHTML =
+    '<span style="font-size:10px;color:#445566;font-family:\'Courier New\',monospace;white-space:nowrap;">다음 해금</span>' +
+    '<span style="font-size:11px;color:#00ffff;font-family:\'Courier New\',monospace;text-align:right;">웨이브 ' +
+      next.wave + ' → ' + next.label + '</span>';
 }
 
 function _injectGoalUI() {
@@ -8751,16 +8754,11 @@ function _injectGoalUI() {
   var bar = document.createElement('div');
   bar.id = 'next-goal-bar';
   bar.style.cssText = [
-    'width:100%;background:#0a1a2a;border:1px solid #0a3344;',
-    'border-left:2px solid #cc44ff;padding:6px 12px;',
+    'width:100%;background:transparent;',
+    'border-left:2px solid #00ffff;padding:8px 12px;',
     'display:flex;justify-content:space-between;align-items:center;',
     'box-sizing:border-box;gap:8px;',
   ].join('');
-  bar.innerHTML =
-    '<span style="color:#556677;font-size:10px;font-family:monospace;white-space:nowrap;">' +
-      '다음 목표</span>' +
-    '<span id="next-goal-text" style="font-size:10px;font-family:monospace;' +
-      'font-weight:bold;text-align:right;"></span>';
   startBtn.parentNode.insertBefore(bar, startBtn);
   _updateGoalUI();
 }
@@ -11626,18 +11624,21 @@ var LEFT_ICONS = [
   { id: 'achievement',  label: '\uC5C5\uC801',      icon: '\u2605', screen: 'achievements', unlockWave: 30 },
   { id: 'event',        label: '\uC774\uBCA4\uD2B8',    icon: '\u25C8', screen: 'signal-market', unlockWave: 100 },
   { id: 'season',       label: '\uC2DC\uC98C\uD328\uC2A4',  icon: '\u25CC', screen: 'season',       unlockWave: 70 },
-  { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',   unlockWave: 100 }
+  { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',   unlockWave: 100 },
+  { id: 'guild',        label: '\uAE38\uB4DC',          icon: 'GLD',    screen: 'guild',        unlockWave: 99999, comingSoon: true }
 ];
 
 // lastLeftToast removed — uses showNavToast per-tab cooldown
 
 var _ACHIEVE_ICON = '<div style="position:relative;width:22px;height:26px;display:flex;flex-direction:column;align-items:center;"><div style="width:18px;height:18px;background:CLC;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);position:relative;"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#001a1a;border-radius:50%;"></div></div><div style="display:flex;gap:1px;margin-top:-1px;"><div style="width:5px;height:7px;background:CLC;clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%);"></div><div style="width:5px;height:7px;background:CLC;clip-path:polygon(0 0,100% 0,100% 80%,50% 100%,0 80%);"></div></div></div>';
 var _EVENT_ICON = '<div style="font-family:Courier New,monospace;font-size:8px;font-weight:bold;color:CLC;letter-spacing:1px;line-height:1.2;text-align:center;">EVT</div>';
+var _GUILD_ICON = '<div style="font-family:\'Courier New\',monospace;font-size:8px;font-weight:bold;color:CLC;letter-spacing:1px;text-align:center;line-height:1.3;">GLD</div>';
 
 function _getLeftIcon(id, unlocked) {
   var c = unlocked ? '#00cccc' : '#334455';
   if (id === 'achievement') return _ACHIEVE_ICON.replace(/CLC/g, c);
   if (id === 'event') return _EVENT_ICON.replace(/CLC/g, unlocked ? '#00ffff' : '#334455');
+  if (id === 'guild') return _GUILD_ICON.replace(/CLC/g, unlocked ? '#00ffff' : '#445566');
   return null;
 }
 
@@ -11666,9 +11667,14 @@ function renderLeftIcons() {
         btn.onclick = function() { showScreen(icon.screen); };
       } else {
         btn.onclick = function() {
-          var msg = icon.unlockWave === 999
-            ? icon.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
-            : icon.label + ' \u2014 \uC6E8\uC774\uBE0C ' + icon.unlockWave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
+          var msg;
+          if (icon.comingSoon) {
+            msg = icon.label + ' \u2014 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4';
+          } else if (icon.unlockWave === 999) {
+            msg = icon.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08';
+          } else {
+            msg = icon.label + ' \u2014 \uC6E8\uC774\uBE0C ' + icon.unlockWave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
+          }
           showNavToast(msg, icon.id);
         };
       }
