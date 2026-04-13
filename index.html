@@ -1443,7 +1443,7 @@ canvas {
   </div>
 
   <!-- 중앙 콘텐츠 -->
-  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 16px; position:relative;">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:16px; padding:8px 16px 0; position:relative;">
 
     <!-- 우측 아이콘 버튼 -->
     <div style="position:absolute; right:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
@@ -1460,10 +1460,10 @@ canvas {
     <div id="left-icons-container" style="position:absolute; top:16px; left:6px; display:flex; flex-direction:column; gap:6px; z-index:10;"></div>
 
     <!-- 타이틀 -->
-    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:-12px 0 8px 0;">NEON CORE</div>
+    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:0; padding:0;">NEON CORE</div>
 
     <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
-    <div style="display:flex; flex-direction:row; gap:8px; width:calc(100% - 48px); margin:8px 0;">
+    <div style="display:flex; flex-direction:row; gap:8px; align-self:stretch; margin:8px 30px 8px 36px; width:auto;">
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
@@ -1487,7 +1487,7 @@ canvas {
     </div>
 
     <!-- 전투 시작 버튼 -->
-    <button id="btn-start-game" style="width:200px; height:52px; margin-top:44px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
+    <button id="btn-start-game" style="width:200px; height:52px; margin-top:auto; margin-bottom:calc(68px + env(safe-area-inset-bottom, 0px)); background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
       전투 시작
     </button>
 
@@ -8754,7 +8754,7 @@ function _injectGoalUI() {
   var bar = document.createElement('div');
   bar.id = 'next-goal-bar';
   bar.style.cssText = [
-    'width:calc(100% - 48px);background:transparent;',
+    'align-self:stretch;margin:0 30px 0 36px;width:auto;background:transparent;',
     'border-left:2px solid #00ffff;padding:8px 12px;',
     'display:flex;justify-content:space-between;align-items:center;',
     'box-sizing:border-box;gap:8px;',
