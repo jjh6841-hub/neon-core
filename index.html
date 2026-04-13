@@ -4262,10 +4262,11 @@ if (dailyClaimBtn) {
     var card = document.createElement('div');
     card.style.cssText =
       'background:' + (locked ? '#0a1520' : '#0a1a2a') + ';' +
-      'border:1px solid ' + (locked ? '#1a2a3a' : (!maxed && !afford ? '#ff4444' : '#0a3344')) + ';' +
+      'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
       'padding:12px;display:flex;flex-direction:row;' +
-      'justify-content:space-between;align-items:center;' +
+      'justify-content:space-between;align-items:center;gap:8px;' +
+      'min-width:0;overflow:hidden;' +
       'opacity:' + (locked ? '0.5' : '1') + ';' +
       'transition:border-color 0.2s;' +
       '-webkit-tap-highlight-color:transparent;';
@@ -4275,12 +4276,14 @@ if (dailyClaimBtn) {
       rightHTML = '<span style="font-size:11px;color:#1a2a3a;font-family:\'Courier New\',monospace;">■</span>';
     } else if (maxed) {
       rightHTML =
-        '<span style="font-size:15px;color:#00ffff;font-family:\'Courier New\',monospace;font-weight:bold;">' + cfg.cur(lv) + '</span>' +
+        '<span style="font-size:16px;color:#00ffff;font-family:\'Courier New\',monospace;font-weight:bold;">' + cfg.cur(lv) + '</span>' +
         '<span style="font-size:14px;color:#cc44ff;font-family:\'Courier New\',monospace;font-weight:bold;margin-top:3px;">MAX</span>';
     } else {
       rightHTML =
-        '<span style="font-size:15px;color:#00ffff;font-family:\'Courier New\',monospace;font-weight:bold;">' +
-          cfg.cur(lv) + '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span>' +
+        '<span style="font-family:\'Courier New\',monospace;white-space:nowrap;">' +
+          '<span style="font-size:16px;color:#00ffff;font-weight:bold;">' + cfg.nxt(lv) + '</span>' +
+          '<span style="font-size:11px;color:#334455;"> → </span>' +
+          '<span style="font-size:11px;color:#445566;">' + cfg.cur(lv) + '</span>' +
         '</span>' +
         '<button data-key="' + key + '" style="background:#030b10;border:1px solid ' +
           (afford ? '#0a3344' : '#ff4444') + ';font-size:11px;' +
@@ -4292,11 +4295,11 @@ if (dailyClaimBtn) {
     }
 
     card.innerHTML =
-      '<div style="display:flex;flex-direction:column;gap:3px;">' +
-        '<span style="font-size:12px;color:#94a3b8;font-family:\'Courier New\',monospace;">' + cfg.name + '</span>' +
+      '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;">' +
+        '<span style="font-size:11px;color:#7aacac;font-family:\'Courier New\',monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">' + cfg.name + '</span>' +
         '<span style="font-size:10px;color:#556677;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0px;">' + rightHTML + '</div>';
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0px;flex-shrink:0;">' + rightHTML + '</div>';
 
     if (!locked && !maxed) {
       var btn = card.querySelector('button');
@@ -5435,21 +5438,24 @@ function _appendExtCard(container, key, ws) {
   var card = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;';
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;';
 
   var rightHTML = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
-    : '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0px;">' +
-        '<span style="font-size:13px;color:#00ffff;font-family:monospace;">' + cfg.cur(lv) +
-          '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span></span>' +
+    : '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:0px;flex-shrink:0;">' +
+        '<span style="font-family:monospace;white-space:nowrap;">' +
+          '<span style="font-size:16px;color:#00ffff;font-weight:bold;">' + cfg.nxt(lv) + '</span>' +
+          '<span style="font-size:11px;color:#334455;"> → </span>' +
+          '<span style="font-size:11px;color:#445566;">' + cfg.cur(lv) + '</span>' +
+        '</span>' +
         '<button data-extkey="' + key + '" style="background:#030b10;border:1px solid ' +
           (afford ? '#0a3344' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
           ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>' +
       '</div>';
 
   card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;">' +
-      '<span style="font-size:12px;color:#94a3b8;font-family:monospace;">' + cfg.name + '</span>' +
+    '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;">' +
+      '<span style="font-size:11px;color:#7aacac;font-family:monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">' + cfg.name + '</span>' +
       '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
     '</div>' + rightHTML;
 
@@ -5724,20 +5730,23 @@ function _buildItemCard(item, ws) {
   var card  = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,220,100,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;';
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;';
   var rhs = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
-    : '<div style="display:flex;flex-direction:column;align-items:flex-end;">' +
-        '<span style="font-size:13px;color:#00ffff;font-family:monospace;">' + item.cur(lv) +
-          '<span style="font-size:9px;color:#4a6a7a;"> → ' + item.nxt(lv) + '</span></span>' +
+    : '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' +
+        '<span style="font-family:monospace;white-space:nowrap;">' +
+          '<span style="font-size:16px;color:#00ffff;font-weight:bold;">' + item.nxt(lv) + '</span>' +
+          '<span style="font-size:11px;color:#334455;"> → </span>' +
+          '<span style="font-size:11px;color:#445566;">' + item.cur(lv) + '</span>' +
+        '</span>' +
         '<button data-ukey="' + item.key + '" style="background:#030b10;border:1px solid ' +
           (aff?'#0a3344':'#ef4444') + ';color:' + (aff?'#f59e0b':'#ef4444') +
           ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;' +
           '-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>' +
       '</div>';
   card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;">' +
-      '<span style="font-size:12px;color:#94a3b8;font-family:monospace;">' + item.name + '</span>' +
+    '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;">' +
+      '<span style="font-size:11px;color:#7aacac;font-family:monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">' + item.name + '</span>' +
       '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed?' ✓':'') + '</span>' +
     '</div>' + rhs;
   if (!maxed) {
@@ -7444,16 +7453,16 @@ setTimeout(_applyMaxOverrides, 300);
     var gold     = window.PERM ? window.PERM.gold : 0;
     var afford   = gold >= (unlocked ? item.cost(lv) : item.unlockCost);
     var card     = document.createElement('div');
-    card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(167,139,250,'+(unlocked?'0.5':'0.15')+');padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;transition:border-color 0.2s;-webkit-tap-highlight-color:transparent;';
+    card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(167,139,250,'+(unlocked?'0.5':'0.15')+');padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;transition:border-color 0.2s;-webkit-tap-highlight-color:transparent;';
     var rhs;
     if (!unlocked) {
-      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;"><span style="font-size:10px;color:#556677;font-family:monospace;">🔒 잠금</span><button data-u-un="'+item.key+'" style="background:#030b10;border:1px solid '+(afford?'#a78bfa44':'#ef4444')+';color:'+(afford?'#a78bfa':'#ef4444')+';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;">◈'+item.unlockCost+' 해금</button></div>';
+      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;"><span style="font-size:10px;color:#556677;font-family:monospace;">🔒 잠금</span><button data-u-un="'+item.key+'" style="background:#030b10;border:1px solid '+(afford?'#a78bfa44':'#ef4444')+';color:'+(afford?'#a78bfa':'#ef4444')+';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;">◈'+item.unlockCost+' 해금</button></div>';
     } else if (maxed) {
-      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;"><span style="font-size:13px;color:#00ffff;font-family:monospace;">'+item.cur(lv)+'</span><span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span></div>';
+      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;"><span style="font-size:16px;color:#00ffff;font-family:monospace;font-weight:bold;">'+item.cur(lv)+'</span><span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span></div>';
     } else {
-      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;"><span style="font-size:13px;color:#00ffff;font-family:monospace;">'+item.cur(lv)+'<span style="font-size:9px;color:#4a6a7a;"> → '+item.nxt(lv)+'</span></span><button data-u-up="'+item.key+'" style="background:#030b10;border:1px solid '+(afford?'#0a3344':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;margin-top:3px;">◈'+item.cost(lv)+'</button></div>';
+      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;"><span style="font-family:monospace;white-space:nowrap;"><span style="font-size:16px;color:#00ffff;font-weight:bold;">'+item.nxt(lv)+'</span><span style="font-size:11px;color:#334455;"> → </span><span style="font-size:11px;color:#445566;">'+item.cur(lv)+'</span></span><button data-u-up="'+item.key+'" style="background:#030b10;border:1px solid '+(afford?'#0a3344':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;margin-top:3px;">◈'+item.cost(lv)+'</button></div>';
     }
-    card.innerHTML = '<div style="display:flex;flex-direction:column;gap:3px;"><span style="font-size:12px;color:#94a3b8;font-family:monospace;">'+item.name+'</span><span style="font-size:10px;color:#556677;font-family:monospace;">Lv.'+(unlocked?lv:'?')+'</span><span style="font-size:9px;color:#334455;font-family:monospace;">'+item.desc+'</span></div>'+rhs;
+    card.innerHTML = '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;"><span style="font-size:11px;color:#7aacac;font-family:monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">'+item.name+'</span><span style="font-size:10px;color:#556677;font-family:monospace;">Lv.'+(unlocked?lv:'?')+'</span><span style="font-size:9px;color:#334455;font-family:monospace;word-break:keep-all;line-height:1.4;">'+item.desc+'</span></div>'+rhs;
 
     var uBtn = card.querySelector('[data-u-un]');
     if (uBtn) (function(it) {
@@ -10192,13 +10201,16 @@ function _renderFreeCard(container, key, ws, insertBefore) {
   card.setAttribute('data-freeupg', key);
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;';
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;';
 
   var rightHTML = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
-    : '<div style="display:flex;flex-direction:column;align-items:flex-end;">' +
-        '<span style="font-size:13px;color:#00ffff;font-family:monospace;">' + cfg.cur(lv) +
-          '<span style="font-size:9px;color:#4a6a7a;"> → ' + cfg.nxt(lv) + '</span></span>' +
+    : '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' +
+        '<span style="font-family:monospace;white-space:nowrap;">' +
+          '<span style="font-size:16px;color:#00ffff;font-weight:bold;">' + cfg.nxt(lv) + '</span>' +
+          '<span style="font-size:11px;color:#334455;"> → </span>' +
+          '<span style="font-size:11px;color:#445566;">' + cfg.cur(lv) + '</span>' +
+        '</span>' +
         '<button data-fukey="' + key + '" style="background:#030b10;border:1px solid ' +
           (afford ? '#0a3344' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
           ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;' +
@@ -10206,8 +10218,8 @@ function _renderFreeCard(container, key, ws, insertBefore) {
       '</div>';
 
   card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;">' +
-      '<span style="font-size:12px;color:#94a3b8;font-family:monospace;">' + cfg.name + '</span>' +
+    '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;">' +
+      '<span style="font-size:11px;color:#7aacac;font-family:monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">' + cfg.name + '</span>' +
       '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
     '</div>' + rightHTML;
 
