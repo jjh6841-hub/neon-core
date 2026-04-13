@@ -1443,10 +1443,10 @@ canvas {
   </div>
 
   <!-- 중앙 콘텐츠 -->
-  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:16px; padding:8px 16px 0; position:relative;">
+  <div id="home-center" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:12px; padding:0 48px; overflow:hidden; position:relative;">
 
     <!-- 우측 아이콘 버튼 -->
-    <div style="position:absolute; right:8px; top:20px; display:flex; flex-direction:column; gap:8px; z-index:10;">
+    <div id="right-icons" style="position:absolute; right:0; top:44px; display:flex; flex-direction:column; gap:6px; padding:6px 4px; z-index:10;">
       <button id="home-btn-settings" title="설정" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;line-height:1.3;padding:0;">⚙<br><span style="font-size:7px;">설정</span></button>
       <div style="position:relative;display:inline-block;">
         <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#94a3b8;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#f59e0b;font-size:7px;">0/8</span></button>
@@ -1457,13 +1457,13 @@ canvas {
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:16px; left:6px; display:flex; flex-direction:column; gap:6px; z-index:10;"></div>
+    <div id="left-icons-container" style="position:absolute; top:44px; left:0; display:flex; flex-direction:column; gap:6px; padding:6px 4px; z-index:10;"></div>
 
     <!-- 타이틀 -->
-    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:0; padding:0;">NEON CORE</div>
+    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin-top:8px;">NEON CORE</div>
 
     <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
-    <div style="display:flex; flex-direction:row; gap:8px; align-self:stretch; margin:8px 30px 8px 36px; width:auto;">
+    <div style="display:flex; flex-direction:row; gap:8px; width:100%;">
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
@@ -1487,7 +1487,7 @@ canvas {
     </div>
 
     <!-- 전투 시작 버튼 -->
-    <button id="btn-start-game" style="width:200px; height:52px; margin-top:auto; margin-bottom:calc(68px + env(safe-area-inset-bottom, 0px)); background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
+    <button id="btn-start-game" style="width:100%; height:52px; margin-top:auto; margin-bottom:16px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
       전투 시작
     </button>
 
@@ -8754,7 +8754,7 @@ function _injectGoalUI() {
   var bar = document.createElement('div');
   bar.id = 'next-goal-bar';
   bar.style.cssText = [
-    'align-self:stretch;margin:0 30px 0 36px;width:auto;background:transparent;',
+    'width:100%;background:transparent;',
     'border-left:2px solid #00ffff;padding:8px 12px;',
     'display:flex;justify-content:space-between;align-items:center;',
     'box-sizing:border-box;gap:8px;',
