@@ -1153,6 +1153,7 @@ canvas {
   <span id="ld-version">v1.0.0</span>
   <div id="ld-center">
     <div class="ld-hex"></div>
+    <div id="loading-icon" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
     <div id="ld-title">NEON CORE</div>
   </div>
   <div id="ld-bottom">
@@ -1461,6 +1462,9 @@ canvas {
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:90px 0 8px 0;">NEON CORE</div>
+
+    <!-- 메인 아이콘 -->
+    <div id="home-icon" style="display:flex; justify-content:center; margin:8px 0;"></div>
 
     <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
     <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-top:auto; margin-bottom:6px;">
@@ -12794,6 +12798,83 @@ if (document.readyState === 'loading') {
   _attach();
 }
 
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     스크립트: NEON CORE 메인 아이콘 (로딩/홈 공용 SVG)
+══════════════════════════════════════════════════════ -->
+<script>
+window.getNeonCoreIcon = function(size) {
+  var s = size || 100;
+  var c = s / 2;
+  var r1 = s * 0.49;
+  var r2 = s * 0.40;
+  var r3 = s * 0.37;
+  function hex(r) {
+    var pts = [];
+    for (var i = 0; i < 6; i++) {
+      var a = Math.PI / 180 * (60 * i - 90);
+      pts.push((c + r * Math.cos(a)).toFixed(1) + ',' + (c + r * Math.sin(a)).toFixed(1));
+    }
+    return pts.join(' ');
+  }
+  var petalPath =
+    'M' + c + ',' + (c - s*0.38) +
+    ' Q' + (c + s*0.26) + ',' + (c - s*0.18) +
+    ' ' + (c + s*0.26) + ',' + c +
+    ' Q' + (c + s*0.26) + ',' + (c + s*0.18) +
+    ' ' + c + ',' + (c + s*0.38) +
+    ' Q' + (c - s*0.26) + ',' + (c + s*0.18) +
+    ' ' + (c - s*0.26) + ',' + c +
+    ' Q' + (c - s*0.26) + ',' + (c - s*0.18) +
+    ' ' + c + ',' + (c - s*0.38) + 'Z';
+
+  return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 ' + s + ' ' + s + '" xmlns="http://www.w3.org/2000/svg">' +
+    '<polygon points="' + hex(r1) + '" fill="#06061a" stroke="#00ffff" stroke-width="' + (s*0.018) + '"/>' +
+    '<polygon points="' + hex(r2) + '" fill="none" stroke="#00cccc" stroke-width="' + (s*0.007) + '" opacity="0.5"/>' +
+    '<polygon points="' + hex(r3) + '" fill="none" stroke="#00cccc" stroke-width="' + (s*0.006) + '" opacity="0.25"/>' +
+    '<g transform="rotate(0,' + c + ',' + c + ')">' +
+      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
+    '<g transform="rotate(72,' + c + ',' + c + ')">' +
+      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
+    '<g transform="rotate(144,' + c + ',' + c + ')">' +
+      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
+    '<g transform="rotate(216,' + c + ',' + c + ')">' +
+      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
+    '<g transform="rotate(288,' + c + ',' + c + ')">' +
+      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
+    '<circle cx="' + c + '" cy="' + c + '" r="' + (s*0.079) + '" fill="#06061a" stroke="#cc44ff" stroke-width="' + (s*0.018) + '"/>' +
+    '<circle cx="' + c + '" cy="' + c + '" r="' + (s*0.036) + '" fill="#cc44ff"/>' +
+    '<circle cx="' + c + '" cy="' + c + '" r="' + (s*0.014) + '" fill="#ffffff"/>' +
+    '</svg>';
+};
+
+(function() {
+  function _injectLoading() {
+    var el = document.getElementById('loading-icon');
+    if (el && !el.firstChild) el.innerHTML = window.getNeonCoreIcon(120);
+  }
+  function _injectHome() {
+    var el = document.getElementById('home-icon');
+    if (el && !el.firstChild) el.innerHTML = window.getNeonCoreIcon(90);
+  }
+  function _injectAll() { _injectLoading(); _injectHome(); }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _injectAll);
+  } else {
+    _injectAll();
+  }
+
+  // showScreen('home') 시 보장
+  var _origShow = window.showScreen;
+  if (typeof _origShow === 'function') {
+    window.showScreen = function(name) {
+      _origShow.apply(this, arguments);
+      if (name === 'home') _injectHome();
+    };
+  }
 }());
 </script>
 
