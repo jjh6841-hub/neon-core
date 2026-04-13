@@ -1443,13 +1443,13 @@ canvas {
   </div>
 
   <!-- 중앙 콘텐츠 -->
-  <div id="home-center" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:12px; padding:0 48px; overflow:hidden; position:relative;">
+  <div id="home-center" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:0; padding:0 48px; overflow:hidden; position:relative;">
 
     <!-- 우측 아이콘 버튼 -->
     <div id="right-icons" style="position:absolute; right:0; top:44px; display:flex; flex-direction:column; gap:6px; padding:6px 4px; z-index:10;">
-      <button id="home-btn-settings" title="설정" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-family:monospace;font-size:10px;cursor:pointer;line-height:1.3;padding:0;box-shadow:none;text-shadow:none;">⚙<br><span style="font-size:7px;">설정</span></button>
+      <button id="home-btn-settings" title="설정" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;line-height:1.3;padding:0;box-shadow:none;text-shadow:none;">⚙<br><span style="font-size:7px;color:#00ffff;">설정</span></button>
       <div style="position:relative;display:inline-block;">
-        <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#94a3b8;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#f59e0b;font-size:7px;">0/8</span></button>
+        <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#00ffff;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#445566;font-size:7px;">0/8</span></button>
         <div id="home-miss-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1px solid #06061a;"></div>
       </div>
       <button id="btn-right-ranking" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a1520;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;"><div style="display:flex;align-items:flex-end;gap:1px;height:14px;"><div style="width:5px;height:9px;background:#334455;border-radius:1px 1px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:4px;color:#001a2a;font-family:Courier New;">2</span></div><div style="width:5px;height:14px;background:#334455;border-radius:1px 1px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:4px;color:#001a2a;font-family:Courier New;">1</span></div><div style="width:5px;height:6px;background:#334455;border-radius:1px 1px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:4px;color:#001a2a;font-family:Courier New;">3</span></div></div><span style="font-size:7px;">랭킹</span><span id="ranking-lock-icon" style="position:absolute;top:0px;right:0px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">🔒</span></button>
@@ -1460,10 +1460,10 @@ canvas {
     <div id="left-icons-container" style="position:absolute; top:44px; left:0; display:flex; flex-direction:column; gap:6px; padding:6px 4px; z-index:10;"></div>
 
     <!-- 타이틀 -->
-    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin-top:8px;">NEON CORE</div>
+    <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:16px 0 8px 0;">NEON CORE</div>
 
     <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
-    <div style="display:flex; flex-direction:row; gap:8px; width:100%;">
+    <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-bottom:6px;">
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
@@ -1487,7 +1487,7 @@ canvas {
     </div>
 
     <!-- 전투 시작 버튼 -->
-    <button id="btn-start-game" style="width:100%; height:52px; margin-top:auto; margin-bottom:16px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
+    <button id="btn-start-game" style="width:100%; height:52px; margin-top:auto; margin-bottom:24px; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
       전투 시작
     </button>
 
@@ -8754,7 +8754,7 @@ function _injectGoalUI() {
   var bar = document.createElement('div');
   bar.id = 'next-goal-bar';
   bar.style.cssText = [
-    'width:100%;background:transparent;',
+    'width:100%;margin-bottom:auto;background:transparent;',
     'border-left:2px solid #00ffff;padding:8px 12px;',
     'display:flex;justify-content:space-between;align-items:center;',
     'box-sizing:border-box;gap:8px;',
@@ -11638,7 +11638,8 @@ function _getLeftIcon(id, unlocked, color) {
   var off = '#334455';
   if (id === 'achievement') return _ACHIEVE_ICON.replace(/CLC/g, unlocked ? on : off);
   if (id === 'event')       return _EVENT_ICON.replace(/CLC/g,   unlocked ? on : off);
-  if (id === 'guild')       return _GUILD_ICON.replace(/CLC/g,   unlocked ? on : '#445566');
+  // 길드 SVG stroke은 currentColor — 부모 button의 color 속성을 따라감
+  if (id === 'guild')       return _GUILD_ICON.replace(/CLC/g,   'currentColor');
   return null;
 }
 
@@ -11658,9 +11659,14 @@ function renderLeftIcons() {
       var btn = document.createElement('button');
       btn.id = 'btn-left-' + icon.id;
       var lockHtml = !unlocked ? '<span style="position:absolute;top:2px;right:2px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>' : '';
-      var borderCol = unlocked ? (unlockedColor + '55') : '#0a1a2a';
-      btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + borderCol + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:' + (unlocked ? 'pointer' : 'default') + '; flex-shrink:0; position:relative;';
+      // 활성 테두리: 이벤트만 alpha 유지, 나머지(업적/토너먼트/길드)는 풀 컬러
+      var borderCol;
+      if (!unlocked) borderCol = '#0a1a2a';
+      else if (icon.id === 'event') borderCol = unlockedColor + '55';
+      else borderCol = unlockedColor;
       var labelCol = unlocked ? unlockedColor : '#1a2a3a';
+      // 부모 button의 color는 SVG currentColor 동작용 (길드)
+      btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + borderCol + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:' + (unlocked ? 'pointer' : 'default') + '; flex-shrink:0; position:relative; color:' + labelCol + ';';
       if (customIcon) {
         btn.innerHTML = customIcon + '<span style="font-size:7px; color:' + labelCol + '; font-family:\'Courier New\',monospace;">' + icon.label + '</span>' + lockHtml;
       } else {
