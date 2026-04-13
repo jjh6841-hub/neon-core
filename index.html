@@ -1462,26 +1462,26 @@ canvas {
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:8px 0 12px 0;">NEON CORE</div>
 
-    <!-- 정보 카드 (column: 코인 보너스 → 난이도) -->
-    <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+    <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
+    <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin:8px 0;">
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
-      <div id="coin-bonus-card" style="background:#0a1a2a;border:1px solid #0a3344;padding:8px 12px;min-height:0;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
-        <div style="color:#94a3b8;font-size:9px;font-family:monospace;white-space:nowrap;">총 코인 보너스</div>
-        <div id="home-total-bonus" style="color:#00ffff;font-size:16px;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
+      <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
+        <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:4px;white-space:nowrap;">총 코인 보너스</div>
+        <div id="home-total-bonus" style="font-size:14px;color:#00ffff;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
         <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:8px;font-family:monospace;">▶ 상세</div>
       </div>
 
       <!-- 난이도 카드 -->
-      <div style="background:#0a1a2a; border:1px solid #0a3344; padding:8px 6px; display:flex; flex-direction:column; align-items:center; gap:4px;">
-        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">난이도</div>
-        <div style="display:flex; flex-direction:row; align-items:center; gap:4px; width:100%; justify-content:center;">
-          <button id="tier-prev" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:6px 10px; min-width:40px; min-height:40px;">◀</button>
-          <span id="tier-name" style="color:#ffffff; font-size:14px; font-family:monospace; font-weight:bold; white-space:nowrap; min-width:40px; text-align:center;">티어 1</span>
-          <button id="tier-next" style="background:none; border:none; color:#00ffff; font-size:14px; cursor:pointer; padding:6px 10px; min-width:40px; min-height:40px;">▶</button>
+      <div style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:2px;white-space:nowrap;">난이도</div>
+        <div style="display:flex;flex-direction:row;align-items:center;gap:4px;width:100%;justify-content:center;">
+          <button id="tier-prev" style="background:none;border:none;color:#00ffff;font-size:13px;cursor:pointer;padding:4px 6px;min-width:28px;">◀</button>
+          <span id="tier-name" style="color:#ffffff;font-size:13px;font-family:monospace;font-weight:bold;white-space:nowrap;min-width:40px;text-align:center;">티어 1</span>
+          <button id="tier-next" style="background:none;border:none;color:#00ffff;font-size:13px;cursor:pointer;padding:4px 6px;min-width:28px;">▶</button>
         </div>
-        <div style="color:#94a3b8; font-size:10px; font-family:monospace; white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
-        <div style="color:#00ffff; font-size:10px; font-family:monospace; white-space:nowrap;">◆ x<span id="tier-multiplier">1.0</span></div>
+        <div style="color:#94a3b8;font-size:9px;font-family:monospace;white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
+        <div style="color:#00ffff;font-size:9px;font-family:monospace;white-space:nowrap;">◆ x<span id="tier-multiplier">1.0</span></div>
       </div>
 
     </div>
