@@ -4212,44 +4212,44 @@ if (dailyClaimBtn) {
   var WS_ITEMS = {
     damage:     { tab:'atk', name:'대미지',      maxLv:20,
       cost: function(lv) { return 3 + Math.floor(lv * 1.8); },
-      cur:  function(lv) { return '+' + lv; },
-      nxt:  function(lv) { return '+' + (lv + 1); } },
+      cur:  function(lv) { return '' + lv; },
+      nxt:  function(lv) { return '' + (lv + 1); } },
     atkspd:     { tab:'atk', name:'공격 속도',   maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
-      cur:  function(lv) { return lv === 0 ? '기본' : '-' + (lv * 20) + 'ms'; },
-      nxt:  function(lv) { return '-' + ((lv + 1) * 20) + 'ms'; } },
+      cur:  function(lv) { return '' + (lv * 20); },
+      nxt:  function(lv) { return '' + ((lv + 1) * 20); } },
     critChance: { tab:'atk', name:'치명타 확률', maxLv:10,
       cost: function(lv) { return 8 + lv * 5; },
-      cur:  function(lv) { return (lv * 5) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 5) + '%'; } },
+      cur:  function(lv) { return '' + (lv * 5); },
+      nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
     critMult:   { tab:'atk', name:'치명타 계수', maxLv:5,
       cost: function(lv) { return 15 + lv * 12; },
-      cur:  function(lv) { return (1.5 + lv * 0.25).toFixed(2) + 'x'; },
-      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.25).toFixed(2) + 'x'; } },
+      cur:  function(lv) { return (1.5 + lv * 0.25).toFixed(2); },
+      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.25).toFixed(2); } },
     maxHp:      { tab:'def', name:'최대 체력',   maxLv:20,
       cost: function(lv) { return 3 + Math.floor(lv * 1.8); },
-      cur:  function(lv) { return '+' + (lv * 5); },
-      nxt:  function(lv) { return '+' + ((lv + 1) * 5); } },
+      cur:  function(lv) { return '' + (lv * 5); },
+      nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
     defense:    { tab:'def', name:'방어력',      maxLv:10,
       cost: function(lv) { return 8 + lv * 5; },
-      cur:  function(lv) { return lv + '%'; },
-      nxt:  function(lv) { return (lv + 1) + '%'; } },
+      cur:  function(lv) { return '' + lv; },
+      nxt:  function(lv) { return '' + (lv + 1); } },
     hpRegen:    { tab:'def', name:'체력 재생',   maxLv:5,
       cost: function(lv) { return 10 + lv * 10; },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1) + '/s'; },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '/s'; } },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
     lifeSteal:  { tab:'def', name:'흡혈', locked:true, maxLv:5,
       cost: function(lv) { return 20 + lv * 15; },
-      cur:  function(lv) { return lv + '%'; },
-      nxt:  function(lv) { return (lv + 1) + '%'; } },
+      cur:  function(lv) { return '' + lv; },
+      nxt:  function(lv) { return '' + (lv + 1); } },
     goldGain:   { tab:'spc', name:'골드 획득량', maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
-      cur:  function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); },
-      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); } },
+      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
     gemGain:    { tab:'spc', name:'보석 획득량', maxLv:5,
       cost: function(lv) { return 10 + lv * 10; },
-      cur:  function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); },
-      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); } },
+      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
   };
 
   var wsActiveTab = 'atk';
@@ -4326,7 +4326,7 @@ if (dailyClaimBtn) {
       'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
       'padding:10px 8px;display:flex;flex-direction:row;' +
-      'justify-content:space-between;align-items:center;gap:6px;' +
+      'justify-content:space-between;align-items:flex-end;gap:6px;' +
       'min-width:0;overflow:visible;' +
       'opacity:' + (locked ? '0.5' : '1') + ';' +
       'transition:border-color 0.2s;' +
@@ -5387,42 +5387,42 @@ var WS = _ext.items;
 /* ── 새 WS_ITEMS 추가 ── */
 var NEW_ITEMS = {
   // 공격 탭 2단계 (tier 2, wave 150골드)
-  wsRange:       { tab:'atk', name:'공격 범위',   tier:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return '+'+lv*8+'px';},              nxt:function(lv){return '+'+(lv+1)*8+'px';} },
-  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'x'+(1+lv*0.01).toFixed(2);}, nxt:function(lv){return 'x'+(1+(lv+1)*0.01).toFixed(2);} },
+  wsRange:       { tab:'atk', name:'공격 범위',   tier:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return ''+lv*8;},                    nxt:function(lv){return ''+(lv+1)*8;} },
+  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.01).toFixed(2);},     nxt:function(lv){return (1+(lv+1)*0.01).toFixed(2);} },
   // 공격 탭 3단계
-  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1)+'%';},    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
-  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return (lv+1)+'발';},                 nxt:function(lv){return (lv+2)+'발';} },
+  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
   // 공격 탭 4단계
-  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5).toFixed(1)+'%';},    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
-  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1).toFixed(1)+'s';},  nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1)+'s';} },
+  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
   // 공격 탭 5단계
-  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5).toFixed(1)+'%';},    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
-  bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return (lv+1)+'회';},                 nxt:function(lv){return (lv+2)+'회';} },
-  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return 'x'+(1+lv*0.1).toFixed(1);},  nxt:function(lv){return 'x'+(1+(lv+1)*0.1).toFixed(1);} },
+  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
+  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
 
   // 방어 탭 2단계
-  defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return lv+'dmg 감소';},         nxt:function(lv){return (lv+1)+'dmg 감소';} },
-  thornDamage:     { tab:'def', name:'가시 피해',        tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (lv*1).toFixed(0)+'%';},  nxt:function(lv){return (lv+1)+'%';} },
+  defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                  nxt:function(lv){return ''+(lv+1);} },
+  thornDamage:     { tab:'def', name:'가시 피해',        tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 3단계
-  knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8).toFixed(1)+'%';},nxt:function(lv){return ((lv+1)*0.8).toFixed(1)+'%';} },
-  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'Lv.'+lv;},               nxt:function(lv){return 'Lv.'+(lv+1);} },
+  knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8).toFixed(1);},     nxt:function(lv){return ((lv+1)*0.8).toFixed(1);} },
+  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 4단계
-  orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return 'x'+(1+lv*0.1).toFixed(1);},nxt:function(lv){return 'x'+(1+(lv+1)*0.1).toFixed(1);} },
-  orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return lv+'개';},                 nxt:function(lv){return (lv+1)+'개';} },
+  orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (1+lv*0.1).toFixed(1);},   nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
+  orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 5단계
-  mineChance:      { tab:'def', name:'에너지 지뢰 확률', tier:5, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.3).toFixed(1)+'%';},nxt:function(lv){return ((lv+1)*0.3).toFixed(1)+'%';} },
-  mineDamage:      { tab:'def', name:'에너지 지뢰 피해', tier:5, maxLv:99, cost:function(lv){return 16+Math.floor(lv*2.8);}, cur:function(lv){return 'x'+(1+lv*0.05).toFixed(2);},nxt:function(lv){return 'x'+(1+(lv+1)*0.05).toFixed(2);} },
-  mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return 'x'+(0.5+lv*0.02).toFixed(2);},nxt:function(lv){return 'x'+(0.5+(lv+1)*0.02).toFixed(2);} },
-  deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1)+'%';},nxt:function(lv){return ((lv+1)*0.1).toFixed(1)+'%';} },
+  mineChance:      { tab:'def', name:'에너지 지뢰 확률', tier:5, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.3).toFixed(1);},    nxt:function(lv){return ((lv+1)*0.3).toFixed(1);} },
+  mineDamage:      { tab:'def', name:'에너지 지뢰 피해', tier:5, maxLv:99, cost:function(lv){return 16+Math.floor(lv*2.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},  nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
+  mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (0.5+lv*0.02).toFixed(2);},nxt:function(lv){return (0.5+(lv+1)*0.02).toFixed(2);} },
+  deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},     nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 
   // 특수 탭 1단계 확장
-  cashBonus:       { tab:'spc', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return 'x'+(1+lv*0.05).toFixed(2);},nxt:function(lv){return 'x'+(1+(lv+1)*0.05).toFixed(2);} },
-  cashPerWave:     { tab:'spc', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return '+'+lv*2+'◈';},              nxt:function(lv){return '+'+(lv+1)*2+'◈';} },
+  cashBonus:       { tab:'spc', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
+  cashPerWave:     { tab:'spc', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
   // 특수 탭 2단계
-  coinsPerKill:    { tab:'spc', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'x'+(1+lv*0.02).toFixed(2);},nxt:function(lv){return 'x'+(1+(lv+1)*0.02).toFixed(2);} },
-  coinsPerWave:    { tab:'spc', name:'웨이브 코인',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return '+'+lv*5+'◈';},              nxt:function(lv){return '+'+(lv+1)*5+'◈';} },
+  coinsPerKill:    { tab:'spc', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
+  coinsPerWave:    { tab:'spc', name:'웨이브 코인',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
   // 특수 탭 4단계
-  interest:        { tab:'spc', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1)+'%/wave';},nxt:function(lv){return ((lv+1)*0.1).toFixed(1)+'%/wave';} },
+  interest:        { tab:'spc', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 };
 
 // WS에 주입
@@ -5707,48 +5707,48 @@ if (!window._wsExt) return;
 var WORKSHOP_UNLOCKS = {
   'atk-1': { tab:'atk', name:'전술 연구 I',   desc:'치명타 시스템 해금', cost:50,  color:'#00ccff',
     items:[
-      { key:'critChance',     name:'치명타 확률', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (lv*0.5).toFixed(1)+'%';},       nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
-      { key:'critDmgMult',    name:'치명타 배율', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);},   cur:function(lv){return (150+lv*5)+'%';},                nxt:function(lv){return (150+(lv+1)*5)+'%';} },
+      { key:'critChance',     name:'치명타 확률', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (lv*0.5).toFixed(1);},           nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+      { key:'critDmgMult',    name:'치명타 배율', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);},   cur:function(lv){return ''+(150+lv*5);},                  nxt:function(lv){return ''+(150+(lv+1)*5);} },
     ]},
   'atk-2': { tab:'atk', name:'전술 연구 II',  desc:'다중 발사체 해금', cost:150, color:'#00ccff',
     items:[
-      { key:'multiShotCount', name:'다중 발사',   maxLv:9,  cost:function(lv){return 25+lv*10;},              cur:function(lv){return (lv+1)+'발';},                   nxt:function(lv){return (lv+2)+'발';} },
-      { key:'pierceLv',       name:'관통',         maxLv:9,  cost:function(lv){return 30+lv*12;},              cur:function(lv){return lv+'회 관통';},                  nxt:function(lv){return (lv+1)+'회 관통';} },
+      { key:'multiShotCount', name:'다중 발사',   maxLv:9,  cost:function(lv){return 25+lv*10;},              cur:function(lv){return ''+(lv+1);},                      nxt:function(lv){return ''+(lv+2);} },
+      { key:'pierceLv',       name:'관통',         maxLv:9,  cost:function(lv){return 30+lv*12;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
     ]},
   'atk-3': { tab:'atk', name:'전술 연구 III', desc:'연쇄 공격 해금', cost:400, color:'#00ccff',
     items:[
-      { key:'chainCount',     name:'연쇄 공격',   maxLv:9,  cost:function(lv){return 40+lv*15;},              cur:function(lv){return lv+'회 연쇄';},                  nxt:function(lv){return (lv+1)+'회 연쇄';} },
-      { key:'chainDmgPct',    name:'연쇄 피해',   maxLv:30, cost:function(lv){return 35+Math.floor(lv*5);},   cur:function(lv){return (60+lv*5)+'%';},                 nxt:function(lv){return (60+(lv+1)*5)+'%';} },
+      { key:'chainCount',     name:'연쇄 공격',   maxLv:9,  cost:function(lv){return 40+lv*15;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
+      { key:'chainDmgPct',    name:'연쇄 피해',   maxLv:30, cost:function(lv){return 35+Math.floor(lv*5);},   cur:function(lv){return ''+(60+lv*5);},                   nxt:function(lv){return ''+(60+(lv+1)*5);} },
     ]},
   'def-1': { tab:'def', name:'방호 연구 I',   desc:'생존 시스템 해금', cost:50,  color:'#00ff88',
     items:[
-      { key:'regenRate',      name:'체력 재생',   maxLv:50, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (lv*0.02).toFixed(2)+'/s';},     nxt:function(lv){return ((lv+1)*0.02).toFixed(2)+'/s';} },
-      { key:'vampireRate',    name:'흡혈',         maxLv:30, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1)+'%';},       nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+      { key:'regenRate',      name:'체력 재생',   maxLv:50, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (lv*0.02).toFixed(2);},           nxt:function(lv){return ((lv+1)*0.02).toFixed(2);} },
+      { key:'vampireRate',    name:'흡혈',         maxLv:30, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},            nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
     ]},
   'def-2': { tab:'def', name:'방호 연구 II',  desc:'방어 반격 해금', cost:150, color:'#00ff88',
     items:[
-      { key:'thornsPct',      name:'반격 피해',   maxLv:30, cost:function(lv){return 15+Math.floor(lv*2.8);}, cur:function(lv){return lv*2+'%';},                      nxt:function(lv){return (lv+1)*2+'%';} },
-      { key:'shieldHP',       name:'에너지 방패', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);},   cur:function(lv){return lv*5+'HP';},                     nxt:function(lv){return (lv+1)*5+'HP';} },
+      { key:'thornsPct',      name:'반격 피해',   maxLv:30, cost:function(lv){return 15+Math.floor(lv*2.8);}, cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
+      { key:'shieldHP',       name:'에너지 방패', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);},   cur:function(lv){return ''+lv*5;},                        nxt:function(lv){return ''+(lv+1)*5;} },
     ]},
   'def-3': { tab:'def', name:'방호 연구 III', desc:'불사/흡수 해금', cost:400, color:'#00ff88',
     items:[
-      { key:'immortalPct',    name:'불사 확률',   maxLv:30, cost:function(lv){return 25+Math.floor(lv*5);},   cur:function(lv){return (lv*0.1).toFixed(1)+'%';},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1)+'%';} },
-      { key:'absorbPct',      name:'피해 흡수',   maxLv:30, cost:function(lv){return 30+Math.floor(lv*5);},   cur:function(lv){return lv*2+'%';},                      nxt:function(lv){return (lv+1)*2+'%';} },
+      { key:'immortalPct',    name:'불사 확률',   maxLv:30, cost:function(lv){return 25+Math.floor(lv*5);},   cur:function(lv){return (lv*0.1).toFixed(1);},            nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
+      { key:'absorbPct',      name:'피해 흡수',   maxLv:30, cost:function(lv){return 30+Math.floor(lv*5);},   cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
     ]},
   'spc-1': { tab:'spc', name:'특수 연구 I',   desc:'재화 부스트 해금', cost:100, color:'#f59e0b',
     items:[
-      { key:'goldBoostPct',   name:'골드 부스트', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return 'x'+(1+lv*0.02).toFixed(2);},   nxt:function(lv){return 'x'+(1+(lv+1)*0.02).toFixed(2);} },
-      { key:'gemBoostPct',    name:'크리스탈 보너스', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);}, cur:function(lv){return '+'+(lv)+'%';},               nxt:function(lv){return '+'+(lv+1)+'%';} },
+      { key:'goldBoostPct',   name:'골드 부스트', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},        nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
+      { key:'gemBoostPct',    name:'크리스탈 보너스', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);}, cur:function(lv){return ''+lv;},                        nxt:function(lv){return ''+(lv+1);} },
     ]},
   'spc-2': { tab:'spc', name:'특수 연구 II',  desc:'경험/웨이브 보너스 해금', cost:250, color:'#f59e0b',
     items:[
-      { key:'expBoostPct',    name:'경험치 보너스', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);}, cur:function(lv){return '+'+(lv*5)+'%';},                nxt:function(lv){return '+'+(lv+1)*5+'%';} },
-      { key:'waveGoldBonus',  name:'웨이브 보너스', maxLv:30, cost:function(lv){return 18+Math.floor(lv*3.5);},cur:function(lv){return '+'+lv*10+'◈';},               nxt:function(lv){return '+'+(lv+1)*10+'◈';} },
+      { key:'expBoostPct',    name:'경험치 보너스', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);}, cur:function(lv){return ''+(lv*5);},                      nxt:function(lv){return ''+(lv+1)*5;} },
+      { key:'waveGoldBonus',  name:'웨이브 보너스', maxLv:30, cost:function(lv){return 18+Math.floor(lv*3.5);},cur:function(lv){return ''+lv*10;},                     nxt:function(lv){return ''+(lv+1)*10;} },
     ]},
   'spc-3': { tab:'spc', name:'특수 연구 III', desc:'시간조작/추가 카드 해금', cost:600, color:'#f59e0b',
     items:[
-      { key:'timeSlowPct',    name:'시간 지연',   maxLv:10, cost:function(lv){return 50+lv*20;},              cur:function(lv){return lv*2+'%';},                      nxt:function(lv){return (lv+1)*2+'%';} },
-      { key:'extraCardCount', name:'추가 카드',   maxLv:5,  cost:function(lv){return 80+lv*30;},              cur:function(lv){return '+'+(lv)+'장';},                 nxt:function(lv){return '+'+(lv+1)+'장';} },
+      { key:'timeSlowPct',    name:'시간 지연',   maxLv:10, cost:function(lv){return 50+lv*20;},              cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
+      { key:'extraCardCount', name:'추가 카드',   maxLv:5,  cost:function(lv){return 80+lv*30;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
     ]},
 };
 
@@ -7491,9 +7491,9 @@ setTimeout(_applyMaxOverrides, 300);
 (function() {
   var UTL_ITEMS = [
     { key:'coinBoost',      name:'코인 부스트',        desc:'코인 획득량 영구 증가',        maxLv:10, unlockCost:40,
-      cost:function(lv){return 15+lv*10;}, cur:function(lv){return lv===0?'기본':'+'+lv*5+'%';}, nxt:function(lv){return '+'+((lv+1)*5)+'%';} },
+      cost:function(lv){return 15+lv*10;}, cur:function(lv){return ''+lv*5;}, nxt:function(lv){return ''+((lv+1)*5);} },
     { key:'waveBonusGold',  name:'웨이브 클리어 보너스', desc:'웨이브 클리어 시 추가 골드',   maxLv:10, unlockCost:80,
-      cost:function(lv){return 20+lv*12;}, cur:function(lv){return lv===0?'기본':'+'+lv*10+'◈';}, nxt:function(lv){return '+'+((lv+1)*10)+'◈';} },
+      cost:function(lv){return 20+lv*12;}, cur:function(lv){return ''+lv*10;}, nxt:function(lv){return ''+((lv+1)*10);} },
   ];
 
   function _injectTab() {
