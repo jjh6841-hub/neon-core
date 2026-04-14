@@ -1149,8 +1149,8 @@ canvas {
         <span id="hud-hp-text" style="font-size:9px;color:#ff4444;"></span>
       </div>
       <div style="color:#f59e0b;font-size:12px;">◈ <span id="hud-gold-battle">0</span></div>
-      <div style="color:#00ffff;font-size:12px;">✧ <span id="hud-gems-battle">0</span></div>
-      <div style="color:#ff6600;font-size:12px;">⊙ <span id="hud-chips">0</span></div>
+      <div style="color:#00ffff;font-size:12px;">❖ <span id="hud-gems-battle">0</span></div>
+      <div style="color:#ff6600;font-size:12px;">⊕ <span id="hud-chips">0</span></div>
     </div>
 
     <!-- ═══ HUD 우측 영역 ═══ -->
@@ -1404,7 +1404,7 @@ canvas {
         <span style="color:#f59e0b;font-size:12px;">◈ </span><span id="r-total-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span>
       </div>
     </div>
-    <div class="go-reward-row go-reward-gem" id="r-gem-row" style="display:none">✧ 획득 보석: <span id="r-gems">0</span></div>
+    <div class="go-reward-row go-reward-gem" id="r-gem-row" style="display:none">❖ 획득 보석: <span id="r-gems">0</span></div>
     <div class="go-reward-row go-reward-ach" id="r-ach-row" style="display:none"></div>
     <div id="r-unlock-row" style="display:none; font-size:12px; color:#00ffff; font-family:'Courier New',monospace; margin-top:4px;"></div>
   </div>
@@ -1431,7 +1431,7 @@ canvas {
   <div id="home-hud" style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; position:relative;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="home-gold">0</span></span>
-      <span style="color:#00ffff; font-size:13px; font-family:monospace;">✧ <span id="home-gem">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="home-gem">0</span></span>
     </div>
     <button id="btn-currency-toggle" style="background:none; border:none; color:#334455; font-size:13px; font-family:monospace; cursor:pointer; padding:0; line-height:1;">▼</button>
     <!-- 재화 상세 패널 -->
@@ -1441,7 +1441,7 @@ canvas {
         <span id="panel-gold" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#00ffff; font-family:monospace; font-size:11px;">✧ 보석</span>
+        <span style="color:#00ffff; font-family:monospace; font-size:11px;">❖ 보석</span>
         <span id="panel-gem" style="color:#00ffff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
@@ -1526,7 +1526,7 @@ canvas {
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="ws-gold">0</span></span>
-      <span style="color:#00ffff; font-size:13px; font-family:monospace;">✧ <span id="ws-gem">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="ws-gem">0</span></span>
     </div>
     <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
   </div>
@@ -1552,13 +1552,13 @@ canvas {
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="store-gold">0</span></span>
-      <span style="color:#00ffff; font-family:monospace; font-size:13px;">✧ <span id="store-gem">0</span></span>
+      <span style="color:#00ffff; font-family:monospace; font-size:13px;">❖ <span id="store-gem">0</span></span>
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">스토어</div>
   <!-- 탭 -->
   <div id="store-tab-bar" style="display:flex; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
-    <button class="store-tab active" data-tab="gem" style="flex:1; height:34px; background:none; border:none; color:#00ffff; font-family:monospace; font-size:10px; border-bottom:2px solid #00ffff; cursor:pointer;">✧ 보석</button>
+    <button class="store-tab active" data-tab="gem" style="flex:1; height:34px; background:none; border:none; color:#00ffff; font-family:monospace; font-size:10px; border-bottom:2px solid #00ffff; cursor:pointer;">❖ 보석</button>
     <button class="store-tab" data-tab="package" style="flex:1; height:34px; background:none; border:none; color:#334455; font-family:monospace; font-size:10px; border-bottom:2px solid transparent; cursor:pointer;">◈ 패키지</button>
   </div>
   <!-- 콘텐츠 -->
@@ -1719,7 +1719,7 @@ function showDailyPopup(streak, reward) {
   document.getElementById('daily-title').textContent = 'DAY ' + streak + ' 출석 보상';
   document.getElementById('daily-streak').textContent = streak + '일 연속 출석!';
   document.getElementById('daily-gold').textContent = '◈+' + reward.gold;
-  document.getElementById('daily-gem').textContent = '✧+' + reward.gem;
+  document.getElementById('daily-gem').textContent = '❖+' + reward.gem;
   var bonusEl = document.getElementById('daily-bonus');
   if ((streak % 7) === 0) {
     bonusEl.textContent = '★ 주간 보너스!';
@@ -1908,7 +1908,7 @@ const UPGRADES = [
     canBuy() { return coreChips>=upgCost('slow',12); },
     apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
   },
-  { key:'gemup',   tab:'spc', icon:'✧',  name:'젬증폭',   baseCost:12, unlock:'gemup',
+  { key:'gemup',   tab:'spc', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:'gemup',
     cost()   { return upgCost('gemup',12); },
     stat()   { return 'x'+G.gemBonus.toFixed(1); },
     canBuy() { return coreChips>=upgCost('gemup',12); },
@@ -1931,7 +1931,7 @@ const UNLOCKS = [
   { key:'regen',   gems:4, tab:'def', icon:'~', name:'재생 해금',      desc:'초당 HP 자동 회복 해금' },
   { key:'explode', gems:7, tab:'spc', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
   { key:'slow',    gems:4, tab:'spc', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
-  { key:'gemup',   gems:5, tab:'spc', icon:'✧', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
+  { key:'gemup',   gems:5, tab:'spc', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
   { key:'goldup',  gems:4, tab:'spc', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
 ];
 
@@ -2828,7 +2828,7 @@ function triggerGameOver() {
   var achRow = document.getElementById('r-ach-row');
   if (newAchs.length > 0) {
     achRow.innerHTML = newAchs.map(function(a) {
-      return '★ ' + a.name + ' (+' + a.gems + '✧)';
+      return '★ ' + a.name + ' (+' + a.gems + '❖)';
     }).join('<br>');
     achRow.style.display = '';
   } else {
@@ -3404,7 +3404,7 @@ function buildCards() {
         '<span class="card-icon">'  + upg.icon + '</span>' +
         '<span class="card-name">'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
-        '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊙</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
+        '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
       btn.addEventListener('touchstart', function(ev) { ev.preventDefault(); }, { passive: false });
       btn.addEventListener('touchend',   function(ev) { ev.preventDefault(); doUpgrade(upg.key); }, { passive: false });
       btn.addEventListener('click', function() { doUpgrade(upg.key); });
@@ -3431,7 +3431,7 @@ function syncUI() {
     const statEl = document.getElementById('cs-' + upg.key);
     if (statEl) statEl.textContent = upg.stat();
     const costEl = document.getElementById('cc-' + upg.key);
-    if (costEl) costEl.innerHTML = '<span style="color:#ff6600;">⊙</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost);
+    if (costEl) costEl.innerHTML = '<span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost);
     card.classList.toggle('no-gold', !upg.canBuy());
   }
 }
@@ -3603,7 +3603,7 @@ function buildAchieveUI() {
         barHTML +
       '</div>' +
       '<span class="ach-reward">' +
-        (claimed ? '수령 완료' : (met ? '✧+' + ach.gems + ' 수령!' : '✧+' + ach.gems)) +
+        (claimed ? '수령 완료' : (met ? '❖+' + ach.gems + ' 수령!' : '❖+' + ach.gems)) +
       '</span>';
     list.appendChild(div);
   }
@@ -3701,7 +3701,7 @@ function buildUnlockUI() {
         '<span class="ui-desc">' + ul.desc + '</span>' +
       '</div>' +
       '<button class="ui-btn' + (owned ? ' owned-btn' : '') + '" id="unlock-btn-' + ul.key + '">' +
-        (owned ? '보유' : ul.gems + '✧') +
+        (owned ? '보유' : ul.gems + '❖') +
       '</button>';
     section.appendChild(div);
     if (!owned) {
@@ -3725,7 +3725,7 @@ function syncUnlockUI() {
       btn.textContent = '보유';
     } else {
       btn.className = 'ui-btn' + (PERM.gems < ul.gems ? ' disabled' : '');
-      btn.textContent = ul.gems + '✧';
+      btn.textContent = ul.gems + '❖';
     }
   }
 }
@@ -4651,7 +4651,7 @@ if (dailyClaimBtn) {
       매주 <span style="color:#00dddd;">월 / 목 오후 10시</span> 개최<br>24시간 진행 — 최고 스테이지로 순위 결정
     </div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px; text-align:center; font-size:11px; color:#7aacac; line-height:1.7;">
-      종료 시 <span style="color:#ffc800;">✦ 펄스 조각</span> + <span style="color:#bb44ff;">✧ 보석</span> 지급<br>종료 후 <span style="color:#00dddd;">48시간</span> 내 수령 필수
+      종료 시 <span style="color:#ffc800;">✦ 펄스 조각</span> + <span style="color:#bb44ff;">❖ 보석</span> 지급<br>종료 후 <span style="color:#00dddd;">48시간</span> 내 수령 필수
     </div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:16px; text-align:center; font-size:11px; color:#7aacac; line-height:1.7;">
       같은 티어 플레이어끼리 경쟁<br>매 이벤트마다 <span style="color:#00dddd;">승급 / 강등</span> 결정
@@ -4772,13 +4772,13 @@ if (dailyClaimBtn) {
       </div>
       <div style="flex:1; background:#0a1018; border:1px solid #1a3444; border-radius:8px; padding:8px; text-align:center;">
         <div style="font-size:9px; color:#334455; margin-bottom:3px;">보석</div>
-        <div style="font-size:14px; color:#00dddd; font-family:'Courier New',monospace;">✧ <span id="sm-gem-val">0</span></div>
+        <div style="font-size:14px; color:#00dddd; font-family:'Courier New',monospace;">❖ <span id="sm-gem-val">0</span></div>
       </div>
     </div>
     <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:8px;">▸ 통화 교환</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
       <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; text-align:center;">
-        <div style="font-size:22px; color:#00dddd; margin-bottom:4px;">✧</div>
+        <div style="font-size:22px; color:#00dddd; margin-bottom:4px;">❖</div>
         <div style="font-size:10px; color:#778899; margin-bottom:6px;">보석 x100</div>
         <div style="font-size:11px; color:#ffc800; margin-bottom:8px;">✦ 200</div>
         <button onclick="smBuy('gem100', 200)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
@@ -4786,7 +4786,7 @@ if (dailyClaimBtn) {
       <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; text-align:center;">
         <div style="font-size:22px; color:#ffc800; margin-bottom:4px;">✦</div>
         <div style="font-size:10px; color:#778899; margin-bottom:6px;">펄스 조각 x50</div>
-        <div style="font-size:11px; color:#00dddd; margin-bottom:8px;">✧ 30</div>
+        <div style="font-size:11px; color:#00dddd; margin-bottom:8px;">❖ 30</div>
         <button onclick="smBuy('pulse50', 30)" style="background:#00dddd; color:#001a1a; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; font-weight:bold;">구매</button>
       </div>
     </div>
@@ -4874,7 +4874,7 @@ if (dailyClaimBtn) {
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="lab-gold">0</span></span>
-      <span style="color:#00ffff; font-size:13px; font-family:monospace;">✧ <span id="lab-gem">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="lab-gem">0</span></span>
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">연구소</div>
@@ -4917,7 +4917,7 @@ if (dailyClaimBtn) {
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
-      <span style="color:#00ffff; font-size:13px; font-family:monospace;">✧ <span id="trn-gem">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="trn-gem">0</span></span>
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">토너먼트</div>
@@ -5588,8 +5588,8 @@ function _buildCrystalTab(container) {
   var header = document.createElement('div');
   header.style.cssText = 'grid-column:1/-1;padding:8px 0 4px;display:flex;justify-content:space-between;align-items:center;';
   header.innerHTML =
-    '<span style="font-size:11px;color:#334455;font-family:monospace;">✧ 크리스탈로 해금</span>' +
-    '<span style="color:#cc44ff;font-family:monospace;font-size:12px;">✧ ' + (PERM.gems || 0) + '</span>';
+    '<span style="font-size:11px;color:#334455;font-family:monospace;">❖ 크리스탈로 해금</span>' +
+    '<span style="color:#cc44ff;font-family:monospace;font-size:12px;">❖ ' + (PERM.gems || 0) + '</span>';
   container.appendChild(header);
 
   ULTIMATE_WEAPONS.forEach(function(uw2) {
@@ -5605,7 +5605,7 @@ function _buildCrystalTab(container) {
       '<div style="font-size:10px;color:#334455;font-family:monospace;margin-top:2px;">' + uw2.desc + '</div></div>';
 
     if (!unlocked) {
-      top += '<button data-uw-unlock="' + uw2.id + '" style="background:#030b10;border:1px solid ' + uw2.color + ';color:' + uw2.color + ';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">✧' + uw2.unlockCost + ' 해금</button>';
+      top += '<button data-uw-unlock="' + uw2.id + '" style="background:#030b10;border:1px solid ' + uw2.color + ';color:' + uw2.color + ';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">❖' + uw2.unlockCost + ' 해금</button>';
     } else {
       top += '<span style="font-size:10px;color:#00ff88;font-family:monospace;flex-shrink:0;">✓ 해금</span>';
     }
@@ -5623,7 +5623,7 @@ function _buildCrystalTab(container) {
           '<span style="color:#4a6a7a;"> → ' + st.fmt(lv+1) + '</span></div>' +
           '<button data-uw-upgrade="' + uw2.id + '" data-uw-stat="' + st.key + '" style="background:#030b10;border:1px solid ' +
             (afford ? '#334455' : '#ef4444') + ';color:' + (afford ? '#00ffff' : '#ef4444') +
-            ';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">✧3</button>' +
+            ';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">❖3</button>' +
           '</div>';
       });
       statsHTML += '</div>';
@@ -6043,7 +6043,7 @@ function _buildLabSlots() {
           topRow += '<span style="color:#00ff88;font-family:monospace;font-size:10px;">✓ 완료</span>';
         } else {
           var rushCost = Math.max(1, Math.ceil(remaining / 60));
-          topRow += '<button data-lab-rush="' + i + '" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:3px 7px;cursor:pointer;">Rush ✧' + rushCost + '</button>';
+          topRow += '<button data-lab-rush="' + i + '" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:3px 7px;cursor:pointer;">Rush ❖' + rushCost + '</button>';
         }
         topRow += '</div>';
 
@@ -6345,7 +6345,7 @@ function _buildPrizeContent(leagueId) {
   if (!league) return '';
   var html = '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #0a2233;">' +
     '<span style="font-family:monospace;font-size:10px;color:#334455;">순위</span>' +
-    '<span style="font-family:monospace;font-size:10px;color:#334455;">보석 ✧</span>' +
+    '<span style="font-family:monospace;font-size:10px;color:#334455;">보석 ❖</span>' +
     '<span style="font-family:monospace;font-size:10px;color:#334455;">크리스탈 ▲</span>' +
     '</div>';
   league.prizes.forEach(function(p) {
@@ -6542,7 +6542,7 @@ if (storeBtn) {
     <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:3px;">일일 임무</span>
     <div style="display:flex;gap:8px;align-items:center;font-family:'Courier New',monospace;font-size:11px;">
       <span style="color:#f59e0b;">◈ <span id="miss-gold-display">0</span></span>
-      <span style="color:#00ffff;">✧ <span id="miss-gems-display">0</span></span>
+      <span style="color:#00ffff;">❖ <span id="miss-gems-display">0</span></span>
     </div>
   </div>
 
@@ -6557,23 +6557,23 @@ if (storeBtn) {
       <div style="display:flex;justify-content:space-between;width:100%;position:relative;z-index:2;">
         <div class="weekly-node" data-req="5"  data-reward-gem="5"  style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
           <div class="w-icon" style="width:22px;height:22px;background:#030b10;border:1px solid #0a3344;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:monospace;color:#334455;">□</div>
-          <span style="font-size:8px;color:#334455;font-family:monospace;">✧5</span>
+          <span style="font-size:8px;color:#334455;font-family:monospace;">❖5</span>
         </div>
         <div class="weekly-node" data-req="10" data-reward-gem="10" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
           <div class="w-icon" style="width:22px;height:22px;background:#030b10;border:1px solid #0a3344;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:monospace;color:#334455;">□</div>
-          <span style="font-size:8px;color:#334455;font-family:monospace;">✧10</span>
+          <span style="font-size:8px;color:#334455;font-family:monospace;">❖10</span>
         </div>
         <div class="weekly-node" data-req="15" data-reward-gem="20" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
           <div class="w-icon" style="width:22px;height:22px;background:#030b10;border:1px solid #0a3344;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:monospace;color:#334455;">□</div>
-          <span style="font-size:8px;color:#334455;font-family:monospace;">✧20</span>
+          <span style="font-size:8px;color:#334455;font-family:monospace;">❖20</span>
         </div>
         <div class="weekly-node" data-req="20" data-reward-gem="30" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
           <div class="w-icon" style="width:22px;height:22px;background:#030b10;border:1px solid #0a3344;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:monospace;color:#334455;">□</div>
-          <span style="font-size:8px;color:#334455;font-family:monospace;">✧30</span>
+          <span style="font-size:8px;color:#334455;font-family:monospace;">❖30</span>
         </div>
         <div class="weekly-node" data-req="25" data-reward-gem="50" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
           <div class="w-icon" style="width:22px;height:22px;background:#030b10;border:1px solid #0a3344;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:monospace;color:#334455;">□</div>
-          <span style="font-size:8px;color:#334455;font-family:monospace;">✧50</span>
+          <span style="font-size:8px;color:#334455;font-family:monospace;">❖50</span>
         </div>
       </div>
     </div>
@@ -6675,7 +6675,7 @@ if (storeBtn) {
     <button onclick="window._closeAccountPopup&&window._closeAccountPopup(false);" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;">×</button>
     <!-- 내용 -->
     <div style="color:#f1f5f9;font-size:16px;font-family:monospace;font-weight:bold;letter-spacing:2px;margin-bottom:12px;">계정을 지키세요!</div>
-    <div style="color:#cc44ff;font-size:42px;margin:8px 0;line-height:1;">✧</div>
+    <div style="color:#cc44ff;font-size:42px;margin:8px 0;line-height:1;">❖</div>
     <div style="color:#cc44ff;font-size:26px;font-family:monospace;font-weight:bold;margin-bottom:12px;">× 20</div>
     <div style="color:#94a3b8;font-size:11px;font-family:monospace;line-height:1.7;margin-bottom:20px;">설정에서 계정을 연동해<br>진행 상황을 보호하고<br>무료 보석도 받으세요!</div>
     <button id="account-go-btn" style="width:100%;height:46px;background:#030b10;border:2px solid #cc44ff;color:#ffffff;font-family:monospace;font-size:14px;cursor:pointer;letter-spacing:2px;margin-bottom:10px;text-shadow:0 0 8px #cc44ff;">이동하기</button>
@@ -7098,7 +7098,7 @@ window._closeAccountPopup = function(giveReward) {
   if (giveReward) {
     if (window.PERM) { window.PERM.gems = (window.PERM.gems || 0) + 20; }
     if (window.savePerm) window.savePerm();
-    if (window.showAchievementToast) window.showAchievementToast('✧ +20 보석 지급!');
+    if (window.showAchievementToast) window.showAchievementToast('❖ +20 보석 지급!');
   }
 };
 
@@ -7339,7 +7339,7 @@ function _renderWeeklyNodes() {
       if (icon) { icon.textContent = '✓'; icon.style.borderColor='#334455'; icon.style.color='#334455'; }
       if (span) span.style.color = '#334455';
     } else if (reached) {
-      if (icon) { icon.textContent = '✧'; icon.style.borderColor='#cc44ff'; icon.style.color='#cc44ff'; icon.style.boxShadow='0 0 6px #cc44ff44'; }
+      if (icon) { icon.textContent = '❖'; icon.style.borderColor='#cc44ff'; icon.style.color='#cc44ff'; icon.style.boxShadow='0 0 6px #cc44ff44'; }
       if (span) { span.style.color = '#cc44ff'; }
       // 클릭 이벤트 (1회)
       if (!node._bound) {
@@ -7352,7 +7352,7 @@ function _renderWeeklyNodes() {
           wk2.claimed.push(req);
           _saveWeekly(wk2);
           if (window.PERM) { window.PERM.gems = (window.PERM.gems||0) + gem; if (window.savePerm) window.savePerm(); }
-          if (window.showAchievementToast) window.showAchievementToast('✧ +' + gem + ' 주간 보상!');
+          if (window.showAchievementToast) window.showAchievementToast('❖ +' + gem + ' 주간 보상!');
           _renderWeeklyNodes();
         });
       }
@@ -7733,7 +7733,7 @@ setTimeout(_applyMaxOverrides, 300);
       INF_MISSIONS.forEach(function(m) {
         var s = _getInfState(m);
         var pct = Math.round(s.progress/s.interval*100);
-        var rwText = '◈'+m.reward.gold+(m.reward.gems>0?' ✧'+m.reward.gems:'');
+        var rwText = '◈'+m.reward.gold+(m.reward.gems>0?' ❖'+m.reward.gems:'');
         var canClaim = s.claimable > 0;
         var card = document.createElement('div');
         card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;';
@@ -7761,7 +7761,7 @@ setTimeout(_applyMaxOverrides, 300);
             if(window.PERM){ PERM.gold=(PERM.gold||0)+gGold; PERM.gems=(PERM.gems||0)+gGems; }
             localStorage.setItem(mission.id+'_claimed', st.claimed+st.claimable);
             if(window.savePerm) savePerm();
-            if(window.showAchievementToast) showAchievementToast('◈+'+gGold+(gGems>0?' ✧+'+gGems:'')+' 획득!');
+            if(window.showAchievementToast) showAchievementToast('◈+'+gGold+(gGems>0?' ❖+'+gGems:'')+' 획득!');
             var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
             var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
             _renderInf();
@@ -7819,7 +7819,7 @@ setTimeout(_applyMaxOverrides, 300);
         '<div style="height:100%;background:#00ffff;width:'+(segProg*100)+'%;"></div></div>';
       html+='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;">';
       if(reached && !claimed){
-        html+='<button data-wcp="'+cp+'" style="width:28px;height:28px;border:2px solid #00ffff;border-radius:4px;background:#003333;color:#00ffff;font-size:12px;font-family:monospace;cursor:pointer;-webkit-appearance:none;">✧</button>';
+        html+='<button data-wcp="'+cp+'" style="width:28px;height:28px;border:2px solid #00ffff;border-radius:4px;background:#003333;color:#00ffff;font-size:12px;font-family:monospace;cursor:pointer;-webkit-appearance:none;">❖</button>';
       } else {
         html+='<div style="width:28px;height:28px;border:2px solid '+(reached?'#00ffff':'#1a3444')+';border-radius:4px;background:'+(claimed?'#003333':'transparent')+';display:flex;align-items:center;justify-content:center;color:#00ffff;font-size:12px;font-family:monospace;">'+(claimed?'✓':'')+'</div>';
       }
@@ -7836,7 +7836,7 @@ setTimeout(_applyMaxOverrides, 300);
         localStorage.setItem('weekly_challenge_claimed_'+cp,'true');
         if(window.PERM){ PERM.gems=(PERM.gems||0)+rw; }
         if(window.savePerm) savePerm();
-        if(window.showAchievementToast) showAchievementToast('✧+'+rw+' 획득!');
+        if(window.showAchievementToast) showAchievementToast('❖+'+rw+' 획득!');
         var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
         _renderWGauge();
       });
@@ -8301,10 +8301,10 @@ function _showPopup(tab) {
   var p = _getPopup();
   var borderC = cfg.color;
   p.querySelector('div[style*="background:#0a1a2a"]').style.borderColor = borderC + '55';
-  document.getElementById('tlp-icon').textContent  = tab === 'spc' ? '★' : '✧';
+  document.getElementById('tlp-icon').textContent  = tab === 'spc' ? '★' : '❖';
   document.getElementById('tlp-icon').style.color  = cfg.color;
   document.getElementById('tlp-title').textContent = cfg.label + ' 탭 해금';
-  var costStr = cfg.goldCost > 0 ? ('◈ ' + cfg.goldCost + ' 골드') : ('✧ ' + cfg.gemCost + ' 보석');
+  var costStr = cfg.goldCost > 0 ? ('◈ ' + cfg.goldCost + ' 골드') : ('❖ ' + cfg.gemCost + ' 보석');
   document.getElementById('tlp-desc').textContent  = cfg.label + ' 업그레이드 탭을 영구 해금합니다.\n해금 비용: ' + costStr;
   var btn = document.getElementById('tlp-unlock');
   btn.textContent = costStr + ' — 해금하기';
@@ -8921,13 +8921,13 @@ var CARDS = [
   { id:'chrono_mod',    rarity:'epic',   name:'크로노모드',       icon:'⏱', color:'#cc44ff', desc:'공격속도 +15%' },
   { id:'quantum_armor', rarity:'epic',   name:'퀀텀아머',         icon:'🔮', color:'#cc44ff', desc:'+30% 최대HP' },
   { id:'gold_rush',     rarity:'epic',   name:'골드러시',         icon:'✨', color:'#cc44ff', desc:'+15% 골드' },
-  { id:'blood_circuit', rarity:'rare',   name:'블러드 서킷',     icon:'✧', color:'#3b82f6', desc:'에너지 흡수율 영구 +1%' },
+  { id:'blood_circuit', rarity:'rare',   name:'블러드 서킷',     icon:'❖', color:'#3b82f6', desc:'에너지 흡수율 영구 +1%' },
 ];
 var CARD_RATES  = { common:70, rare:25, epic:5 };
 var CARD_LABEL  = { common:'일반', rare:'희귀', epic:'서사' };
 var CARD_MAX    = { common:10, rare:7, epic:5 };
 var CARD_ICON_STYLE = {
-  epic:   { bg:'#1a0030', border:'#cc44ff', shape:'✧', color:'#cc44ff' },
+  epic:   { bg:'#1a0030', border:'#cc44ff', shape:'❖', color:'#cc44ff' },
   rare:   { bg:'#001a30', border:'#0088ff', shape:'⬡', color:'#0088ff' },
   common: { bg:'#0a1a0a', border:'#00aa44', shape:'■', color:'#00aa44' }
 };
@@ -9038,15 +9038,15 @@ function _renderCardTab() {
 
   var html='<div style="padding:12px;display:flex;flex-direction:column;gap:12px;">';
   html+='<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;">'+
-    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">✧ 카드 컬렉션</div>'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">❖ 카드 컬렉션</div>'+
     '<div style="color:#556677;font-family:monospace;font-size:10px;">카드를 수집하여 전투 능력을 강화하세요. ('+ownedCount+'/12 수집)</div>'+
     '</div>';
 
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
   html+='<button id="card-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-    '<span style="font-size:18px;color:#cc44ff;">✧</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">✧ '+CARD_SINGLE+'</span></button>';
+    '<span style="font-size:18px;color:#cc44ff;">❖</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+CARD_SINGLE+'</span></button>';
   html+='<button id="card-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-    '<span style="font-size:18px;color:#f59e0b;">✧×10</span><span>10회 뽑기</span><span style="color:#00ffff;font-size:10px;">✧ '+CARD_TEN+'</span></button>';
+    '<span style="font-size:18px;color:#f59e0b;">❖×10</span><span>10회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+CARD_TEN+'</span></button>';
   html+='</div>';
 
   var rarOrder={epic:0,rare:1,common:2};
@@ -9136,7 +9136,7 @@ function _showCardFirstVisit() {
     '<div style="font-size:48px;">🃏</div>'+
     '<div style="color:#cc44ff;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">카드 컬렉션 오픈!</div>'+
     '<div style="color:#94a3b8;font-family:monospace;font-size:11px;text-align:center;line-height:1.8;max-width:260px;">'+
-      '카드를 수집하여 전투를 강화하세요!<br><span style="color:#00ffff;">첫 방문 보상 ✧ 40 지급!</span></div>'+
+      '카드를 수집하여 전투를 강화하세요!<br><span style="color:#00ffff;">첫 방문 보상 ❖ 40 지급!</span></div>'+
     '<button id="card-fv-ok" style="background:#030b10;border:2px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:13px;padding:12px 40px;cursor:pointer;">확인</button>';
   document.body.appendChild(p);
   document.getElementById('card-fv-ok').addEventListener('click',function(){ p.remove(); });
@@ -9172,7 +9172,7 @@ function _buildRankingScreen() {
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
       '<button id="ranking-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
       '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">RANKING</span>'+
-      '<span style="color:#00ffff;font-family:monospace;font-size:12px;">✧ <span id="ranking-gem">0</span></span>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:12px;">❖ <span id="ranking-gem">0</span></span>'+
     '</div>'+
     '<div style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
       '<button class="rank-tab" data-rtab="global" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">글로벌</button>'+
@@ -9293,7 +9293,7 @@ function _renderMailTab() {
       '<div style="font-family:monospace;font-size:10px;color:#556677;line-height:1.6;">'+mail.body+'</div>'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'+
         '<span style="font-family:monospace;font-size:10px;color:#94a3b8;">'+
-          (mail.gems?'✧ '+mail.gems+'  ':'')+
+          (mail.gems?'❖ '+mail.gems+'  ':'')+
           (mail.gold?'◈ '+mail.gold:'')+'</span>'+
         (claimed
           ? '<span style="font-family:monospace;font-size:10px;color:#334455;">수령완료</span>'
@@ -9647,7 +9647,7 @@ function _showCreatorCode() {
   p.innerHTML=
     '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px;">'+
       '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;margin-bottom:4px;">🎁 크리에이터 코드</div>'+
-      '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.6;">크리에이터 코드를 입력하면<br>✧ 5 보석이 지급됩니다!</div>'+
+      '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.6;">크리에이터 코드를 입력하면<br>❖ 5 보석이 지급됩니다!</div>'+
       '<input id="creator-input" type="text" maxlength="20" placeholder="코드 입력" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:10px;outline:none;width:100%;box-sizing:border-box;">'+
       '<div id="creator-msg" style="color:#ef4444;font-family:monospace;font-size:10px;min-height:14px;text-align:center;"></div>'+
       '<button id="creator-apply" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;">적용</button>'+
@@ -9668,7 +9668,7 @@ function _showCreatorCode() {
     window.PERM.creatorCodes.push(code);
     window.PERM.gems=(window.PERM.gems||0)+5;
     window.savePerm&&window.savePerm();
-    msg.style.color='#00ff88'; msg.textContent='코드 적용 완료! ✧ 5 지급!';
+    msg.style.color='#00ff88'; msg.textContent='코드 적용 완료! ❖ 5 지급!';
     document.getElementById('creator-apply').style.borderColor='#00ff88';
     document.getElementById('creator-apply').style.color='#00ff88';
     document.getElementById('creator-apply').textContent='적용 완료';
@@ -9729,7 +9729,7 @@ function _renderAccountContent() {
         '<div style="color:#00ffff;font-family:monospace;font-size:12px;font-weight:bold;text-align:center;margin-bottom:8px;">계정 연동</div>'+
         '<div style="color:#94a3b8;font-family:monospace;font-size:10px;text-align:center;line-height:1.7;">'+
           '계정을 연동하면 진행 상황을<br>클라우드에 저장할 수 있습니다.<br>'+
-          '<span style="color:#00ffff;">연동 시 ✧ 20 보석이 지급됩니다!</span></div>'+
+          '<span style="color:#00ffff;">연동 시 ❖ 20 보석이 지급됩니다!</span></div>'+
       '</div>'+
       '<input id="acc-email" type="email" placeholder="이메일" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;outline:none;width:100%;box-sizing:border-box;">'+
       '<input id="acc-pw" type="password" placeholder="비밀번호 (6자 이상)" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;outline:none;width:100%;box-sizing:border-box;">'+
@@ -9746,7 +9746,7 @@ function _renderAccountContent() {
       window.PERM.accountEmail=e;
       window.PERM.gems=(window.PERM.gems||0)+20;
       window.savePerm&&window.savePerm();
-      msg.style.color='#00ff88'; msg.textContent='연동 완료! ✧ 20 지급!';
+      msg.style.color='#00ff88'; msg.textContent='연동 완료! ❖ 20 지급!';
       setTimeout(_renderAccountContent, 800);
     });
   }
@@ -9788,16 +9788,16 @@ function _showCrystalFirstVisit() {
   var p=document.createElement('div');
   p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;';
   p.innerHTML=
-    '<div style="font-size:48px;text-align:center;text-shadow:0 0 20px #00ff8844;">✧</div>'+
+    '<div style="font-size:48px;text-align:center;text-shadow:0 0 20px #00ff8844;">❖</div>'+
     '<div style="color:#00ff88;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">코어 크리스탈</div>'+
     '<div style="background:#0a1a2a;border:1px solid #00ff8833;padding:16px;max-width:280px;width:100%;">'+
       '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.8;text-align:center;">'+
-        '코어 크리스탈(✧)로 궁극기를 해금하세요.<br>'+
+        '코어 크리스탈(❖)로 궁극기를 해금하세요.<br>'+
         '강력한 스킬로 더 높은 웨이브에 도전!<br>'+
-        '<span style="color:#cc44ff;">✧ 보석은 웨이브 클리어 시 획득</span>'+
+        '<span style="color:#cc44ff;">❖ 보석은 웨이브 클리어 시 획득</span>'+
       '</div>'+
     '</div>'+
-    '<div style="color:#334455;font-family:monospace;font-size:10px;text-align:center;">잠금 해제 비용: ✧ 5 ~ 10</div>'+
+    '<div style="color:#334455;font-family:monospace;font-size:10px;text-align:center;">잠금 해제 비용: ❖ 5 ~ 10</div>'+
     '<button id="crystal-fv-ok" style="background:#030b10;border:2px solid #00ff88;color:#00ff88;font-family:monospace;font-size:13px;padding:12px 40px;cursor:pointer;">확인</button>';
   document.body.appendChild(p);
   document.getElementById('crystal-fv-ok').addEventListener('click',function(){ p.remove(); });
@@ -10421,7 +10421,7 @@ var EV_MILESTONES = [
 ];
 
 var EV_SHOP = [
-  {id:'es_gem_30',    name:'✧ 30 보석',         cost:100, type:'gem',     amount:30   },
+  {id:'es_gem_30',    name:'❖ 30 보석',         cost:100, type:'gem',     amount:30   },
   {id:'es_crystal_5', name:'▲ 5 코어 크리스탈', cost:200, type:'crystal', amount:5    },
   {id:'es_gold_500',  name:'◈ 500 골드',         cost:50,  type:'gold',    amount:500  },
   {id:'es_boost_24h', name:'코인 부스트 24시간', cost:300, type:'boost',   amount:86400},
@@ -10481,7 +10481,7 @@ function _evCheckMS(d){
       PERM.gems=(PERM.gems||0)+m.gem;
       if(m.crystal>0) PERM.crystals=(PERM.crystals||0)+m.crystal;
       try{ savePerm(); }catch(_){}
-      _evToast(m.points+'pts 달성! ✧+'+m.gem+(m.crystal?' ▲+'+m.crystal:''),'#f59e0b');
+      _evToast(m.points+'pts 달성! ❖+'+m.gem+(m.crystal?' ▲+'+m.crystal:''),'#f59e0b');
       changed=true;
     }
   }
@@ -10523,7 +10523,7 @@ function _renderEvScreen(){
     'border-bottom:1px solid #0a1a2a;gap:10px;flex-shrink:0;';
   hud.innerHTML=
     '<span style="color:#f59e0b;font-family:monospace;font-size:11px;">◈ '+(PERM.gold||0)+'</span>'+
-    '<span style="color:#00ffff;font-family:monospace;font-size:11px;">✧ '+(PERM.gems||0)+'</span>'+
+    '<span style="color:#00ffff;font-family:monospace;font-size:11px;">❖ '+(PERM.gems||0)+'</span>'+
     '<span style="color:#00ff88;font-family:monospace;font-size:11px;">▲ '+(PERM.crystals||0)+'</span>'+
     '<span style="color:#cc44ff;font-family:monospace;font-size:11px;margin-left:auto;">'+pts+' pts</span>'+
     '<button id="_ev_x" style="background:none;border:none;color:#334455;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;">✕</button>';
@@ -10739,7 +10739,7 @@ function _drawFG(ctx){
     ctx.shadowBlur=14; ctx.shadowColor='#00ffff';
     ctx.fillStyle='#00ffff'; ctx.font='bold 18px Courier New';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('✧',0,0);
+    ctx.fillText('❖',0,0);
     ctx.restore();
   }
 }
@@ -10751,7 +10751,7 @@ function _tapFG(tx,ty){
     if(dx*dx+dy*dy<900){
       g.collected=true;
       PERM.gems=(PERM.gems||0)+1; try{savePerm();}catch(_){}
-      try{ if(G&&G.floatTexts) G.floatTexts.push({x:g.x,y:g.y,text:'+1✧',timer:0}); }catch(_){}
+      try{ if(G&&G.floatTexts) G.floatTexts.push({x:g.x,y:g.y,text:'+1❖',timer:0}); }catch(_){}
       try{ spawnDeathParticles(g.x,g.y,'#00ffff',8); }catch(_){}
       _evTrack('gem_tap',1); _updateBadges();
     }
@@ -11109,7 +11109,7 @@ function _injectScreens() {
           '24시간 진행 — 최고 스테이지로 순위 결정' +
         '</div>' +
         '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;text-align:center;font-size:11px;color:#7aacac;line-height:1.7;">' +
-          '종료 시 <span style="color:#ffc800;">✦ 펄스 조각</span> + <span style="color:#bb44ff;">✧ 보석</span> 지급<br>' +
+          '종료 시 <span style="color:#ffc800;">✦ 펄스 조각</span> + <span style="color:#bb44ff;">❖ 보석</span> 지급<br>' +
           '종료 후 <span style="color:#00dddd;">48시간</span> 내 수령 필수' +
         '</div>' +
         '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:16px;text-align:center;font-size:11px;color:#7aacac;line-height:1.7;">' +
@@ -11174,14 +11174,14 @@ function _injectScreens() {
           '</div>' +
           '<div style="flex:1;background:#0a1018;border:1px solid #1a3444;border-radius:8px;padding:8px;text-align:center;">' +
             '<div style="font-size:9px;color:#334455;margin-bottom:3px;">보석</div>' +
-            '<div style="font-size:14px;color:#00dddd;font-family:\'Courier New\',monospace;">✧ <span id="sm-gem-val">0</span></div>' +
+            '<div style="font-size:14px;color:#00dddd;font-family:\'Courier New\',monospace;">❖ <span id="sm-gem-val">0</span></div>' +
           '</div>' +
         '</div>' +
         /* 통화 교환 */
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 통화 교환</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">' +
-          _smShopCard('✧','#00dddd','보석 x100','✦ 200','gem100',200) +
-          _smShopCard('✦','#ffc800','펄스 조각 x50','✧ 30','pulse50',30) +
+          _smShopCard('❖','#00dddd','보석 x100','✦ 200','gem100',200) +
+          _smShopCard('✦','#ffc800','펄스 조각 x50','❖ 30','pulse50',30) +
         '</div>' +
         /* 테마 */
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 테마 <span style="color:#cc44cc;font-size:9px;background:#2a0a2a;border:1px solid #660066;padding:1px 5px;border-radius:3px;">한정</span></div>' +
@@ -11667,7 +11667,7 @@ window.toggleCurrencyDropdown = function () {
       'font-size:11px;color:#00ffff;z-index:300;min-width:160px;line-height:2;';
     el.innerHTML =
       '<div style="color:#f59e0b;">◈ 골드: <span id="dd-gold">0</span></div>' +
-      '<div style="color:#00ffff;">✧ 보석: <span id="dd-gem">0</span></div>' +
+      '<div style="color:#00ffff;">❖ 보석: <span id="dd-gem">0</span></div>' +
       '<div style="color:#ffc800;">✦ 펄스 조각: <span id="dd-pulse">0</span></div>' +
       '<div style="color:#ff8822;">◉ 파워 코어: <span id="dd-pc">0</span></div>' +
       '<div style="color:#bb44ff;">⌘ 접근 코드: <span id="dd-ac">0</span></div>' +
@@ -12102,7 +12102,7 @@ function _injectLabScreen(){
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
       '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;">'+
         '<span style="color:#f59e0b;font-size:13px;font-family:monospace;">◈ <span id="cl-gold">0</span></span>'+
-        '<span style="color:#00ffff;font-size:13px;font-family:monospace;">✧ <span id="cl-gem">0</span></span>'+
+        '<span style="color:#00ffff;font-size:13px;font-family:monospace;">❖ <span id="cl-gem">0</span></span>'+
       '</div>'+
     '</div>'+
     '<div style="text-align:center;padding:5px;font-size:10px;color:#00ffff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(0,255,255,0.10);flex-shrink:0;">코어랩</div>'+
@@ -12827,7 +12827,7 @@ function _buildUnlockCard(key) {
     '<button data-wsunlock-btn="' + key + '" style="background:#030b10;border:1px solid ' +
       (afford ? '#00ffff' : '#ef4444') + ';color:' + (afford ? '#00ffff' : '#ef4444') +
       ';font-family:\'Courier New\',monospace;font-size:11px;padding:6px 10px;cursor:pointer;' +
-      '-webkit-appearance:none;white-space:nowrap;flex-shrink:0;">✧ ' + ul.gems + '</button>';
+      '-webkit-appearance:none;white-space:nowrap;flex-shrink:0;">❖ ' + ul.gems + '</button>';
 
   var btn = card.querySelector('[data-wsunlock-btn]');
   if (btn) btn.addEventListener('click', function() {
@@ -13089,7 +13089,7 @@ function renderSkinGrid() {
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="skin-gold">0</span></span>
-      <span style="color:#00ffff; font-size:13px; font-family:monospace;">✧ <span id="skin-gem">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="skin-gem">0</span></span>
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">스킨</div>
