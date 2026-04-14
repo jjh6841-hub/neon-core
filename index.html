@@ -803,7 +803,7 @@ canvas {
   flex-direction: column;
   -webkit-align-items: center;
   align-items: center;
-  z-index: 250;
+  z-index: 600;
   padding: 20px 16px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -11058,6 +11058,19 @@ window.showScreen = function (name) {
     var el = document.getElementById('screen-' + s);
     if (el) el.style.display = 'none';
   });
+  // 업적 화면 숨기기
+  var _achScr = document.getElementById('achieve-screen');
+  if (_achScr) _achScr.classList.remove('show');
+
+  // 업적 화면은 별도 ID 사용
+  if (name === 'achievements') {
+    var achEl = document.getElementById('achieve-screen');
+    if (achEl) {
+      achEl.classList.add('show');
+      achEl.style.paddingBottom = '52px';
+    }
+    try { buildAchieveUI(); } catch(_) {}
+  }
 
   // 대상 화면 표시
   var target = document.getElementById('screen-' + name);
