@@ -12634,8 +12634,8 @@ window.resizeCanvas = function() {
     var canvasH = window.innerHeight - shopH;
     shop.style.height = shopH + 'px';
     shop.style.borderTop = '1px solid #1a3344';
-    area.style.height = canvasH + 'px';
-    area.style.maxHeight = canvasH + 'px';
+    area.style.height = window.innerHeight + 'px';
+    area.style.maxHeight = window.innerHeight + 'px';
     if (tabContent) {
       tabContent.style.height = isPanelOpen ? contentH + 'px' : '0px';
       tabContent.style.overflow = isPanelOpen ? 'auto' : 'hidden';
