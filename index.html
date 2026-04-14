@@ -4332,7 +4332,7 @@ if (dailyClaimBtn) {
       'background:' + (locked ? '#0a1520' : '#0a1a2a') + ';' +
       'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
-      'padding:10px 8px;display:flex;flex-direction:row;' +
+      'padding:10px 8px 14px;display:flex;flex-direction:row;' +
       'justify-content:space-between;align-items:flex-end;gap:6px;' +
       'min-width:0;overflow:visible;' +
       'opacity:' + (locked ? '0.5' : '1') + ';' +
@@ -5495,7 +5495,7 @@ function _appendExtCard(container, key, ws) {
   var card = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;';
+    'padding:12px 12px 16px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
 
   var btnHTML2 = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
@@ -5792,7 +5792,7 @@ function _buildItemCard(item, ws) {
   var card  = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,220,100,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;';
+    'padding:12px 12px 16px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
   var rhs = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
     : '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' +
@@ -8633,32 +8633,32 @@ function _applyWsCostPatches() {
 
   // §7 표시 함수 업데이트 (cur/nxt)
   if (items.critChance) {
-    items.critChance.cur = function(lv) { return lv + '%'; };
-    items.critChance.nxt = function(lv) { return (lv + 1) + '%'; };
+    items.critChance.cur = function(lv) { return '' + lv; };
+    items.critChance.nxt = function(lv) { return '' + (lv + 1); };
   }
   if (items.critMult) {
-    items.critMult.cur = function(lv) { return (2.0 + lv*0.05).toFixed(2) + 'x'; };
-    items.critMult.nxt = function(lv) { return (2.0 + (lv+1)*0.05).toFixed(2) + 'x'; };
+    items.critMult.cur = function(lv) { return (2.0 + lv*0.05).toFixed(2); };
+    items.critMult.nxt = function(lv) { return (2.0 + (lv+1)*0.05).toFixed(2); };
   }
   if (items.maxHp) {
-    items.maxHp.cur = function(lv) { return '+' + (lv * 2); };
-    items.maxHp.nxt = function(lv) { return '+' + ((lv+1) * 2); };
+    items.maxHp.cur = function(lv) { return '' + (lv * 2); };
+    items.maxHp.nxt = function(lv) { return '' + ((lv+1) * 2); };
   }
   if (items.defense) {
-    items.defense.cur = function(lv) { return (lv * 2) + '%'; };
-    items.defense.nxt = function(lv) { return ((lv+1) * 2) + '%'; };
+    items.defense.cur = function(lv) { return '' + (lv * 2); };
+    items.defense.nxt = function(lv) { return '' + ((lv+1) * 2); };
   }
   if (items.hpRegen) {
-    items.hpRegen.cur = function(lv) { return (lv * 0.05).toFixed(2) + '/s'; };
-    items.hpRegen.nxt = function(lv) { return ((lv+1) * 0.05).toFixed(2) + '/s'; };
+    items.hpRegen.cur = function(lv) { return (lv * 0.05).toFixed(2); };
+    items.hpRegen.nxt = function(lv) { return ((lv+1) * 0.05).toFixed(2); };
   }
   if (items.atkspd) {
-    items.atkspd.cur = function(lv) { return 'x' + (1.00 + lv * 0.20).toFixed(2); };
-    items.atkspd.nxt = function(lv) { return 'x' + (1.00 + (lv + 1) * 0.20).toFixed(2); };
+    items.atkspd.cur = function(lv) { return (1.00 + lv * 0.20).toFixed(2); };
+    items.atkspd.nxt = function(lv) { return (1.00 + (lv + 1) * 0.20).toFixed(2); };
   }
   if (items.goldGain) {
-    items.goldGain.cur = function(lv) { return 'x' + (1 + lv*0.05).toFixed(2); };
-    items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv+1)*0.05).toFixed(2); };
+    items.goldGain.cur = function(lv) { return (1 + lv*0.05).toFixed(2); };
+    items.goldGain.nxt = function(lv) { return (1 + (lv+1)*0.05).toFixed(2); };
   }
 }
 
@@ -10269,7 +10269,7 @@ function _renderFreeCard(container, key, ws, insertBefore) {
   card.setAttribute('data-freeupg', key);
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;';
+    'padding:12px 12px 16px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
 
   var btnHTML3 = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
