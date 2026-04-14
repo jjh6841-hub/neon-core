@@ -2848,6 +2848,8 @@ function triggerGameOver() {
     unlockRow.style.display = 'none';
   }
 
+  var bnav = document.getElementById('bottom-nav');
+  if (bnav) bnav.style.display = 'none';
   document.getElementById('results-screen').classList.add('show');
 }
 
