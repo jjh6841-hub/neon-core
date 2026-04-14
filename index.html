@@ -1225,7 +1225,7 @@ canvas {
 <div id="achieve-screen">
   <button id="btn-achieve-back" style="position:absolute; top:14px; left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
   <div style="text-align:center; padding:16px 0 12px; width:100%;">
-    <div style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">◈ 업적</div>
+    <div style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">★ 업적</div>
   </div>
   <div id="ach-list"></div>
 </div>
@@ -1973,15 +1973,23 @@ function checkAchievements() {
   let changed = false;
   for (const ach of ACHIEVEMENTS) {
     if (!PERM.achievements[ach.key] && ach.cond()) {
-      PERM.achievements[ach.key] = 'claimed';
-      PERM.gems += ach.gems;
-      if (G) G.gems = PERM.gems;
+      PERM.achievements[ach.key] = 'ready';
       changed = true;
       try { showAchievementToast(ach.name); } catch(e) {}
     }
   }
   if (changed) savePerm();
 }
+function claimAchievement(key) {
+  var ach = ACHIEVEMENTS.find(function(a) { return a.key === key; });
+  if (!ach || PERM.achievements[key] !== 'ready') return;
+  PERM.achievements[key] = 'claimed';
+  PERM.gems += ach.gems;
+  if (window.G) G.gems = PERM.gems;
+  savePerm();
+  try { buildAchieveUI(); } catch(_) {}
+}
+window.claimAchievement = claimAchievement;
 
 function resizeCanvas() {
   const aw = areaEl.clientWidth  || window.innerWidth;
@@ -2832,7 +2840,7 @@ function triggerGameOver() {
     var ach = ACHIEVEMENTS[i];
     if (!PERM.achievements[ach.key] && ach.cond()) newAchs.push(ach);
   }
-  checkAchievements(); // claim & award gems
+  checkAchievements(); // mark new achievements as 'ready'
 
   // Populate results
   document.getElementById('r-wave').textContent  = G.wave;
@@ -3601,39 +3609,51 @@ function buildAchieveUI() {
   if (!list) return;
   list.innerHTML = '';
   var sorted = ACHIEVEMENTS.slice().sort(function(a, b) {
-    var aC = PERM.achievements[a.key] === 'claimed';
-    var bC = PERM.achievements[b.key] === 'claimed';
-    var aOrder = aC ? 2 : (a.cond() ? 1 : 0);
-    var bOrder = bC ? 2 : (b.cond() ? 1 : 0);
+    var aS = PERM.achievements[a.key];
+    var bS = PERM.achievements[b.key];
+    var aOrder = aS === 'claimed' ? 2 : (aS === 'ready' ? 0 : (a.cond() ? 0 : 1));
+    var bOrder = bS === 'claimed' ? 2 : (bS === 'ready' ? 0 : (b.cond() ? 0 : 1));
     return aOrder - bOrder;
   });
   for (const ach of sorted) {
-    const claimed = PERM.achievements[ach.key] === 'claimed';
+    const status  = PERM.achievements[ach.key];
+    const claimed = status === 'claimed';
+    const ready   = status === 'ready';
     const met     = ach.cond();
     const div = document.createElement('div');
-    div.className = 'ach-item' + (claimed ? ' claimed' : '') + (met && !claimed ? ' met' : '');
+    div.className = 'ach-item' + (claimed ? ' claimed' : '') + (ready ? ' met' : '');
     var progStr = ach.prog();
     var progParts = progStr.split('/');
     var progCur = parseFloat(progParts[0]) || 0;
     var progMax = parseFloat(progParts[1]) || 1;
     var progPct = Math.min(100, Math.round(progCur / progMax * 100));
-    var barHTML = claimed
+    var barHTML = (claimed || ready)
       ? '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:20px;overflow:hidden;margin-top:6px;">' +
           '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:100%;"></div>' +
           '<div style="position:absolute;width:100%;text-align:center;font-size:11px;line-height:20px;font-family:\'Courier New\',monospace;color:#ffffff;">달성!</div></div>'
       : '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:20px;overflow:hidden;margin-top:6px;">' +
           (progPct > 0 ? '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:' + progPct + '%;transition:width 0.3s;"></div>' : '') +
           '<div style="position:absolute;width:100%;text-align:center;font-size:11px;line-height:20px;font-family:\'Courier New\',monospace;color:#ffffff;">' + progStr + '</div></div>';
+    var rewardHTML;
+    if (claimed) {
+      rewardHTML = '<span class="ach-reward" style="color:#334455;">수령 완료</span>';
+    } else if (ready) {
+      rewardHTML = '<button data-ach-claim="' + ach.key + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:\'Courier New\',monospace;font-size:10px;padding:6px 10px;cursor:pointer;-webkit-appearance:none;white-space:nowrap;">❖' + ach.gems + ' 수령</button>';
+    } else {
+      rewardHTML = '<span class="ach-reward">❖' + ach.gems + '</span>';
+    }
     div.innerHTML =
       '<div class="ach-info">' +
         '<div class="ach-name">' + ach.name + '</div>' +
         barHTML +
       '</div>' +
-      '<span class="ach-reward">' +
-        (claimed ? '수령 완료' : (met ? '❖+' + ach.gems + ' 수령!' : '❖+' + ach.gems)) +
-      '</span>';
+      rewardHTML;
     list.appendChild(div);
   }
+  // 수령 버튼 이벤트
+  list.querySelectorAll('[data-ach-claim]').forEach(function(btn) {
+    btn.addEventListener('click', function() { claimAchievement(btn.dataset.achClaim); });
+  });
 }
 
 function syncSettingsUI() {
@@ -3832,6 +3852,7 @@ bindOverlayBtn('btn-settings', function() {
 // Achievement screen
 bindOverlayBtn('btn-achieve-back', function() {
   document.getElementById('achieve-screen').classList.remove('show');
+  showScreen('home');
 });
 
 // Settings screen
