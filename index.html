@@ -2233,8 +2233,10 @@ function startWave() {
   // Wave start core chip bonus
   var bonus = w * 2;
   coreChips += bonus;
-  G.waveBonusText = '+' + bonus + ' \uD83D\uDD38 웨이브 보너스';
-  G.waveBonusTimer = 0;
+  if (w >= 2) {
+    G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
+    G.waveBonusTimer = 0;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2405,7 +2407,7 @@ function update(dt) {
           AudioManager.playSfx('hit');
           var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1);
           coreChips += chipEarned;
-          if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
+          if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           const gmEarned = e.gem ? Math.floor(e.gem * G.gemBonus) : 0;
           G.gems       += gmEarned;
           G.killCount++;
@@ -8609,7 +8611,7 @@ function _patchStartWave() {
     coreChips -= w * 2;  // 기존 w*2 취소
     var bonus = Math.floor(w * 1.5 + 5) + (w % 5 === 0 ? Math.floor(w * 2) : 0);
     coreChips += bonus;
-    G.waveBonusText = '+' + bonus + ' \uD83D\uDD38 웨이브 보너스';
+    G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
   };
   window.startWave._fBal = true;
 }
