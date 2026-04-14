@@ -12605,7 +12605,7 @@ window.resizeCanvas = function() {
   var gameScr = document.getElementById('screen-game');
   if (gameScr && gameScr.style.display !== 'none' && shop && area) {
     var tabBarH = tabBar ? tabBar.offsetHeight || 36 : 36;
-    var contentH = isPanelOpen ? Math.floor(window.innerHeight * 0.38) - tabBarH : 0;
+    var contentH = isPanelOpen ? Math.floor(window.innerHeight * 0.28) - tabBarH : 0;
     var shopH = tabBarH + contentH;
     var canvasH = window.innerHeight - shopH;
     area.style.height = canvasH + 'px';
