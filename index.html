@@ -3755,11 +3755,11 @@ function startNewGame() {
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'none';
   loopGen++;
-  resizeCanvas();
+  window.resizeCanvas();
   startGame();
-  resizeCanvas();
+  window.resizeCanvas();
   // 렌더링 후 캔버스/타워 위치 재계산
-  setTimeout(function() { resizeCanvas(); }, 50);
+  setTimeout(function() { window.resizeCanvas(); }, 50);
 }
 
 /* ─── 버튼 이벤트 (touch + click) ─────────────────────────────── */
@@ -3867,7 +3867,7 @@ document.addEventListener('touchend', function(e) {
       requestAnimationFrame(tick);
     } else {
       // 로딩 완료 → boot 후 전환
-      resizeCanvas();
+      window.resizeCanvas();
       loadPerm();
 
       // 1. 0.3초 대기
