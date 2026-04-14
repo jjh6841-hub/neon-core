@@ -12835,50 +12835,154 @@ if (document.readyState === 'loading') {
      스크립트: NEON CORE 메인 아이콘 (로딩/홈 공용 SVG)
 ══════════════════════════════════════════════════════ -->
 <script>
-window.getNeonCoreIcon = function(size) {
+var IRIS_SKINS = [
+  { id: 'iris1',  name: 'IRIS-I',    color: '#00ffff', petals: 3,  type: 'tear' },
+  { id: 'iris2',  name: 'IRIS-II',   color: '#00ffff', petals: 4,  type: 'cross' },
+  { id: 'iris3',  name: 'IRIS-III',  color: '#00ffff', petals: 4,  type: 'blade' },
+  { id: 'iris4',  name: 'IRIS-IV',   color: '#00ffff', petals: 0,  type: 'star5' },
+  { id: 'iris5',  name: 'IRIS-V',    color: '#00ffff', petals: 0,  type: 'wave' },
+  { id: 'iris6',  name: 'IRIS-VI',   color: '#00ffff', petals: 3,  type: 'line' },
+  { id: 'iris7',  name: 'IRIS-VII',  color: '#00ffff', petals: 2,  type: 'lens' },
+  { id: 'iris8',  name: 'IRIS-VIII', color: '#00ffff', petals: 5,  type: 'petal' },
+  { id: 'iris9',  name: 'IRIS-IX',   color: '#cc44ff', petals: 6,  type: 'spoke' },
+  { id: 'iris10', name: 'IRIS-X',    color: '#cc44ff', petals: 0,  type: 'star10' },
+  { id: 'iris11', name: 'IRIS-XI',   color: '#cc44ff', petals: 3,  type: 'eye' },
+  { id: 'iris12', name: 'IRIS-XII',  color: '#cc44ff', petals: 0,  type: 'spiral' },
+];
+
+var currentSkin = localStorage.getItem('neoncore_skin') || 'iris8';
+
+window.getNeonCoreIcon = function(size, skinId) {
+  var skin = skinId || currentSkin;
   var s = size || 100;
   var c = s / 2;
-  var r1 = s * 0.49;
-  var r2 = s * 0.40;
-  var r3 = s * 0.37;
-  function hex(r) {
+
+  function hex(r, offset) {
     var pts = [];
     for (var i = 0; i < 6; i++) {
-      var a = Math.PI / 180 * (60 * i - 90);
-      pts.push((c + r * Math.cos(a)).toFixed(1) + ',' + (c + r * Math.sin(a)).toFixed(1));
+      var a = Math.PI / 180 * (60 * i - 90 + (offset||0));
+      pts.push((c + r*Math.cos(a)).toFixed(1)+','+(c + r*Math.sin(a)).toFixed(1));
     }
     return pts.join(' ');
   }
-  var petalPath =
-    'M' + c + ',' + (c - s*0.38) +
-    ' Q' + (c + s*0.26) + ',' + (c - s*0.18) +
-    ' ' + (c + s*0.26) + ',' + c +
-    ' Q' + (c + s*0.26) + ',' + (c + s*0.18) +
-    ' ' + c + ',' + (c + s*0.38) +
-    ' Q' + (c - s*0.26) + ',' + (c + s*0.18) +
-    ' ' + (c - s*0.26) + ',' + c +
-    ' Q' + (c - s*0.26) + ',' + (c - s*0.18) +
-    ' ' + c + ',' + (c - s*0.38) + 'Z';
 
-  return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 ' + s + ' ' + s + '" xmlns="http://www.w3.org/2000/svg">' +
-    '<polygon points="' + hex(r1) + '" fill="#06061a" stroke="#00ffff" stroke-width="' + (s*0.018) + '"/>' +
-    '<polygon points="' + hex(r2) + '" fill="none" stroke="#00cccc" stroke-width="' + (s*0.007) + '" opacity="0.5"/>' +
-    '<polygon points="' + hex(r3) + '" fill="none" stroke="#00cccc" stroke-width="' + (s*0.006) + '" opacity="0.25"/>' +
-    '<g transform="rotate(0,' + c + ',' + c + ')">' +
-      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
-    '<g transform="rotate(72,' + c + ',' + c + ')">' +
-      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
-    '<g transform="rotate(144,' + c + ',' + c + ')">' +
-      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
-    '<g transform="rotate(216,' + c + ',' + c + ')">' +
-      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
-    '<g transform="rotate(288,' + c + ',' + c + ')">' +
-      '<path d="' + petalPath + '" fill="none" stroke="#00ffff" stroke-width="' + (s*0.013) + '"/></g>' +
-    '<circle cx="' + c + '" cy="' + c + '" r="' + (s*0.079) + '" fill="#06061a" stroke="#cc44ff" stroke-width="' + (s*0.018) + '"/>' +
-    '<circle cx="' + c + '" cy="' + c + '" r="' + (s*0.036) + '" fill="#cc44ff"/>' +
-    '<circle cx="' + c + '" cy="' + c + '" r="' + (s*0.014) + '" fill="#ffffff"/>' +
-    '</svg>';
+  var base =
+    '<polygon points="'+hex(s*0.49)+'" fill="#06061a" stroke="#00ffff" stroke-width="'+(s*0.018)+'"/>' +
+    '<polygon points="'+hex(s*0.40)+'" fill="none" stroke="#00cccc" stroke-width="'+(s*0.007)+'" opacity="0.5"/>' +
+    '<polygon points="'+hex(s*0.37)+'" fill="none" stroke="#00cccc" stroke-width="'+(s*0.006)+'" opacity="0.25"/>';
+
+  var core =
+    '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.079)+'" fill="#06061a" stroke="#cc44ff" stroke-width="'+(s*0.018)+'"/>' +
+    '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.036)+'" fill="#cc44ff"/>' +
+    '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.014)+'" fill="#ffffff"/>';
+
+  var inner = '';
+  var p = s * 0.38;
+
+  if (skin === 'iris1') {
+    for (var i=0;i<3;i++) {
+      inner += '<g transform="rotate('+(i*120)+','+c+','+c+')">' +
+        '<path d="M'+c+','+(c-p)+' Q'+(c+p*0.6)+','+(c-p*0.4)+' '+(c+p*0.5)+','+c+' Q'+(c+p*0.4)+','+(c+p*0.7)+' '+c+','+(c+p)+' Q'+(c-p*0.4)+','+(c+p*0.7)+' '+(c-p*0.5)+','+c+' Q'+(c-p*0.6)+','+(c-p*0.4)+' '+c+','+(c-p)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/></g>';
+    }
+  } else if (skin === 'iris2') {
+    var rr = s*0.28;
+    inner += '<circle cx="'+c+'" cy="'+c+'" r="'+rr+'" fill="none" stroke="#00cccc" stroke-width="'+(s*0.008)+'" opacity="0.4"/>';
+    [[c,c-s*0.38],[c,c+s*0.38],[c-s*0.38,c],[c+s*0.38,c]].forEach(function(pt){
+      inner += '<circle cx="'+pt[0]+'" cy="'+pt[1]+'" r="'+(s*0.05)+'" fill="none" stroke="#cc44ff" stroke-width="'+(s*0.013)+'"/>';
+    });
+  } else if (skin === 'iris3') {
+    for (var i=0;i<4;i++) {
+      inner += '<g transform="rotate('+(i*90)+','+c+','+c+')">' +
+        '<path d="M'+c+','+(c-p)+' C'+(c+p*0.7)+','+(c-p*0.5)+' '+(c+p*0.7)+','+(c+p*0.5)+' '+c+','+(c+p)+' C'+(c-p*0.1)+','+(c+p*0.3)+' '+(c-p*0.1)+','+(c-p*0.3)+' '+c+','+(c-p)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/></g>';
+    }
+  } else if (skin === 'iris4') {
+    var pts5 = [];
+    for (var i=0;i<5;i++) {
+      var a1 = Math.PI/180*(72*i-90);
+      var a2 = Math.PI/180*(72*i-90+36);
+      pts5.push((c+s*0.38*Math.cos(a1)).toFixed(1)+','+(c+s*0.38*Math.sin(a1)).toFixed(1));
+      pts5.push((c+s*0.17*Math.cos(a2)).toFixed(1)+','+(c+s*0.17*Math.sin(a2)).toFixed(1));
+    }
+    inner += '<polygon points="'+pts5.join(' ')+'" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/>';
+    inner += '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.17)+'" fill="none" stroke="#00cccc" stroke-width="'+(s*0.008)+'" opacity="0.5"/>';
+  } else if (skin === 'iris5') {
+    inner +=
+      '<path d="M'+c+','+(c-p)+' C'+(c+p*1.2)+','+(c-p*0.5)+' '+(c+p*1.2)+','+(c+p*0.5)+' '+c+','+(c+p)+' C'+(c-p*0.3)+','+(c+p*0.7)+' '+(c-p*0.3)+','+(c-p*0.7)+' '+c+','+(c-p)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/>' +
+      '<g transform="rotate(60,'+c+','+c+')">' +
+      '<path d="M'+c+','+(c-p)+' C'+(c+p*1.2)+','+(c-p*0.5)+' '+(c+p*1.2)+','+(c+p*0.5)+' '+c+','+(c+p)+' C'+(c-p*0.3)+','+(c+p*0.7)+' '+(c-p*0.3)+','+(c-p*0.7)+' '+c+','+(c-p)+'Z" fill="none" stroke="#cc44ff" stroke-width="'+(s*0.010)+'"/></g>';
+  } else if (skin === 'iris6') {
+    [0,60,120].forEach(function(deg){
+      inner += '<g transform="rotate('+deg+','+c+','+c+')">' +
+        '<line x1="'+c+'" y1="'+(c-s*0.38)+'" x2="'+c+'" y2="'+(c+s*0.38)+'" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/></g>';
+    });
+    inner += '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.18)+'" fill="none" stroke="#cc44ff" stroke-width="'+(s*0.015)+'"/>';
+  } else if (skin === 'iris7') {
+    [0,60].forEach(function(deg){
+      inner += '<g transform="rotate('+deg+','+c+','+c+')">' +
+        '<path d="M'+c+','+(c-p)+' C'+(c+p)+','+c+' '+(c+p)+','+c+' '+c+','+(c+p)+' C'+(c-p)+','+c+' '+(c-p)+','+c+' '+c+','+(c-p)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/></g>';
+    });
+  } else if (skin === 'iris8') {
+    for (var i=0;i<5;i++) {
+      inner += '<g transform="rotate('+(i*72)+','+c+','+c+')">' +
+        '<path d="M'+c+','+(c-p)+' Q'+(c+p*0.68)+','+(c-p*0.47)+' '+(c+p*0.68)+','+c+' Q'+(c+p*0.68)+','+(c+p*0.47)+' '+c+','+(c+p)+' Q'+(c-p*0.68)+','+(c+p*0.47)+' '+(c-p*0.68)+','+c+' Q'+(c-p*0.68)+','+(c-p*0.47)+' '+c+','+(c-p)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/></g>';
+    }
+  } else if (skin === 'iris9') {
+    inner += '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.28)+'" fill="none" stroke="#00cccc" stroke-width="'+(s*0.008)+'" opacity="0.4"/>';
+    inner += '<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.18)+'" fill="none" stroke="#00cccc" stroke-width="'+(s*0.008)+'" opacity="0.4"/>';
+    for (var i=0;i<6;i++) {
+      var a = Math.PI/180*(60*i-90);
+      var x1=(c+s*0.18*Math.cos(a)).toFixed(1), y1=(c+s*0.18*Math.sin(a)).toFixed(1);
+      var x2=(c+s*0.28*Math.cos(a)).toFixed(1), y2=(c+s*0.28*Math.sin(a)).toFixed(1);
+      inner += '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#cc44ff" stroke-width="'+(s*0.015)+'"/>';
+    }
+  } else if (skin === 'iris10') {
+    var pts10 = [];
+    for (var i=0;i<10;i++) {
+      var a = Math.PI/180*(36*i-90);
+      var r = (i%2===0) ? s*0.38 : s*0.18;
+      pts10.push((c+r*Math.cos(a)).toFixed(1)+','+(c+r*Math.sin(a)).toFixed(1));
+    }
+    inner += '<polygon points="'+pts10.join(' ')+'" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/>';
+  } else if (skin === 'iris11') {
+    var eyePos = [[c,c-s*0.22],[c+s*0.19,c+s*0.11],[c-s*0.19,c+s*0.11]];
+    inner += '<path d="M'+c+','+(c-s*0.38)+' C'+(c+s*0.4)+','+(c-s*0.15)+' '+(c+s*0.4)+','+(c+s*0.15)+' '+c+','+(c+s*0.38)+' C'+(c-s*0.15)+','+(c+s*0.2)+' '+(c-s*0.15)+','+(c-s*0.2)+' '+c+','+(c-s*0.38)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.012)+'"/>';
+    eyePos.forEach(function(ep){
+      inner += '<circle cx="'+ep[0].toFixed(1)+'" cy="'+ep[1].toFixed(1)+'" r="'+(s*0.05)+'" fill="none" stroke="#cc44ff" stroke-width="'+(s*0.012)+'"/>';
+    });
+  } else if (skin === 'iris12') {
+    inner += '<path d="M'+c+','+(c-s*0.38)+' C'+(c+s*0.45)+','+(c-s*0.3)+' '+(c+s*0.45)+','+(c+s*0.1)+' '+c+','+(c+s*0.2)+' C'+(c-s*0.25)+','+(c+s*0.3)+' '+(c-s*0.3)+','+(c+s*0.1)+' '+(c-s*0.1)+','+c+' C'+(c-s*0.05)+','+(c-s*0.15)+' '+c+','+(c-s*0.15)+' '+c+','+(c-s*0.05)+'Z" fill="none" stroke="#00ffff" stroke-width="'+(s*0.013)+'"/>';
+  }
+
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'" xmlns="http://www.w3.org/2000/svg">' +
+    base + inner + core + '</svg>';
 };
+
+function setSkin(skinId) {
+  currentSkin = skinId;
+  localStorage.setItem('neoncore_skin', skinId);
+  var el = document.getElementById('home-icon');
+  if (el) el.innerHTML = getNeonCoreIcon(90, skinId);
+}
+
+function renderSkinGrid() {
+  var grid = document.getElementById('skin-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  IRIS_SKINS.forEach(function(skin) {
+    var isSelected = skin.id === currentSkin;
+    var card = document.createElement('div');
+    card.style.cssText =
+      'background:#0a1a2a; border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';' +
+      'border-radius:8px; padding:10px; text-align:center; cursor:pointer;';
+    card.innerHTML =
+      getNeonCoreIcon(64, skin.id) +
+      '<div style="font-family:\'Courier New\',monospace; font-size:9px;' +
+      ' color:' + (isSelected ? '#00ffff' : '#445566') + '; margin-top:6px;">' +
+      skin.name + '</div>';
+    card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
+    grid.appendChild(card);
+  });
+}
 
 (function() {
   function _injectLoading() {
@@ -12887,7 +12991,7 @@ window.getNeonCoreIcon = function(size) {
   }
   function _injectHome() {
     var el = document.getElementById('home-icon');
-    if (el && !el.firstChild) el.innerHTML = window.getNeonCoreIcon(90);
+    if (el) el.innerHTML = window.getNeonCoreIcon(90);
   }
   function _injectAll() { _injectLoading(); _injectHome(); }
 
@@ -12897,16 +13001,24 @@ window.getNeonCoreIcon = function(size) {
     _injectAll();
   }
 
-  // showScreen('home') 시 보장
+  // showScreen 시 보장
   var _origShow = window.showScreen;
   if (typeof _origShow === 'function') {
     window.showScreen = function(name) {
       _origShow.apply(this, arguments);
       if (name === 'home') _injectHome();
+      if (name === 'skin') { try { renderSkinGrid(); } catch(_) {} }
     };
   }
 }());
 </script>
+
+<!-- ── 스킨 선택 화면 ── -->
+<div id="screen-skin" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
+  <button onclick="showScreen('home')" style="position:absolute; top:8px; left:8px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:18px; cursor:pointer; z-index:10;">◀</button>
+  <div style="text-align:center; padding-top:40px; margin-bottom:16px; font-family:'Courier New',monospace; font-size:14px; color:#00ffff; letter-spacing:3px;">SKIN SELECT</div>
+  <div id="skin-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:0 12px; overflow-y:auto;"></div>
+</div>
 
 </body>
 </html>
