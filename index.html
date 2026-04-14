@@ -3405,7 +3405,7 @@ function buildCards() {
         '<span class="card-icon">'  + upg.icon + '</span>' +
         '<span class="card-name">'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
-        '<span class="card-cost" id="cc-' + upg.key + '">'  + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '\uD83D\uDD38</span>';
+        '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">▸</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
       btn.addEventListener('touchstart', function(ev) { ev.preventDefault(); }, { passive: false });
       btn.addEventListener('touchend',   function(ev) { ev.preventDefault(); doUpgrade(upg.key); }, { passive: false });
       btn.addEventListener('click', function() { doUpgrade(upg.key); });
@@ -3432,7 +3432,7 @@ function syncUI() {
     const statEl = document.getElementById('cs-' + upg.key);
     if (statEl) statEl.textContent = upg.stat();
     const costEl = document.getElementById('cc-' + upg.key);
-    if (costEl) costEl.textContent = (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '\uD83D\uDD38';
+    if (costEl) costEl.innerHTML = '<span style="color:#ff6600;">▸</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost);
     card.classList.toggle('no-gold', !upg.canBuy());
   }
 }
