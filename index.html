@@ -1527,8 +1527,10 @@ canvas {
 
   <!-- 상단 HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="ws-gold">0</span></span>
-    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="ws-gem">0</span></span>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="ws-gold">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="ws-gem">0</span></span>
+    </div>
     <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">강화</div>
@@ -1551,8 +1553,10 @@ canvas {
 <div id="screen-store" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
   <!-- 상단 HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="store-gold">0</span></span>
-    <span style="color:#00ffff; font-family:monospace; font-size:13px;">◆ <span id="store-gem">0</span></span>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="store-gold">0</span></span>
+      <span style="color:#00ffff; font-family:monospace; font-size:13px;">◆ <span id="store-gem">0</span></span>
+    </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">스토어</div>
   <!-- 탭 -->
@@ -4869,8 +4873,10 @@ if (dailyClaimBtn) {
 <div id="screen-lab" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
   <!-- HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="lab-gold">0</span></span>
-    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="lab-gem">0</span></span>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="lab-gold">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="lab-gem">0</span></span>
+    </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">연구소</div>
   <!-- 연구 선택 버튼 -->
@@ -4910,8 +4916,10 @@ if (dailyClaimBtn) {
 <div id="screen-tournament" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
   <!-- HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
-    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="trn-gem">0</span></span>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="trn-gem">0</span></span>
+    </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">토너먼트</div>
   <!-- 콘텐츠 -->
@@ -12093,8 +12101,10 @@ function _injectLabScreen(){
   sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:\"Courier New\",monospace;';
   sc.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
-      '<span style="color:#f59e0b;font-size:13px;font-family:monospace;">◈ <span id="cl-gold">0</span></span>'+
-      '<span style="color:#00ffff;font-size:13px;font-family:monospace;">◆ <span id="cl-gem">0</span></span>'+
+      '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;">'+
+        '<span style="color:#f59e0b;font-size:13px;font-family:monospace;">◈ <span id="cl-gold">0</span></span>'+
+        '<span style="color:#00ffff;font-size:13px;font-family:monospace;">◆ <span id="cl-gem">0</span></span>'+
+      '</div>'+
     '</div>'+
     '<div style="text-align:center;padding:5px;font-size:10px;color:#00ffff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(0,255,255,0.10);flex-shrink:0;">코어랩</div>'+
     '<div style="padding:14px;">'+
@@ -13078,8 +13088,10 @@ function renderSkinGrid() {
 <!-- ── 스킨 선택 화면 ── -->
 <div id="screen-skin" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="skin-gold">0</span></span>
-    <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="skin-gem">0</span></span>
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="skin-gold">0</span></span>
+      <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="skin-gem">0</span></span>
+    </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">스킨</div>
   <div id="skin-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:0 12px; overflow-y:auto;"></div>
