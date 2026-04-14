@@ -619,34 +619,6 @@ canvas {
   z-index: 1;
 }
 
-/* hexagon icon */
-.ld-hex {
-  width: 56px;
-  height: 32px;
-  position: relative;
-  border-left: 2px solid #00ffff;
-  border-right: 2px solid #00ffff;
-  filter: drop-shadow(0 0 6px #00ffff);
-}
-.ld-hex::before,
-.ld-hex::after {
-  content: '';
-  position: absolute;
-  left: -11px;
-  width: 76px;
-  height: 0;
-  border-left: 2px solid transparent;
-  border-right: 2px solid transparent;
-}
-.ld-hex::before {
-  top: -17px;
-  border-bottom: 17px solid #00ffff;
-}
-.ld-hex::after {
-  bottom: -17px;
-  border-top: 17px solid #00ffff;
-}
-
 /* title text */
 #ld-title {
   font-family: 'Courier New', monospace;
@@ -1152,7 +1124,6 @@ canvas {
 <div id="screen-loading">
   <span id="ld-version">v1.0.0</span>
   <div id="ld-center">
-    <div class="ld-hex"></div>
     <div id="loading-icon" style="display:flex; justify-content:center; margin-bottom:16px;"></div>
     <div id="ld-title">NEON CORE</div>
   </div>
