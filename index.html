@@ -2090,7 +2090,7 @@ function createState() {
     showTowerStats: false,
 
     cx: CW / 2,
-    cy: CH * 0.28,
+    cy: CH * 0.32,
     lastTime: 0,
   };
 }
@@ -3198,7 +3198,7 @@ function render() {
     ctx.font          = 'bold 18px "Courier New", monospace';
     ctx.fillStyle     = '#00ffff';
     ctx.shadowBlur    = 0;
-    const bannerY = CH * 0.40;
+    const bannerY = CH * 0.20;
     ctx.fillText(text, CW / 2, bannerY);
     // Horizontal lines expanding from center
     const lineW = Math.min(t / 800, 1) * 80;
@@ -3222,7 +3222,7 @@ function render() {
     ctx.textBaseline = 'middle';
     ctx.font         = 'bold 16px "Courier New", monospace';
     ctx.fillStyle    = '#f59e0b';
-    ctx.fillText(G.waveBonusText || '', CW / 2, CH * 0.52);
+    ctx.fillText(G.waveBonusText || '', CW / 2, CH * 0.26);
     ctx.restore();
   }
 
@@ -12667,14 +12667,14 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.28; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.32; G.tower.range = Math.min(w, h) * 0.45; }
     }
     return;
   }
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
     var cv = document.getElementById('gameCanvas');
-    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.28; }
+    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.32; }
   }
 };
 
