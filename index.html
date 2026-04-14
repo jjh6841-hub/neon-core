@@ -2166,6 +2166,8 @@ function startGame() {
   try { var _dg=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',_dg+1); } catch(_){}
   const _sb = document.getElementById('speed-btn');
   if (_sb) _sb.textContent = G.speed + '×';
+  var _wb = document.getElementById('hud-wave-bar');
+  if (_wb) { _wb.style.transition = 'none'; _wb.style.width = '0%'; _wb.offsetHeight; _wb.style.transition = 'width 0.3s'; }
   applyPermStats();
   buildCards();
   setActiveTab(activeTab);
