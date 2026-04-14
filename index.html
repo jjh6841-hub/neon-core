@@ -12669,7 +12669,7 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h / 2; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.4; G.tower.range = Math.min(w, h) * 0.45; }
     }
     return;
   }
