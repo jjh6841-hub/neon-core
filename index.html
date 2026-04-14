@@ -2229,9 +2229,9 @@ function gameLoop(gen, ts) {
   if (spd <= 2) {
     update(rawDt * spd);
   } else {
-    var half = rawDt * spd / 2;
-    update(half);
-    update(half);
+    var steps = Math.min(spd, 5);
+    var stepDt = rawDt * spd / steps;
+    for (var _si = 0; _si < steps; _si++) update(stepDt);
   }
   updateShake();
   render();
@@ -6701,8 +6701,8 @@ if (storeBtn) {
 (function() {
 'use strict';
 
-var SPEED_STEPS = [0.5, 1, 1.5, 2, 3];
-var _sIdx = 1; // 기본값 ×1 (인덱스 1)
+var SPEED_STEPS = [1, 2, 3, 5];
+var _sIdx = 0; // 기본값 ×1 (인덱스 0)
 
 function _updateDisplay() {
   var v = SPEED_STEPS[_sIdx];
@@ -6742,7 +6742,7 @@ setInterval(function() {
   if (!g || g === _lastG) return;
   _lastG = g;
   // 새 게임 시작 시 인덱스 리셋 (×1)
-  _sIdx = 1; _updateDisplay();
+  _sIdx = 0; _updateDisplay();
   var m = document.getElementById('speed-minus');
   if (m) m.style.color = '#334455';
   var p = document.getElementById('speed-plus');
@@ -12666,7 +12666,7 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.33; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.28; G.tower.range = Math.min(w, h) * 0.45; }
     }
     return;
   }
