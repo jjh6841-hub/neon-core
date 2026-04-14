@@ -2224,7 +2224,7 @@ function gameLoop(gen, ts) {
     requestAnimationFrame(function(nts) { gameLoop(gen, nts); });
     return;
   }
-  const rawDt = Math.min(ts - G.lastTime, 50);
+  const rawDt = Math.min(ts - G.lastTime, 100);
   G.lastTime = ts;
   var spd = (G.phase === 'playing' || G.phase === 'between') ? (G.speed || 1) : 1;
   if (spd <= 2) {
@@ -6702,8 +6702,8 @@ if (storeBtn) {
 (function() {
 'use strict';
 
-var SPEED_STEPS = [1, 2, 3, 5];
-var _sIdx = 0; // 기본값 ×1 (인덱스 0)
+var SPEED_STEPS = [0.5, 1, 1.5, 2, 3];
+var _sIdx = 1; // 기본값 ×1 (인덱스 1)
 
 function _updateDisplay() {
   var v = SPEED_STEPS[_sIdx];
@@ -6743,7 +6743,7 @@ setInterval(function() {
   if (!g || g === _lastG) return;
   _lastG = g;
   // 새 게임 시작 시 인덱스 리셋 (×1)
-  _sIdx = 0; _updateDisplay();
+  _sIdx = 1; _updateDisplay();
   var m = document.getElementById('speed-minus');
   if (m) m.style.color = '#334455';
   var p = document.getElementById('speed-plus');
