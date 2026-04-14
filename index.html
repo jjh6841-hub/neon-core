@@ -1983,6 +1983,12 @@ function resizeCanvas() {
   if (G) {
     G.cx = w / 2;
     G.cy = h / 2;
+    // 래퍼가 덮어쓸 수 있도록 shop 높이 보정
+    var _shop = document.getElementById('screen-shop');
+    if (_shop) {
+      var _shopH = _shop.offsetHeight || 0;
+      if (_shopH > 0) { G.cy = (h - _shopH) / 2; }
+    }
     G.tower.range = Math.min(w, h) * 0.45;
   }
 }
@@ -3758,6 +3764,8 @@ function startNewGame() {
   resizeCanvas();
   startGame();
   resizeCanvas();
+  // 렌더링 후 캔버스/타워 위치 재계산
+  setTimeout(function() { resizeCanvas(); }, 50);
 }
 
 /* ─── 버튼 이벤트 (touch + click) ─────────────────────────────── */
