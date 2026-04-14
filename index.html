@@ -1491,7 +1491,7 @@ canvas {
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
         <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:4px;white-space:nowrap;">총 코인 보너스</div>
-        <div id="home-total-bonus" style="font-size:14px;color:#00ffff;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">×1.00</div>
+        <div id="home-total-bonus" style="font-size:14px;color:#f59e0b;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">◈ ×1.00</div>
         <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:8px;font-family:monospace;">▶ 상세</div>
       </div>
 
@@ -6944,7 +6944,7 @@ window._showCoinBonusPopup = function() {
 
   // 홈 화면 총 보너스 텍스트도 업데이트
   var homeTot = document.getElementById('home-total-bonus');
-  if (homeTot) homeTot.textContent = '×' + total.toFixed(2);
+  if (homeTot) homeTot.textContent = '◈ ×' + total.toFixed(2);
 
   var popup = document.getElementById('coin-bonus-popup');
   if (popup) popup.style.display = 'flex';
@@ -6960,7 +6960,7 @@ if (homeEl) {
       var tierMult = _getTierMult();
       var total    = wsBonus * tierMult * (adActive ? 1.5 : 1.0);
       var el = document.getElementById('home-total-bonus');
-      if (el) el.textContent = '×' + total.toFixed(2);
+      if (el) el.textContent = '◈ ×' + total.toFixed(2);
     }
   }).observe(homeEl, { attributes:true, attributeFilter:['style'] });
 }
@@ -11865,7 +11865,7 @@ window.showCoinBonusPopup = function () {
   var totalEl = document.getElementById('coin-bonus-total-new');
   if (totalEl) totalEl.textContent = 'x' + total.toFixed(2);
   var homeTot = document.getElementById('home-total-bonus');
-  if (homeTot) homeTot.textContent = '\xd7' + total.toFixed(2);
+  if (homeTot) homeTot.textContent = '◈ \xd7' + total.toFixed(2);
 
   popup.style.display = 'block';
 };
