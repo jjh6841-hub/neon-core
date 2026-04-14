@@ -1875,7 +1875,7 @@ const UPGRADES = [
   },
   { key:'maxhp',   tab:'def', icon:'+',  name:'최대체력',  baseCost:7,  unlock:null,
     cost()   { return upgCost('maxhp',7); },
-    stat()   { return '최대 '+G.tower.maxHp; },
+    stat()   { return G.tower.maxHp; },
     canBuy() { return coreChips>=upgCost('maxhp',7); },
     apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; G.tower.maxHp+=3; G.tower.hp+=3; },
   },
