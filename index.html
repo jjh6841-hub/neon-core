@@ -6609,7 +6609,7 @@ if (storeBtn) {
   </div>
 
   <!-- 임무 목록 -->
-  <div id="miss-list" style="flex:1;overflow-y:auto;padding:0 12px 12px;">
+  <div id="miss-list" style="flex:1;overflow-y:auto;padding:0 12px calc(60px + env(safe-area-inset-bottom,0px));">
   </div>
 
 </div>
@@ -7716,13 +7716,13 @@ setTimeout(_applyMaxOverrides, 300);
     wkGauge.id='ms4-wgauge'; wkGauge.style.cssText='padding:14px 16px 10px;border-bottom:1px solid #0a2233;flex-shrink:0;background:#040c14;';
     wkW.appendChild(wkGauge);
     var wkList = document.createElement('div');
-    wkList.id='ms4-wlist'; wkList.style.cssText='flex:1;overflow-y:auto;padding:12px;';
+    wkList.id='ms4-wlist'; wkList.style.cssText='flex:1;overflow-y:auto;padding:12px 12px calc(60px + env(safe-area-inset-bottom,0px));';
     wkW.appendChild(wkList);
     sc.appendChild(wkW);
 
     // 무한 래퍼
     var infW = document.createElement('div');
-    infW.id='ms4-inf'; infW.style.cssText='display:none;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
+    infW.id='ms4-inf'; infW.style.cssText='display:none;flex-direction:column;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(60px + env(safe-area-inset-bottom,0px));';
     sc.appendChild(infW);
 
     // 무한 임무 데이터
