@@ -1043,49 +1043,40 @@ canvas {
 }
 .title-tower-wrap {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 180px;
+  height: 180px;
   margin: 30px 0;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
 }
-.title-tower {
-  width: 80px;
-  height: 80px;
-  border: 2px solid #00ffff;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  background: #001a22;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: towerPulse 2s ease-in-out infinite;
+.title-tower-svg {
+  width: 180px;
+  height: 180px;
+  filter: drop-shadow(0 0 12px rgba(0,255,255,0.4));
 }
-.title-tower-inner {
-  width: 24px;
-  height: 24px;
-  border: 1px solid rgba(0,255,255,0.5);
+@keyframes tt-spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes tt-spin-rev  { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+@keyframes tt-core-pulse {
+  0%, 100% { r: 6; opacity: 0.9; }
+  50% { r: 9; opacity: 1; }
 }
-@keyframes towerPulse {
-  0%, 100% { filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 20px rgba(0,255,255,0.3)); }
-  50% { filter: drop-shadow(0 0 20px #00ffff) drop-shadow(0 0 40px #00ffff); }
+@keyframes tt-core-glow {
+  0%, 100% { r: 14; opacity: 0.15; }
+  50% { r: 22; opacity: 0.35; }
 }
-.orbit-dot {
-  width: 4px;
-  height: 4px;
-  background: #00ffff;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -2px 0 0 -2px;
-  animation: orbit 3s linear infinite;
-  box-shadow: 0 0 6px #00ffff;
+@keyframes tt-ring-pulse {
+  0%, 100% { opacity: 0.25; stroke-width: 0.5; }
+  50% { opacity: 0.5; stroke-width: 1; }
 }
-@keyframes orbit {
-  from { transform: rotate(0deg) translateX(60px); }
-  to { transform: rotate(360deg) translateX(60px); }
+@keyframes tt-dash-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -40; }
+}
+@keyframes tt-petal-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.45; }
 }
 #tt-tap {
   font-family: 'Courier New', monospace;
@@ -1310,10 +1301,67 @@ canvas {
   <div id="tt-line"></div>
   <div id="tt-sub">TOWER DEFENSE</div>
   <div class="title-tower-wrap">
-    <div class="title-tower"><div class="title-tower-inner"></div></div>
-    <div class="orbit-dot" style="animation-delay:0s;"></div>
-    <div class="orbit-dot" style="animation-delay:-1s;"></div>
-    <div class="orbit-dot" style="animation-delay:-2s;"></div>
+    <svg class="title-tower-svg" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ttCoreGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ff00ff" stop-opacity="0.9"/>
+          <stop offset="60%" stop-color="#cc00cc" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#00ffff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- outer dashed ring - slow spin -->
+      <g style="transform-origin:90px 90px; animation: tt-spin-slow 20s linear infinite;">
+        <circle cx="90" cy="90" r="82" fill="none" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="8 12" opacity="0.3" style="animation: tt-ring-pulse 4s ease-in-out infinite;"/>
+      </g>
+      <!-- outer hexagon - reverse spin -->
+      <g style="transform-origin:90px 90px; animation: tt-spin-rev 15s linear infinite;">
+        <polygon points="90,8 161,49 161,131 90,172 19,131 19,49" fill="none" stroke="#00ffff" stroke-width="1" opacity="0.2"/>
+      </g>
+      <!-- mid hexagon - static -->
+      <polygon points="90,22 149,56 149,124 90,158 31,124 31,56" fill="none" stroke="#00ffff" stroke-width="1.5" opacity="0.5"/>
+      <!-- inner hexagon - slow spin -->
+      <g style="transform-origin:90px 90px; animation: tt-spin-slow 12s linear infinite;">
+        <polygon points="90,36 136,63 136,117 90,144 44,117 44,63" fill="none" stroke="#00ffff" stroke-width="1.2" opacity="0.6"/>
+      </g>
+      <!-- petal arcs (6) -->
+      <g style="animation: tt-petal-breathe 3s ease-in-out infinite;">
+        <path d="M90,36 Q120,50 136,63" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>
+        <path d="M136,63 Q140,90 136,117" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>
+        <path d="M136,117 Q120,130 90,144" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>
+        <path d="M90,144 Q60,130 44,117" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>
+        <path d="M44,117 Q40,90 44,63" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>
+        <path d="M44,63 Q60,50 90,36" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>
+      </g>
+      <!-- energy lines from core to vertices -->
+      <g style="animation: tt-dash-flow 2s linear infinite;">
+        <line x1="90" y1="90" x2="90" y2="22" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.35"/>
+        <line x1="90" y1="90" x2="149" y2="56" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.35"/>
+        <line x1="90" y1="90" x2="149" y2="124" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.35"/>
+        <line x1="90" y1="90" x2="90" y2="158" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.35"/>
+        <line x1="90" y1="90" x2="31" y2="124" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.35"/>
+        <line x1="90" y1="90" x2="31" y2="56" stroke="#00ffff" stroke-width="0.5" stroke-dasharray="4 6" opacity="0.35"/>
+      </g>
+      <!-- flowing orbit ring -->
+      <g style="transform-origin:90px 90px; animation: tt-spin-slow 8s linear infinite;">
+        <circle cx="90" cy="90" r="52" fill="none" stroke="#00ffff" stroke-width="1" stroke-dasharray="6 20" opacity="0.4" style="animation: tt-dash-flow 3s linear infinite;"/>
+        <!-- orbit dot -->
+        <circle cx="142" cy="90" r="2.5" fill="#00ffff" opacity="0.9">
+          <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <!-- second orbit ring reverse -->
+      <g style="transform-origin:90px 90px; animation: tt-spin-rev 6s linear infinite;">
+        <circle cx="90" cy="90" r="44" fill="none" stroke="#00ffff" stroke-width="0.6" stroke-dasharray="3 14" opacity="0.3"/>
+        <circle cx="134" cy="90" r="2" fill="#00ffff" opacity="0.7">
+          <animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.2s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <!-- core glow -->
+      <circle cx="90" cy="90" fill="url(#ttCoreGrad)" style="animation: tt-core-glow 2.5s ease-in-out infinite;" r="14"/>
+      <!-- core solid -->
+      <circle cx="90" cy="90" fill="#ff00ff" style="animation: tt-core-pulse 2.5s ease-in-out infinite;" r="6"/>
+      <circle cx="90" cy="90" r="3" fill="#ffffff" opacity="0.7"/>
+    </svg>
   </div>
   <div id="tt-tap-line"></div>
   <div id="tt-tap">- TAP TO START -</div>
