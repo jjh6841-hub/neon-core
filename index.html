@@ -409,14 +409,15 @@ canvas {
 .tab-pane.active {
   display: -webkit-flex;
   display: flex;
-  -webkit-flex-direction: row;
-  flex-direction: row;
-  -webkit-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  gap: 6px;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  gap: 5px;
   width: -webkit-max-content;
   width: max-content;
-  min-height: 66px;
+  height: 130px;
+  max-height: 130px;
 }
 
 /* ── Upgrade card — corner-bracket style ── */
@@ -1867,12 +1868,6 @@ const UPGRADES = [
     apply()  { var c=upgCost('pierce',10); coreChips-=c; G.upgLvl.pierce=(G.upgLvl.pierce||0)+1; G.pierce++; },
   },
   // ─ 방어 탭 ─
-  { key:'heal',    tab:'def', icon:'+',  name:'회복',     baseCost:8,  unlock:null,
-    cost()   { return upgCost('heal',8); },
-    stat()   { return G.tower.hp+'/'+G.tower.maxHp; },
-    canBuy() { return coreChips>=upgCost('heal',8) && G.tower.hp<G.tower.maxHp; },
-    apply()  { var c=upgCost('heal',8); coreChips-=c; G.upgLvl.heal=(G.upgLvl.heal||0)+1; G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.ceil(G.tower.maxHp*0.4)); },
-  },
   { key:'maxhp',   tab:'def', icon:'+',  name:'최대체력',  baseCost:7,  unlock:null,
     cost()   { return upgCost('maxhp',7); },
     stat()   { return G.tower.maxHp; },
@@ -12637,11 +12632,11 @@ _css.textContent =
   '  font-family:"Courier New",monospace; font-size:11px; color:#4a7a8a;' +
   '  cursor:pointer; height:auto !important; -webkit-appearance:none; }' +
   '#tab-bar .tab-btn.active { color:#00ffff !important; border-bottom:2px solid #00ffff !important; }' +
-  '#tab-content { overflow-y:auto !important; overflow-x:hidden !important;' +
-  '  -webkit-overflow-scrolling:touch; padding:8px !important; background:#06061a !important;' +
+  '#tab-content { overflow-y:hidden !important; overflow-x:auto !important;' +
+  '  -webkit-overflow-scrolling:touch; padding:6px !important; background:#06061a !important;' +
   '  transition:height 0.25s ease; }' +
-  '.tab-pane.active { flex-direction:column !important; flex-wrap:nowrap !important;' +
-  '  width:100% !important; min-height:auto !important; gap:4px !important; }' +
+  '.tab-pane.active { flex-direction:column !important; flex-wrap:wrap !important;' +
+  '  width:max-content !important; height:130px !important; max-height:130px !important; gap:5px !important; }' +
   '#canvas-area { flex:none !important; min-height:0 !important; overflow:hidden !important; }';
 document.head.appendChild(_css);
 
@@ -12655,7 +12650,7 @@ window.resizeCanvas = function() {
   var gameScr = document.getElementById('screen-game');
   if (gameScr && gameScr.style.display !== 'none' && shop && area) {
     var tabBarH = tabBar ? tabBar.offsetHeight || 36 : 36;
-    var contentH = isPanelOpen ? Math.floor(window.innerHeight * 0.28) - tabBarH : 0;
+    var contentH = isPanelOpen ? 142 : 0;
     var shopH = tabBarH + contentH;
     var canvasH = window.innerHeight - shopH;
     shop.style.height = shopH + 'px';
