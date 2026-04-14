@@ -1539,7 +1539,7 @@ canvas {
   </div>
 
   <!-- 업그레이드 목록 -->
-  <div id="ws-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
+  <div id="ws-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start; grid-auto-rows:minmax(56px,auto); padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));"></div>
 
 
 </div>
@@ -4291,9 +4291,9 @@ if (dailyClaimBtn) {
       'background:' + (locked ? '#0a1520' : '#0a1a2a') + ';' +
       'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
-      'padding:12px;display:flex;flex-direction:row;' +
-      'justify-content:space-between;align-items:center;gap:8px;' +
-      'min-width:0;overflow:hidden;' +
+      'padding:10px 8px;display:flex;flex-direction:row;' +
+      'justify-content:space-between;align-items:center;gap:6px;' +
+      'min-width:0;overflow:visible;' +
       'opacity:' + (locked ? '0.5' : '1') + ';' +
       'transition:border-color 0.2s;' +
       '-webkit-tap-highlight-color:transparent;';
