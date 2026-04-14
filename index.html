@@ -721,7 +721,7 @@ canvas {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.72);
+  background: rgba(3,11,16,0.90);
   -webkit-align-items: center;
   align-items: center;
   -webkit-justify-content: center;
@@ -730,10 +730,10 @@ canvas {
 }
 #confirm-popup.show { display: -webkit-flex; display: flex; }
 .confirm-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px 20px;
+  background: #030b10;
+  border: 1px solid #0a3344;
+  border-radius: 0;
+  padding: 20px 18px;
   max-width: 300px;
   width: 90%;
   display: -webkit-flex;
@@ -742,35 +742,55 @@ canvas {
   flex-direction: column;
   -webkit-align-items: center;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(0,255,255,0.08), inset 0 0 30px rgba(0,255,255,0.03);
+  /* corner brackets */
+  background-image:
+    linear-gradient(#0a3344, #0a3344), linear-gradient(#0a3344, #0a3344),
+    linear-gradient(#0a3344, #0a3344), linear-gradient(#0a3344, #0a3344),
+    linear-gradient(#0a3344, #0a3344), linear-gradient(#0a3344, #0a3344),
+    linear-gradient(#0a3344, #0a3344), linear-gradient(#0a3344, #0a3344);
+  background-size:
+    12px 1px, 1px 12px, 12px 1px, 1px 12px,
+    12px 1px, 1px 12px, 12px 1px, 1px 12px;
+  background-position:
+    0 0, 0 0, 100% 0, 100% 0,
+    0 100%, 0 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  background-color: #030b10;
 }
 .confirm-msg {
-  font-size: 15px;
-  color: var(--text-primary);
+  font-size: 12px;
+  color: #00ffff;
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.8;
   white-space: pre-line;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
 }
 .confirm-btns {
   display: -webkit-flex;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 .confirm-ok, .confirm-cancel {
   -webkit-flex: 1;
   flex: 1;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 14px;
+  padding: 10px;
+  border-radius: 0;
+  border: 1px solid;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
+  font-family: 'Courier New', monospace;
   -webkit-appearance: none;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
-.confirm-ok     { background: var(--accent-red); color: #fff; }
-.confirm-cancel { background: #334155; color: var(--text-primary); }
+.confirm-ok     { background: #030b10; border-color: #00ffff; color: #00ffff; }
+.confirm-cancel { background: #030b10; border-color: #1a3444; color: #556677; }
 
 /* ── Achievement screen ── */
 #achieve-screen {
