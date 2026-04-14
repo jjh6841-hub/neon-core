@@ -3637,6 +3637,8 @@ function toggleSetting(key) {
 function openShop() {
   document.getElementById('results-screen').classList.remove('show');
   document.getElementById('screen-game').style.display = 'none';
+  var bnav = document.getElementById('bottom-nav');
+  if (bnav) bnav.style.display = 'flex';
   const home = document.getElementById('screen-home');
   home.style.display = 'flex';
   buildUnlockUI();
@@ -3750,6 +3752,8 @@ function startNewGame() {
   document.getElementById('screen-home').style.display = 'none';
   document.getElementById('screen-game').style.display = '-webkit-flex';
   document.getElementById('screen-game').style.display = 'flex';
+  var bnav = document.getElementById('bottom-nav');
+  if (bnav) bnav.style.display = 'none';
   loopGen++;
   resizeCanvas();
   startGame();
