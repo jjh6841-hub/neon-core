@@ -1979,7 +1979,6 @@ function resizeCanvas() {
   canvas.style.height = h + 'px';
   if (G) {
     G.cx = w / 2;
-    G.cy = h / 2;
     G.tower.range = Math.min(w, h) * 0.45;
   }
 }
@@ -2091,7 +2090,7 @@ function createState() {
     showTowerStats: false,
 
     cx: CW / 2,
-    cy: CH / 2,
+    cy: CH * 0.28,
     lastTime: 0,
   };
 }
@@ -12675,7 +12674,7 @@ window.resizeCanvas = function() {
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
     var cv = document.getElementById('gameCanvas');
-    if (cv) { G.cx = cv.width / 2; G.cy = cv.height / 2; }
+    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.28; }
   }
 };
 
