@@ -1983,16 +1983,10 @@ function resizeCanvas() {
   if (G) {
     G.cx = w / 2;
     G.cy = h / 2;
-    // 래퍼가 덮어쓸 수 있도록 shop 높이 보정
-    var _shop = document.getElementById('screen-shop');
-    if (_shop) {
-      var _shopH = _shop.offsetHeight || 0;
-      if (_shopH > 0) { G.cy = (h - _shopH) / 2; }
-    }
     G.tower.range = Math.min(w, h) * 0.45;
   }
 }
-window.addEventListener('resize', resizeCanvas, false);
+window.addEventListener('resize', function() { window.resizeCanvas(); }, false);
 
 /* ═══════════════════════════════════════════════════════════════
    GAME STATE
