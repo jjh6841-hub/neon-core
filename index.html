@@ -12620,19 +12620,11 @@ window.resizeCanvas = function() {
       tabContent.style.height = isPanelOpen ? contentH + 'px' : '0px';
       tabContent.style.overflow = isPanelOpen ? 'auto' : 'hidden';
     }
-    // 캔버스 크기를 shop 위 영역에 맞게 직접 설정
+    // 캔버스를 shop 위 영역 전체에 꽉 채움 (비율 제한 없음)
     var cv = document.getElementById('gameCanvas');
     if (cv) {
-      var cw = area.clientWidth || window.innerWidth;
-      var w, h;
-      if (cw / canvasH < 9 / 16) {
-        w = cw;
-        h = Math.floor(cw * 16 / 9);
-        if (h > canvasH) { h = canvasH; w = Math.floor(h * 9 / 16); }
-      } else {
-        h = canvasH;
-        w = Math.floor(canvasH * 9 / 16);
-      }
+      var w = area.clientWidth || window.innerWidth;
+      var h = canvasH;
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
