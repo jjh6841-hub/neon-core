@@ -1409,7 +1409,7 @@ canvas {
   </div>
 
   <!-- 상단 HUD -->
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; position:relative;">
+  <div id="home-hud" style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; position:relative;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="home-gold">0</span></span>
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">◆ <span id="home-gem">0</span></span>
@@ -1447,7 +1447,7 @@ canvas {
   <div id="home-center" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:0; padding:0 48px; overflow:hidden; position:relative;">
 
     <!-- 우측 아이콘 버튼 -->
-    <div id="right-icons" style="position:absolute; right:0; top:44px; display:flex; flex-direction:column; gap:6px; padding:6px 4px; z-index:10;">
+    <div id="right-icons" style="position:absolute; right:0; top:0px; display:flex; flex-direction:column; gap:6px; padding-top:4px; padding-left:4px; padding-right:4px; z-index:10;">
       <button id="home-btn-settings" title="설정" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;line-height:1.3;padding:0;box-shadow:none;text-shadow:none;">⚙<br><span style="font-size:7px;color:#00ffff;">설정</span></button>
       <div style="position:relative;display:inline-block;">
         <button id="btn-missions" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #0a3344;font-family:monospace;font-size:8px;cursor:pointer;color:#00ffff;line-height:1.3;padding:0;">임무<br><span id="mission-progress" style="color:#445566;font-size:7px;">0/8</span></button>
@@ -1458,16 +1458,16 @@ canvas {
     </div>
 
     <!-- 좌측 아이콘 버튼 (동적 렌더링, 스크롤) -->
-    <div id="left-icons-container" style="position:absolute; top:44px; left:0; display:flex; flex-direction:column; gap:6px; padding:6px 4px; z-index:10;"></div>
+    <div id="left-icons-container" style="position:absolute; top:0px; left:0; display:flex; flex-direction:column; gap:6px; padding-top:4px; padding-left:4px; padding-right:4px; z-index:10;"></div>
 
     <!-- 타이틀 -->
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:90px 0 8px 0;">NEON CORE</div>
 
     <!-- 메인 아이콘 -->
-    <div id="home-icon" style="display:flex; justify-content:center; margin:8px 0;"></div>
+    <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1;"></div>
 
     <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
-    <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-top:auto; margin-bottom:6px;">
+    <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-bottom:6px;">
 
       <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
@@ -3878,6 +3878,7 @@ document.addEventListener('touchend', function(e) {
               syncShopUI();
               renderNavTabs('home');
               renderLeftIcons();
+              fixIconPositions();
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
             }, 400);
@@ -5894,6 +5895,7 @@ function closeLab() {
   document.getElementById('screen-lab').style.display = 'none';
   document.getElementById('screen-home').style.display = 'flex';
   try { syncShopUI(); } catch(_) {}
+  try { fixIconPositions(); } catch(_) {}
 }
 
 function _hideAll() {
@@ -6315,6 +6317,7 @@ document.getElementById('trn-nav-home') && document.getElementById('trn-nav-home
   _hideAll();
   document.getElementById('screen-home').style.display = 'flex';
   try { syncShopUI(); } catch(_) {}
+  try { fixIconPositions(); } catch(_) {}
 });
 document.getElementById('trn-nav-workshop') && document.getElementById('trn-nav-workshop').addEventListener('click', function() {
   _hideAll();
@@ -10980,6 +10983,7 @@ window.showScreen = function (name) {
   // 화면별 초기화
   if (name === 'home') {
     try { syncShopUI(); } catch(_) {}
+    try { fixIconPositions(); } catch(_) {}
   } else if (name === 'workshop') {
     try { window._wsExt.sync(); window._wsExt.build(); } catch(_) {}
   } else if (name === 'store') {
@@ -11645,6 +11649,13 @@ function _getLeftIcon(id, unlocked, color) {
   // 길드 SVG stroke은 currentColor — 부모 button의 color 속성을 따라감
   if (id === 'guild')       return _GUILD_ICON.replace(/CLC/g,   'currentColor');
   return null;
+}
+
+function fixIconPositions() {
+  var left = document.getElementById('left-icons-container');
+  var right = document.getElementById('right-icons');
+  if (left) left.style.top = '0px';
+  if (right) right.style.top = '0px';
 }
 
 function renderLeftIcons() {
