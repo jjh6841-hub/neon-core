@@ -1184,7 +1184,7 @@ canvas {
         <div id="ad-bonus-btn" style="background:#0a1a2a;border:1px solid #0a3344;padding:2px 5px;display:flex;align-items:center;gap:3px;cursor:pointer;" onclick="if(!window.isPaused&&window.togglePause)window.togglePause();window._showAdBonusPopup&&window._showAdBonusPopup()">
           <span style="font-size:13px;line-height:1;">▶</span>
           <div style="display:flex;flex-direction:column;gap:0px;line-height:1.1;">
-            <span style="color:#00ffff;font-size:8px;font-family:monospace;font-weight:bold;">◈ BONUS</span>
+            <span style="font-size:8px;font-family:monospace;font-weight:bold;"><span style="color:#f59e0b;">◈</span> <span style="color:#00ffff;">BONUS</span></span>
             <span id="ad-bonus-label" style="color:#556677;font-size:7px;font-family:monospace;">광고 보기</span>
           </div>
         </div>
@@ -2251,7 +2251,7 @@ function gameLoop(gen, ts) {
   if (spd <= 2) {
     update(rawDt * spd);
   } else {
-    var steps = Math.min(spd, 5);
+    var steps = Math.ceil(Math.min(spd, 5));
     var stepDt = rawDt * spd / steps;
     for (var _si = 0; _si < steps; _si++) update(stepDt);
   }
@@ -3572,7 +3572,9 @@ function closePauseMenu() {
 
 function cycleSpeed() {
   if (!G) return;
-  G.speed = (G.speed % 3) + 1;
+  var steps = [1, 1.5, 2, 2.5, 3];
+  var idx = steps.indexOf(G.speed);
+  G.speed = steps[(idx + 1) % steps.length];
   gameSpeed = G.speed;
   const sb = document.getElementById('speed-btn');
   if (sb) sb.textContent = G.speed + '×';
@@ -6729,8 +6731,8 @@ if (storeBtn) {
 (function() {
 'use strict';
 
-var SPEED_STEPS = [0.5, 1, 1.5, 2, 3];
-var _sIdx = 1; // 기본값 ×1 (인덱스 1)
+var SPEED_STEPS = [1, 1.5, 2, 2.5, 3];
+var _sIdx = 0; // 기본값 ×1 (인덱스 0)
 
 function _updateDisplay() {
   var v = SPEED_STEPS[_sIdx];
@@ -6770,7 +6772,7 @@ setInterval(function() {
   if (!g || g === _lastG) return;
   _lastG = g;
   // 새 게임 시작 시 인덱스 리셋 (×1)
-  _sIdx = 1; _updateDisplay();
+  _sIdx = 0; _updateDisplay();
   var m = document.getElementById('speed-minus');
   if (m) m.style.color = '#334455';
   var p = document.getElementById('speed-plus');
