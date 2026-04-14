@@ -3933,7 +3933,7 @@ document.addEventListener('touchend', function(e) {
 // ── Tab navigation system ──
 var navTabs = [
   { id: 'battle',   label: '\uC804\uD22C',    icon: '\u2694', screen: 'home',     unlock: 0 },
-  { id: 'workshop', label: '\uAC15\uD654',    icon: '\u25B2', screen: 'workshop', unlock: 0 },
+  { id: 'workshop', label: '\uAC15\uD654',    icon: 'svg_workshop', screen: 'workshop', unlock: 0 },
   { id: 'module',   label: '\uBAA8\uB4C8',    icon: '\u22A1', screen: 'module',   unlock: 10 },
   { id: 'research', label: '\uC5F0\uAD6C\uC18C',  icon: '\u2295', screen: 'lab',      unlock: 10 },
   { id: 'corelab',  label: '\uCF54\uC5B4\uB7A9',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
@@ -3994,16 +3994,23 @@ function renderNavTabs(currentScreen) {
       'padding:0'
     ].join(';');
 
+    var iconHTML;
+    if (tab.icon === 'svg_workshop') {
+      iconHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="display:block;"><polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="' + iconColor + '" stroke-width="1.2"/><line x1="8" y1="4" x2="8" y2="12" stroke="' + iconColor + '" stroke-width="1"/><line x1="4.5" y1="6" x2="11.5" y2="6" stroke="' + iconColor + '" stroke-width="0.8"/><line x1="4.5" y1="10" x2="11.5" y2="10" stroke="' + iconColor + '" stroke-width="0.8"/><circle cx="8" cy="8" r="1.5" fill="' + iconColor + '"/></svg>';
+    } else {
+      iconHTML = '<span style="font-size:15px;line-height:1;color:' + iconColor + ';">' + tab.icon + '</span>';
+    }
+
     if (!unlocked) {
       btn.innerHTML =
         '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
-          '<span style="font-size:15px;line-height:1;color:' + iconColor + ';">' + tab.icon + '</span>' +
+          iconHTML +
           '<span style="position:absolute;top:-3px;right:-6px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>' +
           '<span style="font-size:9px;color:' + labelColor + ';font-family:Courier New,monospace;">' + tab.label + '</span>' +
         '</div>';
     } else {
       btn.innerHTML =
-        '<span style="font-size:15px;line-height:1;color:' + iconColor + ';">' + tab.icon + '</span>' +
+        iconHTML +
         '<span style="color:' + labelColor + ';">' + tab.label + '</span>';
     }
 
