@@ -6697,8 +6697,11 @@ if (storeBtn) {
   </div>
 
   <!-- 임무 목록 -->
-  <div id="miss-list" style="flex:1;overflow-y:auto;padding:0 12px calc(60px + env(safe-area-inset-bottom,0px));">
+  <div id="miss-list" style="flex:1;overflow-y:auto;padding:0 12px 12px;">
   </div>
+
+  <!-- 하단 고정: 모두 받기 버튼 -->
+  <div id="miss-claim-all-bar" style="flex-shrink:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:#030b10;border-top:1px solid #0a2233;"></div>
 
 </div>
 
@@ -7403,26 +7406,30 @@ function _renderMissions() {
     });
   });
 
-  // 모두 받기 버튼
-  var claimAllBtn=document.createElement('button');
-  claimAllBtn.style.cssText='width:100%;padding:14px;margin-top:8px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
-  claimAllBtn.textContent='모두 받기';
-  if(anyClaimable) claimAllBtn.addEventListener('click',function(){
-    DAILY_MISSIONS.forEach(function(m){
-      var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
-      if(prog>=m.target && localStorage.getItem('daily_claimed_'+m.id)!=='true'){
-        localStorage.setItem('daily_claimed_'+m.id,'true');
-        if(window.PERM) PERM.gold=(PERM.gold||0)+m.reward.gold;
-      }
+  // 모두 받기 버튼 (하단 고정 바)
+  var _bar = document.getElementById('miss-claim-all-bar');
+  if (_bar) {
+    _bar.innerHTML = '';
+    var claimAllBtn=document.createElement('button');
+    claimAllBtn.style.cssText='width:100%;padding:14px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3344')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
+    claimAllBtn.textContent='모두 받기';
+    if(anyClaimable) claimAllBtn.addEventListener('click',function(){
+      DAILY_MISSIONS.forEach(function(m){
+        var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
+        if(prog>=m.target && localStorage.getItem('daily_claimed_'+m.id)!=='true'){
+          localStorage.setItem('daily_claimed_'+m.id,'true');
+          if(window.PERM) PERM.gold=(PERM.gold||0)+m.reward.gold;
+        }
+      });
+      if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
+      if(window.savePerm) savePerm();
+      _updateDailyAllProgress();
+      _renderMissions();
+      _updateBadge();
+      var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
     });
-    if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
-    if(window.savePerm) savePerm();
-    _updateDailyAllProgress();
-    _renderMissions();
-    _updateBadge();
-    var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
-  });
-  list.appendChild(claimAllBtn);
+    _bar.appendChild(claimAllBtn);
+  }
 
   // 임무 수 텍스트
   var cnt = document.getElementById('miss-count-label');
@@ -7916,7 +7923,8 @@ setTimeout(_applyMaxOverrides, 300);
         var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
         _renderInf();
       });
-      infW.appendChild(infClaimAll);
+      var _bar3=document.getElementById('miss-claim-all-bar');
+      if(_bar3){_bar3.innerHTML='';_bar3.appendChild(infClaimAll);}
     }
     window._renderInfMissions = _renderInf;
     new MutationObserver(function(){ if(infW.style.display!=='none') _renderInf(); }).observe(infW,{attributes:true,attributeFilter:['style']});
@@ -8045,7 +8053,8 @@ setTimeout(_applyMaxOverrides, 300);
       var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
       _renderW();
     });
-    list.appendChild(claimAllBtn);
+    var _bar2=document.getElementById('miss-claim-all-bar');
+    if(_bar2){_bar2.innerHTML='';_bar2.appendChild(claimAllBtn);}
   }
 
   var _mssEl=document.getElementById('screen-missions');
