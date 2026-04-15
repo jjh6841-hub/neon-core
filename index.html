@@ -7443,6 +7443,7 @@ window._openMissions = function() {
   _updateRefreshTimer();
   _updateBadge();
   document.getElementById('screen-missions').style.display = 'flex';
+  if (window._missionSwitchTab) window._missionSwitchTab('daily');
 };
 
 document.getElementById('miss-back') && document.getElementById('miss-back').addEventListener('click', function() {
@@ -7845,6 +7846,7 @@ setTimeout(_applyMaxOverrides, 300);
 
   }
 
+  window._missionSwitchTab = _sw;
   function _sw(id) {
     document.querySelectorAll('#ms4-bar [data-ms4]').forEach(function(b) {
       var act = b.getAttribute('data-ms4')===id;
