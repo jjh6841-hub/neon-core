@@ -114,7 +114,7 @@ firebase.initializeApp({
 var db = firebase.firestore();
 
 // 관리자 비밀번호 (SHA-256 해시)
-var ADMIN_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // "password"
+var ADMIN_HASH = 'acb8feb9a7014d6df759bcc54724c07828917749cbad6d65ebaf5b2a6d5be378';
 
 async function sha256(str) {
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
