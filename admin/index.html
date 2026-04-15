@@ -82,6 +82,22 @@ tr { cursor:pointer; }
     </thead>
     <tbody id="user-list"></tbody>
   </table>
+
+  <!-- 쿠폰 관리 -->
+  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+    <h2 style="color:#f59e0b;font-size:14px;letter-spacing:2px;margin-bottom:12px;">쿠폰 관리</h2>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <input type="text" id="cp-code" placeholder="쿠폰 코드" style="flex:1;min-width:100px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px;text-transform:uppercase;">
+      <input type="number" id="cp-gold" placeholder="골드" style="width:70px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px;">
+      <input type="number" id="cp-gems" placeholder="보석" style="width:70px;background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:11px;padding:8px;">
+      <input type="number" id="cp-max" placeholder="최대사용 (0=무제한)" style="width:110px;background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-family:monospace;font-size:11px;padding:8px;">
+      <button id="cp-create" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px 14px;cursor:pointer;">생성</button>
+    </div>
+    <table>
+      <thead><tr><th>코드</th><th>골드</th><th>보석</th><th>사용/제한</th><th>삭제</th></tr></thead>
+      <tbody id="coupon-list"></tbody>
+    </table>
+  </div>
 </div>
 
 <div id="user-modal">
@@ -250,6 +266,55 @@ function showToast(msg) {
   t.style.display = 'block';
   setTimeout(function(){ t.style.display='none'; }, 2000);
 }
+
+// ── 쿠폰 관리 ──
+async function loadCoupons() {
+  var snap = await db.collection('coupons').get();
+  var tbody = document.getElementById('coupon-list');
+  tbody.innerHTML = '';
+  snap.forEach(function(doc){
+    var d = doc.data();
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="color:#f59e0b;">' + doc.id + '</td>' +
+      '<td class="gold">' + (d.gold||0) + '</td>' +
+      '<td class="gem">' + (d.gems||0) + '</td>' +
+      '<td>' + (d.usedCount||0) + '/' + (d.maxUses||'∞') + '</td>' +
+      '<td><button data-del="'+doc.id+'" style="background:none;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:3px 8px;cursor:pointer;">삭제</button></td>';
+    tr.querySelector('[data-del]').addEventListener('click', async function(){
+      await db.collection('coupons').doc(doc.id).delete();
+      showToast('쿠폰 삭제: ' + doc.id);
+      loadCoupons();
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('cp-create').addEventListener('click', async function(){
+  var code = document.getElementById('cp-code').value.trim().toUpperCase();
+  var gold = parseInt(document.getElementById('cp-gold').value)||0;
+  var gems = parseInt(document.getElementById('cp-gems').value)||0;
+  var maxUses = parseInt(document.getElementById('cp-max').value)||0;
+  if (!code) { showToast('코드를 입력하세요'); return; }
+  if (!gold && !gems) { showToast('보상을 입력하세요'); return; }
+  await db.collection('coupons').doc(code).set({
+    gold: gold, gems: gems, maxUses: maxUses, usedCount: 0,
+    created: new Date().toISOString()
+  });
+  showToast('쿠폰 생성: ' + code);
+  document.getElementById('cp-code').value = '';
+  document.getElementById('cp-gold').value = '';
+  document.getElementById('cp-gems').value = '';
+  document.getElementById('cp-max').value = '';
+  loadCoupons();
+});
+
+// 로그인 성공 시 쿠폰도 로드
+var _origLoadUsers = loadUsers;
+loadUsers = async function() {
+  await _origLoadUsers();
+  loadCoupons();
+};
 </script>
 </body>
 </html>
