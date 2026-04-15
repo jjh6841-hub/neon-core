@@ -11094,6 +11094,9 @@ window.showScreen = function (name) {
   // 업적 화면 숨기기
   var _achScr = document.getElementById('achieve-screen');
   if (_achScr) _achScr.classList.remove('show');
+  // 임무 화면 숨기기
+  var _missScr = document.getElementById('screen-missions');
+  if (_missScr) _missScr.style.display = 'none';
 
   // 업적 화면은 별도 ID 사용
   if (name === 'achievements') {
