@@ -4517,54 +4517,6 @@ if (dailyClaimBtn) {
     container.appendChild(card);
   }
 
-  /* ══ 범위 해금 카드 ══ */
-  function appendRangeUnlockCard(container, ws) {
-    var unlocked = !!ws.rangeUnlock;
-    var cost     = 50;
-    var afford   = PERM.gold >= cost;
-
-    var card = document.createElement('div');
-    card.style.cssText =
-      'grid-column:1/-1;' +
-      'background:#0a1a2a;' +
-      'border:1px solid ' + (unlocked ? '#00ffff44' : '#0a3344') + ';' +
-      'border-left:2px solid rgba(0,255,255,' + (unlocked ? '0.8' : '0.30') + ');' +
-      'padding:12px;display:flex;flex-direction:row;' +
-      'justify-content:space-between;align-items:center;' +
-      'transition:border-color 0.2s;';
-
-    var rightHTML = unlocked
-      ? '<span style="font-size:12px;color:#00ffff;font-family:\'Courier New\',monospace;">✓ 해금됨</span>'
-      : '<button style="background:#030b10;border:1px solid ' +
-          (afford ? '#0a3344' : '#ff4444') + ';font-size:11px;' +
-          'font-family:\'Courier New\',monospace;padding:4px 10px;cursor:pointer;-webkit-appearance:none;">' +
-          '<span style="color:#f59e0b;">◈</span>' +
-          '<span style="color:' + (afford ? '#f59e0b' : '#ff4444') + ';">50</span>' +
-          '</button>';
-
-    card.innerHTML =
-      '<div style="display:flex;flex-direction:column;gap:3px;">' +
-        '<span style="font-size:12px;color:#94a3b8;font-family:\'Courier New\',monospace;">범위 업그레이드 해금</span>' +
-        '<span style="font-size:10px;color:#334455;font-family:\'Courier New\',monospace;">인게임 범위 업그레이드 활성화</span>' +
-      '</div>' +
-      '<div>' + rightHTML + '</div>';
-
-    if (!unlocked) {
-      var btn = card.querySelector('button');
-      btn.addEventListener('click', function() {
-        if (PERM.gold < 50) { flashCard(card, '#ef4444'); return; }
-        PERM.gold -= 50;
-        if (!PERM.ws) PERM.ws = {};
-        PERM.ws.rangeUnlock = true;
-        savePerm();
-        flashCard(card, '#00ffff');
-        syncWorkshopHUD();
-        setTimeout(function() { buildWorkshopContent(wsActiveTab); }, 220);
-      });
-    }
-    container.appendChild(card);
-  }
-
   /* ══ 업그레이드 실행 ══ */
   function wsUpgrade(key, card) {
     var ws    = PERM.ws || {};
