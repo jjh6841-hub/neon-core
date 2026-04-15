@@ -1831,6 +1831,7 @@ function loadPerm() {
       PERM.achievements = (d.achievements && typeof d.achievements === 'object') ? d.achievements : {};
       PERM.settings     = Object.assign({ sound: true, music: true, vibration: true }, d.settings || {});
       PERM.ws           = (d.ws && typeof d.ws === 'object') ? d.ws : {};
+      PERM.ws_atk_unlocks = d.ws_atk_unlocks ?? 0;
     }
   } catch (_) {}
 }
@@ -4298,19 +4299,19 @@ if (dailyClaimBtn) {
 
   /* ══ WS_ITEMS 정의 ══ */
   var WS_ITEMS = {
-    damage:     { tab:'atk', name:'대미지',      maxLv:20,
+    damage:     { tab:'atk', name:'대미지',      maxLv:20, atkGroup:0,
       cost: function(lv) { return 3 + Math.floor(lv * 1.8); },
       cur:  function(lv) { return '' + lv; },
       nxt:  function(lv) { return '' + (lv + 1); } },
-    atkspd:     { tab:'atk', name:'공격 속도',   maxLv:10,
+    atkspd:     { tab:'atk', name:'공격 속도',   maxLv:10, atkGroup:0,
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return '' + (lv * 20); },
       nxt:  function(lv) { return '' + ((lv + 1) * 20); } },
-    critChance: { tab:'atk', name:'치명타 확률', maxLv:10,
+    critChance: { tab:'atk', name:'치명타 확률', maxLv:10, atkGroup:1,
       cost: function(lv) { return 8 + lv * 5; },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
-    critMult:   { tab:'atk', name:'치명타 계수', maxLv:5,
+    critMult:   { tab:'atk', name:'치명타 계수', maxLv:5, atkGroup:1,
       cost: function(lv) { return 15 + lv * 12; },
       cur:  function(lv) { return (1.5 + lv * 0.25).toFixed(2); },
       nxt:  function(lv) { return (1.5 + (lv + 1) * 0.25).toFixed(2); } },
@@ -4392,11 +4393,58 @@ if (dailyClaimBtn) {
     }
 
     var ws    = PERM.ws || {};
-    var keys  = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === tab; });
-    keys.forEach(function(key) { appendCard(container, key, ws); });
 
-    /* 공격 탭: 범위 잠금 해제 카드 (전체 너비) */
-    if (tab === 'atk') appendRangeUnlockCard(container, ws);
+    // 공격 탭: 단계별 잠금 해제 시스템
+    var ATK_UNLOCK_GROUPS = [
+      { group:0, name:null, cost:0 },       // 대미지, 공격속도 — 기본 해금
+      { group:1, name:'치명타', cost:100 },   // 치명타 확률, 치명타 계수
+      { group:2, name:'범위', cost:300 },     // 공격 범위, 거리 피해
+      { group:3, name:'멀티샷', cost:500 },   // 분열탄 확률, 분열탄 수
+      { group:4, name:'고속발사', cost:1500 }, // 연사 확률, 연사 지속
+      { group:5, name:'바운스샷', cost:3000 }, // 도약탄 확률, 도약탄 수, 도약탄 범위
+    ];
+
+    if (tab === 'atk') {
+      var atkUnlocks = PERM.ws_atk_unlocks || 0; // 해금된 최대 그룹 번호
+      var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'atk'; });
+
+      // 해금된 아이템 표시
+      keys.forEach(function(key) {
+        var cfg = WS_ITEMS[key];
+        var grp = cfg.atkGroup !== undefined ? cfg.atkGroup : 99;
+        if (grp <= atkUnlocks) appendCard(container, key, ws);
+      });
+
+      // 다음 잠금 해제 버튼 표시
+      var nextGroup = atkUnlocks + 1;
+      var nextDef = ATK_UNLOCK_GROUPS.filter(function(g){ return g.group === nextGroup; })[0];
+      if (nextDef) {
+        var afford = PERM.gold >= nextDef.cost;
+        var unlockCard = document.createElement('div');
+        unlockCard.style.cssText = 'grid-column:1/-1;background:#060f18;border:1px solid '+(afford?'#0a3344':'#1a2a3a')+';border-left:2px solid rgba(0,255,255,0.15);padding:14px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:4px;';
+        unlockCard.innerHTML =
+          '<div style="display:flex;flex-direction:column;gap:2px;">'+
+            '<span style="font-size:11px;color:'+(afford?'#00ffff':'#334455')+';font-family:monospace;">'+nextDef.name+' 업그레이드 잠금 해제</span>'+
+          '</div>'+
+          '<button data-atk-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextDef.cost+'</button>';
+        var btn = unlockCard.querySelector('button');
+        (function(grp, cost) {
+          btn.addEventListener('click', function() {
+            if (PERM.gold < cost) return;
+            PERM.gold -= cost;
+            PERM.ws_atk_unlocks = grp;
+            if (window.G) G.gold = PERM.gold;
+            savePerm();
+            syncWorkshopHUD();
+            buildWorkshopContent('atk');
+          });
+        })(nextGroup, nextDef.cost);
+        container.appendChild(unlockCard);
+      }
+    } else {
+      var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === tab; });
+      keys.forEach(function(key) { appendCard(container, key, ws); });
+    }
   }
 
   /* ══ 업그레이드 카드 생성 ══ */
@@ -5475,18 +5523,18 @@ var WS = _ext.items;
 /* ── 새 WS_ITEMS 추가 ── */
 var NEW_ITEMS = {
   // 공격 탭 2단계 (tier 2, wave 150골드)
-  wsRange:       { tab:'atk', name:'공격 범위',   tier:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return ''+lv*8;},                    nxt:function(lv){return ''+(lv+1)*8;} },
-  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.01).toFixed(2);},     nxt:function(lv){return (1+(lv+1)*0.01).toFixed(2);} },
+  wsRange:       { tab:'atk', name:'공격 범위',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return ''+lv*8;},                    nxt:function(lv){return ''+(lv+1)*8;} },
+  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.01).toFixed(2);},     nxt:function(lv){return (1+(lv+1)*0.01).toFixed(2);} },
   // 공격 탭 3단계
-  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
-  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
+  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, atkGroup:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, atkGroup:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
   // 공격 탭 4단계
-  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
-  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
+  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, atkGroup:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, atkGroup:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
   // 공격 탭 5단계
-  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
-  bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
-  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
+  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, atkGroup:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
+  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
 
   // 방어 탭 2단계
   defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                  nxt:function(lv){return ''+(lv+1);} },
