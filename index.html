@@ -1849,6 +1849,33 @@ function savePerm() {
   } catch(_) {}
 }
 
+// Firebase 클라우드 세이브 복원 (로컬 데이터가 손실된 경우)
+function syncFromFirebase() {
+  if (!window._fbDb || !window._fbUid) return;
+  window._fbDb.collection('users').doc(window._fbUid).get().then(function(doc) {
+    if (!doc.exists) return;
+    var cloud = doc.data().perm;
+    if (!cloud) return;
+    // 클라우드 데이터가 더 진행된 경우 복원
+    var localBest = PERM.bestWave || 0;
+    var cloudBest = cloud.bestWave || 0;
+    var cloudGold = cloud.gold || 0;
+    var cloudGems = cloud.gems || 0;
+    if (cloudBest > localBest || (cloudBest === localBest && cloudGold > (PERM.gold||0))) {
+      // 클라우드 데이터로 복원
+      Object.keys(cloud).forEach(function(k) { PERM[k] = cloud[k]; });
+      try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
+      // HUD 갱신
+      try {
+        var hg = document.getElementById('home-gold'); if(hg) hg.textContent = PERM.gold||0;
+        var hgm = document.getElementById('home-gem'); if(hgm) hgm.textContent = PERM.gems||0;
+        syncShopUI && syncShopUI();
+      } catch(_) {}
+    }
+  }).catch(function(){});
+}
+window.syncFromFirebase = syncFromFirebase;
+
 /* ── 상점 아이템 정의 ── */
 function getUpgradeCost(baseCost, currentLevel) {
   return Math.floor(baseCost * Math.pow(1.4, currentLevel));
@@ -3943,6 +3970,7 @@ document.addEventListener('touchend', function(e) {
       // 로딩 완료 → boot 후 전환
       window.resizeCanvas();
       loadPerm();
+      syncFromFirebase();
 
       // 1. 0.3초 대기
       setTimeout(function() {
