@@ -4266,6 +4266,15 @@ if (dailyClaimBtn) {
     document.getElementById('tier-name').textContent       = t.name;
     document.getElementById('tier-multiplier').textContent = t.mult.toFixed(1);
     try { localStorage.setItem('td_tier', curTier + 1); } catch(_) {}
+    // 티어 1 일 때 좌측 화살표 비활성화
+    var prevBtn = document.getElementById('tier-prev');
+    if (prevBtn) {
+      var disabled = (curTier === 0);
+      prevBtn.disabled = disabled;
+      prevBtn.style.opacity = disabled ? '0.25' : '1';
+      prevBtn.style.cursor  = disabled ? 'default' : 'pointer';
+      prevBtn.style.pointerEvents = disabled ? 'none' : 'auto';
+    }
   }
 
   function refreshHomeData() {
@@ -4280,7 +4289,8 @@ if (dailyClaimBtn) {
 
   /* ── 난이도 화살표 ── */
   document.getElementById('tier-prev').addEventListener('click', function() {
-    var prev = (curTier - 1 + TIERS.length) % TIERS.length;
+    if (curTier <= 0) return; // 티어 1 에서는 비활성 (랩어라운드 없음)
+    var prev = curTier - 1;
     if (!isTierUnlocked(prev)) {
       try { showNavLockTooltip('티어 ' + prev + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
