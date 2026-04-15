@@ -1747,6 +1747,11 @@ function checkDailyReward() {
   var newStreak = isConsec ? streak + 1 : 1;
   localStorage.setItem('td_daily_login', today);
   localStorage.setItem('td_daily_streak', String(newStreak));
+  // 주간 임무: 출석 진행 +1 (checkDailyReward 는 하루 1회 도달)
+  try {
+    var wa = parseInt(localStorage.getItem('wk_attend_progress') || '0', 10);
+    localStorage.setItem('wk_attend_progress', wa + 1);
+  } catch(_) {}
   var reward = DailyRewards[(newStreak - 1) % 7];
   // Apply reward
   PERM.gold += reward.gold;
@@ -7572,7 +7577,11 @@ window._missionProgress = function(type, amount) {
     if(type==='wave')    { var cur=parseInt(localStorage.getItem('daily_wave_progress')||'0',10); if((amount||1)>cur) localStorage.setItem('daily_wave_progress',amount||1); var tw=parseInt(localStorage.getItem('daily_total_wave_progress')||'0',10); localStorage.setItem('daily_total_wave_progress',tw+1); }
     if(type==='upgrade') { var v=parseInt(localStorage.getItem('daily_upgrade_progress')||'0',10); localStorage.setItem('daily_upgrade_progress',v+(amount||1)); }
     if(type==='play')    { var v=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',v+(amount||1)); }
-    if(type==='ad')      { localStorage.setItem('daily_ad_progress','1'); }
+    if(type==='ad')      {
+      localStorage.setItem('daily_ad_progress','1');
+      var wa=parseInt(localStorage.getItem('wk_ads_progress')||'0',10);
+      localStorage.setItem('wk_ads_progress', wa + (amount||1));
+    }
     _updateDailyAllProgress();
   } catch(_){}
   _updateBadge();
@@ -8026,6 +8035,8 @@ setTimeout(_applyMaxOverrides, 300);
     { id:'wk_boss',    text:'보스 20마리 처치',      target:20,   trackKey:'wk_boss_progress',    reward:{gold:300,gem:0} },
     { id:'wk_upgrade', text:'강화 업그레이드 10회',  target:10,   trackKey:'wk_upgrade_progress', reward:{gold:300,gem:0} },
     { id:'wk_games',   text:'게임 10판 플레이',      target:10,   trackKey:'wk_games_progress',   reward:{gold:300,gem:0} },
+    { id:'wk_ads',     text:'광고 7회 시청',         target:7,    trackKey:'wk_ads_progress',     reward:{gold:300,gem:0} },
+    { id:'wk_attend',  text:'출석 5일 달성',         target:5,    trackKey:'wk_attend_progress',  reward:{gold:300,gem:0} },
   ];
   var WK_CHECKPOINTS = [5,10,15,20,25,30,35];
   var WK_CP_REWARDS  = {5:10,10:10,15:10,20:10,25:10,30:10,35:20};
@@ -8037,7 +8048,7 @@ setTimeout(_applyMaxOverrides, 300);
     var monStr=mon.toISOString().slice(0,10);
     var last=localStorage.getItem('weekly_reset_date');
     if(last!==monStr){
-      ['wk_wave_progress','wk_kills_progress','wk_boss_progress','wk_upgrade_progress','wk_games_progress','weekly_challenge_count'].forEach(function(k){localStorage.setItem(k,'0');});
+      ['wk_wave_progress','wk_kills_progress','wk_boss_progress','wk_upgrade_progress','wk_games_progress','wk_ads_progress','wk_attend_progress','weekly_challenge_count'].forEach(function(k){localStorage.setItem(k,'0');});
       WK_CHECKPOINTS.forEach(function(n){localStorage.removeItem('weekly_challenge_claimed_'+n);});
       WMISS.forEach(function(m){localStorage.removeItem('wk_claimed_'+m.id);});
       localStorage.setItem('weekly_reset_date',monStr);
