@@ -2019,7 +2019,7 @@ window.addEventListener('resize', function() { window.resizeCanvas(); }, false);
 ═══════════════════════════════════════════════════════════════ */
 let G        = null;
 let loopGen  = 0;
-let gameSpeed = 1;
+var gameSpeed = 1;
 let _pauseBtnRect = { x: 0, y: 0, w: 28, h: 28 };
 let _confirmCb    = null;
 var coreChips = 0;
@@ -6773,15 +6773,19 @@ function _updateDisplay() {
   } catch(_) {}
 }
 
+function _syncBtnColors() {
+  var minus = document.getElementById('speed-minus');
+  var plus = document.getElementById('speed-plus');
+  if (minus) minus.style.color = _sIdx === 0 ? '#334455' : '#00ffff';
+  if (plus) plus.style.color = _sIdx === SPEED_STEPS.length - 1 ? '#334455' : '#00ffff';
+}
 function _speedDown() {
   if (_sIdx > 0) { _sIdx--; _updateDisplay(); }
-  var minus = document.getElementById('speed-minus');
-  if (minus) { minus.style.color = _sIdx === 0 ? '#334455' : '#00ffff'; }
+  _syncBtnColors();
 }
 function _speedUp() {
   if (_sIdx < SPEED_STEPS.length - 1) { _sIdx++; _updateDisplay(); }
-  var plus = document.getElementById('speed-plus');
-  if (plus) { plus.style.color = _sIdx === SPEED_STEPS.length-1 ? '#334455' : '#00ffff'; }
+  _syncBtnColors();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -6798,7 +6802,7 @@ setInterval(function() {
   if (!g || g === _lastG) return;
   _lastG = g;
   // 새 게임 시작 시 인덱스 리셋 (×1)
-  _sIdx = 0; _updateDisplay();
+  _sIdx = 0; _updateDisplay(); _syncBtnColors();
   var m = document.getElementById('speed-minus');
   if (m) m.style.color = '#334455';
   var p = document.getElementById('speed-plus');
