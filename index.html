@@ -7353,7 +7353,13 @@ function _renderMissions() {
   list.innerHTML = '';
   var anyClaimable = false;
 
-  DAILY_MISSIONS.forEach(function(m) {
+  // 수령 완료된 임무를 하단으로 정렬
+  var sortedDaily = DAILY_MISSIONS.slice().sort(function(a,b){
+    var aC = localStorage.getItem('daily_claimed_'+a.id)==='true' ? 1 : 0;
+    var bC = localStorage.getItem('daily_claimed_'+b.id)==='true' ? 1 : 0;
+    return aC - bC;
+  });
+  sortedDaily.forEach(function(m) {
     var prog    = parseInt(localStorage.getItem(m.trackKey)||'0',10);
     var claimed = localStorage.getItem('daily_claimed_'+m.id)==='true';
     var done    = prog >= m.target;
@@ -7974,7 +7980,13 @@ setTimeout(_applyMaxOverrides, 300);
     var list=document.getElementById('ms4-wlist'); if(!list) return;
     list.innerHTML='';
     var anyClaimable=false;
-    WMISS.forEach(function(m) {
+    // 수령 완료된 임무를 하단으로 정렬
+    var sortedWeekly = WMISS.slice().sort(function(a,b){
+      var aC = localStorage.getItem('wk_claimed_'+a.id)==='true' ? 1 : 0;
+      var bC = localStorage.getItem('wk_claimed_'+b.id)==='true' ? 1 : 0;
+      return aC - bC;
+    });
+    sortedWeekly.forEach(function(m) {
       var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
       if(m.id==='wk_wave') prog=Math.min(prog,m.target); // 웨이브는 최대치 cap
       var done=prog>=m.target;
@@ -8007,7 +8019,6 @@ setTimeout(_applyMaxOverrides, 300);
           // 주간 도전 카운트 +1
           var wcc=parseInt(localStorage.getItem('weekly_challenge_count')||'0',10);
           localStorage.setItem('weekly_challenge_count',wcc+1);
-          if(window.showAchievementToast) showAchievementToast('◈+'+wm.reward.gold+' 획득!');
           var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
           _renderW();
         });
