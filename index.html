@@ -2260,15 +2260,7 @@ function gameLoop(gen, ts) {
   }
   const rawDt = Math.min(ts - G.lastTime, 100);
   G.lastTime = ts;
-  var spd = (G.phase === 'playing' || G.phase === 'between') ? (G.speed || 1) : 1;
-  var _upd = window.update || update;
-  if (spd <= 2) {
-    _upd(rawDt * spd);
-  } else {
-    var steps = Math.ceil(Math.min(spd, 5));
-    var stepDt = rawDt * spd / steps;
-    for (var _si = 0; _si < steps; _si++) _upd(stepDt);
-  }
+  update(rawDt);
   updateShake();
   render();
   if (G.phase !== 'gameover') {
@@ -2283,6 +2275,9 @@ var shieldAbsorbCount = 0; // 실드 피해 차단 누적 횟수 (ev_shield_10 �
 
 function update(dt) {
   if (G.phase === 'gameover' || G.phase === 'paused') return;
+  // 배속 적용
+  var _spd = (G.phase === 'playing' || G.phase === 'between') ? (G.speed || 1) : 1;
+  dt = dt * _spd;
 
   // Zoom smooth transition (~0.3s time constant)
   if (G.zoom !== G.targetZoom) {
