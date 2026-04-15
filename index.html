@@ -1589,6 +1589,28 @@ canvas {
 <!-- ── 하단 네비게이션 (전역 공유) ── -->
 <div id="bottom-nav" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:52px; background:#040c14; border-top:1px solid #1a2a3a; z-index:9999; padding-bottom:env(safe-area-inset-bottom, 0px);"></div>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  var config = {
+    apiKey: "AIzaSyCCpTQQ0UbcjVczQKJXremoXMx0XPpslB8",
+    authDomain: "neon-core-a8296.firebaseapp.com",
+    projectId: "neon-core-a8296",
+    storageBucket: "neon-core-a8296.firebasestorage.app",
+    messagingSenderId: "30154771900",
+    appId: "1:30154771900:web:49a4cfdae31b6714c02fb9"
+  };
+  firebase.initializeApp(config);
+  window._fbDb = firebase.firestore();
+  // 유저 ID 생성/로드
+  var uid = localStorage.getItem('td_uid');
+  if (!uid) { uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); localStorage.setItem('td_uid', uid); }
+  window._fbUid = uid;
+})();
+</script>
+
 <script>
 'use strict';
 
@@ -1814,6 +1836,17 @@ function loadPerm() {
 }
 function savePerm() {
   try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
+  // Firestore 동기화
+  try {
+    if (window._fbDb && window._fbUid) {
+      window._fbDb.collection('users').doc(window._fbUid).set({
+        perm: JSON.parse(JSON.stringify(PERM)),
+        uid: window._fbUid,
+        lastActive: new Date().toISOString(),
+        ua: navigator.userAgent || ''
+      }, { merge: true });
+    }
+  } catch(_) {}
 }
 
 /* ── 상점 아이템 정의 ── */
