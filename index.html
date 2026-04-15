@@ -9141,21 +9141,21 @@ function _injectCardTab() {
   var bw=0;
   try{ bw=parseInt(localStorage.getItem('bestWave')||'0',10); }catch(_){}
   if(!bw&&window.PERM) bw=PERM.bestWave||0;
-  var unlocked=bw>=25;
+  var unlocked=bw>=10;
 
   var btn=document.createElement('button');
   btn.className='store-tab';
   btn.setAttribute('data-tab','card');
   btn.style.cssText='flex:1;height:34px;background:none;border:none;font-family:monospace;font-size:10px;border-bottom:2px solid transparent;cursor:pointer;'+
     'color:'+(unlocked?'#334455':'#1a2a3a')+';opacity:'+(unlocked?'1':'0.4')+';';
-  btn.textContent=unlocked?'모듈':'모듈 (웨이브 25+)';
+  btn.textContent=unlocked?'모듈':'모듈 (웨이브 10+)';
   btn.disabled=!unlocked;
   btn.addEventListener('click',function(){
     if(!unlocked){
       // 잠금 토스트
       var t=document.createElement('div');
       t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;padding:8px 16px;z-index:9999;pointer-events:none;white-space:nowrap;';
-      t.textContent='웨이브 25 달성 후 해금됩니다';
+      t.textContent='웨이브 10 달성 후 해금됩니다';
       document.body.appendChild(t);
       setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity 0.5s'; },1500);
       setTimeout(function(){ t.remove(); },2100);
