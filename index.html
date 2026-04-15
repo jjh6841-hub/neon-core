@@ -4353,8 +4353,8 @@ if (dailyClaimBtn) {
       'background:' + (locked ? '#0a1520' : '#0a1a2a') + ';' +
       'border:1px solid ' + (locked ? '#1a2a3a' : '#0a3344') + ';' +
       'border-left:2px solid rgba(0,255,255,' + (locked ? '0.08' : '0.30') + ');' +
-      'padding:10px 8px 18px;display:flex;flex-direction:row;' +
-      'justify-content:space-between;align-items:flex-end;gap:6px;' +
+      'padding:10px 8px;display:flex;flex-direction:row;' +
+      'justify-content:space-between;align-items:stretch;gap:6px;' +
       'min-width:0;overflow:visible;' +
       'opacity:' + (locked ? '0.5' : '1') + ';' +
       'transition:border-color 0.2s;' +
@@ -4398,7 +4398,7 @@ if (dailyClaimBtn) {
         '</div>' +
         (valueHTML ? '<div>' + valueHTML + '</div>' : '') +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' + btnHTML + '</div>';
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;flex-shrink:0;">' + btnHTML + '</div>';
 
     if (!locked && !maxed) {
       var btn = card.querySelector('button');
@@ -5516,7 +5516,7 @@ function _appendExtCard(container, key, ws) {
   var card = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px 12px 20px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:stretch;gap:8px;min-width:0;overflow:hidden;';
 
   var btnHTML2 = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
@@ -5540,7 +5540,7 @@ function _appendExtCard(container, key, ws) {
       '</div>' +
       '<div>' + valueHTML2 + '</div>' +
     '</div>' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' + btnHTML2 + '</div>';
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;flex-shrink:0;">' + btnHTML2 + '</div>';
 
   if (!maxed) {
     var btn = card.querySelector('[data-extkey]');
@@ -5813,10 +5813,10 @@ function _buildItemCard(item, ws) {
   var card  = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,220,100,0.25);' +
-    'padding:12px 12px 20px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:stretch;gap:8px;min-width:0;overflow:hidden;';
   var rhs = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
-    : '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' +
+    : '<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;flex-shrink:0;">' +
         '<span style="font-family:monospace;white-space:nowrap;">' +
           '<span style="font-size:16px;color:#00ffff;font-weight:bold;">' + item.nxt(lv) + '</span>' +
           '<span style="font-size:11px;color:#334455;"> → </span>' +
@@ -10290,7 +10290,7 @@ function _renderFreeCard(container, key, ws, insertBefore) {
   card.setAttribute('data-freeupg', key);
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px 12px 20px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
+    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:stretch;gap:8px;min-width:0;overflow:hidden;';
 
   var btnHTML3 = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
@@ -10315,7 +10315,7 @@ function _renderFreeCard(container, key, ws, insertBefore) {
       '</div>' +
       '<div>' + valueHTML3 + '</div>' +
     '</div>' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;">' + btnHTML3 + '</div>';
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;flex-shrink:0;">' + btnHTML3 + '</div>';
 
   if (!maxed) {
     (function(k, crd) {
