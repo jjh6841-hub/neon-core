@@ -7521,11 +7521,13 @@ window._openMissions = function() {
   _updateRefreshTimer();
   _updateBadge();
   document.getElementById('screen-missions').style.display = 'flex';
+  var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
   if (window._missionSwitchTab) window._missionSwitchTab('daily');
 };
 
 document.getElementById('miss-back') && document.getElementById('miss-back').addEventListener('click', function() {
   document.getElementById('screen-missions').style.display = 'none';
+  var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
   try { syncShopUI(); } catch(_) {}
 });
 
@@ -9360,12 +9362,14 @@ function _openRanking() {
   var gem=document.getElementById('ranking-gem');
   if(gem) gem.textContent=(window.PERM&&window.PERM.gems)||0;
   sc.style.display='flex';
+  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
   _renderRanking();
 }
 
 function _closeRanking() {
   var sc=document.getElementById('screen-ranking');
   if(sc) sc.style.display='none';
+  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
 }
 
 /* ════════════════════════════════════════════════════════
@@ -9509,6 +9513,7 @@ function _openMail() {
   var sc=document.getElementById('screen-mail');
   if(!sc) return;
   sc.style.display='flex';
+  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
   if(sc._renderActive) sc._renderActive();
   else _renderMailTab();
 }
@@ -9516,6 +9521,7 @@ function _openMail() {
 function _closeMail() {
   var sc=document.getElementById('screen-mail');
   if(sc) sc.style.display='none';
+  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
 }
 
 /* ════════════════════════════════════════════════════════
@@ -9888,18 +9894,19 @@ function _renderAccountContent() {
 }
 
 function _openAccount() {
-  // 설정 화면 닫기
   var settingsEl=document.getElementById('settings-screen');
   if(settingsEl) settingsEl.classList.remove('show');
   var sc=document.getElementById('screen-account');
   if(!sc) return;
   sc.style.display='flex';
+  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
   _renderAccountContent();
 }
 
 function _closeAccount() {
   var sc=document.getElementById('screen-account');
   if(sc) sc.style.display='none';
+  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
 }
 
 /* ════════════════════════════════════════════════════════
@@ -11182,8 +11189,9 @@ window.showScreen = function (name) {
     var achEl = document.getElementById('achieve-screen');
     if (achEl) {
       achEl.classList.add('show');
-      achEl.style.paddingBottom = '52px';
+      achEl.style.paddingBottom = '16px';
     }
+    var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
     try { buildAchieveUI(); } catch(_) {}
   }
 
@@ -11230,11 +11238,14 @@ window.showScreen = function (name) {
     ['skin-gem','cl-gem'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_gm; });
   } catch(_) {}
 
-  // 하단 탭 항상 표시 유지
+  // 하단 탭 — 메인 화면에서만 표시, 오버레이(업적 등)에서는 숨김
+  var _overlayScreens = ['achievements'];
   var nav = document.getElementById('bottom-nav');
   if (nav) {
-    nav.style.display = 'flex';
-    renderNavTabs(name);
+    if (_overlayScreens.indexOf(name) === -1) {
+      nav.style.display = 'flex';
+      renderNavTabs(name);
+    }
   }
 };
 
