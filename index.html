@@ -9149,32 +9149,66 @@ function _showTierLockMsg(tierName, required, nextIdx, prevBest) {
       'align-items:center;justify-content:center;',
     ].join('');
     _tierLockPopup.innerHTML =
-      '<div style="background:#0a1a2a;border:1px solid #0a3344;' +
-        'width:min(260px,88%);padding:20px;text-align:center;">' +
-        '<div style="color:#00ffff;font-size:22px;margin-bottom:10px;">🔒</div>' +
-        '<div id="tier-lock-msg" style="color:#94a3b8;font-size:11px;' +
-          'font-family:monospace;line-height:1.7;margin-bottom:14px;white-space:pre-line;"></div>' +
-        '<button id="tier-lock-ok" style="background:#030b10;border:1px solid #0a3344;' +
-          'color:#00ffff;font-family:monospace;font-size:11px;' +
-          'padding:6px 20px;cursor:pointer;">확인</button>' +
+      '<div style="background:#0a1a2a;border:1px solid #0a3344;width:min(300px,90%);overflow:hidden;box-shadow:0 0 24px rgba(0,255,255,0.08);">' +
+        // 헤더 바
+        '<div style="background:#040c14;border-bottom:1px solid #0a3344;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:2px;">◆ ACCESS DENIED</span>' +
+          '<button id="tier-lock-x" style="background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;line-height:1;padding:0 2px;">×</button>' +
+        '</div>' +
+        // 본문
+        '<div style="padding:18px 16px 14px;">' +
+          // 티어 타겟 라벨
+          '<div style="text-align:center;margin-bottom:14px;">' +
+            '<div style="color:#334455;font-size:9px;font-family:monospace;letter-spacing:3px;margin-bottom:4px;">[ LOCKED ]</div>' +
+            '<div id="tier-lock-tgt" style="color:#00ffff;font-size:14px;font-family:monospace;letter-spacing:2px;"></div>' +
+          '</div>' +
+          // 조건 박스
+          '<div style="background:#030b10;border:1px solid #0a2233;padding:10px 12px;margin-bottom:10px;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;font-family:monospace;font-size:10px;margin-bottom:6px;">' +
+              '<span style="color:#556677;letter-spacing:1px;">≡ 조건</span>' +
+              '<span id="tier-lock-req" style="color:#f59e0b;"></span>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;font-family:monospace;font-size:10px;">' +
+              '<span style="color:#556677;letter-spacing:1px;">◇ 진행</span>' +
+              '<span id="tier-lock-cur" style="color:#94a3b8;"></span>' +
+            '</div>' +
+            // 진행 바
+            '<div style="position:relative;background:#1a2a3a;border-radius:3px;height:4px;margin-top:8px;overflow:hidden;">' +
+              '<div id="tier-lock-bar" style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);width:0%;transition:width 0.4s;"></div>' +
+            '</div>' +
+          '</div>' +
+          // 확인 버튼
+          '<button id="tier-lock-ok" style="width:100%;background:transparent;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;padding:10px;cursor:pointer;-webkit-appearance:none;">확인</button>' +
+        '</div>' +
       '</div>';
     document.body.appendChild(_tierLockPopup);
-    document.getElementById('tier-lock-ok').addEventListener('click', function() {
-      _tierLockPopup.style.display = 'none';
-    });
+    var _close = function() { _tierLockPopup.style.display = 'none'; };
+    document.getElementById('tier-lock-ok').addEventListener('click', _close);
+    document.getElementById('tier-lock-x').addEventListener('click', _close);
+    _tierLockPopup.addEventListener('click', function(e){ if (e.target === _tierLockPopup) _close(); });
   }
-  // nextIdx 가 전달되면 이전 티어 기반 메시지로 표시
-  var msg;
+
+  // 데이터 구성
+  var curVal, reqLabel, curLabel;
   if (typeof nextIdx === 'number' && nextIdx > 0) {
     if (prevBest === undefined) {
       prevBest = parseInt(localStorage.getItem('tier' + nextIdx + '_best') || '0', 10);
     }
-    msg = tierName + ' 해금 조건\n티어 ' + nextIdx + ' 웨이브 ' + required + ' 클리어 필요\n(티어 ' + nextIdx + ' 최고: ' + prevBest + ')';
+    curVal = prevBest;
+    reqLabel = '티어 ' + nextIdx + ' · 웨이브 ' + required;
+    curLabel = '티어 ' + nextIdx + ' · 최고 ' + prevBest;
   } else {
     var best = (window.PERM && PERM.bestWave) || 0;
-    msg = tierName + ' 해금 조건\n웨이브 ' + required + ' 달성 필요\n(현재 최고: ' + best + ')';
+    curVal = best;
+    reqLabel = '웨이브 ' + required;
+    curLabel = '최고 ' + best;
   }
-  document.getElementById('tier-lock-msg').textContent = msg;
+
+  document.getElementById('tier-lock-tgt').textContent = tierName;
+  document.getElementById('tier-lock-req').textContent = reqLabel;
+  document.getElementById('tier-lock-cur').textContent = curLabel;
+  var pct = Math.max(0, Math.min(100, Math.round((curVal / required) * 100)));
+  document.getElementById('tier-lock-bar').style.width = pct + '%';
   _tierLockPopup.style.display = 'flex';
 }
 
