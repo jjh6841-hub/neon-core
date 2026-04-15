@@ -4249,10 +4249,13 @@ if (dailyClaimBtn) {
     { name: '티어 4', mult: 3.0 },
     { name: '티어 5', mult: 5.0 },
   ];
-  var TIER_REQS = [0, 10, 25, 50, 100]; // 티어 1~5 해금 요구 웨이브
+  // 티어 N (idx N-1, N>=2) 해금 조건: 티어 N-1 에서 웨이브 100 클리어
   function isTierUnlocked(idx) {
-    var best = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
-    return best >= (TIER_REQS[idx] || 0);
+    if (idx <= 0) return true;
+    try {
+      var prevBest = parseInt(localStorage.getItem('tier' + idx + '_best') || '0', 10);
+      return prevBest >= 100;
+    } catch(_) { return false; }
   }
   var _savedTierIdx = parseInt(localStorage.getItem('td_tier') || '1', 10) - 1;
   var curTier = Math.max(0, Math.min(_savedTierIdx, TIERS.length - 1));
@@ -4279,7 +4282,7 @@ if (dailyClaimBtn) {
   document.getElementById('tier-prev').addEventListener('click', function() {
     var prev = (curTier - 1 + TIERS.length) % TIERS.length;
     if (!isTierUnlocked(prev)) {
-      try { showNavLockTooltip('웨이브 ' + TIER_REQS[prev] + ' 달성 후 해금'); } catch(_) {}
+      try { showNavLockTooltip('티어 ' + prev + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
     }
     curTier = prev;
@@ -4288,7 +4291,7 @@ if (dailyClaimBtn) {
   document.getElementById('tier-next').addEventListener('click', function() {
     var next = (curTier + 1) % TIERS.length;
     if (!isTierUnlocked(next)) {
-      try { showNavLockTooltip('웨이브 ' + TIER_REQS[next] + ' 달성 후 해금'); } catch(_) {}
+      try { showNavLockTooltip('티어 ' + next + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
     }
     curTier = next;
@@ -8819,11 +8822,11 @@ var TYPE_BASE = {
 
 /* §11 — 난이도 티어 설정 */
 var TIER_CFG = [
-  { name:'티어 1', goldMult:1.0, enemyMult:1.0, unlockWave:0  },
-  { name:'티어 2', goldMult:1.3, enemyMult:1.3, unlockWave:10 },
-  { name:'티어 3', goldMult:1.6, enemyMult:1.7, unlockWave:20 },
-  { name:'티어 4', goldMult:2.0, enemyMult:2.2, unlockWave:35 },
-  { name:'티어 5', goldMult:2.5, enemyMult:3.0, unlockWave:50 },
+  { name:'티어 1', goldMult:1.0, enemyMult:1.0, unlockWave:0   },
+  { name:'티어 2', goldMult:1.3, enemyMult:1.3, unlockWave:100 },
+  { name:'티어 3', goldMult:1.6, enemyMult:1.7, unlockWave:100 },
+  { name:'티어 4', goldMult:2.0, enemyMult:2.2, unlockWave:100 },
+  { name:'티어 5', goldMult:2.5, enemyMult:3.0, unlockWave:100 },
 ];
 var _curTierIdx = 0;
 function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
@@ -9116,7 +9119,7 @@ function _patchCritFloat() {
 ════════════════════════════════════════════════════════ */
 var _tierLockPopup = null;
 
-function _showTierLockMsg(tierName, required) {
+function _showTierLockMsg(tierName, required, nextIdx, prevBest) {
   if (!_tierLockPopup) {
     _tierLockPopup = document.createElement('div');
     _tierLockPopup.style.cssText = [
@@ -9139,9 +9142,18 @@ function _showTierLockMsg(tierName, required) {
       _tierLockPopup.style.display = 'none';
     });
   }
-  var best = (window.PERM && PERM.bestWave) || 0;
-  document.getElementById('tier-lock-msg').textContent =
-    tierName + ' 해금 조건\n웨이브 ' + required + ' 달성 필요\n(현재 최고: ' + best + ')';
+  // nextIdx 가 전달되면 이전 티어 기반 메시지로 표시
+  var msg;
+  if (typeof nextIdx === 'number' && nextIdx > 0) {
+    if (prevBest === undefined) {
+      prevBest = parseInt(localStorage.getItem('tier' + nextIdx + '_best') || '0', 10);
+    }
+    msg = tierName + ' 해금 조건\n티어 ' + nextIdx + ' 웨이브 ' + required + ' 클리어 필요\n(티어 ' + nextIdx + ' 최고: ' + prevBest + ')';
+  } else {
+    var best = (window.PERM && PERM.bestWave) || 0;
+    msg = tierName + ' 해금 조건\n웨이브 ' + required + ' 달성 필요\n(현재 최고: ' + best + ')';
+  }
+  document.getElementById('tier-lock-msg').textContent = msg;
   _tierLockPopup.style.display = 'flex';
 }
 
@@ -9161,13 +9173,15 @@ function _initTierSystem() {
     .observe(nameEl, { childList:true, characterData:true, subtree:true });
 
   // tier-next 클릭 인터셉터 (capture)
+  // 티어 N (nextIdx) 해금 조건: 티어 N-1 에서 웨이브 100 클리어
   nextBtn.addEventListener('click', function(e) {
     var nextIdx  = (_curTierIdx + 1) % TIER_CFG.length;
+    if (nextIdx <= 0) return; // 티어 1 은 항상 해금
     var required = TIER_CFG[nextIdx].unlockWave;
-    var best     = (window.PERM && PERM.bestWave) || 0;
-    if (best < required) {
+    var prevBest = parseInt(localStorage.getItem('tier' + nextIdx + '_best') || '0', 10);
+    if (prevBest < required) {
       e.stopImmediatePropagation();
-      _showTierLockMsg(TIER_CFG[nextIdx].name, required);
+      _showTierLockMsg(TIER_CFG[nextIdx].name, required, nextIdx, prevBest);
     }
   }, true);
 }
