@@ -5175,14 +5175,177 @@ if (dailyClaimBtn) {
 (function() {
 'use strict';
 
-/* ── 숫자 단위 약어 ── */
+/* ── 숫자 단위 약어 (SI 접두어: K/M/G/T/P/E/Z/Y, 소수점 둘째자리) ── */
 window.formatNumber = function(n) {
-  n = Math.floor(n);
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(2) + 'K';
-  return String(n);
+  if (n === null || n === undefined || isNaN(n)) return String(n);
+  var num = Number(n);
+  var neg = num < 0;
+  num = Math.abs(num);
+  var suffixes = ['','K','M','G','T','P','E','Z','Y'];
+  var idx = 0;
+  if (num >= 1000) {
+    idx = Math.min(suffixes.length - 1, Math.floor(Math.log10(num) / 3));
+  }
+  var out;
+  if (idx === 0) {
+    out = String(Math.floor(num));
+  } else {
+    var scaled = num / Math.pow(1000, idx);
+    // 소수점 둘째자리까지, 불필요한 trailing zeros 제거
+    out = scaled.toFixed(2).replace(/\.?0+$/, '') + suffixes[idx];
+  }
+  return neg ? '-' + out : out;
 };
+
+/* ── SI 포맷 문자열을 다시 숫자로 파싱 ── */
+window.parseFormattedNumber = function(s) {
+  if (typeof s === 'number') return s;
+  if (s === null || s === undefined) return 0;
+  var str = String(s).trim();
+  var m = str.match(/(-?\d+(?:\.\d+)?)\s*([KMGTPEZY])?/);
+  if (!m) return 0;
+  var v = parseFloat(m[1]);
+  var mult = {K:1e3,M:1e6,G:1e9,T:1e12,P:1e15,E:1e18,Z:1e21,Y:1e24};
+  if (m[2] && mult[m[2]]) v *= mult[m[2]];
+  return Math.round(v);
+};
+
+/* ── 전역 숫자 자동 포매팅: textContent, fillText 훅 ── */
+(function(){
+  if (window.__siFormatInstalled) return;
+  window.__siFormatInstalled = true;
+
+  var fmt = window.formatNumber;
+
+  // 문자열 내 연속 숫자를 SI 표기로 치환
+  // "Gold: 12345" -> "Gold: 12.34K", "1234/56789" -> "1.23K/56.78K"
+  // 날짜/시간 패턴과 소수(%, 배율 등)는 보호
+  function formatInString(s) {
+    if (typeof s !== 'string') return s;
+    if (s.length > 4096) return s;
+    // 빠른 탈출: 4자리 이상 연속 숫자가 없으면 처리할 게 없음
+    if (!/\d{4}/.test(s)) return s;
+    var protect = [];
+    function ph(m){ protect.push(m); return '\x01P'+(protect.length-1)+'\x02'; }
+    // 1) 날짜: YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD
+    var t = s.replace(/\d{4}[-\/.]\d{1,2}[-\/.]\d{1,2}/g, ph);
+    // 2) 시간: HH:MM[:SS]
+    t = t.replace(/\d{1,2}:\d{2}(?::\d{2})?/g, ph);
+    // 3) 이미 SI 접미어가 붙은 숫자 (K/M/G/T/P/E/Z/Y)
+    t = t.replace(/\d+(?:\.\d+)?[KMGTPEZY]\b/g, ph);
+    // 4) 이미 %, ×, x, × 로 끝나는 소수 비율 등 소수점 숫자는 skip (자연히 아래 skip됨)
+
+    // 숫자 토큰 치환: 앞뒤 문맥이 숫자/.이 아닌 완전한 정수/소수
+    t = t.replace(/(^|[^\d.])(\d+(?:\.\d+)?)(?=[^\d.]|$)/g, function(whole, prefix, num){
+      // 소수점 포함은 그대로 (%, 배율)
+      if (num.indexOf('.') !== -1) return whole;
+      var v = parseInt(num, 10);
+      if (v >= 1000) return prefix + fmt(v);
+      return whole;
+    });
+    // 플레이스홀더 복원
+    t = t.replace(/\x01P(\d+)\x02/g, function(_, i){ return protect[+i]; });
+    return t;
+  }
+
+  // Node.prototype.textContent setter 훅
+  try {
+    var desc = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+    if (desc && desc.set) {
+      var origSet = desc.set;
+      Object.defineProperty(Node.prototype, 'textContent', {
+        configurable: true,
+        enumerable: desc.enumerable,
+        get: desc.get,
+        set: function(value) {
+          try {
+            if (typeof value === 'number') {
+              value = fmt(value);
+            } else if (typeof value === 'string') {
+              value = formatInString(value);
+            }
+          } catch(_) {}
+          return origSet.call(this, value);
+        }
+      });
+    }
+  } catch(e){}
+
+  // HTMLElement.prototype.innerText setter 훅 (일부 브라우저에서 별도 경로)
+  try {
+    var desc2 = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'innerText');
+    if (desc2 && desc2.set) {
+      var origSet2 = desc2.set;
+      Object.defineProperty(HTMLElement.prototype, 'innerText', {
+        configurable: true,
+        enumerable: desc2.enumerable,
+        get: desc2.get,
+        set: function(value) {
+          try {
+            if (typeof value === 'number') value = fmt(value);
+            else if (typeof value === 'string') value = formatInString(value);
+          } catch(_) {}
+          return origSet2.call(this, value);
+        }
+      });
+    }
+  } catch(e){}
+
+  // CanvasRenderingContext2D.fillText / strokeText 훅 (캔버스 데미지/HP 등)
+  try {
+    if (typeof CanvasRenderingContext2D !== 'undefined') {
+      var origFill = CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText = function(text, x, y, maxWidth) {
+        try {
+          if (typeof text === 'number') text = fmt(text);
+          else if (typeof text === 'string') text = formatInString(text);
+        } catch(_){}
+        return maxWidth !== undefined
+          ? origFill.call(this, text, x, y, maxWidth)
+          : origFill.call(this, text, x, y);
+      };
+      var origStroke = CanvasRenderingContext2D.prototype.strokeText;
+      CanvasRenderingContext2D.prototype.strokeText = function(text, x, y, maxWidth) {
+        try {
+          if (typeof text === 'number') text = fmt(text);
+          else if (typeof text === 'string') text = formatInString(text);
+        } catch(_){}
+        return maxWidth !== undefined
+          ? origStroke.call(this, text, x, y, maxWidth)
+          : origStroke.call(this, text, x, y);
+      };
+    }
+  } catch(e){}
+
+  // innerHTML setter 훅: HTML 설정 후 텍스트 노드를 순회하며 포매팅
+  // (템플릿 문자열의 숫자를 잡는 용도. 태그/속성은 손대지 않음)
+  try {
+    var ihDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+    if (ihDesc && ihDesc.set) {
+      var origIHSet = ihDesc.set;
+      Object.defineProperty(Element.prototype, 'innerHTML', {
+        configurable: true,
+        enumerable: ihDesc.enumerable,
+        get: ihDesc.get,
+        set: function(value) {
+          origIHSet.call(this, value);
+          try {
+            // 4자리 이상 숫자가 없는 경우 트리 워킹 생략
+            if (typeof value !== 'string' || !/\d{4}/.test(value)) return;
+            var walker = document.createTreeWalker(this, NodeFilter.SHOW_TEXT, null, false);
+            var n;
+            while ((n = walker.nextNode())) {
+              var v = n.nodeValue;
+              if (!v) continue;
+              var f = formatInString(v);
+              if (f !== v) n.nodeValue = f;
+            }
+          } catch(_){}
+        }
+      });
+    }
+  } catch(e){}
+})();
 
 /* ── createState 확장 ── */
 var _origCreate = window.createState;
@@ -7227,7 +7390,7 @@ if (resultsEl) {
       // r-gold 값 가져오기
       setTimeout(function() {
         var goldEl = document.getElementById('r-gold');
-        _lastBaseGold = goldEl ? parseInt(goldEl.textContent, 10) || 0 : 0;
+        _lastBaseGold = goldEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(goldEl.textContent) : (parseInt(goldEl.textContent, 10) || 0)) : 0;
         var adEl = document.getElementById('r-ad-gold');
         if (adEl) adEl.textContent = '0';
         var totEl = document.getElementById('r-total-gold');
@@ -7242,7 +7405,7 @@ if (resultsEl) {
 window._showAdDoublePopup = function() {
   if (_adDoubleUsed) return;
   var goldEl = document.getElementById('r-gold');
-  _lastBaseGold = goldEl ? parseInt(goldEl.textContent, 10) || 0 : 0;
+  _lastBaseGold = goldEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(goldEl.textContent) : (parseInt(goldEl.textContent, 10) || 0)) : 0;
   var amEl = document.getElementById('addbl-amount');
   var dbEl = document.getElementById('addbl-doubled');
   if (amEl) amEl.textContent = _lastBaseGold;
