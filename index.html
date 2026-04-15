@@ -1832,6 +1832,7 @@ function loadPerm() {
       PERM.settings     = Object.assign({ sound: true, music: true, vibration: true }, d.settings || {});
       PERM.ws           = (d.ws && typeof d.ws === 'object') ? d.ws : {};
       PERM.ws_atk_unlocks = d.ws_atk_unlocks ?? 0;
+      PERM.ws_def_unlocks = d.ws_def_unlocks ?? 0;
     }
   } catch (_) {}
 }
@@ -4339,22 +4340,34 @@ if (dailyClaimBtn) {
       cost: function(lv) { return 15 + lv * 12; },
       cur:  function(lv) { return (1.5 + lv * 0.25).toFixed(2); },
       nxt:  function(lv) { return (1.5 + (lv + 1) * 0.25).toFixed(2); } },
-    maxHp:      { tab:'def', name:'최대 체력',   maxLv:20,
-      cost: function(lv) { return 3 + Math.floor(lv * 1.8); },
+    maxHp:      { tab:'def', name:'최대 체력',   maxLv:999, defGroup:0,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
-    defense:    { tab:'def', name:'방어력',      maxLv:10,
-      cost: function(lv) { return 8 + lv * 5; },
-      cur:  function(lv) { return '' + lv; },
-      nxt:  function(lv) { return '' + (lv + 1); } },
-    hpRegen:    { tab:'def', name:'체력 재생',   maxLv:5,
-      cost: function(lv) { return 10 + lv * 10; },
+    defRate:    { tab:'def', name:'방어율',       maxLv:120, defGroup:1,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return Math.min(60, (lv + 1) * 0.5).toFixed(1); } },
+    defAbs:     { tab:'def', name:'절대 방어',    maxLv:999, defGroup:1,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return Math.floor(Math.pow(1.25, lv)) + ''; },
+      nxt:  function(lv) { return Math.floor(Math.pow(1.25, lv + 1)) + ''; } },
+    reflectDmg: { tab:'def', name:'반사 데미지',  maxLv:198, defGroup:2,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return Math.min(99, (lv + 1) * 0.5).toFixed(1); } },
+    vampChance: { tab:'def', name:'흡혈 확률',    maxLv:99,  defGroup:3,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return (lv * 0.5).toFixed(1); },
       nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
-    lifeSteal:  { tab:'def', name:'흡혈', locked:true, maxLv:5,
-      cost: function(lv) { return 20 + lv * 15; },
-      cur:  function(lv) { return '' + lv; },
-      nxt:  function(lv) { return '' + (lv + 1); } },
+    knockChance:{ tab:'def', name:'넉백 확률',    maxLv:99,  defGroup:4,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
+    shieldHP:   { tab:'def', name:'쉴드 HP',      maxLv:99,  defGroup:5,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return '' + (lv * 10); },
+      nxt:  function(lv) { return '' + ((lv + 1) * 10); } },
     goldGain:   { tab:'spc', name:'골드 획득량', maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
@@ -4466,6 +4479,51 @@ if (dailyClaimBtn) {
             savePerm();
             syncWorkshopHUD();
             buildWorkshopContent('atk');
+          });
+        })(nextGroup, nextDef.cost);
+        container.appendChild(unlockCard);
+      }
+    } else if (tab === 'def') {
+      var DEF_UNLOCK_GROUPS = [
+        { group:0, name:null, cost:0 },       // 최대 체력 — 기본
+        { group:1, name:'방어', cost:200 },    // 방어율, 절대 방어
+        { group:2, name:'반사', cost:500 },    // 반사 데미지
+        { group:3, name:'흡혈', cost:1500 },   // 흡혈 확률
+        { group:4, name:'넉백', cost:3000 },   // 넉백 확률
+        { group:5, name:'쉴드', cost:10000 },  // 쉴드 HP
+      ];
+      var defUnlocks = PERM.ws_def_unlocks || 0;
+      var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'def'; });
+      keys.forEach(function(key) {
+        var cfg = WS_ITEMS[key];
+        var grp = cfg.defGroup !== undefined ? cfg.defGroup : 99;
+        if (grp <= defUnlocks) appendCard(container, key, ws);
+      });
+      var nextGroup = defUnlocks + 1;
+      var nextDef = DEF_UNLOCK_GROUPS.filter(function(g){ return g.group === nextGroup; })[0];
+      if (nextDef) {
+        var afford = PERM.gold >= nextDef.cost;
+        var unlockCard = document.createElement('div');
+        unlockCard.style.cssText = 'grid-column:1/-1;background:#060f18;border:1px solid '+(afford?'#0a3344':'#1a2a3a')+';border-left:2px solid rgba(0,255,255,0.15);padding:14px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:4px;';
+        unlockCard.innerHTML =
+          '<div style="display:flex;flex-direction:column;gap:2px;">'+
+            '<span style="font-size:11px;color:'+(afford?'#00ffff':'#334455')+';font-family:monospace;">'+nextDef.name+' 업그레이드 잠금 해제</span>'+
+          '</div>'+
+          '<button data-def-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextDef.cost+'</button>';
+        var btn = unlockCard.querySelector('button');
+        (function(grp, cost) {
+          btn.addEventListener('click', function() {
+            if (PERM.gold < cost) return;
+            PERM.gold -= cost;
+            PERM.ws_def_unlocks = grp;
+            if (!PERM.unlocks) PERM.unlocks = {};
+            var unlockMap = {3:['vamp'], 4:['regen']};
+            var ulks = unlockMap[grp];
+            if (ulks) ulks.forEach(function(k){ PERM.unlocks[k] = true; });
+            if (window.G) G.gold = PERM.gold;
+            savePerm();
+            syncWorkshopHUD();
+            buildWorkshopContent('def');
           });
         })(nextGroup, nextDef.cost);
         container.appendChild(unlockCard);
@@ -5579,8 +5637,8 @@ function _appendExtended() {
   var curTier  = ws[tierKey] || 1;
   var costs    = TIER_COSTS[activeTab] || [0,150,400,1000,3000];
 
-  // 공격 탭은 새 단계별 잠금 시스템에서 처리 — 확장 주입 건너뜀
-  if (activeTab === 'atk') return;
+  // 공격/방어 탭은 새 단계별 잠금 시스템에서 처리 — 확장 주입 건너뜀
+  if (activeTab === 'atk' || activeTab === 'def') return;
 
   // 해금된 확장 아이템 추가
   Object.keys(NEW_ITEMS).forEach(function(key) {
@@ -5995,7 +6053,7 @@ function _doUnlockAppend() {
   var container = document.getElementById('ws-content');
   if (!container) return;
   var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
-  if (activeTab === 'pwr' || activeTab === 'atk') return;
+  if (activeTab === 'pwr' || activeTab === 'atk' || activeTab === 'def') return;
   // 이미 처리됨 (마커 존재 여부로 판단)
   if (container.querySelector('[data-upr="' + activeTab + '"]')) return;
   // 처리 마커 추가 (hidden)
@@ -13056,7 +13114,7 @@ function _injectUnlockCards() {
   var container = document.getElementById('ws-content');
   if (!container) return;
   var tab = _activeWsTab();
-  if (tab === 'atk') return; // 공격 탭은 새 잠금 시스템에서 처리
+  if (tab === 'atk' || tab === 'def') return; // 공격/방어 탭은 새 잠금 시스템에서 처리
   // 기존 마커 제거 (재렌더링 대응)
   var existing = container.querySelectorAll('[data-wsunlock]');
   for (var e = 0; e < existing.length; e++) existing[e].parentNode && existing[e].parentNode.removeChild(existing[e]);
