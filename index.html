@@ -2180,7 +2180,7 @@ function createState() {
     showTowerStats: false,
 
     cx: CW / 2,
-    cy: CH * 0.40,
+    cy: CH * 0.45,
     lastTime: 0,
   };
 }
@@ -8654,7 +8654,7 @@ function _patchApplyPermStats() {
                 - (p.spdLv || 0) * 40
                 - Math.round((ws.atkspd || 0) * BASE_ATKMS * 0.03)); // 3%/lv
     t.maxHp = BASE_HP + (p.hpLv || 0) * 2 + (ws.maxHp || 0) * 2;   // 2/lv (스펙)
-    t.hp    = Math.min(t.hp, t.maxHp);
+    t.hp    = t.maxHp;
     t.range = BASE_RANGE + (p.rngLv || 0) * 30 + (ws.wsRange || 0) * 8;
     // §7 치명타 — fireTower가 참조하는 G.critChance / G.critMult 에도 반영
     t.critChance = Math.min(0.9, (ws.critChance || 0) * 0.01);       // 1%/lv (was 5%)
@@ -12797,14 +12797,14 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.40; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.45; G.tower.range = Math.min(w, h) * 0.45; }
     }
     return;
   }
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
     var cv = document.getElementById('gameCanvas');
-    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.40; }
+    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.45; }
   }
 };
 
