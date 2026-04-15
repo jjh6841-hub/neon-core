@@ -5598,6 +5598,9 @@ function _appendExtended() {
   var curTier  = ws[tierKey] || 1;
   var costs    = TIER_COSTS[activeTab] || [0,150,400,1000,3000];
 
+  // 공격 탭은 새 단계별 잠금 시스템에서 처리 — 확장 주입 건너뜀
+  if (activeTab === 'atk') return;
+
   // 해금된 확장 아이템 추가
   Object.keys(NEW_ITEMS).forEach(function(key) {
     var item = NEW_ITEMS[key];
@@ -13072,6 +13075,7 @@ function _injectUnlockCards() {
   var container = document.getElementById('ws-content');
   if (!container) return;
   var tab = _activeWsTab();
+  if (tab === 'atk') return; // 공격 탭은 새 잠금 시스템에서 처리
   // 기존 마커 제거 (재렌더링 대응)
   var existing = container.querySelectorAll('[data-wsunlock]');
   for (var e = 0; e < existing.length; e++) existing[e].parentNode && existing[e].parentNode.removeChild(existing[e]);
