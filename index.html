@@ -9168,11 +9168,6 @@ function _injectCardTab() {
   });
   bar.appendChild(btn);
 
-  // 잘못 지급된 첫 방문 보상 리셋 (해금 전 지급된 경우)
-  if(!unlocked&&window.PERM&&window.PERM.cardsVisited){
-    delete window.PERM.cardsVisited;
-    window.savePerm&&window.savePerm();
-  }
   // 첫 방문 시 +40 보석 (해금된 경우에만)
   if(unlocked&&window.PERM&&!window.PERM.cardsVisited){
     window.PERM.cardsVisited=1;
