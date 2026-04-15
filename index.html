@@ -1264,6 +1264,7 @@ canvas {
       <button onclick="if(typeof _showEncyclopedia==='function')_showEncyclopedia()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◈<br>백과사전</button>
       <button onclick="if(typeof _showPatchNotes==='function')_showPatchNotes()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◌<br>패치노트</button>
       <button onclick="if(typeof _showContactPopup==='function')_showContactPopup()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">✉<br>문의하기</button>
+      <button id="btn-data-restore" style="padding:16px 8px;background:#0c0c22;border:1px solid #f59e0b;border-radius:10px;color:#f59e0b;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">↺<br>복구</button>
       <button id="btn-data-reset" style="padding:16px 8px;background:#0c0c22;border:1px solid #ef4444;border-radius:10px;color:#ef4444;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">✕<br>초기화</button>
     </div>
 
@@ -1813,8 +1814,31 @@ function loadPerm() {
   } catch (_) {}
 }
 function savePerm() {
-  try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
+  try {
+    // 기존 데이터 백업 (최근 3개 유지)
+    var prev = localStorage.getItem('td_perm');
+    if (prev) {
+      var b2 = localStorage.getItem('td_perm_backup_1');
+      if (b2) localStorage.setItem('td_perm_backup_2', b2);
+      localStorage.setItem('td_perm_backup_1', prev);
+    }
+    localStorage.setItem('td_perm', JSON.stringify(PERM));
+  } catch (_) {}
 }
+function restorePerm(slot) {
+  try {
+    var key = slot === 2 ? 'td_perm_backup_2' : 'td_perm_backup_1';
+    var s = localStorage.getItem(key);
+    if (!s) return false;
+    var d = JSON.parse(s);
+    if (!d || typeof d !== 'object') return false;
+    localStorage.setItem('td_perm', s);
+    loadPerm();
+    savePerm = function(){}; // 복구 직후 덮어쓰기 방지
+    return true;
+  } catch(_) { return false; }
+}
+window.restorePerm = restorePerm;
 
 /* ── 상점 아이템 정의 ── */
 function getUpgradeCost(baseCost, currentLevel) {
@@ -3862,6 +3886,24 @@ bindOverlayBtn('btn-settings-back', function() {
     }(k));
   }
 }());
+
+// Data restore button
+bindOverlayBtn('btn-data-restore', function() {
+  var b1 = localStorage.getItem('td_perm_backup_1');
+  var b2 = localStorage.getItem('td_perm_backup_2');
+  if (!b1 && !b2) {
+    showConfirm('복구 가능한 백업이 없습니다', function() { closeConfirm(); });
+    return;
+  }
+  var info = '';
+  if (b1) { try { var d=JSON.parse(b1); info='백업1: 골드 '+(d.gold||0)+' 보석 '+(d.gems||0)+' 최고웨이브 '+(d.bestWave||0); } catch(_){} }
+  if (b2) { try { var d2=JSON.parse(b2); info+='\n백업2: 골드 '+(d2.gold||0)+' 보석 '+(d2.gems||0)+' 최고웨이브 '+(d2.bestWave||0); } catch(_){} }
+  showConfirm(info+'\n\n백업1로 복구할까요?', function() {
+    closeConfirm();
+    if (restorePerm(1)) { location.reload(); }
+    else { showConfirm('복구 실패', function(){ closeConfirm(); }); }
+  });
+});
 
 // Data reset button
 bindOverlayBtn('btn-data-reset', function() {
