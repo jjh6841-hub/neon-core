@@ -7782,7 +7782,7 @@ setTimeout(_applyMaxOverrides, 300);
         var rwText = '◈'+m.reward.gold+(m.reward.gems>0?' ❖'+m.reward.gems:'');
         var canClaim = s.claimable > 0;
         var card = document.createElement('div');
-        card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;min-height:80px;';
+        card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;min-height:100px;';
         card.innerHTML=
           '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
             '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.title+'</span>'+
@@ -7793,9 +7793,9 @@ setTimeout(_applyMaxOverrides, 300);
             '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:'+pct+'%;transition:width 0.3s;"></div>'+
             '<div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#fff;font-family:monospace;">'+s.progress+' / '+s.interval+'</div>'+
           '</div>'+
-          '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;height:28px;">'+
             '<span style="font-size:10px;color:#334455;font-family:monospace;">총 '+s.claimed+'회 수령</span>'+
-            '<button data-inf-id="'+m.id+'" style="background:'+(canClaim?'#00dddd':'#1a2a3a')+';color:'+(canClaim?'#001a1a':'#334455')+';border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">'+(canClaim?'수령 ('+s.claimable+'회)':'진행 중')+'</button>'+
+            (canClaim?'<button data-inf-id="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">수령 ('+s.claimable+'회)</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">진행 중</span>')+
           '</div>';
         var btn=card.querySelector('[data-inf-id]');
         if(btn && canClaim)(function(mission){
