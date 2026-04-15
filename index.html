@@ -8707,10 +8707,12 @@ function _patchStartWave() {
     var w = G.wave;
     G.spawnIntvl = Math.max(300, 1200 - w * 15);
     G.spawnTimer = G.spawnIntvl;
-    coreChips -= w * 2;  // 기존 w*2 취소
-    var bonus = Math.floor(w * 1.5 + 5) + (w % 5 === 0 ? Math.floor(w * 2) : 0);
-    coreChips += bonus;
-    G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
+    if (w >= 2) {
+      coreChips -= w * 2;  // 기존 w*2 취소
+      var bonus = Math.floor(w * 1.5 + 5) + (w % 5 === 0 ? Math.floor(w * 2) : 0);
+      coreChips += bonus;
+      G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
+    }
   };
   window.startWave._fBal = true;
 }
