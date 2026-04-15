@@ -9707,7 +9707,7 @@ function _showContactPopup() {
       return;
     }
 
-    var uid=localStorage.getItem('user_uid')||'unknown';
+    var uid=window._fbUid||localStorage.getItem('td_uid')||'unknown';
     var templateParams={
       category: type==='bug'?'버그 신고':type==='inquiry'?'문의':'의견 제안',
       message: content,
@@ -12044,14 +12044,7 @@ window._showCoinBonusPopup = window.showCoinBonusPopup;
 
 /* ── 고유 ID ── */
 function getOrCreateUID() {
-  var uid = localStorage.getItem('user_uid');
-  if (!uid) {
-    uid = Array.from(crypto.getRandomValues(new Uint8Array(8)))
-      .map(function(b){ return b.toString(16).padStart(2,'0'); })
-      .join('').toUpperCase();
-    localStorage.setItem('user_uid', uid);
-  }
-  return uid;
+  return window._fbUid || localStorage.getItem('td_uid') || '';
 }
 window.getOrCreateUID = getOrCreateUID;
 
@@ -12140,7 +12133,7 @@ if (typeof _origTGO_stat === 'function') {
 
 /* ── UID 복사 ── */
 window.copyUID = function() {
-  var uid = localStorage.getItem('user_uid') || '';
+  var uid = getOrCreateUID();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(uid).then(function(){
       if (window.showAchievementToast) showAchievementToast('ID가 복사되었습니다');
