@@ -2180,7 +2180,7 @@ function createState() {
     showTowerStats: false,
 
     cx: CW / 2,
-    cy: CH * 0.45,
+    cy: CH * 0.48,
     lastTime: 0,
   };
 }
@@ -8519,7 +8519,7 @@ else setTimeout(_init, 200);
 ════════════════════════════════════════════════════════ */
 var BASE_DMG   = 2;
 var BASE_ATKMS = 1200;
-var BASE_HP    = 20;
+var BASE_HP    = 10;
 var BASE_RANGE = 180;
 
 /* §3 — 적 타입별 기본 스탯 */
@@ -12797,14 +12797,14 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.45; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.48; G.tower.range = Math.min(w, h) * 0.45; }
     }
     return;
   }
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
     var cv = document.getElementById('gameCanvas');
-    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.45; }
+    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.48; }
   }
 };
 
