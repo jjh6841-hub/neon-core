@@ -1952,6 +1952,30 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('pierce',10); },
     apply()  { var c=upgCost('pierce',10); coreChips-=c; G.upgLvl.pierce=(G.upgLvl.pierce||0)+1; G.pierce++; },
   },
+  { key:'rapidChance', tab:'atk', icon:'R', name:'고속발사 확률', baseCost:50, unlock:'rapidChance', maxLvl:80,
+    cost()   { return 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
+    stat()   { return ((G.upgLvl.rapidChance||0)*0.5).toFixed(1)+'%'; },
+    canBuy() { return (G.upgLvl.rapidChance||0) < 80 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidChance||0); coreChips-=c; G.upgLvl.rapidChance=(G.upgLvl.rapidChance||0)+1; G.rapidChance=Math.min(0.40,(G.upgLvl.rapidChance||0)*0.005); },
+  },
+  { key:'rapidDuration', tab:'atk', icon:'T', name:'고속발사 지속', baseCost:50, unlock:'rapidChance', maxLvl:100,
+    cost()   { return 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
+    stat()   { return ((G.upgLvl.rapidDuration||0)*0.05).toFixed(2)+'s'; },
+    canBuy() { return (G.upgLvl.rapidDuration||0) < 100 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=Math.min(5,(G.upgLvl.rapidDuration||0)*0.05); },
+  },
+  { key:'bounceChance', tab:'atk', icon:'B', name:'바운스샷 확률', baseCost:50, unlock:'bounceChance', maxLvl:140,
+    cost()   { return 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
+    stat()   { var v=((G.upgLvl.bounceChance||0)+1)*0.5; return Math.min(v,70).toFixed(1)+'%'; },
+    canBuy() { return (G.upgLvl.bounceChance||0) < 140 && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceChance||0); coreChips-=c; G.upgLvl.bounceChance=(G.upgLvl.bounceChance||0)+1; G.bounceChance=Math.min(0.70,((G.upgLvl.bounceChance||0)+1)*0.005); },
+  },
+  { key:'bounceTargets', tab:'atk', icon:'T', name:'바운스샷 표적', baseCost:50, unlock:'bounceChance', maxLvl:6,
+    cost()   { return 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
+    stat()   { return Math.min(8, 2 + (G.upgLvl.bounceTargets||0)) + ''; },
+    canBuy() { return (G.upgLvl.bounceTargets||0) < 6 && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceTargets||0); coreChips-=c; G.upgLvl.bounceTargets=(G.upgLvl.bounceTargets||0)+1; G.bounceTargets=Math.min(8, 2+(G.upgLvl.bounceTargets||0)); },
+  },
   // ─ 방어 탭 ─
   { key:'maxhp',   tab:'def', icon:'+',  name:'최대체력',  baseCost:7,  unlock:null,
     cost()   { return upgCost('maxhp',7); },
@@ -4435,7 +4459,7 @@ if (dailyClaimBtn) {
             PERM.ws_atk_unlocks = grp;
             // 전투 화면 인게임 업그레이드 잠금 해제 연동
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi','pierce']};
+            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi','pierce'], 4:['rapidChance'], 5:['bounceChance']};
             var keys = unlockMap[grp];
             if (keys) keys.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
