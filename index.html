@@ -9051,7 +9051,7 @@ function _showDrawResult(drawn) {
 
   var ttl=document.createElement('div');
   ttl.style.cssText='color:#00ffff;font-family:monospace;font-size:14px;letter-spacing:2px;';
-  ttl.textContent=drawn.length===1?'카드 뽑기':'10연 뽑기';
+  ttl.textContent=drawn.length===1?'모듈 획득':'10연 획득';
   modal.appendChild(ttl);
 
   var grid=document.createElement('div');
@@ -9086,8 +9086,8 @@ function _renderCardTab() {
 
   var html='<div style="padding:12px;display:flex;flex-direction:column;gap:12px;">';
   html+='<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;">'+
-    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">❖ 카드 컬렉션</div>'+
-    '<div style="color:#556677;font-family:monospace;font-size:10px;">카드를 수집하여 전투 능력을 강화하세요. ('+ownedCount+'/12 수집)</div>'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">❖ 모듈 컬렉션</div>'+
+    '<div style="color:#556677;font-family:monospace;font-size:10px;">모듈을 수집하여 전투 능력을 강화하세요. ('+ownedCount+'/12 수집)</div>'+
     '</div>';
 
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
@@ -9181,10 +9181,10 @@ function _showCardFirstVisit() {
   var p=document.createElement('div');
   p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;';
   p.innerHTML=
-    '<div style="font-size:48px;">🃏</div>'+
-    '<div style="color:#cc44ff;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">카드 컬렉션 오픈!</div>'+
+    '<svg width="48" height="48" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><circle cx="4.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="4.5" cy="11.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="11.5" r="1" fill="#cc44ff"/></svg>'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">모듈 오픈!</div>'+
     '<div style="color:#94a3b8;font-family:monospace;font-size:11px;text-align:center;line-height:1.8;max-width:260px;">'+
-      '카드를 수집하여 전투를 강화하세요!<br><span style="color:#00ffff;">첫 방문 보상 ❖ 40 지급!</span></div>'+
+      '모듈을 수집하여 전투를 강화하세요!<br><span style="color:#00ffff;">첫 방문 보상 ❖ 40 지급!</span></div>'+
     '<button id="card-fv-ok" style="background:#030b10;border:2px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:13px;padding:12px 40px;cursor:pointer;">확인</button>';
   document.body.appendChild(p);
   document.getElementById('card-fv-ok').addEventListener('click',function(){ p.remove(); });
