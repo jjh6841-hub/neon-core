@@ -5966,7 +5966,7 @@ function _doUnlockAppend() {
   var container = document.getElementById('ws-content');
   if (!container) return;
   var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
-  if (activeTab === 'pwr') return;
+  if (activeTab === 'pwr' || activeTab === 'atk') return;
   // 이미 처리됨 (마커 존재 여부로 판단)
   if (container.querySelector('[data-upr="' + activeTab + '"]')) return;
   // 처리 마커 추가 (hidden)
