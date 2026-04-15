@@ -2238,10 +2238,10 @@ function startWave() {
   G.spawnIntvl  = 800;  // fixed 0.8s between spawns
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
-  // Wave start core chip bonus
-  var bonus = w * 2;
-  coreChips += bonus;
+  // Wave start core chip bonus (2웨이브부터)
   if (w >= 2) {
+    var bonus = w * 2;
+    coreChips += bonus;
     G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
     G.waveBonusTimer = 0;
   }
@@ -3257,7 +3257,7 @@ function render() {
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.font         = 'bold 16px "Courier New", monospace';
-    ctx.fillStyle    = '#f59e0b';
+    ctx.fillStyle    = '#ff6600';
     ctx.fillText(G.waveBonusText || '', CW / 2, CH * 0.30);
     ctx.restore();
   }
