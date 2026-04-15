@@ -1237,7 +1237,7 @@ canvas {
   <button id="btn-settings-back" style="position:absolute;top:14px;left:14px;background:none;border:none;color:#00ffff;font-family:'Courier New',monospace;font-size:12px;cursor:pointer;padding:4px;-webkit-appearance:none;">◀ 뒤로</button>
 
   <!-- 타이틀 -->
-  <div style="text-align:center;padding:48px 0 24px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
+  <div style="text-align:center;padding:28px 0 16px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
 
   <div style="padding:0 16px;display:flex;flex-direction:column;gap:0;width:100%;max-width:340px;">
 
@@ -3910,6 +3910,7 @@ bindOverlayBtn('btn-home', function() {
 bindOverlayBtn('btn-settings', function() {
   syncSettingsUI();
   document.getElementById('settings-screen').classList.add('show');
+  var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
 });
 
 // Achievement screen
@@ -3921,6 +3922,7 @@ bindOverlayBtn('btn-achieve-back', function() {
 // Settings screen
 bindOverlayBtn('btn-settings-back', function() {
   document.getElementById('settings-screen').classList.remove('show');
+  var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
 });
 (function() {
   for (const k of ['sound', 'music', 'vibration']) {
@@ -4280,6 +4282,7 @@ if (dailyClaimBtn) {
     hSet.addEventListener('click', function() {
       try { syncSettingsUI(); } catch(e) {}
       document.getElementById('settings-screen').classList.add('show');
+      var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
     });
   }
 
@@ -6589,6 +6592,7 @@ if (settingsBtn) {
   settingsBtn.addEventListener('click', function() {
     try { syncSettingsUI(); } catch(_) {}
     document.getElementById('settings-screen').classList.add('show');
+    var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
   });
 }
 
