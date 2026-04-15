@@ -7331,6 +7331,8 @@ function _renderMissions() {
       localStorage.setItem('daily_claimed_'+mId,'true');
       if (window.PERM) {
         PERM.gold = (PERM.gold||0) + miss.reward.gold;
+        if (miss.reward.gem) PERM.gems = (PERM.gems||0) + miss.reward.gem;
+        if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
         if (window.savePerm) savePerm();
       }
       _updateDailyAllProgress();
@@ -7353,6 +7355,7 @@ function _renderMissions() {
         if(window.PERM) PERM.gold=(PERM.gold||0)+m.reward.gold;
       }
     });
+    if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
     if(window.savePerm) savePerm();
     _updateDailyAllProgress();
     _renderMissions();
@@ -7808,6 +7811,7 @@ setTimeout(_applyMaxOverrides, 300);
             var gGold=mission.reward.gold*st.claimable;
             var gGems=mission.reward.gems*st.claimable;
             if(window.PERM){ PERM.gold=(PERM.gold||0)+gGold; PERM.gems=(PERM.gems||0)+gGems; }
+            if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
             localStorage.setItem(mission.id+'_claimed', st.claimed+st.claimable);
             if(window.savePerm) savePerm();
             if(window.showAchievementToast) showAchievementToast('◈+'+gGold+(gGems>0?' ❖+'+gGems:'')+' 획득!');
@@ -7829,6 +7833,7 @@ setTimeout(_applyMaxOverrides, 300);
           if(window.PERM){ PERM.gold=(PERM.gold||0)+m.reward.gold*st.claimable; PERM.gems=(PERM.gems||0)+m.reward.gems*st.claimable; }
           localStorage.setItem(m.id+'_claimed',st.claimed+st.claimable);
         });
+        if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
         if(window.savePerm) savePerm();
         var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
         var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
@@ -7926,6 +7931,7 @@ setTimeout(_applyMaxOverrides, 300);
           if(localStorage.getItem('wk_claimed_'+mid)==='true') return;
           localStorage.setItem('wk_claimed_'+mid,'true');
           if(window.PERM){ PERM.gold=(PERM.gold||0)+wm.reward.gold; }
+          if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
           if(window.savePerm) savePerm();
           // 주간 도전 카운트 +1
           var wcc=parseInt(localStorage.getItem('weekly_challenge_count')||'0',10);
@@ -7951,6 +7957,7 @@ setTimeout(_applyMaxOverrides, 300);
           localStorage.setItem('weekly_challenge_count',wcc+1);
         }
       });
+      if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
       if(window.savePerm) savePerm();
       var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
       _renderW();
