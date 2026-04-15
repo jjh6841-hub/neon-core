@@ -1259,7 +1259,7 @@ canvas {
 
     <!-- 버튼 섹션 — 2열 그리드 -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      <button onclick="if(typeof _openAccount==='function')_openAccount()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◉<br>계정</button>
+      <button id="btn-account-link" onclick="if(typeof _openAccount==='function')_openAccount()" style="padding:12px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.4;-webkit-appearance:none;">◉<br>계정<br><span id="account-status" style="font-size:8px;color:#ef4444;">미연동</span><span id="account-reward" style="font-size:8px;color:#00ffff;"> ❖40</span></button>
       <button onclick="if(typeof _showStatsPopup==='function')_showStatsPopup()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">▣<br>통계</button>
       <button onclick="if(typeof _showEncyclopedia==='function')_showEncyclopedia()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◈<br>백과사전</button>
       <button onclick="if(typeof _showPatchNotes==='function')_showPatchNotes()" style="padding:16px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;line-height:1.6;-webkit-appearance:none;">◌<br>패치노트</button>
@@ -3720,6 +3720,12 @@ function syncSettingsUI() {
     const on = PERM.settings[key];
     btn.className = 'toggle-track' + (on ? ' on' : '');
   }
+  // 계정 연동 상태 표시
+  var linked = !!(PERM.accountEmail);
+  var st = document.getElementById('account-status');
+  var rw = document.getElementById('account-reward');
+  if (st) { st.textContent = linked ? '연동됨' : '미연동'; st.style.color = linked ? '#00ff88' : '#ef4444'; }
+  if (rw) rw.style.display = linked ? 'none' : 'inline';
 }
 
 function toggleSetting(key) {
@@ -6775,19 +6781,7 @@ if (storeBtn) {
 <!-- ══════════════════════════════════════════════════════
      NEW HTML: 계정 연동 유도 팝업 (최초 1회)
 ══════════════════════════════════════════════════════ -->
-<div id="account-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.95);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:0;padding:0 20px;">
-  <div style="background:#0a1a2a;border:1px solid #cc44ff;width:min(300px,100%);padding:28px 24px;text-align:center;position:relative;">
-    <!-- 닫기 -->
-    <button onclick="window._closeAccountPopup&&window._closeAccountPopup(false);" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;">×</button>
-    <!-- 내용 -->
-    <div style="color:#f1f5f9;font-size:16px;font-family:monospace;font-weight:bold;letter-spacing:2px;margin-bottom:12px;">계정을 지키세요!</div>
-    <div style="color:#00ffff;font-size:42px;margin:8px 0;line-height:1;">❖</div>
-    <div style="color:#00ffff;font-size:26px;font-family:monospace;font-weight:bold;margin-bottom:12px;">× 20</div>
-    <div style="color:#94a3b8;font-size:11px;font-family:monospace;line-height:1.7;margin-bottom:20px;">설정에서 계정을 연동해<br>진행 상황을 보호하고<br>무료 보석도 받으세요!</div>
-    <button id="account-go-btn" style="width:100%;height:46px;background:#030b10;border:2px solid #cc44ff;color:#ffffff;font-family:monospace;font-size:14px;cursor:pointer;letter-spacing:2px;margin-bottom:10px;text-shadow:0 0 8px #cc44ff;">이동하기</button>
-    <button onclick="window._closeAccountPopup&&window._closeAccountPopup(false);" style="background:none;border:none;color:#334455;font-size:10px;font-family:monospace;cursor:pointer;padding:4px;">나중에</button>
-  </div>
-</div>
+<!-- 계정 연동 팝업 제거됨 — 설정 화면 계정 버튼에서 처리 -->
 
 <style>
 /* ── 총 코인 보너스 팝업 행 ── */
@@ -8119,10 +8113,7 @@ setTimeout(_applyMaxOverrides, 300);
   function _setT(k){ var t=_trg();t[k]=1;try{localStorage.setItem(TRG,JSON.stringify(t));}catch(_){} }
   function _canShow(k){ return _cnt()<MAX&&!_trg()[k]; }
   function _doShow(k,delay) {
-    if(!_canShow(k)) return;
-    _setT(k);
-    try{localStorage.setItem(CNT,String(_cnt()+1));}catch(_){}
-    setTimeout(function(){ var p=document.getElementById('account-popup'); if(p) p.style.display='flex'; },delay||800);
+    return; // 팝업 제거됨
   }
 
   var _plays=0, _w5done=false, _prevBest=window.PERM?(window.PERM.bestWave||0):0;
@@ -9839,7 +9830,7 @@ function _renderAccountContent() {
         '<div style="color:#00ffff;font-family:monospace;font-size:12px;font-weight:bold;text-align:center;margin-bottom:8px;">계정 연동</div>'+
         '<div style="color:#94a3b8;font-family:monospace;font-size:10px;text-align:center;line-height:1.7;">'+
           '계정을 연동하면 진행 상황을<br>클라우드에 저장할 수 있습니다.<br>'+
-          '<span style="color:#00ffff;">연동 시 ❖ 20 보석이 지급됩니다!</span></div>'+
+          '<span style="color:#00ffff;">연동 시 ❖ 40 보석이 지급됩니다!</span></div>'+
       '</div>'+
       '<input id="acc-email" type="email" placeholder="이메일" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;outline:none;width:100%;box-sizing:border-box;">'+
       '<input id="acc-pw" type="password" placeholder="비밀번호 (6자 이상)" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:12px;padding:12px;outline:none;width:100%;box-sizing:border-box;">'+
@@ -9854,9 +9845,12 @@ function _renderAccountContent() {
       if(!pw||pw.length<6){ msg.textContent='비밀번호는 6자 이상이어야 합니다.'; return; }
       if(!window.PERM) return;
       window.PERM.accountEmail=e;
-      window.PERM.gems=(window.PERM.gems||0)+20;
+      window.PERM.gems=(window.PERM.gems||0)+40;
       window.savePerm&&window.savePerm();
-      msg.style.color='#00ff88'; msg.textContent='연동 완료! ❖ 20 지급!';
+      msg.style.color='#00ff88'; msg.textContent='연동 완료! ❖ 40 지급!';
+      // 설정 버튼 상태 갱신
+      var st=document.getElementById('account-status'); if(st){ st.textContent='연동됨'; st.style.color='#00ff88'; }
+      var rw=document.getElementById('account-reward'); if(rw) rw.style.display='none';
       setTimeout(_renderAccountContent, 800);
     });
   }
