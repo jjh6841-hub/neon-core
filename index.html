@@ -2857,8 +2857,9 @@ function triggerGameOver() {
   var gemsEarned = G.gems - (G.initialGems || 0);
   var bossKilledThisRun = PERM.bossKills > (G.initialBossKills || 0);
 
-  // Update & save persistent data
-  if (G.wave > PERM.bestWave) PERM.bestWave = G.wave;
+  // Update & save persistent data (bestWave = 마지막으로 클리어한 웨이브)
+  var clearedWave = Math.max(0, G.wave - 1);
+  if (clearedWave > PERM.bestWave) PERM.bestWave = clearedWave;
   PERM.gold = G.gold;
   PERM.gems = G.gems;
   savePerm();
@@ -2872,7 +2873,7 @@ function triggerGameOver() {
   checkAchievements(); // mark new achievements as 'ready'
 
   // Populate results
-  document.getElementById('r-wave').textContent  = G.wave;
+  document.getElementById('r-wave').textContent  = clearedWave;
   document.getElementById('r-kills').textContent = G.killCount;
   document.getElementById('r-best').textContent  = PERM.bestWave;
   document.getElementById('r-gold').textContent  = G.goldEarned;
