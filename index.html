@@ -7341,12 +7341,6 @@ function _renderMissions() {
     });
   });
 
-  // 갱신 타이머
-  var timerEl = document.createElement('div');
-  timerEl.style.cssText='text-align:center;font-size:10px;color:#334455;font-family:monospace;margin-top:8px;';
-  timerEl.textContent='갱신까지 '+_getTimeUntilMidnight();
-  list.appendChild(timerEl);
-
   // 모두 받기 버튼
   var claimAllBtn=document.createElement('button');
   claimAllBtn.style.cssText='width:100%;padding:14px;margin-top:8px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
@@ -7425,12 +7419,8 @@ function _updateRefreshTimer() {
   var rem = Math.max(0, (d.nextRefresh || 0) - Date.now());
   var el = document.getElementById('miss-timer');
   if (el) {
-    if (rem > 0) {
-      var h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
-      el.textContent = '갱신까지 ' + (h>0?h+':':'') + (m<10?'0':'') + m + ':' + (s<10?'0':'') + s;
-    } else {
-      el.textContent = '곧 갱신됩니다';
-    }
+    var h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
+    el.textContent = '갱신까지 ' + (h>0?h+':':'') + (m<10?'0':'') + m + ':' + (s<10?'0':'') + s;
   }
 }
 setInterval(function() {
