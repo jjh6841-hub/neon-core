@@ -7516,6 +7516,7 @@ window._openMissions = function() {
 
 document.getElementById('miss-back') && document.getElementById('miss-back').addEventListener('click', function() {
   document.getElementById('screen-missions').style.display = 'none';
+  try { syncShopUI(); } catch(_) {}
 });
 
 document.getElementById('btn-missions') && document.getElementById('btn-missions').addEventListener('click', window._openMissions);
@@ -11179,6 +11180,14 @@ window.showScreen = function (name) {
     target.style.display = 'flex';
     target.style.paddingBottom = '52px';
   }
+
+  // 공통: 모든 화면 전환 시 재화 HUD 동기화
+  try {
+    var _pg = (window.PERM && PERM.gold) || 0;
+    var _pgm = (window.PERM && PERM.gems) || 0;
+    ['home-gold','ws-gold','store-gold','lab-gold','trn-gold','skin-gold','cl-gold'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_pg; });
+    ['home-gem','ws-gem','store-gem','lab-gem','trn-gem','skin-gem','cl-gem'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_pgm; });
+  } catch(_) {}
 
   // 화면별 초기화
   if (name === 'home') {
