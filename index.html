@@ -2180,7 +2180,7 @@ function createState() {
     showTowerStats: false,
 
     cx: CW / 2,
-    cy: CH * 0.32,
+    cy: CH * 0.40,
     lastTime: 0,
   };
 }
@@ -12803,14 +12803,14 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.32; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.40; G.tower.range = Math.min(w, h) * 0.45; }
     }
     return;
   }
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
     var cv = document.getElementById('gameCanvas');
-    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.32; }
+    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.40; }
   }
 };
 
