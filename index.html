@@ -7298,18 +7298,18 @@ function _renderMissions() {
     if (done && !claimed) anyClaimable = true;
 
     var card = document.createElement('div');
-    card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;opacity:'+(claimed?'0.4':'1')+';';
+    card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;opacity:'+(claimed?'0.4':'1')+';min-height:80px;';
     card.innerHTML =
       '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
         '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.text+'</span>'+
-        '<span style="font-size:9px;font-family:monospace;color:#f59e0b;">◈'+m.reward.gold+'</span>'+
+        '<span style="font-size:12px;font-family:monospace;color:#f59e0b;">◈'+m.reward.gold+'</span>'+
       '</div>'+
       '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:18px;overflow:hidden;margin-bottom:6px;">'+
         '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:'+pct+'%;transition:width 0.3s;"></div>'+
         '<div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#fff;font-family:monospace;">'+Math.min(prog,m.target)+' / '+m.target+'</div>'+
       '</div>'+
       '<div style="display:flex;justify-content:flex-end;">'+
-        (done&&!claimed?'<button data-miss-id="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◈'+m.reward.gold+' 수령</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">'+(claimed?'완료':'진행 중')+'</span>')+
+        (done&&!claimed?'<button data-miss-id="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">수령</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">'+(claimed?'완료':'진행 중')+'</span>')+
       '</div>';
     list.appendChild(card);
   });
@@ -7342,7 +7342,7 @@ function _renderMissions() {
   // 모두 받기 버튼
   var claimAllBtn=document.createElement('button');
   claimAllBtn.style.cssText='width:100%;padding:14px;margin-top:8px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
-  claimAllBtn.textContent='◈ 모두 받기';
+  claimAllBtn.textContent='모두 받기';
   if(anyClaimable) claimAllBtn.addEventListener('click',function(){
     DAILY_MISSIONS.forEach(function(m){
       var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
@@ -7784,11 +7784,11 @@ setTimeout(_applyMaxOverrides, 300);
         var rwText = '◈'+m.reward.gold+(m.reward.gems>0?' ❖'+m.reward.gems:'');
         var canClaim = s.claimable > 0;
         var card = document.createElement('div');
-        card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;';
+        card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;min-height:80px;';
         card.innerHTML=
           '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
             '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.title+'</span>'+
-            (canClaim?'<span style="background:#cc4400;color:#fff;font-size:9px;padding:2px 6px;border-radius:8px;font-family:monospace;">+'+s.claimable+'회 수령 가능</span>':'')+
+            '<span style="font-size:12px;font-family:monospace;color:#f59e0b;">'+rwText+'</span>'+
           '</div>'+
           '<div style="font-size:10px;color:#445566;margin-bottom:8px;font-family:monospace;">'+m.desc+'</div>'+
           '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:18px;overflow:hidden;margin-bottom:6px;">'+
@@ -7797,7 +7797,7 @@ setTimeout(_applyMaxOverrides, 300);
           '</div>'+
           '<div style="display:flex;justify-content:space-between;align-items:center;">'+
             '<span style="font-size:10px;color:#334455;font-family:monospace;">총 '+s.claimed+'회 수령</span>'+
-            '<button data-inf-id="'+m.id+'" style="background:'+(canClaim?'#00dddd':'#1a2a3a')+';color:'+(canClaim?'#001a1a':'#334455')+';border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">'+(canClaim?rwText+' 수령 ('+s.claimable+'회)':'진행 중')+'</button>'+
+            '<button data-inf-id="'+m.id+'" style="background:'+(canClaim?'#00dddd':'#1a2a3a')+';color:'+(canClaim?'#001a1a':'#334455')+';border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">'+(canClaim?'수령 ('+s.claimable+'회)':'진행 중')+'</button>'+
           '</div>';
         var btn=card.querySelector('[data-inf-id]');
         if(btn && canClaim)(function(mission){
@@ -7821,7 +7821,7 @@ setTimeout(_applyMaxOverrides, 300);
       var anyInfClaim=INF_MISSIONS.some(function(m){ return _getInfState(m).claimable>0; });
       var infClaimAll=document.createElement('button');
       infClaimAll.style.cssText='width:100%;padding:14px;margin-top:12px;background:transparent;border:1px solid '+(anyInfClaim?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyInfClaim?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
-      infClaimAll.textContent='◈ 모두 받기';
+      infClaimAll.textContent='모두 받기';
       if(anyInfClaim) infClaimAll.addEventListener('click',function(){
         INF_MISSIONS.forEach(function(m){
           var st=_getInfState(m); if(st.claimable<=0) return;
@@ -7905,18 +7905,18 @@ setTimeout(_applyMaxOverrides, 300);
       var pct=Math.min(100,Math.round(prog/m.target*100));
       if(done && !clmd) anyClaimable=true;
       var row=document.createElement('div');
-      row.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;opacity:'+(clmd?'0.4':'1')+';';
+      row.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;opacity:'+(clmd?'0.4':'1')+';min-height:80px;';
       row.innerHTML=
         '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
           '<span style="font-size:12px;color:#00ffff;font-family:monospace;">'+m.text+'</span>'+
-          '<span style="font-size:9px;font-family:monospace;color:#f59e0b;">◈'+m.reward.gold+'</span>'+
+          '<span style="font-size:12px;font-family:monospace;color:#f59e0b;">◈'+m.reward.gold+'</span>'+
         '</div>'+
         '<div style="position:relative;background:#1a2a3a;border-radius:6px;height:18px;overflow:hidden;margin-bottom:6px;">'+
           '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:'+pct+'%;transition:width 0.3s;"></div>'+
           '<div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#fff;font-family:monospace;">'+Math.min(prog,m.target)+' / '+m.target+'</div>'+
         '</div>'+
         '<div style="display:flex;justify-content:flex-end;">'+
-          (done&&!clmd?'<button data-wc="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◈'+m.reward.gold+' 수령</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">'+(clmd?'완료':'진행 중')+'</span>')+
+          (done&&!clmd?'<button data-wc="'+m.id+'" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 12px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">수령</button>':'<span style="font-size:10px;color:#334455;font-family:monospace;">'+(clmd?'완료':'진행 중')+'</span>')+
         '</div>';
       var cb=row.querySelector('[data-wc]');
       if(cb)(function(mid){
@@ -7939,7 +7939,7 @@ setTimeout(_applyMaxOverrides, 300);
     // 모두 받기 버튼
     var claimAllBtn=document.createElement('button');
     claimAllBtn.style.cssText='width:100%;padding:14px;margin-top:12px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3444')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
-    claimAllBtn.textContent='◈ 모두 받기';
+    claimAllBtn.textContent='모두 받기';
     if(anyClaimable) claimAllBtn.addEventListener('click',function(){
       WMISS.forEach(function(m){
         var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
