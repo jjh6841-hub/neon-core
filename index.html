@@ -2386,12 +2386,13 @@ function update(dt) {
   // Buff countdown
   if (G.tower.buffMs > 0) G.tower.buffMs = Math.max(0, G.tower.buffMs - dt);
 
-  // Regen
-  if (G.regenRate > 0) {
+  // Regen (인게임 regenRate + 영구 ws.hpRegen 합산)
+  var _totalRegen = (G.regenRate || 0) + ((G.tower && G.tower.hpRegen) || 0);
+  if (_totalRegen > 0) {
     G.regenTimer += dt;
     if (G.regenTimer >= 1000) {
       G.regenTimer -= 1000;
-      G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + G.regenRate);
+      G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _totalRegen);
     }
   }
 
@@ -2603,7 +2604,12 @@ function update(dt) {
       var atkInterval = e.boss ? 800 : 500;
       if (e._atkTimer >= atkInterval) {
         e._atkTimer -= atkInterval;
-        const dmgTaken = Math.max(1, Math.round(e.atk || 1));
+        // 방어 % + 절대 방어 적용 (최소 0 이상)
+        var _rawDmg = e.atk || 1;
+        var _defPct = (G.tower && G.tower.defense) || 0;
+        var _defAbs = G.defenseAbs || 0;
+        const dmgTaken = Math.max(0, Math.round(_rawDmg * (1 - _defPct) - _defAbs));
+        if (dmgTaken <= 0) { continue; }
         // 실드 흡수 처리
         if (G.tower.shdCur > 0) {
           const _sAbs = Math.min(G.tower.shdCur, dmgTaken);
@@ -2667,9 +2673,14 @@ function update(dt) {
     sb.y += sb.dy * 2.5 * (dt / 16.667);
     var sbdx = sb.x - G.cx, sbdy = sb.y - G.cy;
     if (sbdx * sbdx + sbdy * sbdy < 18 * 18) {
+      // 방어 % + 절대 방어 적용
+      var _sDefPct = (G.tower && G.tower.defense) || 0;
+      var _sDefAbs = G.defenseAbs || 0;
+      var _sbDmg = Math.max(0, sb.dmg * (1 - _sDefPct) - _sDefAbs);
+      if (_sbDmg <= 0) { G.sniperBullets.splice(sbi, 1); continue; }
       // 스나이퍼 탄 실드 흡수 처리
       if (G.tower.shdCur > 0) {
-        const _sAbs2 = Math.min(G.tower.shdCur, sb.dmg);
+        const _sAbs2 = Math.min(G.tower.shdCur, _sbDmg);
         G.tower.shdCur -= _sAbs2;
         shieldAbsorbCount++;
         try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs2 } })); } catch(_) {}
@@ -2677,10 +2688,10 @@ function update(dt) {
           try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
           shieldAbsorbCount = 0;
         }
-        if (_sAbs2 >= sb.dmg) { G.sniperBullets.splice(sbi, 1); continue; } // 완전 차단
-        G.tower.hp = Math.max(0, G.tower.hp - (sb.dmg - _sAbs2));
+        if (_sAbs2 >= _sbDmg) { G.sniperBullets.splice(sbi, 1); continue; } // 완전 차단
+        G.tower.hp = Math.max(0, G.tower.hp - (_sbDmg - _sAbs2));
       } else {
-        G.tower.hp = Math.max(0, G.tower.hp - sb.dmg);
+        G.tower.hp = Math.max(0, G.tower.hp - _sbDmg);
       }
       G.flashAlpha = 1;
       triggerShake(3);
@@ -8973,8 +8984,10 @@ function _patchApplyPermStats() {
     t.critMult   = 2.0 + (ws.critMult || 0) * 0.05;                  // +5%/lv (was +25%)
     G.critMult   = t.critMult;
     // §7 방어/재생/골드
-    t.defense  = (ws.defense  || 0) * 0.02;                          // 2%/lv (was 1%)
-    t.hpRegen  = (ws.hpRegen  || 0) * 0.05;                         // 0.05/s/lv (was 0.5)
+    t.defense  = Math.min(0.9, (ws.defense  || 0) * 0.02);           // 2%/lv, 90% 캡
+    t.hpRegen  = (ws.hpRegen  || 0) * 0.05;                          // 0.05/s/lv
+    G.defenseAbs = ws.defenseAbsolute || 0;                          // 절대 피해 차감 (flat)
+    G.lifeSteal  = (G.lifeSteal || 0) + (ws.lifeSteal || 0);          // 흡혈 +1/킬/lv
     G.goldMult = 1 + (ws.goldGain || 0) * 0.05;                      // 5%/lv (was 10%)
     G.gemMult  = 1 + (ws.gemGain  || 0) * 0.1;
   };
