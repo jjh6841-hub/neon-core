@@ -1766,14 +1766,14 @@ function showAchievementToast(name) {
 /* ═══════════════════════════════════════════════════════════════
    CANVAS SETUP
 ═══════════════════════════════════════════════════════════════ */
-const canvas = document.getElementById('gameCanvas');
-const ctx    = canvas.getContext('2d');
-const areaEl = document.getElementById('canvas-area');
+var canvas = document.getElementById('gameCanvas');
+var ctx    = canvas.getContext('2d');
+var areaEl = document.getElementById('canvas-area');
 
-let CW = 360, CH = 640; // logical canvas dimensions
+var CW = 360, CH = 640; // logical canvas dimensions
 
 /* ── 영구 데이터 (게임 종료 후에도 유지) ── */
-let PERM = {
+var PERM = {
   gold:    10,  // 시작 골드
   gems:    0,
   dmgLv:   0,
@@ -1821,7 +1821,7 @@ function getUpgradeCost(baseCost, currentLevel) {
   return Math.floor(baseCost * Math.pow(1.4, currentLevel));
 }
 
-const SHOP_ITEMS = {
+var SHOP_ITEMS = {
   dmg: {
     baseCost: 5,  maxLv: 99,
     name: '/ 공격력',
@@ -1853,7 +1853,7 @@ function upgCost(key, base) {
   if (!G) return base;
   return getUpgradeCost(base, G.upgLvl[key] || 0);
 }
-const UPGRADES = [
+var UPGRADES = [
   // ─ 공격 탭 ─
   { key:'dmg',     tab:'atk', icon:'/',  name:'공격력',   baseCost:5,  unlock:null,
     cost()   { return upgCost('dmg',5); },
@@ -1944,7 +1944,7 @@ const UPGRADES = [
 ];
 
 /* ── 잠금 해제 정의 (상점) ── */
-const UNLOCKS = [
+var UNLOCKS = [
   { key:'crit',    gems:3, tab:'atk', icon:'!', name:'치명타 해금',    desc:'치명타 확률 업그레이드 해금 (2x 피해)' },
   { key:'multi',   gems:5, tab:'atk', icon:'+', name:'다발 해금',      desc:'다발 사격 업그레이드 해금' },
   { key:'pierce',  gems:5, tab:'atk', icon:'>', name:'관통 해금',      desc:'관통 업그레이드 해금' },
@@ -1957,7 +1957,7 @@ const UNLOCKS = [
 ];
 
 /* ── 업적 정의 ── */
-const ACHIEVEMENTS = [
+var ACHIEVEMENTS = [
   { key:'wave5',   icon:'~', name:'웨이브 5 달성',    desc:'웨이브 5까지 생존',       cond:()=>PERM.bestWave>=5,   prog:()=>Math.min(PERM.bestWave,5)+'/5',    gems:1 },
   { key:'wave10',  icon:'~', name:'웨이브 10 달성',   desc:'웨이브 10까지 생존',      cond:()=>PERM.bestWave>=10,  prog:()=>Math.min(PERM.bestWave,10)+'/10',  gems:2 },
   { key:'wave20',  icon:'★', name:'웨이브 20 달성',   desc:'웨이브 20까지 생존',      cond:()=>PERM.bestWave>=20,  prog:()=>Math.min(PERM.bestWave,20)+'/20',  gems:3 },
@@ -2020,8 +2020,8 @@ window.addEventListener('resize', function() { window.resizeCanvas(); }, false);
 var G        = null;
 var loopGen  = 0;
 var gameSpeed = 1;
-let _pauseBtnRect = { x: 0, y: 0, w: 28, h: 28 };
-let _confirmCb    = null;
+var _pauseBtnRect = { x: 0, y: 0, w: 28, h: 28 };
+var _confirmCb    = null;
 var coreChips = 0;
 var baseStartChips = 0;
 var killCountForGold = 0;
@@ -3410,8 +3410,8 @@ function renderHUD() {
 /* ═══════════════════════════════════════════════════════════════
    IN-GAME UPGRADES (임시) — 탭 시스템
 ═══════════════════════════════════════════════════════════════ */
-let activeTab = 'atk';
-let _pendingHighlight = null;
+var activeTab = 'atk';
+var _pendingHighlight = null;
 
 function isUnlocked(key) {
   return !key || !!PERM.unlocks[key];
@@ -3718,7 +3718,7 @@ function shopUpgrade(key) {
   syncShopUI();
 }
 
-let _flashTimer = null;
+var _flashTimer = null;
 function showShopFlash() {
   const el = document.getElementById('shop-flash');
   el.classList.add('show');
