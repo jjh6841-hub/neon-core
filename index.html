@@ -8228,16 +8228,7 @@ setTimeout(function() {
    ×0.5 → steps=1, dt*0.5  (절반 속도)
    ×1.5 → steps=2, dt*0.75 (2회 * 0.75 = 1.5x)
 */
-setTimeout(function() {
-  var orig = window.update;
-  if (typeof orig !== 'function' || orig._spFrac) return;
-  window.update = function(dt) {
-    var sp = window.G ? window.G.speed : 1;
-    var scale = (sp === 0.5) ? 0.5 : (sp === 1.5) ? 0.75 : 1;
-    return orig.call(this, scale !== 1 ? dt * scale : dt);
-  };
-  window.update._spFrac = true;
-}, 100);
+/* speed scaling은 gameLoop에서 dt * speed로 처리됨 — 중복 스케일링 제거 */
 
 }());
 </script>
