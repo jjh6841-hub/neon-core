@@ -7438,6 +7438,7 @@ window._openMissions = function() {
   var gemsEl = document.getElementById('miss-gems-display');
   if (gemsEl && window.PERM) gemsEl.textContent = window.PERM.gems || 0;
   _renderMissions();
+  _updateRefreshTimer();
   _updateBadge();
   document.getElementById('screen-missions').style.display = 'flex';
 };
