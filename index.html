@@ -4433,6 +4433,11 @@ if (dailyClaimBtn) {
             if (PERM.gold < cost) return;
             PERM.gold -= cost;
             PERM.ws_atk_unlocks = grp;
+            // 전투 화면 인게임 업그레이드 잠금 해제 연동
+            if (!PERM.unlocks) PERM.unlocks = {};
+            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi','pierce']};
+            var keys = unlockMap[grp];
+            if (keys) keys.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
             savePerm();
             syncWorkshopHUD();
