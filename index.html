@@ -12201,7 +12201,7 @@ window.copyUID = function() {
   var uid = getOrCreateUID();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(uid).then(function(){
-      if (window.showAchievementToast) showAchievementToast('ID가 복사되었습니다');
+      var _t=document.createElement('div');_t.style.cssText='position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid #00ffff;color:#00ffff;font-family:Courier New,monospace;font-size:12px;padding:8px 16px;z-index:9999;white-space:nowrap;pointer-events:none;';_t.textContent='ID가 복사되었습니다';document.body.appendChild(_t);setTimeout(function(){_t.remove();},2000);
     });
   }
 };
