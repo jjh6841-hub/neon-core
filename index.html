@@ -7223,7 +7223,15 @@ function _checkDailyReset() {
     localStorage.setItem('daily_reset_date',todayStr);
   }
 }
-function _checkReset() { _checkDailyReset(); return {}; }
+function _checkReset() {
+  _checkDailyReset();
+  var now = new Date();
+  var kst = new Date(now.getTime() + 9 * 3600000);
+  var tmrw = new Date(kst);
+  tmrw.setUTCDate(kst.getUTCDate() + 1);
+  tmrw.setUTCHours(0, 0, 0, 0);
+  return { nextRefresh: now.getTime() + (tmrw - kst) };
+}
 
 /* ── 갱신 타이머 ── */
 function _getTimeUntilMidnight() {
