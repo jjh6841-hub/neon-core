@@ -2261,12 +2261,13 @@ function gameLoop(gen, ts) {
   const rawDt = Math.min(ts - G.lastTime, 100);
   G.lastTime = ts;
   var spd = (G.phase === 'playing' || G.phase === 'between') ? (G.speed || 1) : 1;
+  var _upd = window.update || update;
   if (spd <= 2) {
-    update(rawDt * spd);
+    _upd(rawDt * spd);
   } else {
     var steps = Math.ceil(Math.min(spd, 5));
     var stepDt = rawDt * spd / steps;
-    for (var _si = 0; _si < steps; _si++) update(stepDt);
+    for (var _si = 0; _si < steps; _si++) _upd(stepDt);
   }
   updateShake();
   render();
@@ -6765,12 +6766,11 @@ function _updateDisplay() {
   var disp = document.getElementById('speed-display');
   if (disp) disp.textContent = '×' + v;
   // G.speed + gameSpeed 전역 변수 동기화
-  try {
-    if (window.G) { window.G.speed = v; }
-    window.gameSpeed = v;
-    var hiddenSb = document.getElementById('speed-btn');
-    if (hiddenSb) hiddenSb.textContent = v + '×';
-  } catch(_) {}
+  if (window.G) window.G.speed = v;
+  gameSpeed = v;
+  window.gameSpeed = v;
+  var hiddenSb = document.getElementById('speed-btn');
+  if (hiddenSb) hiddenSb.textContent = v + '×';
 }
 
 function _syncBtnColors() {
