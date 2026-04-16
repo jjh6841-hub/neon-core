@@ -4373,7 +4373,7 @@ if (dailyPopup) {
     if (curTier <= 0) return; // 티어 1 에서는 비활성 (랩어라운드 없음)
     var prev = curTier - 1;
     if (!isTierUnlocked(prev)) {
-      try { showNavLockTooltip(TIERS[prev].name + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
+      try { showNavLockTooltip(TIERS[prev > 0 ? prev - 1 : 0].name + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
     }
     curTier = prev;
@@ -4382,7 +4382,7 @@ if (dailyPopup) {
   document.getElementById('tier-next').addEventListener('click', function() {
     var next = (curTier + 1) % TIERS.length;
     if (!isTierUnlocked(next)) {
-      try { showNavLockTooltip(TIERS[next].name + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
+      try { showNavLockTooltip(TIERS[next > 0 ? next - 1 : 0].name + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
     }
     curTier = next;
@@ -9271,9 +9271,9 @@ function _showTierLockMsg(tierName, required, nextIdx, prevBest) {
       prevBest = parseInt(localStorage.getItem('tier' + nextIdx + '_best') || '0', 10);
     }
     curVal = prevBest;
-    var pName = (TIER_CFG[nextIdx] && TIER_CFG[nextIdx].name) || ('행성 ' + (nextIdx + 1));
-    reqLabel = pName + ' · 웨이브 ' + required;
-    curLabel = pName + ' · 최고 ' + prevBest;
+    var prevName = (TIER_CFG[nextIdx - 1] && TIER_CFG[nextIdx - 1].name) || ('행성 ' + nextIdx);
+    reqLabel = prevName + ' · 웨이브 ' + required;
+    curLabel = prevName + ' · 최고 ' + prevBest;
   } else {
     var best = (window.PERM && PERM.bestWave) || 0;
     curVal = best;
