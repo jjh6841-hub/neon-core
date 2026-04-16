@@ -1985,9 +1985,9 @@ var UPGRADES = [
   },
   { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null,
     cost()   { return upgCost('spd',7); },
-    stat()   { return (1.00 + (G.upgLvl.spd||0) * 0.05).toFixed(2); },
+    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2); },
     canBuy() { return coreChips>=upgCost('spd',7) && G.tower.atkMs>200; },
-    apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var speedMult=1.00+(G.upgLvl.spd)*0.05; G.tower.atkMs=Math.max(200,Math.round(1000/speedMult)); },
+    apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round(BASE_ATKMS/(1+totalLv*0.05))); },
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
@@ -2287,7 +2287,8 @@ function applyPermStats() {
   const t  = G.tower;
   const ws = PERM.ws || {};
   t.dmg        = 3 + PERM.dmgLv + (ws.damage    || 0);
-  t.atkMs      = Math.max(200, 1000 - PERM.spdLv * 40 - (ws.atkspd || 0) * 20);
+  var _spdMult = 1 + (PERM.spdLv || 0) * 0.05 + (ws.atkspd || 0) * 0.05;
+  t.atkMs      = Math.max(200, Math.round(BASE_ATKMS / _spdMult));
   t.maxHp      = 10 + PERM.hpLv * 2 + (ws.maxHp || 0) * 5;
   t.hp         = t.maxHp;
   t.range      = Math.min(CW, CH) * 0.45 + PERM.rngLv * 30;
@@ -4423,8 +4424,8 @@ if (dailyPopup) {
       nxt:  function(lv) { return '' + (lv + 1); } },
     atkspd:     { tab:'atk', name:'공격 속도',   maxLv:10, atkGroup:0,
       cost: function(lv) { return 5 + lv * 4; },
-      cur:  function(lv) { return '' + (lv * 20); },
-      nxt:  function(lv) { return '' + ((lv + 1) * 20); } },
+      cur:  function(lv) { return 'x' + (1 + lv * 0.05).toFixed(2); },
+      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.05).toFixed(2); } },
     critChance: { tab:'atk', name:'치명타 확률', maxLv:10, atkGroup:1,
       cost: function(lv) { return 8 + lv * 5; },
       cur:  function(lv) { return '' + (lv * 5); },
@@ -9035,10 +9036,8 @@ function _patchApplyPermStats() {
     var ws = p.ws || {};
     // §2 기본 스탯
     t.dmg   = BASE_DMG + (p.dmgLv || 0) + (ws.damage || 0);
-    t.atkMs = Math.max(200,
-                BASE_ATKMS
-                - (p.spdLv || 0) * 40
-                - Math.round((ws.atkspd || 0) * BASE_ATKMS * 0.03)); // 3%/lv
+    var _spdMult = 1 + (p.spdLv || 0) * 0.05 + (ws.atkspd || 0) * 0.05;
+    t.atkMs = Math.max(200, Math.round(BASE_ATKMS / _spdMult));
     t.maxHp = BASE_HP + (p.hpLv || 0) * 2 + (ws.maxHp || 0) * 2;   // 2/lv (스펙)
     t.hp    = t.maxHp;
     t.range = BASE_RANGE + (p.rngLv || 0) * 30 + (ws.wsRange || 0) * 8;
@@ -9517,9 +9516,9 @@ function _fixShopItemsDisplay() {
   };
   if (SI.spd) SI.spd.effect = function() {
     var lv  = (PERM && PERM.spdLv) || 0;
-    var cur  = (Math.max(200, BASE_ATKMS - lv*40)/1000).toFixed(2);
-    var nxt  = (Math.max(200, BASE_ATKMS - (lv+1)*40)/1000).toFixed(2);
-    return cur + 's → ' + nxt + 's';
+    var cur  = (1 + lv * 0.05).toFixed(2);
+    var nxt  = (1 + (lv+1) * 0.05).toFixed(2);
+    return 'x' + cur + ' → x' + nxt;
   };
 }
 
