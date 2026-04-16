@@ -1307,9 +1307,9 @@ canvas {
   <div style="background:#0a1a2a; border:1px solid #00ffff; padding:24px 28px; max-width:280px; width:90%; text-align:center;">
     <div id="daily-title" style="color:#00ffff; font-family:'Courier New',monospace; font-size:16px; font-weight:bold; margin-bottom:8px;"></div>
     <div id="daily-streak" style="color:#f59e0b; font-family:'Courier New',monospace; font-size:12px; margin-bottom:16px;"></div>
-    <div style="display:flex; justify-content:center; gap:20px; margin-bottom:16px;">
-      <div><div style="color:#f59e0b; font-family:'Courier New',monospace; font-size:22px; font-weight:bold;" id="daily-gold"></div><div style="color:#94a3b8; font-size:9px; font-family:monospace;">GOLD</div></div>
-      <div><div style="color:#00ffff; font-family:'Courier New',monospace; font-size:22px; font-weight:bold;" id="daily-gem"></div><div style="color:#94a3b8; font-size:9px; font-family:monospace;">GEM</div></div>
+    <div style="display:flex; justify-content:center; align-items:flex-start; gap:24px; margin-bottom:16px;">
+      <div style="text-align:center; min-width:70px;"><div style="color:#f59e0b; font-family:'Courier New',monospace; font-size:22px; font-weight:bold;" id="daily-gold"></div><div style="color:#94a3b8; font-size:9px; font-family:monospace; margin-top:2px;">GOLD</div></div>
+      <div style="text-align:center; min-width:70px;"><div style="color:#00ffff; font-family:'Courier New',monospace; font-size:22px; font-weight:bold;" id="daily-gem"></div><div style="color:#94a3b8; font-size:9px; font-family:monospace; margin-top:2px;">GEM</div></div>
     </div>
     <div id="daily-bonus" style="color:#cc44ff; font-family:'Courier New',monospace; font-size:11px; margin-bottom:12px; display:none;"></div>
     <button id="daily-claim-btn" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:'Courier New',monospace; font-size:13px; padding:8px 24px; cursor:pointer; width:100%;">받기</button>
@@ -1475,7 +1475,7 @@ canvas {
         <span id="panel-total-kills" style="color:#94a3b8; font-family:monospace; font-size:11px;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#94a3b8; font-family:monospace; font-size:10px;">연속 출석</span>
+        <span style="color:#94a3b8; font-family:monospace; font-size:10px;">출석 일수</span>
         <span id="panel-streak" style="color:#94a3b8; font-family:monospace; font-size:11px;">0일</span>
       </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
@@ -1737,14 +1737,13 @@ var DailyRewards = [
 ];
 
 function checkDailyReward() {
+  // 출석 보상은 웨이브 50 이상 해금 후부터
+  if (!PERM.bestWave || PERM.bestWave < 50) return;
   var today = new Date().toDateString();
   var lastLogin = localStorage.getItem('td_daily_login');
   if (lastLogin === today) return;
   var streak = parseInt(localStorage.getItem('td_daily_streak') || '0');
-  var yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  var isConsec = lastLogin && new Date(lastLogin).toDateString() === yesterday.toDateString();
-  var newStreak = isConsec ? streak + 1 : 1;
+  var newStreak = streak + 1;
   localStorage.setItem('td_daily_login', today);
   localStorage.setItem('td_daily_streak', String(newStreak));
   // 주간 임무: 출석 진행 +1 (checkDailyReward 는 하루 1회 도달)
@@ -1765,7 +1764,7 @@ function showDailyPopup(streak, reward) {
   var popup = document.getElementById('daily-popup');
   if (!popup) return;
   document.getElementById('daily-title').textContent = 'DAY ' + streak + ' 출석 보상';
-  document.getElementById('daily-streak').textContent = streak + '일 연속 출석!';
+  document.getElementById('daily-streak').textContent = streak + '일째 출석!';
   document.getElementById('daily-gold').textContent = '◈+' + reward.gold;
   document.getElementById('daily-gem').textContent = '❖+' + reward.gem;
   var bonusEl = document.getElementById('daily-bonus');
@@ -10885,7 +10884,7 @@ var EV_MISSIONS = [
   {id:'ev_upgrade_400', text:'강화 400회 구매',                target:400,     type:'upgrade',    points:40, maxTier:3},
   {id:'ev_card_80',     text:'카드 80장 구매',                 target:80,      type:'card_buy',   points:40, maxTier:3},
   {id:'ev_lab_30d',     text:'연구소 총 30일 연구',            target:2592000, type:'lab_time',   points:30, maxTier:3},
-  {id:'ev_login_10',    text:'10일 연속 출석',                 target:10,      type:'login',      points:30, maxTier:3},
+  {id:'ev_login_10',    text:'10일 출석 달성',                 target:10,      type:'login',      points:30, maxTier:3},
   {id:'ev_tourn_3',     text:'토너먼트 3회 참가',              target:3,       type:'tournament', points:30, maxTier:3},
   {id:'ev_ad_7',        text:'광고로 무료 보석 7회 수령',      target:7,       type:'ad',         points:20, maxTier:3},
   {id:'ev_gem_tap_12',  text:'플로팅 보석 12개 수집',          target:12,      type:'gem_tap',    points:20, maxTier:3},
