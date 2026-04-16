@@ -3147,15 +3147,17 @@ function render() {
       e.hitFlash--;
     }
 
-    // Health bar (color by type)
-    var hbColors = { basic: '#ef4444', tank: '#ff6600', rusher: '#ff0055', sniper: '#aa00ff', boss: '#ffcc00' };
-    var bw = e.r * 2.6, bh = (e.type === 'tank') ? 3 : 2;
-    var bx = -bw / 2, by = -e.r - bh - 4;
-    var hr = e.hp / e.maxHp;
-    ctx.fillStyle = '#1a0005';
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = hbColors[e.type] || '#ef4444';
-    ctx.fillRect(bx, by, bw * hr, bh);
+    // Health bar (보스만 표시)
+    if (e.boss) {
+      var hbColors = { basic: '#ef4444', tank: '#ff6600', rusher: '#ff0055', sniper: '#aa00ff', boss: '#ffcc00' };
+      var bw = e.r * 2.6, bh = (e.type === 'tank') ? 3 : 2;
+      var bx = -bw / 2, by = -e.r - bh - 4;
+      var hr = e.hp / e.maxHp;
+      ctx.fillStyle = '#1a0005';
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.fillStyle = hbColors[e.type] || '#ffcc00';
+      ctx.fillRect(bx, by, bw * hr, bh);
+    }
 
     ctx.restore();
   }
