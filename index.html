@@ -1901,7 +1901,7 @@ var UPGRADES = [
     cost()   { return upgCost('spd',7); },
     stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2) + ' (' + totalLv + '/30)'; },
     canBuy() { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return coreChips>=upgCost('spd',7) && totalLv<30; },
-    apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round(BASE_ATKMS/(1+totalLv*0.05))); },
+    apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round((window.BASE_ATKMS||1200)/(1+totalLv*0.05))); },
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
@@ -2202,7 +2202,7 @@ function applyPermStats() {
   const ws = PERM.ws || {};
   t.dmg        = 3 + PERM.dmgLv + (ws.damage    || 0);
   var _spdMult = 1 + (PERM.spdLv || 0) * 0.05 + (ws.atkspd || 0) * 0.05;
-  t.atkMs      = Math.max(200, Math.round(BASE_ATKMS / _spdMult));
+  t.atkMs      = Math.max(200, Math.round((window.BASE_ATKMS || 1200) / _spdMult));
   t.maxHp      = 10 + PERM.hpLv * 2 + (ws.maxHp || 0) * 5;
   t.hp         = t.maxHp;
   t.range      = Math.min(CW, CH) * 0.45 + PERM.rngLv * 30;
@@ -3827,7 +3827,6 @@ function buyUnlock(key) {
   savePerm();
   buildUnlockUI();
   syncShopUI();
-  showShopFlash();
   // Prepare highlight for when game starts
   _pendingHighlight = ul.key;
   // Rebuild cards now to show unlocked state
