@@ -1503,22 +1503,21 @@ canvas {
     <!-- 메인 아이콘 -->
     <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1;"></div>
 
-    <!-- 정보 카드 (row 1:1: 골드 보너스 | 난이도) -->
+    <!-- 정보 카드 (row 1:1: 골드 보너스 | 행성) -->
     <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-bottom:6px;">
 
       <!-- 총 골드 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
         <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:4px;white-space:nowrap;">총 골드 보너스</div>
         <div id="home-total-bonus" style="font-size:14px;color:#f59e0b;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">◈ ×1.00</div>
-        <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:8px;font-family:monospace;">▶ 상세</div>
       </div>
 
-      <!-- 난이도 카드 -->
+      <!-- 행성 카드 -->
       <div style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:2px;white-space:nowrap;">난이도</div>
+        <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:2px;white-space:nowrap;">행성</div>
         <div style="display:flex;flex-direction:row;align-items:center;gap:4px;width:100%;justify-content:center;">
           <button id="tier-prev" style="background:none;border:none;color:#00ffff;font-size:13px;cursor:pointer;padding:4px 6px;min-width:28px;">◀</button>
-          <span id="tier-name" style="color:#ffffff;font-size:13px;font-family:monospace;font-weight:bold;white-space:nowrap;min-width:40px;text-align:center;">티어 1</span>
+          <span id="tier-name" style="color:#ffffff;font-size:13px;font-family:monospace;font-weight:bold;white-space:nowrap;min-width:40px;text-align:center;">에이온</span>
           <button id="tier-next" style="background:none;border:none;color:#00ffff;font-size:13px;cursor:pointer;padding:4px 6px;min-width:28px;">▶</button>
         </div>
         <div style="color:#94a3b8;font-size:9px;font-family:monospace;white-space:nowrap;">최고 웨이브: <span id="home-best-wave">0</span></div>
@@ -4322,13 +4321,13 @@ if (dailyPopup) {
 (function() {
   'use strict';
 
-  /* ── 난이도 티어 설정 ── */
+  /* ── 행성 설정 ── */
   var TIERS = [
-    { name: '티어 1', mult: 1.0 },
-    { name: '티어 2', mult: 1.5 },
-    { name: '티어 3', mult: 2.0 },
-    { name: '티어 4', mult: 3.0 },
-    { name: '티어 5', mult: 5.0 },
+    { name: '에이온', mult: 1.0 },
+    { name: '스펙트라', mult: 1.5 },
+    { name: '넥사르', mult: 2.0 },
+    { name: '피라온', mult: 3.0 },
+    { name: '오메가', mult: 5.0 },
   ];
   // 티어 N (idx N-1, N>=2) 해금 조건: 티어 N-1 에서 웨이브 100 클리어
   function isTierUnlocked(idx) {
@@ -4373,7 +4372,7 @@ if (dailyPopup) {
     if (curTier <= 0) return; // 티어 1 에서는 비활성 (랩어라운드 없음)
     var prev = curTier - 1;
     if (!isTierUnlocked(prev)) {
-      try { showNavLockTooltip('티어 ' + prev + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
+      try { showNavLockTooltip(TIERS[prev].name + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
     }
     curTier = prev;
@@ -4382,7 +4381,7 @@ if (dailyPopup) {
   document.getElementById('tier-next').addEventListener('click', function() {
     var next = (curTier + 1) % TIERS.length;
     if (!isTierUnlocked(next)) {
-      try { showNavLockTooltip('티어 ' + next + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
+      try { showNavLockTooltip(TIERS[next].name + ' 웨이브 100 클리어 후 해금'); } catch(_) {}
       return;
     }
     curTier = next;
@@ -7067,7 +7066,7 @@ if (storeBtn) {
       <div class="cb-row"><span class="cb-label">성장 팩</span><span class="cb-val inactive">비활성</span></div>
       <div class="cb-row"><span class="cb-label">골드 보너스 (광고)</span><span id="cb-ad-val" class="cb-val inactive">비활성</span></div>
       <div class="cb-row"><span class="cb-label">강화 보너스</span><span id="cb-ws-val" class="cb-val active">×1.00</span></div>
-      <div class="cb-row"><span class="cb-label">난이도 티어</span><span id="cb-tier-val" class="cb-val active">×1.00</span></div>
+      <div class="cb-row"><span class="cb-label">행성 보너스</span><span id="cb-tier-val" class="cb-val active">×1.00</span></div>
       <div style="height:1px;background:#0a3344;margin:8px 14px;"></div>
       <div class="cb-row" style="padding:8px 14px 4px;"><span style="color:#f1f5f9;font-size:12px;font-family:monospace;font-weight:bold;">총 보너스</span><span id="cb-total-val" style="color:#f59e0b;font-size:14px;font-family:monospace;font-weight:bold;">×1.00</span></div>
     </div>
@@ -8917,13 +8916,13 @@ var TYPE_BASE = {
   sniper: { hp: 2.5, spd: 0.9, gold: 4, r: 11 },
 };
 
-/* §11 — 난이도 티어 설정 */
+/* §11 — 행성 설정 */
 var TIER_CFG = [
-  { name:'티어 1', goldMult:1.0, enemyMult:1.0, unlockWave:0   },
-  { name:'티어 2', goldMult:1.3, enemyMult:1.3, unlockWave:100 },
-  { name:'티어 3', goldMult:1.6, enemyMult:1.7, unlockWave:100 },
-  { name:'티어 4', goldMult:2.0, enemyMult:2.2, unlockWave:100 },
-  { name:'티어 5', goldMult:2.5, enemyMult:3.0, unlockWave:100 },
+  { name:'에이온',   goldMult:1.0, enemyMult:1.0, unlockWave:0   },
+  { name:'스펙트라', goldMult:1.3, enemyMult:1.3, unlockWave:100 },
+  { name:'넥사르',   goldMult:1.6, enemyMult:1.7, unlockWave:100 },
+  { name:'피라온',   goldMult:2.0, enemyMult:2.2, unlockWave:100 },
+  { name:'오메가',   goldMult:2.5, enemyMult:3.0, unlockWave:100 },
 ];
 var _curTierIdx = 0;
 function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
@@ -9273,8 +9272,9 @@ function _showTierLockMsg(tierName, required, nextIdx, prevBest) {
       prevBest = parseInt(localStorage.getItem('tier' + nextIdx + '_best') || '0', 10);
     }
     curVal = prevBest;
-    reqLabel = '티어 ' + nextIdx + ' · 웨이브 ' + required;
-    curLabel = '티어 ' + nextIdx + ' · 최고 ' + prevBest;
+    var pName = (TIER_CFG[nextIdx] && TIER_CFG[nextIdx].name) || ('행성 ' + (nextIdx + 1));
+    reqLabel = pName + ' · 웨이브 ' + required;
+    curLabel = pName + ' · 최고 ' + prevBest;
   } else {
     var best = (window.PERM && PERM.bestWave) || 0;
     curVal = best;
@@ -9298,7 +9298,9 @@ function _initTierSystem() {
 
   // tier-name 텍스트 → _curTierIdx 동기화
   function _syncIdx() {
-    var n = parseInt((nameEl.textContent || '').replace('티어 ', '')) - 1;
+    var n = -1;
+    var txt = (nameEl.textContent || '').trim();
+    for (var i = 0; i < TIER_CFG.length; i++) { if (TIER_CFG[i].name === txt) { n = i; break; } }
     if (!isNaN(n) && n >= 0 && n < TIER_CFG.length) _curTierIdx = n;
   }
   _syncIdx();
@@ -12601,7 +12603,7 @@ window.showCoinBonusPopup = function () {
   if (cashBonus   > 0) items.push({ label: '크레딧 보너스 강화', value: 1 + cashBonus * 0.05 });
   if (cashPerWave > 0) items.push({ label: '웨이브 보너스 강화', value: 1 + cashPerWave * 0.02 });
   if (goldBoost   > 0) items.push({ label: '골드 부스트',       value: 1 + goldBoost * 0.02 });
-  if (tierMult > 1.0)  items.push({ label: '난이도 티어 보너스', value: tierMult });
+  if (tierMult > 1.0)  items.push({ label: '행성 보너스', value: tierMult });
   if (adActive)        items.push({ label: '광고 골드 보너스',   value: 1.5 });
 
   var list = document.getElementById('coin-bonus-list-new');
