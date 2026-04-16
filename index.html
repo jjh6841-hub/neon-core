@@ -4027,7 +4027,7 @@ function renderNavTabs(currentScreen) {
 
   navTabs.forEach(function(tab, index) {
     var unlocked = tab.unlock === 'spectra'
-      ? parseInt(localStorage.getItem('tier1_best') || '0', 10) >= 100
+      ? parseInt(localStorage.getItem('tier2_best') || '0', 10) >= 50
       : w >= tab.unlock;
     var active = currentScreen === tab.screen;
     var iconColor, labelColor, bg, bb;
@@ -4104,8 +4104,8 @@ function renderNavTabs(currentScreen) {
     } else {
       (function(t) {
         btn.onclick = function() {
-          var msg = t.unlock === 999
-            ? t.label + ' \u2014 \uC2A4\uD399\uD2B8\uB77C \uD574\uAE08 \uC2DC \uC624\uD508'
+          var msg = t.unlock === 'spectra'
+            ? t.label + ' \u2014 \uC2A4\uD399\uD2B8\uB77C \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
             : t.label + ' \u2014 \uC6E8\uC774\uBE0C ' + t.unlock + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
           showNavToast(msg, t.id);
         };
@@ -4168,7 +4168,7 @@ function getNewUnlocks() {
     for (var i = 0; i < navTabs.length; i++) {
       var tab = navTabs[i];
       var isUnlocked = tab.unlock === 'spectra'
-        ? parseInt(localStorage.getItem('tier1_best') || '0', 10) >= 100
+        ? parseInt(localStorage.getItem('tier2_best') || '0', 10) >= 50
         : (tab.unlock > 0 && best >= tab.unlock);
       if (isUnlocked && !saved[tab.id]) {
         saved[tab.id] = true;
