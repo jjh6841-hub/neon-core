@@ -1950,11 +1950,11 @@ var SHOP_ITEMS = {
     effect: () => (3 + PERM.dmgLv) + ' → ' + (3 + PERM.dmgLv + 1),
   },
   spd: {
-    baseCost: 7,  maxLv: 4,
+    baseCost: 7,  maxLv: 30,
     name: '// 공격속도',
     effect: () => {
-      const cur  = 'x' + (1 + PERM.spdLv * 0.20).toFixed(2);
-      const next = 'x' + (1 + (PERM.spdLv + 1) * 0.20).toFixed(2);
+      const cur  = 'x' + (1 + PERM.spdLv * 0.05).toFixed(2);
+      const next = 'x' + (1 + (PERM.spdLv + 1) * 0.05).toFixed(2);
       return cur + ' → ' + next;
     },
   },
@@ -1983,10 +1983,10 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('dmg',5); },
     apply()  { var c=upgCost('dmg',5); coreChips-=c; G.upgLvl.dmg=(G.upgLvl.dmg||0)+1; G.tower.dmg++; },
   },
-  { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null,
+  { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null, maxLv:30,
     cost()   { return upgCost('spd',7); },
-    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2); },
-    canBuy() { return coreChips>=upgCost('spd',7) && G.tower.atkMs>200; },
+    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2) + ' (' + totalLv + '/30)'; },
+    canBuy() { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return coreChips>=upgCost('spd',7) && totalLv<30; },
     apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round(BASE_ATKMS/(1+totalLv*0.05))); },
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'범위',     baseCost:6,  unlock:'rng',
