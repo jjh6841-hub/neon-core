@@ -220,60 +220,6 @@ canvas {
   margin-bottom: 18px;
   color: #f0f9ff;
 }
-.shop-items {
-  width: 100%;
-  max-width: 420px;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-flex-direction: column;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-.shop-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  display: -webkit-flex;
-  display: flex;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  align-items: center;
-  gap: 10px;
-}
-.si-info {
-  display: -webkit-flex;
-  display: flex;
-  -webkit-flex-direction: column;
-  flex-direction: column;
-  gap: 2px;
-  -webkit-flex: 1;
-  flex: 1;
-}
-.si-name  { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-.si-level { font-size: 11px; color: var(--text-secondary); }
-.si-effect{ font-size: 12px; color: var(--text-secondary); }
-.si-btn {
-  background: var(--accent-blue);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  min-height: 44px;
-  min-width: 66px;
-  cursor: pointer;
-  -webkit-appearance: none;
-  font-family: inherit;
-  white-space: nowrap;
-  -webkit-flex-shrink: 0;
-  flex-shrink: 0;
-}
-.si-btn:active { filter: brightness(0.85); }
-.si-btn.disabled { opacity: 0.32; pointer-events: none; }
 
 /* ── Shop unlock section ── */
 #unlock-section {
@@ -1435,14 +1381,9 @@ canvas {
 <!-- ── 홈화면 ── -->
 <div id="screen-home" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
 
-  <!-- JS 호환용 숨김 요소 (syncShopUI / buildUnlockUI 참조) -->
+  <!-- JS 호환용 숨김 요소 (buildUnlockUI 참조) -->
   <div style="display:none" aria-hidden="true">
-    <span id="sl-dmg">Lv.0</span><span id="se-dmg">3→4</span><button id="sb-dmg">◈5</button>
-    <span id="sl-spd">Lv.0</span><span id="se-spd">1.0s</span><button id="sb-spd">◈7</button>
-    <span id="sl-rng">Lv.0</span><span id="se-rng">기본</span><button id="sb-rng">◈6</button>
-    <span id="sl-hp">Lv.0</span><span id="se-hp">10→15</span><button id="sb-hp">◈8</button>
     <div id="unlock-section"></div>
-    <p id="shop-flash"></p>
   </div>
 
   <!-- 상단 HUD -->
@@ -1938,37 +1879,10 @@ function syncFromFirebase() {
 }
 window.syncFromFirebase = syncFromFirebase;
 
-/* ── 상점 아이템 정의 ── */
+/* ── 업그레이드 비용 함수 ── */
 function getUpgradeCost(baseCost, currentLevel) {
   return Math.floor(baseCost * Math.pow(1.4, currentLevel));
 }
-
-var SHOP_ITEMS = {
-  dmg: {
-    baseCost: 5,  maxLv: 99,
-    name: '/ 공격력',
-    effect: () => (3 + PERM.dmgLv) + ' → ' + (3 + PERM.dmgLv + 1),
-  },
-  spd: {
-    baseCost: 7,  maxLv: 30,
-    name: '// 공격속도',
-    effect: () => {
-      const cur  = 'x' + (1 + PERM.spdLv * 0.05).toFixed(2);
-      const next = 'x' + (1 + (PERM.spdLv + 1) * 0.05).toFixed(2);
-      return cur + ' → ' + next;
-    },
-  },
-  rng: {
-    baseCost: 6,  maxLv: 99,
-    name: '(+) 공격범위',
-    effect: () => 'Lv.' + PERM.rngLv + ' → Lv.' + (PERM.rngLv + 1),
-  },
-  hp: {
-    baseCost: 8,  maxLv: 99,
-    name: '+ 최대 체력',
-    effect: () => (10 + PERM.hpLv * 2) + ' → ' + (10 + (PERM.hpLv + 1) * 2),
-  },
-};
 
 /* ── 인게임 업그레이드 정의 (임시) ── */
 function upgCost(key, base) {
@@ -3854,41 +3768,8 @@ function openShop() {
 }
 
 function syncShopUI() {
-  document.getElementById('home-gold').textContent = PERM.gold;
-  document.getElementById('home-gem').textContent  = PERM.gems;
-  for (const key of Object.keys(SHOP_ITEMS)) {
-    const cfg  = SHOP_ITEMS[key];
-    const lv   = PERM[key + 'Lv'];
-    const maxed = lv >= cfg.maxLv;
-    document.getElementById('sl-' + key).textContent = 'Lv.' + lv;
-    document.getElementById('se-' + key).textContent = maxed ? '최대 레벨' : cfg.effect();
-    const btn = document.getElementById('sb-' + key);
-    var shopCost = getUpgradeCost(cfg.baseCost, lv);
-    btn.classList.toggle('disabled', maxed || PERM.gold < shopCost);
-    btn.textContent = maxed ? 'MAX' : shopCost + '◈';
-  }
-}
-
-function shopUpgrade(key) {
-  const cfg = SHOP_ITEMS[key];
-  var lv = PERM[key + 'Lv'];
-  var cost = getUpgradeCost(cfg.baseCost, lv);
-  if (!cfg || PERM.gold < cost || lv >= cfg.maxLv) return;
-  PERM.gold -= cost;
-  PERM[key + 'Lv']++;
-  savePerm();
-  try { var _wu=parseInt(localStorage.getItem('wk_upgrade_progress')||'0',10); localStorage.setItem('wk_upgrade_progress',_wu+1); } catch(_){}
-  try { var _du=parseInt(localStorage.getItem('daily_upgrade_progress')||'0',10); localStorage.setItem('daily_upgrade_progress',_du+1); } catch(_){}
-  showShopFlash();
-  syncShopUI();
-}
-
-var _flashTimer = null;
-function showShopFlash() {
-  const el = document.getElementById('shop-flash');
-  el.classList.add('show');
-  clearTimeout(_flashTimer);
-  _flashTimer = setTimeout(function() { el.classList.remove('show'); }, 1500);
+  try { document.getElementById('home-gold').textContent = PERM.gold; } catch(_) {}
+  try { document.getElementById('home-gem').textContent  = PERM.gems; } catch(_) {}
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3984,9 +3865,6 @@ bindOverlayBtn('btn-go-home', function() {
   openShop();
 });
 bindOverlayBtn('btn-start-game', startNewGame);
-for (const key of Object.keys(SHOP_ITEMS)) {
-  bindOverlayBtn('sb-' + key, shopUpgrade.bind(null, key));
-}
 
 // Speed button
 bindOverlayBtn('speed-btn', cycleSpeed);
@@ -7920,15 +7798,6 @@ setTimeout(_updateBadge, 500);
 (function() {
 'use strict';
 
-/* ── SHOP_ITEMS maxLv 오버라이드 ── */
-var MAX_OVERRIDES = { spd: 20, rng: 30 };
-
-function _applyMaxOverrides() {
-  if (!window.SHOP_ITEMS) return;
-  Object.keys(MAX_OVERRIDES).forEach(function(k) {
-    if (window.SHOP_ITEMS[k]) window.SHOP_ITEMS[k].maxLv = MAX_OVERRIDES[k];
-  });
-}
 
 /* ── getUpgradeCost 비용 함수 확장 (레벨 20+ 추가 스케일링) ── */
 var _origGetCost = window.getUpgradeCost;
@@ -7940,7 +7809,6 @@ if (typeof _origGetCost === 'function') {
   };
 }
 
-setTimeout(_applyMaxOverrides, 300);
 
 }());
 </script>
@@ -9509,22 +9377,7 @@ function _watchHome() {
    SHOP_ITEMS 표시 보정 (BASE 값 변경 반영)
 ════════════════════════════════════════════════════════ */
 function _fixShopItemsDisplay() {
-  if (!window.SHOP_ITEMS) return;
-  var SI = SHOP_ITEMS;
-  if (SI.dmg) SI.dmg.effect = function() {
-    var lv = (PERM && PERM.dmgLv) || 0;
-    return (BASE_DMG + lv) + ' → ' + (BASE_DMG + lv + 1);
-  };
-  if (SI.hp) SI.hp.effect = function() {
-    var lv = (PERM && PERM.hpLv) || 0;
-    return (BASE_HP + lv*2) + ' → ' + (BASE_HP + (lv+1)*2);
-  };
-  if (SI.spd) SI.spd.effect = function() {
-    var lv  = (PERM && PERM.spdLv) || 0;
-    var cur  = (1 + lv * 0.05).toFixed(2);
-    var nxt  = (1 + (lv+1) * 0.05).toFixed(2);
-    return 'x' + cur + ' → x' + nxt;
-  };
+  // 구 상점 제거됨 — 호환용 빈 함수
 }
 
 /* ════════════════════════════════════════════════════════
