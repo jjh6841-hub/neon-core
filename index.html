@@ -1503,12 +1503,12 @@ canvas {
     <!-- 메인 아이콘 -->
     <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1;"></div>
 
-    <!-- 정보 카드 (row 1:1: 코인 보너스 | 난이도) -->
+    <!-- 정보 카드 (row 1:1: 골드 보너스 | 난이도) -->
     <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-bottom:6px;">
 
-      <!-- 총 코인 보너스 카드 (클릭 시 상세 팝업) -->
+      <!-- 총 골드 보너스 카드 (클릭 시 상세 팝업) -->
       <div id="coin-bonus-card" style="flex:1;background:#0a1a2a;border:1px solid #0a3344;border-radius:8px;padding:8px 6px;text-align:center;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;" onclick="window._showCoinBonusPopup&&window._showCoinBonusPopup()">
-        <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:4px;white-space:nowrap;">총 코인 보너스</div>
+        <div style="font-size:10px;color:#445566;font-family:'Courier New',monospace;margin-bottom:4px;white-space:nowrap;">총 골드 보너스</div>
         <div id="home-total-bonus" style="font-size:14px;color:#f59e0b;font-family:'Courier New',monospace;font-weight:bold;white-space:nowrap;">◈ ×1.00</div>
         <div style="position:absolute;bottom:3px;right:5px;color:#1a3344;font-size:8px;font-family:monospace;">▶ 상세</div>
       </div>
@@ -5852,7 +5852,7 @@ var NEW_ITEMS = {
   cashPerWave:     { tab:'spc', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
   // 특수 탭 2단계
   coinsPerKill:    { tab:'spc', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
-  coinsPerWave:    { tab:'spc', name:'웨이브 코인',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
+  coinsPerWave:    { tab:'spc', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
   // 특수 탭 4단계
   interest:        { tab:'spc', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 };
@@ -6365,7 +6365,7 @@ var RESEARCH_LIST = {
   ],
   utility: [
     { id:'r_cash',       name:'크레딧 연구',    desc:'크레딧 보너스 향상',  time:23940, cost:15390,  maxLv:99 },
-    { id:'r_wave_cash',  name:'웨이브 연구',    desc:'웨이브 코인 향상',    time:15660, cost:9810,   maxLv:50 },
+    { id:'r_wave_cash',  name:'웨이브 연구',    desc:'웨이브 골드 향상',    time:15660, cost:9810,   maxLv:50 },
     { id:'r_interest',   name:'이자율 연구',    desc:'이자율 향상',         time:32940, cost:252150, maxLv:30 },
   ],
   ultimate: [
@@ -7051,13 +7051,13 @@ if (storeBtn) {
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     NEW HTML: 총 코인 보너스 팝업
+     NEW HTML: 총 골드 보너스 팝업
 ══════════════════════════════════════════════════════ -->
 <div id="coin-bonus-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.88);z-index:400;align-items:center;justify-content:center;">
   <div style="background:#0a1a2a;border:1px solid #0a3344;width:min(320px,92%);overflow:hidden;">
     <!-- 헤더 -->
     <div style="background:#040c14;border-bottom:1px solid #0a3344;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:2px;">◈ 총 코인 보너스</span>
+      <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:2px;">◈ 총 골드 보너스</span>
       <button onclick="document.getElementById('coin-bonus-popup').style.display='none';" style="background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;">×</button>
     </div>
     <!-- 항목 목록 -->
@@ -7065,27 +7065,27 @@ if (storeBtn) {
       <div class="cb-row"><span class="cb-label">광고 비활성화</span><span class="cb-val inactive">비활성</span></div>
       <div class="cb-row"><span class="cb-label">스타터 팩</span><span class="cb-val inactive">비활성</span></div>
       <div class="cb-row"><span class="cb-label">성장 팩</span><span class="cb-val inactive">비활성</span></div>
-      <div class="cb-row"><span class="cb-label">코인 보너스 (광고)</span><span id="cb-ad-val" class="cb-val inactive">비활성</span></div>
+      <div class="cb-row"><span class="cb-label">골드 보너스 (광고)</span><span id="cb-ad-val" class="cb-val inactive">비활성</span></div>
       <div class="cb-row"><span class="cb-label">강화 보너스</span><span id="cb-ws-val" class="cb-val active">×1.00</span></div>
       <div class="cb-row"><span class="cb-label">난이도 티어</span><span id="cb-tier-val" class="cb-val active">×1.00</span></div>
       <div style="height:1px;background:#0a3344;margin:8px 14px;"></div>
       <div class="cb-row" style="padding:8px 14px 4px;"><span style="color:#f1f5f9;font-size:12px;font-family:monospace;font-weight:bold;">총 보너스</span><span id="cb-total-val" style="color:#f59e0b;font-size:14px;font-family:monospace;font-weight:bold;">×1.00</span></div>
     </div>
-    <div style="padding:0 14px 12px;font-size:9px;color:#334455;font-family:monospace;">모든 코인 보너스는 곱셈으로 계산됩니다.</div>
+    <div style="padding:0 14px 12px;font-size:9px;color:#334455;font-family:monospace;">모든 골드 보너스는 곱셈으로 계산됩니다.</div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     NEW HTML: 광고 코인 보너스 팝업 (인게임)
+     NEW HTML: 광고 골드 보너스 팝업 (인게임)
 ══════════════════════════════════════════════════════ -->
 <div id="ad-bonus-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.88);z-index:500;align-items:center;justify-content:center;">
   <div style="background:#0a1a2a;border:1px solid #0a3344;width:min(300px,88%);">
     <div style="background:#040c14;border-bottom:1px solid #0a3344;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:2px;">◈ 코인 보너스</span>
+      <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:2px;">◈ 골드 보너스</span>
       <button onclick="document.getElementById('ad-bonus-popup').style.display='none';" style="background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;">×</button>
     </div>
     <div style="padding:16px 14px;">
-      <div style="color:#94a3b8;font-size:11px;font-family:monospace;text-align:center;margin-bottom:12px;">20분 동안 코인 획득 ×1.5</div>
+      <div style="color:#94a3b8;font-size:11px;font-family:monospace;text-align:center;margin-bottom:12px;">20분 동안 골드 획득 ×1.5</div>
       <div style="background:#060f18;border:1px solid #0a3344;padding:10px 12px;margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="color:#556677;font-size:10px;font-family:monospace;">현재 상태</span>
@@ -7111,8 +7111,8 @@ if (storeBtn) {
 <div id="ad-double-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.88);z-index:500;align-items:center;justify-content:center;">
   <div style="background:#0a1a2a;border:1px solid #0a3344;width:min(280px,88%);text-align:center;padding:24px 20px;">
     <div style="color:#00ffff;font-size:40px;margin-bottom:8px;line-height:1;">▶</div>
-    <div style="color:#f1f5f9;font-size:14px;font-family:monospace;font-weight:bold;margin-bottom:6px;">코인 2배!</div>
-    <div style="color:#94a3b8;font-size:11px;font-family:monospace;margin-bottom:16px;">광고를 보고 코인을 2배로 받으세요!</div>
+    <div style="color:#f1f5f9;font-size:14px;font-family:monospace;font-weight:bold;margin-bottom:6px;">골드 2배!</div>
+    <div style="color:#94a3b8;font-size:11px;font-family:monospace;margin-bottom:16px;">광고를 보고 골드을 2배로 받으세요!</div>
     <div style="background:#060f18;border:1px solid #0a3344;padding:8px;margin-bottom:16px;">
       <span id="addbl-amount" style="color:#f59e0b;font-size:22px;font-family:monospace;font-weight:bold;">0</span>
       <span style="color:#f59e0b;font-size:14px;font-family:monospace;"> ◈</span>
@@ -7131,7 +7131,7 @@ if (storeBtn) {
 <!-- 계정 연동 팝업 제거됨 — 설정 화면 계정 버튼에서 처리 -->
 
 <style>
-/* ── 총 코인 보너스 팝업 행 ── */
+/* ── 총 골드 보너스 팝업 행 ── */
 .cb-row { display:flex; justify-content:space-between; align-items:center; padding:6px 14px; }
 .cb-label { color:#94a3b8; font-size:11px; font-family:monospace; }
 .cb-val.inactive { color:#ef4444; font-size:11px; font-family:monospace; }
@@ -7274,7 +7274,7 @@ if (wsScreen) {
 (function() {
 'use strict';
 
-/* ── 광고 코인 보너스 시스템 ── */
+/* ── 광고 골드 보너스 시스템 ── */
 var AD_BONUS_DURATION = 20 * 60 * 1000; // 20분
 var AD_BONUS_MAX      = 2 * 60 * 60 * 1000; // 최대 2시간
 
@@ -7321,7 +7321,7 @@ function _updateAdBonusUI() {
   var bonus = document.getElementById('ingame-bonus-btn');
   if (bonus) bonus.style.borderColor = active ? '#f59e0b44' : '#0a3344';
 
-  // 코인 보너스 팝업 내 상태
+  // 골드 보너스 팝업 내 상태
   var adVal = document.getElementById('cb-ad-val');
   if (adVal) {
     if (active) { adVal.textContent = '×1.50'; adVal.className = 'cb-val active'; }
@@ -7392,7 +7392,7 @@ if (ingameMiss) ingameMiss.addEventListener('click', function() {
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     스크립트: 총 코인 보너스 팝업
+     스크립트: 총 골드 보너스 팝업
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
@@ -7466,7 +7466,7 @@ if (popup) popup.addEventListener('click', function(e) { if (e.target === popup)
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     스크립트: 결과 화면 - 광고 2배 코인
+     스크립트: 결과 화면 - 광고 2배 골드
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
@@ -7516,7 +7516,7 @@ if (watchBtn) {
     var extraGold = _lastBaseGold;
     // 광고 mock → 골드 지급
     if (window.PERM) { window.PERM.gold += extraGold; if (window.savePerm) window.savePerm(); }
-    // 결과 화면 광고 코인 표시
+    // 결과 화면 광고 골드 표시
     var adEl = document.getElementById('r-ad-gold');
     if (adEl) adEl.textContent = extraGold;
     var totEl = document.getElementById('r-total-gold');
@@ -7952,7 +7952,7 @@ setTimeout(_applyMaxOverrides, 300);
 ════════════════════════════════════════ */
 (function() {
   var UTL_ITEMS = [
-    { key:'coinBoost',      name:'코인 부스트',        desc:'코인 획득량 영구 증가',        maxLv:10, unlockCost:40,
+    { key:'coinBoost',      name:'골드 부스트',        desc:'골드 획득량 영구 증가',        maxLv:10, unlockCost:40,
       cost:function(lv){return 15+lv*10;}, cur:function(lv){return ''+lv*5;}, nxt:function(lv){return ''+((lv+1)*5);} },
     { key:'waveBonusGold',  name:'웨이브 클리어 보너스', desc:'웨이브 클리어 시 추가 골드',   maxLv:10, unlockCost:80,
       cost:function(lv){return 20+lv*12;}, cur:function(lv){return ''+lv*10;}, nxt:function(lv){return ''+((lv+1)*10);} },
@@ -9573,7 +9573,7 @@ var CARDS = [
   { id:'fire_core',     rarity:'common', name:'파이어코어',       icon:'🔥', color:'#f59e0b', desc:'+1 공격력' },
   { id:'iron_shell',    rarity:'common', name:'아이언쉘',         icon:'🛡', color:'#f59e0b', desc:'+5% 최대HP' },
   { id:'speed_coil',    rarity:'common', name:'스피드코일',       icon:'⚡', color:'#f59e0b', desc:'+5% 공격속도' },
-  { id:'coin_magnet',   rarity:'common', name:'코인마그넷',       icon:'💰', color:'#f59e0b', desc:'+5% 골드' },
+  { id:'coin_magnet',   rarity:'common', name:'골드마그넷',       icon:'💰', color:'#f59e0b', desc:'+5% 골드' },
   { id:'crit_lens',     rarity:'rare',   name:'크리트렌즈',       icon:'🔭', color:'#3b82f6', desc:'+3% 치명타' },
   { id:'plasma_blade',  rarity:'rare',   name:'플라즈마블레이드', icon:'⚔', color:'#3b82f6', desc:'+2 공격력' },
   { id:'shield_matrix', rarity:'rare',   name:'실드매트릭스',     icon:'◎', color:'#3b82f6', desc:'+15% 최대HP' },
@@ -10729,7 +10729,7 @@ function _mechSpawnBounce(fromX, fromY, count, range) {
 (function() {
 'use strict';
 
-/* ── createState 확장: 분열탄·데스디파이·웨이브코인 ── */
+/* ── createState 확장: 분열탄·데스디파이·웨이브골드 ── */
 var _origCS_p = window.createState;
 window.createState = function() {
   var g = _origCS_p.apply(this, arguments);
@@ -11093,7 +11093,7 @@ var EV_SHOP = [
   {id:'es_gem_30',    name:'❖ 30 보석',         cost:100, type:'gem',     amount:30   },
   {id:'es_crystal_5', name:'▲ 5 코어 크리스탈', cost:200, type:'crystal', amount:5    },
   {id:'es_gold_500',  name:'◈ 500 골드',         cost:50,  type:'gold',    amount:500  },
-  {id:'es_boost_24h', name:'코인 부스트 24시간', cost:300, type:'boost',   amount:86400},
+  {id:'es_boost_24h', name:'골드 부스트 24시간', cost:300, type:'boost',   amount:86400},
   {id:'es_rush_3',    name:'연구 즉시 완료 3회', cost:500, type:'rush',    amount:3    },
 ];
 
@@ -12563,7 +12563,7 @@ setTimeout(function () { try { renderLeftIcons(); } catch(e) {} }, 100);
 </script>
 
 <script>
-/* ── 총 코인 보너스 팝업 ── */
+/* ── 총 골드 보너스 팝업 ── */
 window.showCoinBonusPopup = function () {
   var popup = document.getElementById('coin-bonus-popup-new');
   if (!popup) {
@@ -12576,7 +12576,7 @@ window.showCoinBonusPopup = function () {
       'border-radius:12px;padding:16px;width:260px;' +
       'font-family:\'Courier New\',monospace;z-index:200;';
     popup.innerHTML =
-      '<div style="text-align:center;font-size:13px;color:#ffc800;letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid #1a2a3a;padding-bottom:8px;">코인 보너스 내역</div>' +
+      '<div style="text-align:center;font-size:13px;color:#ffc800;letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid #1a2a3a;padding-bottom:8px;">골드 보너스 내역</div>' +
       '<div id="coin-bonus-list-new"></div>' +
       '<div style="text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid #1a2a3a;font-size:12px;color:#ffc800;">총합: <span id="coin-bonus-total-new">x1.00</span></div>' +
       '<button onclick="document.getElementById(\'coin-bonus-popup-new\').style.display=\'none\'" ' +
@@ -12594,7 +12594,7 @@ window.showCoinBonusPopup = function () {
   var tierMults = [1.0, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
   var tierMult  = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
 
-  var items = [{ label: '기본 코인 획득', value: 1.00 }];
+  var items = [{ label: '기본 골드 획득', value: 1.00 }];
   var cashBonus   = ws.cashBonus   || 0;
   var cashPerWave = ws.cashPerWave || 0;
   var goldBoost   = ws.goldBoostPct || 0;
@@ -12602,7 +12602,7 @@ window.showCoinBonusPopup = function () {
   if (cashPerWave > 0) items.push({ label: '웨이브 보너스 강화', value: 1 + cashPerWave * 0.02 });
   if (goldBoost   > 0) items.push({ label: '골드 부스트',       value: 1 + goldBoost * 0.02 });
   if (tierMult > 1.0)  items.push({ label: '난이도 티어 보너스', value: tierMult });
-  if (adActive)        items.push({ label: '광고 코인 보너스',   value: 1.5 });
+  if (adActive)        items.push({ label: '광고 골드 보너스',   value: 1.5 });
 
   var list = document.getElementById('coin-bonus-list-new');
   var total = 1.0;
