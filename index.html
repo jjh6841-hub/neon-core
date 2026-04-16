@@ -9361,8 +9361,10 @@ function _spUpdateHomeBtn() {
   var rightText = canClaim ? '보상 수령 가능!' : nextTier ? kills + ' / ' + nextTier.target : '완료';
   bar.innerHTML =
     '<span style="font-size:10px;color:#ff8822;font-family:\'Courier New\',monospace;white-space:nowrap;">◆ 시즌 패스</span>' +
-    '<span style="font-size:9px;color:#94a3b8;font-family:\'Courier New\',monospace;">엘리트 코어 처치</span>' +
-    '<span style="font-size:10px;color:' + (canClaim ? '#ff8822' : '#94a3b8') + ';font-family:\'Courier New\',monospace;">' + rightText + '</span>';
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="font-size:9px;color:#94a3b8;font-family:\'Courier New\',monospace;">엘리트 코어 처치</span>' +
+      '<span style="font-size:10px;color:' + (canClaim ? '#ff8822' : '#94a3b8') + ';font-family:\'Courier New\',monospace;">' + rightText + '</span>' +
+    '</div>';
 }
 
 function _watchHome() {
