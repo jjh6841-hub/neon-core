@@ -1304,15 +1304,14 @@ canvas {
 
 <!-- ── 출석 보상 팝업 ── -->
 <div id="daily-popup" style="display:none; position:fixed; inset:0; background:rgba(3,11,16,0.95); z-index:10000; align-items:center; justify-content:center; flex-direction:column;">
-  <div style="background:#0a1a2a; border:1px solid #00ffff; padding:24px 28px; max-width:280px; width:90%; text-align:center;">
-    <div id="daily-title" style="color:#00ffff; font-family:'Courier New',monospace; font-size:16px; font-weight:bold; margin-bottom:8px;"></div>
-    <div id="daily-streak" style="color:#f59e0b; font-family:'Courier New',monospace; font-size:12px; margin-bottom:16px;"></div>
-    <div style="display:flex; justify-content:center; align-items:flex-start; gap:24px; margin-bottom:16px;">
-      <div style="text-align:center; min-width:70px;"><div style="color:#f59e0b; font-family:'Courier New',monospace; font-size:22px; font-weight:bold;" id="daily-gold"></div><div style="color:#94a3b8; font-size:9px; font-family:monospace; margin-top:2px;">GOLD</div></div>
-      <div style="text-align:center; min-width:70px;"><div style="color:#00ffff; font-family:'Courier New',monospace; font-size:22px; font-weight:bold;" id="daily-gem"></div><div style="color:#94a3b8; font-size:9px; font-family:monospace; margin-top:2px;">GEM</div></div>
+  <div style="background:#0a1a2a; border:1px solid #00ffff; padding:16px 20px; max-width:220px; width:85%; text-align:center;">
+    <div id="daily-title" style="color:#00ffff; font-family:'Courier New',monospace; font-size:13px; font-weight:bold; margin-bottom:10px;"></div>
+    <div style="display:flex; justify-content:center; align-items:flex-start; gap:20px; margin-bottom:12px;">
+      <div style="text-align:center; min-width:60px;"><div style="color:#f59e0b; font-family:'Courier New',monospace; font-size:18px; font-weight:bold;" id="daily-gold"></div><div style="color:#94a3b8; font-size:8px; font-family:monospace; margin-top:2px;">GOLD</div></div>
+      <div style="text-align:center; min-width:60px;"><div style="color:#00ffff; font-family:'Courier New',monospace; font-size:18px; font-weight:bold;" id="daily-gem"></div><div style="color:#94a3b8; font-size:8px; font-family:monospace; margin-top:2px;">GEM</div></div>
     </div>
-    <div id="daily-bonus" style="color:#cc44ff; font-family:'Courier New',monospace; font-size:11px; margin-bottom:12px; display:none;"></div>
-    <button id="daily-claim-btn" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:'Courier New',monospace; font-size:13px; padding:8px 24px; cursor:pointer; width:100%;">받기</button>
+    <div id="daily-bonus" style="color:#cc44ff; font-family:'Courier New',monospace; font-size:10px; margin-bottom:8px; display:none;"></div>
+    <button id="daily-claim-btn" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; padding:6px 20px; cursor:pointer; width:100%;">받기</button>
   </div>
 </div>
 
@@ -1764,7 +1763,6 @@ function showDailyPopup(streak, reward) {
   var popup = document.getElementById('daily-popup');
   if (!popup) return;
   document.getElementById('daily-title').textContent = 'DAY ' + streak + ' 출석 보상';
-  document.getElementById('daily-streak').textContent = streak + '일째 출석!';
   document.getElementById('daily-gold').textContent = '◈+' + reward.gold;
   document.getElementById('daily-gem').textContent = '❖+' + reward.gem;
   var bonusEl = document.getElementById('daily-bonus');
