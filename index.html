@@ -4132,7 +4132,7 @@ var navTabs = [
   { id: 'module',   label: '\uD504\uB9AC\uC998',    icon: 'svg_module', screen: 'module',   unlock: 10 },
   { id: 'research', label: '\uC5F0\uAD6C\uC18C',  icon: 'svg_research', screen: 'lab',      unlock: 10 },
   { id: 'corelab',  label: '\uCF54\uC5B4\uB7A9',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
-  { id: 'skin',     label: '\uC2A4\uD0A8',    icon: 'svg_skin', screen: 'skin',     unlock: 999 },
+  { id: 'skin',     label: '\uC2A4\uD0A8',    icon: 'svg_skin', screen: 'skin',     unlock: 'spectra' },
   { id: 'store',    label: '\uC2A4\uD1A0\uC5B4',  icon: 'svg_store', screen: 'store',    unlock: 0 }
 ];
 
@@ -4148,7 +4148,9 @@ function renderNavTabs(currentScreen) {
   var w = PERM.bestWave || 0;
 
   navTabs.forEach(function(tab, index) {
-    var unlocked = w >= tab.unlock;
+    var unlocked = tab.unlock === 'spectra'
+      ? parseInt(localStorage.getItem('tier1_best') || '0', 10) >= 100
+      : w >= tab.unlock;
     var active = currentScreen === tab.screen;
     var iconColor, labelColor, bg, bb;
 
@@ -4225,7 +4227,7 @@ function renderNavTabs(currentScreen) {
       (function(t) {
         btn.onclick = function() {
           var msg = t.unlock === 999
-            ? t.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
+            ? t.label + ' \u2014 \uC2A4\uD399\uD2B8\uB77C \uD574\uAE08 \uC2DC \uC624\uD508'
             : t.label + ' \u2014 \uC6E8\uC774\uBE0C ' + t.unlock + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
           showNavToast(msg, t.id);
         };
@@ -4287,7 +4289,10 @@ function getNewUnlocks() {
     var saved = JSON.parse(localStorage.getItem('td_nav_unlocked') || '{}');
     for (var i = 0; i < navTabs.length; i++) {
       var tab = navTabs[i];
-      if (tab.unlock > 0 && best >= tab.unlock && !saved[tab.id]) {
+      var isUnlocked = tab.unlock === 'spectra'
+        ? parseInt(localStorage.getItem('tier1_best') || '0', 10) >= 100
+        : (tab.unlock > 0 && best >= tab.unlock);
+      if (isUnlocked && !saved[tab.id]) {
         saved[tab.id] = true;
         unlocked.push(tab.label);
       }
