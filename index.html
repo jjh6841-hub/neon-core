@@ -9424,7 +9424,7 @@ function _spOpenPopup() {
       '<div style="background:#0d1520;border:1px solid #ff8822;max-width:320px;width:90%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 0 30px rgba(255,136,34,0.2);">' +
         '<div style="padding:14px 16px 10px;border-bottom:1px solid #1a2a3a;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-            '<span style="color:#ff8822;font-size:14px;font-weight:bold;letter-spacing:2px;">◆ 시즌 패스</span>' +
+            '<span style="display:inline-flex;align-items:center;gap:8px;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:16px;background:linear-gradient(135deg,#ff8822,#ff5500);border-radius:2px;color:#0a0e1a;font-size:8px;font-weight:900;box-shadow:0 0 8px rgba(255,136,34,0.4);padding:0 4px;">SP</span><span style="color:#ff8822;font-size:14px;font-weight:bold;letter-spacing:2px;">시즌 패스</span></span>' +
             '<button id="sp-close-btn" style="background:none;border:1px solid #334455;color:#94a3b8;font-size:16px;width:24px;height:24px;cursor:pointer;line-height:1;padding:0;font-family:\'Courier New\',monospace;">×</button>' +
           '</div>' +
           '<div id="sp-header-info"></div>' +
@@ -9469,7 +9469,7 @@ function _spUpdateHomeBtn() {
   bar.style.borderColor = canClaim ? '#ff8822' : '#1a3344';
   var rightText = canClaim ? '보상 수령 가능!' : nextTier ? kills + ' / ' + nextTier.target : '완료';
   bar.innerHTML =
-    '<span style="font-size:10px;color:#ff8822;font-family:\'Courier New\',monospace;white-space:nowrap;">◆ 시즌 패스</span>' +
+    '<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:12px;background:linear-gradient(135deg,#ff8822,#ff5500);border-radius:1px;color:#0a0e1a;font-size:7px;font-weight:900;box-shadow:0 0 6px rgba(255,136,34,0.3);padding:0 3px;font-family:\'Courier New\',monospace;">SP</span><span style="font-size:10px;color:#ff8822;font-family:\'Courier New\',monospace;">시즌 패스</span></span>' +
     '<div style="display:flex;align-items:center;gap:6px;">' +
       '<span style="font-size:9px;color:#94a3b8;font-family:\'Courier New\',monospace;">엘리트 코어 처치</span>' +
       '<span style="font-size:10px;color:' + (canClaim ? '#ff8822' : '#94a3b8') + ';font-family:\'Courier New\',monospace;">' + rightText + '</span>' +
