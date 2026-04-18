@@ -1569,31 +1569,139 @@ var AudioManager = {
   playBGM: function() {
     if (!this.ctx || this.bgmInterval) return;
     var self = this;
-    var notes = [261.63, 329.63, 392.00, 523.25];
-    var noteIdx = 0;
-    function playNote() {
+    var bpm = 128;
+    var beat = 60 / bpm;
+    var s16 = beat / 4;
+    var step = 0;
+    var curBar = -1;
+    var padNodes = [];
+
+    /* Chord progression: Am → F → Dm → E (dark cyberpunk) */
+    var bass = [55, 87.31, 73.42, 82.41];
+    var arpSeq = [
+      [220,261.63,329.63,440,329.63,261.63,220,164.81],
+      [174.61,220,261.63,349.23,261.63,220,174.61,130.81],
+      [293.66,349.23,440,587.33,440,349.23,293.66,220],
+      [329.63,415.30,493.88,659.26,493.88,415.30,329.63,246.94]
+    ];
+    var padCh = [
+      [110,130.81,164.81],
+      [87.31,110,130.81],
+      [146.83,174.61,220],
+      [164.81,207.65,246.94]
+    ];
+
+    function oEnded(o) {
+      o.onended = function(){ var i=self.bgmOscs.indexOf(this); if(i!==-1)self.bgmOscs.splice(i,1); }.bind(o);
+      self.bgmOscs.push(o);
+    }
+
+    function startPad(bar) {
+      var t = self.ctx.currentTime;
+      for (var i = 0; i < padNodes.length; i++) {
+        try { padNodes[i].g.gain.exponentialRampToValueAtTime(0.001, t + 0.3); padNodes[i].o.stop(t + 0.5); } catch(e) {}
+      }
+      padNodes = [];
+      var ch = padCh[bar];
+      for (var i = 0; i < ch.length; i++) {
+        for (var d = -1; d <= 1; d += 2) {
+          var o = self.ctx.createOscillator();
+          var g = self.ctx.createGain();
+          var f = self.ctx.createBiquadFilter();
+          o.type = 'sawtooth';
+          o.frequency.value = ch[i] + d * 0.4;
+          f.type = 'lowpass'; f.frequency.value = 600;
+          g.gain.setValueAtTime(0.001, t);
+          g.gain.linearRampToValueAtTime(0.018, t + 0.8);
+          o.connect(f); f.connect(g); g.connect(self.bgmGain);
+          o.start(t);
+          padNodes.push({ o: o, g: g });
+          oEnded(o);
+        }
+      }
+    }
+
+    function tick() {
       try {
-        var osc = self.ctx.createOscillator();
-        var gain = self.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.value = notes[noteIdx % notes.length];
-        noteIdx++;
         var t = self.ctx.currentTime;
-        gain.gain.setValueAtTime(0.04, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
-        osc.connect(gain);
-        gain.connect(self.bgmGain);
-        osc.start(t);
-        osc.stop(t + 0.8);
-        self.bgmOscs.push(osc);
-        osc.onended = function() {
-          var idx = self.bgmOscs.indexOf(osc);
-          if (idx !== -1) self.bgmOscs.splice(idx, 1);
-        };
+        var bar = Math.floor(step / 16) % 4;
+        var b = step % 16;
+
+        if (bar !== curBar) { curBar = bar; startPad(bar); }
+
+        /* Kick — four on the floor */
+        if (b % 4 === 0) {
+          var o = self.ctx.createOscillator(), g = self.ctx.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(150, t);
+          o.frequency.exponentialRampToValueAtTime(30, t + 0.12);
+          g.gain.setValueAtTime(0.14, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          o.connect(g); g.connect(self.bgmGain);
+          o.start(t); o.stop(t + 0.15);
+          oEnded(o);
+        }
+
+        /* Hi-hat — 8th notes */
+        if (b % 2 === 0) {
+          var o = self.ctx.createOscillator(), g = self.ctx.createGain();
+          var f = self.ctx.createBiquadFilter();
+          o.type = 'square';
+          o.frequency.value = 6000 + Math.random() * 2000;
+          f.type = 'highpass'; f.frequency.value = 7000;
+          g.gain.setValueAtTime(b % 4 === 0 ? 0.025 : 0.015, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+          o.connect(f); f.connect(g); g.connect(self.bgmGain);
+          o.start(t); o.stop(t + 0.05);
+          oEnded(o);
+        }
+
+        /* Sub bass — sine on each beat */
+        if (b % 4 === 0) {
+          var o = self.ctx.createOscillator(), g = self.ctx.createGain();
+          o.type = 'sine';
+          o.frequency.value = bass[bar];
+          g.gain.setValueAtTime(0.12, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + beat * 0.9);
+          o.connect(g); g.connect(self.bgmGain);
+          o.start(t); o.stop(t + beat);
+          oEnded(o);
+        }
+
+        /* Synth bass — sawtooth, filtered, on beat + offbeat */
+        if (b % 4 === 0 || b % 4 === 3) {
+          var o = self.ctx.createOscillator(), g = self.ctx.createGain();
+          var f = self.ctx.createBiquadFilter();
+          o.type = 'sawtooth';
+          o.frequency.value = bass[bar] * 2;
+          f.type = 'lowpass'; f.frequency.value = 400; f.Q.value = 8;
+          g.gain.setValueAtTime(0.07, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 2);
+          o.connect(f); f.connect(g); g.connect(self.bgmGain);
+          o.start(t); o.stop(t + s16 * 2.5);
+          oEnded(o);
+        }
+
+        /* Arpeggio — square, filtered, 16th notes */
+        var o = self.ctx.createOscillator(), g = self.ctx.createGain();
+        var f = self.ctx.createBiquadFilter();
+        o.type = 'square';
+        o.frequency.value = arpSeq[bar][b % 8];
+        f.type = 'lowpass';
+        f.frequency.value = 1200 + (b / 16) * 1800;
+        f.Q.value = 2;
+        g.gain.setValueAtTime(0.03, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 0.7);
+        o.connect(f); f.connect(g); g.connect(self.bgmGain);
+        o.start(t); o.stop(t + s16 * 0.85);
+        oEnded(o);
+
+        step++;
       } catch(e) {}
     }
-    playNote();
-    this.bgmInterval = setInterval(playNote, 1200);
+
+    tick();
+    this.bgmInterval = setInterval(tick, s16 * 1000);
   },
   stopBGM: function() {
     if (this.bgmInterval) { clearInterval(this.bgmInterval); this.bgmInterval = null; }
