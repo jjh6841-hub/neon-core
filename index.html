@@ -2407,9 +2407,9 @@ function startWave() {
   G.spawnIntvl  = 800;  // fixed 0.8s between spawns
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
-  // Wave start core chip bonus (2웨이브부터)
+  // Wave start core chip bonus (2웨이브부터, 고정 2)
   if (w >= 2) {
-    var bonus = w * 2;
+    var bonus = 2;
     coreChips += bonus;
     G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
     G.waveBonusTimer = 0;
@@ -2973,7 +2973,7 @@ function onWaveComplete() {
   G.borderFlash = 0.6;
   G.phase = 'between';
   G.betweenTimer = 2500;
-  if (G.wave % 10 === 0) G.gems += 2;
+  // 보석은 웨이브 클리어로 획득하지 않음
   if (G.wave > PERM.bestWave) { PERM.bestWave = G.wave; savePerm(); }
   // 주간 웨이브 기록 갱신
   try { var _cwb=parseInt(localStorage.getItem('wk_wave_progress')||'0',10); if(G.wave>_cwb) localStorage.setItem('wk_wave_progress',G.wave); } catch(_){}
@@ -10427,7 +10427,7 @@ function _showCrystalFirstVisit() {
       '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.8;text-align:center;">'+
         '코어 크리스탈(❖)로 궁극기를 해금하세요.<br>'+
         '강력한 스킬로 더 높은 웨이브에 도전!<br>'+
-        '<span style="color:#cc44ff;">❖ 보석은 웨이브 클리어 시 획득</span>'+
+        '<span style="color:#cc44ff;">❖ 보석은 업적·임무·출석으로 획득</span>'+
       '</div>'+
     '</div>'+
     '<div style="color:#334455;font-family:monospace;font-size:10px;text-align:center;">잠금 해제 비용: ❖ 5 ~ 10</div>'+
@@ -11840,9 +11840,8 @@ function _injectScreens() {
         '</div>' +
         /* 통화 교환 */
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 통화 교환</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px;">' +
           _smShopCard('❖','#00dddd','보석 x100','✦ 200','gem100',200) +
-          _smShopCard('✦','#ffc800','펄스 조각 x50','❖ 30','pulse50',30) +
         '</div>' +
         /* 테마 */
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 테마 <span style="color:#cc44cc;font-size:9px;background:#2a0a2a;border:1px solid #660066;padding:1px 5px;border-radius:3px;">한정</span></div>' +
@@ -12014,17 +12013,11 @@ window._smOwnedItems   = _ownedItems;   /* 스킨 체크용 전역 참조 */
 
 window.smBuy = function (item, cost) {
   var isSkin    = item === 'void' || item === 'abyss';
-  var useGems   = item === 'pulse50';
 
   if (isSkin && _ownedItems.indexOf(item) !== -1) {
     _mktToast('이미 보유 중!', '#778899'); return;
   }
-  if (useGems) {
-    if ((PERM.gems || 0) < cost) { _mktToast('보석이 부족합니다', '#ff4444'); return; }
-    PERM.gems -= cost;
-    window.pulseFragments += 50;
-    try { savePerm(); } catch(_) {}
-  } else {
+  {
     if (window.pulseFragments < cost) { _mktToast('펄스 조각이 부족합니다', '#ff4444'); return; }
     window.pulseFragments -= cost;
     if (item === 'gem100') {
@@ -12042,7 +12035,7 @@ window.smBuy = function (item, cost) {
   }
   syncPulse();
   var msgs = {
-    gem100:'보석 x100 획득!', pulse50:'펄스 조각 x50 획득!',
+    gem100:'보석 x100 획득!',
     void:'VOID CIRCUIT 적용됨!', abyss:'CYBER ABYSS 적용됨!',
     boost_dmg:'오버클럭 레이저 활성화!', boost_range:'레이더 확장 펄스 활성화!', boost_hp:'방어막 과충전 활성화!'
   };
