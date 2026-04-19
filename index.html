@@ -3745,11 +3745,7 @@ function goHome() {
   isPaused = false;
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
-  PERM.gold = G.gold;
-  PERM.gems = G.gems;
-  savePerm();
-  G.phase = 'gameover';
-  openShop();
+  triggerGameOver();
 }
 window.goHome = goHome;
 
@@ -3987,7 +3983,7 @@ bindOverlayBtn('btn-restart', function() {
   });
 });
 bindOverlayBtn('btn-home', function() {
-  showConfirm('홈으로 이동할까요?\n현재 진행 사항이 사라져요', function() {
+  showConfirm('전투를 종료하시겠습니까?', function() {
     closeConfirm();
     goHome();
   });
