@@ -2322,6 +2322,14 @@ function applyPermStats() {
   G.rangeLevel = 5 + PERM.rngLv;
   G.zoom       = getTargetZoom();
   G.targetZoom = G.zoom;
+  // 스킨 보유 보너스 (스킨당 10% 곱연산)
+  if (window._getSkinMultipliers) {
+    var sm = window._getSkinMultipliers();
+    t.dmg   = Math.round(t.dmg * sm.atk);
+    t.maxHp = Math.round(t.maxHp * sm.hp);
+    t.hp    = t.maxHp;
+    t.defense = Math.round((t.defense || 0) * sm.def * 100) / 100;
+  }
 }
 
 function startGame() {
@@ -13710,10 +13718,34 @@ function setSkin(skinId) {
   if (el) el.innerHTML = getNeonCoreIcon(90, skinId);
 }
 
+function _getSkinCount() {
+  // 모든 스킨은 기본 보유 (현재 12개 전부 열림)
+  return IRIS_SKINS.length;
+}
+
+function _getSkinMultipliers() {
+  var count = _getSkinCount();
+  var mult = Math.pow(1.10, count); // 스킨당 10% 곱연산
+  return { atk: mult, def: mult, hp: mult };
+}
+window._getSkinMultipliers = _getSkinMultipliers;
+
 function renderSkinGrid() {
   var grid = document.getElementById('skin-grid');
   if (!grid) return;
   grid.innerHTML = '';
+
+  // 보너스 표시
+  var bonusEl = document.getElementById('skin-bonus');
+  if (bonusEl) {
+    var count = _getSkinCount();
+    var m = _getSkinMultipliers();
+    bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + count + '/' + IRIS_SKINS.length + '</span>' +
+      '  |  공격력 <span style="color:#ef4444;">x' + m.atk.toFixed(2) + '</span>' +
+      '  방어력 <span style="color:#3b82f6;">x' + m.def.toFixed(2) + '</span>' +
+      '  체력 <span style="color:#10b981;">x' + m.hp.toFixed(2) + '</span>';
+  }
+
   IRIS_SKINS.forEach(function(skin) {
     var isSelected = skin.id === currentSkin;
     var card = document.createElement('div');
@@ -13728,6 +13760,14 @@ function renderSkinGrid() {
     card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
     grid.appendChild(card);
   });
+
+  // 적용하기 버튼 바인딩
+  var applyBtn = document.getElementById('skin-apply-btn');
+  if (applyBtn) {
+    applyBtn.onclick = function() {
+      if (window.showScreen) showScreen('home');
+    };
+  }
 }
 
 (function() {
@@ -13768,7 +13808,11 @@ function renderSkinGrid() {
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">스킨</div>
-  <div id="skin-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:0 12px; overflow-y:auto;"></div>
+  <div id="skin-bonus" style="text-align:center; padding:6px; font-family:'Courier New',monospace; font-size:9px; color:#556677; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.05); flex-shrink:0;"></div>
+  <div id="skin-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:0 12px; overflow-y:auto; flex:1;"></div>
+  <div style="padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); background:#040c14; border-top:1px solid rgba(0,255,255,0.15); flex-shrink:0;">
+    <button id="skin-apply-btn" style="width:100%; height:44px; background:#030b10; border:2px solid #00ffff; color:#00ffff; font-size:14px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; -webkit-appearance:none;">적용하기</button>
+  </div>
 </div>
 
 <!-- ── 쿠폰 시스템 ── -->
