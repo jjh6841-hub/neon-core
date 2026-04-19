@@ -14019,11 +14019,39 @@ function _getTodayElements() {
   return ELEMENTS.filter(function(e){return e.day===d;});
 }
 
-/* ── 탐사 화면 렌더링 ── */
+/* ── 요일별 적용 시스템 ── */
+var DAY_SYSTEMS = {
+  fire:    { label:'강화 + 모듈 + 스토어 + 전투 증강', systems:['workshop','module','store','augment'] },
+  water:   { label:'코어랩 + 모듈 + 스토어 + 전투 증강', systems:['corelab','module','store','augment'] },
+  electric:{ label:'프리즘 + 모듈 + 스토어 + 전투 증강', systems:['prism','module','store','augment'] },
+  earth:   { label:'스킨 + 모듈 + 스토어 + 전투 증강', systems:['skin','module','store','augment'] },
+  wind:    { label:'프로토콜 + 모듈 + 스토어 + 전투 증강', systems:['protocol','module','store','augment'] },
+  dark:    { label:'모듈 + 스토어 + 전투 증강', systems:['module','store','augment'] },
+};
+
+/* ── 단계 관리 (속성별 1~30) ── */
+var MAX_STAGE = 30;
+function _getStage(elemId) { return parseInt(localStorage.getItem('explore_stage_'+elemId)||'1',10); }
+function _setStage(elemId,v) { localStorage.setItem('explore_stage_'+elemId, Math.min(v, MAX_STAGE+1)); }
+function _getCleared(elemId) { return parseInt(localStorage.getItem('explore_cleared_'+elemId)||'0',10); }
+function _setCleared(elemId,v) { localStorage.setItem('explore_cleared_'+elemId, v); }
+
+/* 단계별 보상 (단계 높을수록 증가) */
+function _stageReward(stage) { return 2 + Math.floor(stage * 0.8); }
+
+/* ── 탐사 화면: 속성 선택 ── */
+var _exploreView = 'list'; // 'list' or element id
+var _exploreElem = null;
+
 function renderExplore() {
   _checkDailyReset();
   var container = document.getElementById('explore-content');
   if (!container) return;
+  if (_exploreView === 'list') _renderExploreList(container);
+  else _renderExploreStages(container);
+}
+
+function _renderExploreList(container) {
   var dayNames = ['일','월','화','수','목','금','토'];
   var today = new Date().getDay();
   var open = _getTodayElements();
@@ -14043,49 +14071,156 @@ function renderExplore() {
   });
   html += '</div>';
 
-  // 탐사 카드
+  // 속성 카드
   html += '<div style="display:flex;flex-direction:column;gap:8px;">';
   ELEMENTS.forEach(function(el) {
     var isOpen = open.some(function(o){return o.id===el.id;});
-    var canGo = isOpen && tickets > 0;
-    html += '<div style="background:'+(isOpen?'#0a1020':'#060810')+';border:1px solid '+(isOpen?el.color+'55':'#0a1a2a')+';padding:12px;opacity:'+(isOpen?'1':'0.4')+';">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+    var cleared = _getCleared(el.id);
+    var curStage = _getStage(el.id);
+    var sys = DAY_SYSTEMS[el.id];
+    html += '<div data-elem-select="'+el.id+'" style="background:'+(isOpen?'#0a1020':'#060810')+';border:1px solid '+(isOpen?el.color+'55':'#0a1a2a')+';padding:12px;cursor:'+(isOpen?'pointer':'default')+';opacity:'+(isOpen?'1':'0.4')+';">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;">'+
         '<div style="display:flex;align-items:center;gap:8px;">'+
           '<span style="font-size:18px;">'+el.icon+'</span>'+
           '<div><div style="font-size:12px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.name+' 탐사</div>'+
-          '<div style="font-size:9px;color:#556677;font-family:monospace;">보상: '+el.core+'</div></div>'+
+          '<div style="font-size:8px;color:#445566;font-family:monospace;margin-top:2px;">'+sys.label+'</div></div>'+
         '</div>'+
-        '<div style="font-size:9px;color:#556677;font-family:monospace;">보유 '+_getCore(el.id)+'</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:10px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+cleared+' / '+MAX_STAGE+'</div>'+
+          (isOpen?'<div style="font-size:8px;color:#556677;font-family:monospace;">터치하여 입장 ▸</div>':'<div style="font-size:8px;color:#334455;font-family:monospace;">'+(el.day<=5?dayNames[el.day]:'토')+'요일</div>')+
+        '</div>'+
       '</div>'+
-      (isOpen
-        ? '<button data-explore="'+el.id+'" '+(canGo?'':'disabled ')+
-          'style="width:100%;height:36px;background:#030b10;border:1px solid '+(canGo?el.color:'#1a2a3a')+';color:'+(canGo?el.color:'#334455')+
-          ';font-family:monospace;font-size:11px;cursor:'+(canGo?'pointer':'default')+';letter-spacing:1px;-webkit-appearance:none;">'+
-          (canGo?'🎫 탐사 출발':'티켓 부족')+'</button>'
-        : '<div style="text-align:center;font-size:10px;color:#334455;font-family:monospace;padding:8px 0;">'+(el.day<=5?dayNames[el.day]:'토')+'요일에 열립니다</div>')+
     '</div>';
   });
   html += '</div>';
 
   container.innerHTML = html;
 
-  // 탐사 버튼 바인딩
-  var btns = container.querySelectorAll('[data-explore]:not([disabled])');
-  for (var i = 0; i < btns.length; i++) {
-    (function(btn) {
-      btn.addEventListener('click', function() {
-        if (_getTickets() <= 0) return;
-        var elId = btn.getAttribute('data-explore');
-        var el = ELEMENTS.filter(function(e){return e.id===elId;})[0];
-        if (!el) return;
-        _setTickets(_getTickets() - 1);
-        var earned = 2 + Math.floor(Math.random() * 3);
-        _setCore(elId, _getCore(elId) + earned);
-        if (window.showAchievementToast) showAchievementToast(el.icon+' '+el.core+' +'+earned+' 획득!');
+  // 속성 카드 클릭 → 단계 목록
+  var open2 = open;
+  var cards = container.querySelectorAll('[data-elem-select]');
+  for (var i = 0; i < cards.length; i++) {
+    (function(card) {
+      card.addEventListener('click', function() {
+        var eId = card.getAttribute('data-elem-select');
+        if (!open2.some(function(o){return o.id===eId;})) return;
+        _exploreView = eId;
+        _exploreElem = ELEMENTS.filter(function(e){return e.id===eId;})[0];
         renderExplore();
       });
-    })(btns[i]);
+    })(cards[i]);
   }
+}
+
+function _renderExploreStages(container) {
+  var el = _exploreElem;
+  if (!el) { _exploreView='list'; renderExplore(); return; }
+  var tickets = _getTickets();
+  var cleared = _getCleared(el.id);
+  var curStage = Math.min(_getStage(el.id), MAX_STAGE);
+
+  var html = '<div style="display:flex;align-items:center;margin-bottom:14px;">'+
+    '<div data-back-list style="cursor:pointer;color:#778899;font-family:monospace;font-size:11px;">◂ 뒤로</div>'+
+    '<div style="flex:1;text-align:center;">'+
+      '<span style="font-size:14px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.icon+' '+el.name+' 탐사</span>'+
+    '</div>'+
+    '<div style="font-size:11px;color:#ff8822;font-family:monospace;">🎫 '+tickets+'</div>'+
+  '</div>';
+
+  // 코어 보유
+  html += '<div style="text-align:center;margin-bottom:12px;font-size:11px;color:'+el.color+';font-family:monospace;">'+el.core+': '+_getCore(el.id)+'</div>';
+
+  // 단계 그리드
+  html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
+  for (var s = 1; s <= MAX_STAGE; s++) {
+    var isCleared = s <= cleared;
+    var isCurrent = s === curStage && curStage <= MAX_STAGE;
+    var isLocked = s > curStage;
+    var reward = _stageReward(s);
+    var canHarvest = isCleared && tickets > 0;
+    var canBattle = isCurrent && tickets > 0;
+
+    var borderColor = isCleared ? el.color+'88' : isCurrent ? el.color : '#1a2a3a';
+    var bgColor = isCleared ? el.color+'11' : isCurrent ? el.color+'22' : '#060810';
+    var numColor = isCleared ? el.color : isCurrent ? '#fff' : '#334455';
+
+    html += '<div data-stage="'+s+'" style="background:'+bgColor+';border:1px solid '+borderColor+';padding:8px 4px;text-align:center;cursor:'+(isLocked?'default':'pointer')+';opacity:'+(isLocked?'0.3':'1')+';">'+
+      '<div style="font-size:13px;color:'+numColor+';font-family:monospace;font-weight:bold;">'+s+'</div>'+
+      '<div style="font-size:7px;color:#556677;font-family:monospace;margin-top:2px;">'+el.core.split(' ')[0]+' '+reward+'</div>'+
+      (isCleared?'<div style="font-size:7px;color:'+el.color+';margin-top:2px;">✓</div>':'')+
+    '</div>';
+  }
+  html += '</div>';
+
+  // 하단 액션 영역
+  if (curStage <= MAX_STAGE) {
+    var canBattle2 = tickets > 0;
+    html += '<div style="margin-top:14px;padding:12px;border:1px solid '+el.color+'33;background:#0a1020;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+        '<span style="font-size:12px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+curStage+'단계</span>'+
+        '<span style="font-size:10px;color:#556677;font-family:monospace;">보상: '+el.core+' x'+_stageReward(curStage)+'</span>'+
+      '</div>'+
+      '<button data-battle="'+el.id+'" '+(canBattle2?'':'disabled ')+
+        'style="width:100%;height:40px;background:#030b10;border:1px solid '+(canBattle2?el.color:'#1a2a3a')+';color:'+(canBattle2?el.color:'#334455')+
+        ';font-family:monospace;font-size:12px;cursor:'+(canBattle2?'pointer':'default')+';letter-spacing:1px;-webkit-appearance:none;">'+
+        (canBattle2?'🎫 탐사 출발':'티켓 부족')+'</button>'+
+    '</div>';
+  } else {
+    html += '<div style="margin-top:14px;text-align:center;font-size:12px;color:'+el.color+';font-family:monospace;">모든 단계 클리어!</div>';
+  }
+
+  // 즉시 수확 (클리어한 단계가 있고 티켓이 있을 때)
+  if (cleared > 0) {
+    var canHarvest2 = tickets > 0;
+    var totalHarvest = 0;
+    for (var h = 1; h <= cleared; h++) totalHarvest += _stageReward(h);
+    html += '<div style="margin-top:8px;">'+
+      '<button data-harvest="'+el.id+'" '+(canHarvest2?'':'disabled ')+
+        'style="width:100%;height:36px;background:'+(canHarvest2?el.color+'22':'#060810')+';border:1px solid '+(canHarvest2?el.color+'55':'#1a2a3a')+';color:'+(canHarvest2?el.color:'#334455')+
+        ';font-family:monospace;font-size:11px;cursor:'+(canHarvest2?'pointer':'default')+';-webkit-appearance:none;">'+
+        (canHarvest2?'⚡ 즉시 수확 ('+el.core+' x'+totalHarvest+')':'티켓 부족')+'</button>'+
+    '</div>';
+  }
+
+  container.innerHTML = html;
+
+  // 뒤로 버튼
+  var backBtn = container.querySelector('[data-back-list]');
+  if (backBtn) backBtn.addEventListener('click', function() { _exploreView='list'; renderExplore(); });
+
+  // 탐사 출발 (placeholder — 전투 미구현, 임시 승리 처리)
+  var battleBtn = container.querySelector('[data-battle]:not([disabled])');
+  if (battleBtn) battleBtn.addEventListener('click', function() {
+    if (_getTickets() <= 0) return;
+    var eId = battleBtn.getAttribute('data-battle');
+    var stg = _getStage(eId);
+    if (stg > MAX_STAGE) return;
+    // TODO: 실제 탐사 전투 구현 — 현재는 임시 승리
+    _setTickets(_getTickets() - 1);
+    var reward = _stageReward(stg);
+    _setCore(eId, _getCore(eId) + reward);
+    _setCleared(eId, Math.max(_getCleared(eId), stg));
+    _setStage(eId, stg + 1);
+    var e2 = ELEMENTS.filter(function(x){return x.id===eId;})[0];
+    if (e2 && window.showAchievementToast) showAchievementToast(e2.icon+' '+stg+'단계 클리어! '+e2.core+' +'+reward);
+    renderExplore();
+  });
+
+  // 즉시 수확
+  var harvestBtn = container.querySelector('[data-harvest]:not([disabled])');
+  if (harvestBtn) harvestBtn.addEventListener('click', function() {
+    if (_getTickets() <= 0) return;
+    var eId = harvestBtn.getAttribute('data-harvest');
+    var clr = _getCleared(eId);
+    if (clr <= 0) return;
+    _setTickets(_getTickets() - 1);
+    var total = 0;
+    for (var h = 1; h <= clr; h++) total += _stageReward(h);
+    _setCore(eId, _getCore(eId) + total);
+    var e2 = ELEMENTS.filter(function(x){return x.id===eId;})[0];
+    if (e2 && window.showAchievementToast) showAchievementToast(e2.icon+' 즉시 수확! '+e2.core+' +'+total);
+    renderExplore();
+  });
 }
 
 // showScreen 확장
