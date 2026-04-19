@@ -2066,6 +2066,12 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('maxhp',7); },
     apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; G.tower.maxHp+=3; G.tower.hp+=3; },
   },
+  { key:'hpRegen', tab:'def', icon:'♥',  name:'체력회복',  baseCost:8,  unlock:null,
+    cost()   { return upgCost('hpRegen',8); },
+    stat()   { return G.regenRate.toFixed(2)+'/s'; },
+    canBuy() { return coreChips>=upgCost('hpRegen',8); },
+    apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate+=0.5; },
+  },
   { key:'armor',   tab:'def', icon:'[]',  name:'방어구',   baseCost:6,  unlock:null,
     cost()   { return upgCost('armor',6); },
     stat()   { return G.armor+'중첩'; },
@@ -2317,7 +2323,7 @@ function applyPermStats() {
   t.critChance = (ws.critChance || 0) * 0.05;
   t.critMult   = 1.5 + (ws.critMult   || 0) * 0.25;
   t.defense    = (ws.defense    || 0) * 0.01;
-  t.hpRegen    = (ws.hpRegen    || 0) * 0.5;
+  t.hpRegen    = (ws.hpRegen    || 0) * 0.05;
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
   G.gemMult    = 1 + (ws.gemGain  || 0) * 0.1;
   G.rangeLevel = 5 + PERM.rngLv;
@@ -4427,6 +4433,10 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
+    hpRegen:    { tab:'def', name:'체력 회복',    maxLv:999, defGroup:0,
+      cost: function(lv) { return 10 + lv * 5; },
+      cur:  function(lv) { return (lv * 0.05).toFixed(2); },
+      nxt:  function(lv) { return ((lv + 1) * 0.05).toFixed(2); } },
     defRate:    { tab:'def', name:'방어율',       maxLv:120, defGroup:1,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return (lv * 0.5).toFixed(1); },
@@ -8917,7 +8927,7 @@ function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
 /* §6 — WS 영구 강화 기본 비용 */
 var WS_BASE_COSTS = {
   damage:8, atkspd:10, critChance:12, critMult:15,
-  maxHp:10, defense:9, hpRegen:11, lifeSteal:14, goldGain:13, gemGain:12,
+  maxHp:10, defense:9, hpRegen:10, lifeSteal:14, goldGain:13, gemGain:12,
 };
 
 /* ════════════════════════════════════════════════════════
