@@ -4113,8 +4113,8 @@ var navTabs = [
   { id: 'battle',   label: '\uC804\uD22C',    icon: '\u2694', screen: 'home',     unlock: 0 },
   { id: 'workshop', label: '\uAC15\uD654',    icon: 'svg_workshop', screen: 'workshop', unlock: 0 },
   { id: 'module',   label: '\uD504\uB9AC\uC998',    icon: 'svg_module', screen: 'module',   unlock: 10 },
-  { id: 'research', label: '\uC5F0\uAD6C\uC18C',  icon: 'svg_research', screen: 'lab',      unlock: 10 },
-  { id: 'corelab',  label: '\uCF54\uC5B4\uB7A9',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
+  { id: 'research', label: '\uCF54\uC5B4\uB7A9',  icon: 'svg_research', screen: 'lab',      unlock: 10 },
+  { id: 'corelab',  label: '\uD504\uB85C\uD1A0\uCF5C',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
   { id: 'skin',     label: '\uC2A4\uD0A8',    icon: 'svg_skin', screen: 'skin',     unlock: 'spectra' },
   { id: 'store',    label: '\uC2A4\uD1A0\uC5B4',  icon: 'svg_store', screen: 'store',    unlock: 0 }
 ];
@@ -5154,7 +5154,7 @@ if (dailyPopup) {
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="lab-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">연구소</div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">코어랩</div>
   <!-- 연구 선택 버튼 -->
   <div style="padding:8px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14;">
     <button id="lab-research-select-btn" style="width:100%; background:#0a1a2a; border:1px solid #0a3344; color:#00ffff; font-family:'Courier New',monospace; font-size:11px; padding:8px; cursor:pointer;">연구 선택</button>
@@ -5182,7 +5182,7 @@ if (dailyPopup) {
   </div>
   <div id="lab-popup-list" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 12px 12px;"></div>
   <div style="padding:8px 12px; border-top:1px solid #0a2233; flex-shrink:0; background:#040c14;">
-    <div style="color:#334455; font-family:monospace; font-size:9px;" id="lab-popup-hint">선택할 연구소 슬롯을 먼저 선택하세요</div>
+    <div style="color:#334455; font-family:monospace; font-size:9px;" id="lab-popup-hint">선택할 코어랩 슬롯을 먼저 선택하세요</div>
   </div>
 </div>
 
@@ -10120,7 +10120,7 @@ function _showEncyclopedia() {
       ['HP 재생','초당 회복되는 코어 체력'],
       ['실드','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용'],
       ['방어율','받는 데미지를 % 비율로 감소'],
-      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭에서 기본 수치를 올리고, 코어 랩·연구소·스토어에서 추가로 확장 가능. 최대 20%.'],
+      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭에서 기본 수치를 올리고, 프로토콜·코어랩·스토어에서 추가로 확장 가능. 최대 20%.'],
     ]},
     utl:{ label:'유틸리티', items:[
       { id:'gold_bonus', name:'골드 보너스', desc:'적 처치 시 획득 골드 배율' },
@@ -10473,8 +10473,8 @@ function _injectUtilTabInGame() {
     '<div style="font-size:40px;">🔨</div>'+
     '<div style="color:#334455;font-family:monospace;font-size:13px;font-weight:bold;text-align:center;letter-spacing:2px;">유틸리티 잠금</div>'+
     '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.8;max-width:220px;">'+
-      '유틸리티 업그레이드는<br>코어 랩(연구소)에서 해금할 수 있습니다.</div>'+
-    '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어 랩으로 이동</button>';
+      '유틸리티 업그레이드는<br>코어랩에서 해금할 수 있습니다.</div>'+
+    '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어랩으로 이동</button>';
   tabContent.appendChild(pane);
 
   btn.addEventListener('click',function(){
@@ -11044,7 +11044,7 @@ var EV_MISSIONS = [
   {id:'ev_orb_40000',   text:'에너지 구체로 적 40000처치',     target:40000,   type:'orb_kill',   points:40, maxTier:3},
   {id:'ev_upgrade_400', text:'강화 400회 구매',                target:400,     type:'upgrade',    points:40, maxTier:3},
   {id:'ev_card_80',     text:'카드 80장 구매',                 target:80,      type:'card_buy',   points:40, maxTier:3},
-  {id:'ev_lab_30d',     text:'연구소 총 30일 연구',            target:2592000, type:'lab_time',   points:30, maxTier:3},
+  {id:'ev_lab_30d',     text:'코어랩 총 30일 연구',            target:2592000, type:'lab_time',   points:30, maxTier:3},
   {id:'ev_login_10',    text:'10일 출석 달성',                 target:10,      type:'login',      points:30, maxTier:3},
   {id:'ev_tourn_3',     text:'토너먼트 3회 참가',              target:3,       type:'tournament', points:30, maxTier:3},
   {id:'ev_ad_7',        text:'광고로 무료 보석 7회 수령',      target:7,       type:'ad',         points:20, maxTier:3},
@@ -12759,7 +12759,7 @@ function _injectLabScreen(){
         '<span style="color:#00ffff;font-size:13px;font-family:monospace;">❖ <span id="cl-gem">0</span></span>'+
       '</div>'+
     '</div>'+
-    '<div style="text-align:center;padding:5px;font-size:10px;color:#00ffff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(0,255,255,0.10);flex-shrink:0;">코어랩</div>'+
+    '<div style="text-align:center;padding:5px;font-size:10px;color:#00ffff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(0,255,255,0.10);flex-shrink:0;">프로토콜</div>'+
     '<div style="padding:14px;">'+
       '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">파워 코어를 소모하여 한 판 버프를 구매합니다.<br>효과는 다음 게임 1판에만 적용됩니다.</div>'+
       '<div id="lab-list"></div>'+
@@ -12894,7 +12894,7 @@ function _injectScreen() {
   sc.innerHTML=
     '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
       '<button id="res-back" style="background:none;border:none;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
-      '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#00ff88;">연구소</span>'+
+      '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#00ff88;">코어랩</span>'+
       '<span style="font-size:11px;color:#f59e0b;">◈ <span id="research-gold">0</span></span>'+
     '</div>'+
     '<div style="padding:14px;">'+
