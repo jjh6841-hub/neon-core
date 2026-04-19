@@ -13912,13 +13912,15 @@ function _submitCoupon() {
      요일탐사 시스템 (속성 코어 획득)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-explore" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;">
-  <div style="display:flex; align-items:center; justify-content:space-between; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀</button>
-      <button id="explore-help-btn" style="background:none;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:22px;height:22px;cursor:pointer;padding:0;-webkit-appearance:none;">?</button>
+  <div style="flex-shrink:0;background:#040c14;">
+    <div style="display:flex; align-items:center; justify-content:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 6px;">
+      <button onclick="showScreen('home')" style="position:absolute;left:12px;background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀</button>
+      <span style="font-size:13px; letter-spacing:2px; color:#ff8822; font-family:'Courier New',monospace;">요일 탐사</span>
     </div>
-    <span style="font-size:13px; letter-spacing:2px; color:#ff8822; font-family:'Courier New',monospace;">요일 탐사</span>
-    <span id="explore-ticket-hud" style="font-size:11px;color:#ff8822;font-family:monospace;min-width:40px;text-align:right;"></span>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:0 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15);">
+      <button id="explore-help-btn" style="background:none;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:22px;height:22px;cursor:pointer;padding:0;-webkit-appearance:none;">?</button>
+      <span id="explore-ticket-hud" style="font-size:11px;color:#ff8822;font-family:monospace;"></span>
+    </div>
   </div>
   <div id="explore-content" style="padding:14px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
 </div>
