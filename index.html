@@ -2118,10 +2118,10 @@ var UNLOCKS = [
   { key:'pierce',  gems:5, tab:'atk', icon:'>', name:'관통 해금',      desc:'관통 업그레이드 해금' },
   { key:'vamp',    gems:3, tab:'def', icon:'*', name:'흡혈 해금',      desc:'처치 시 HP 회복 업그레이드 해금' },
   { key:'regen',   gems:4, tab:'def', icon:'~', name:'재생 해금',      desc:'초당 HP 자동 회복 해금' },
-  { key:'explode', gems:7, tab:'spc', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
-  { key:'slow',    gems:4, tab:'spc', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
-  { key:'gemup',   gems:5, tab:'spc', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
-  { key:'goldup',  gems:4, tab:'spc', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
+  { key:'explode', gems:7, gold:100, tab:'spc', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
+  { key:'slow',    gems:4, gold:60,  tab:'spc', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
+  { key:'gemup',   gems:5, gold:80,  tab:'spc', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
+  { key:'goldup',  gems:4, gold:60,  tab:'spc', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
 ];
 
 /* ── 업적 정의 ── */
@@ -13450,7 +13450,9 @@ function _isUnlocked(key) {
 function _buildUnlockCard(key) {
   var ul = _findUnlock(key);
   if (!ul) return null;
-  var afford = (window.PERM ? PERM.gems : 0) >= ul.gems;
+  var cost = ul.gold || 60;
+  var gold = (window.PERM ? PERM.gold : 0);
+  var afford = gold >= cost;
 
   var card = document.createElement('div');
   card.setAttribute('data-wsunlock', key);
@@ -13472,24 +13474,23 @@ function _buildUnlockCard(key) {
       '</span>' +
     '</div>' +
     '<button data-wsunlock-btn="' + key + '" style="background:#030b10;border:1px solid ' +
-      (afford ? '#00ffff' : '#ef4444') + ';color:' + (afford ? '#00ffff' : '#ef4444') +
+      (afford ? '#f59e0b' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
       ';font-family:\'Courier New\',monospace;font-size:11px;padding:6px 10px;cursor:pointer;' +
-      '-webkit-appearance:none;white-space:nowrap;flex-shrink:0;">❖ ' + ul.gems + '</button>';
+      '-webkit-appearance:none;white-space:nowrap;flex-shrink:0;">◈ ' + cost + '</button>';
 
   var btn = card.querySelector('[data-wsunlock-btn]');
   if (btn) btn.addEventListener('click', function() {
     if (!window.PERM) return;
-    if (PERM.gems < ul.gems) {
+    if (PERM.gold < cost) {
       card.style.borderColor = '#ef4444';
       setTimeout(function() { card.style.borderColor = '#1a2a3a'; }, 250);
       return;
     }
-    PERM.gems -= ul.gems;
+    PERM.gold -= cost;
     if (!PERM.unlocks) PERM.unlocks = {};
     PERM.unlocks[key] = true;
     try { savePerm(); } catch(_) {}
     try { window._wsExt && window._wsExt.sync && window._wsExt.sync(); } catch(_) {}
-    // 워크샵 다시 렌더링
     setTimeout(function() {
       try {
         var tab = _activeWsTab();
