@@ -13839,12 +13839,12 @@ function _submitCoupon() {
 'use strict';
 
 var AUGMENTS = [
-  { id:'aug_dmg',   name:'레이저 과부하', desc:'공격력 +30%',            cost:3 },
-  { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',           cost:3 },
-  { id:'aug_chips', name:'자원 스캐너',   desc:'코어칩 획득 +50%',       cost:3 },
-  { id:'aug_regen', name:'나노 수복',     desc:'초당 최대체력 3% 재생',  cost:2 },
-  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',        cost:3 },
-  { id:'aug_start', name:'선행 보급',     desc:'시작 코어칩 +300',       cost:2 },
+  { id:'aug_dmg',   name:'레이저 과부하', desc:'공격력 +30%',            cost:3, icon:'▲', color:'#ff4444' },
+  { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',           cost:3, icon:'◆', color:'#00ff88' },
+  { id:'aug_chips', name:'자원 스캐너',   desc:'코어칩 획득 +50%',       cost:3, icon:'◈', color:'#f59e0b' },
+  { id:'aug_regen', name:'나노 수복',     desc:'초당 최대체력 3% 재생',  cost:2, icon:'✦', color:'#00dddd' },
+  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',        cost:3, icon:'◎', color:'#cc44ff' },
+  { id:'aug_start', name:'선행 보급',     desc:'시작 코어칩 +300',       cost:2, icon:'▣', color:'#3b82f6' },
 ];
 
 var _sel = {};
@@ -13868,12 +13868,12 @@ function _create() {
       '</div>' +
       '<div id="aug-list" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch;"></div>' +
       '<div style="padding:10px 16px;border-top:1px solid #1a2a3a;">' +
-        '<div id="aug-cost-row" style="display:none;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+        '<div id="aug-cost-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
           '<span style="font-size:10px;color:#778899;">총 비용</span>' +
           '<span style="color:#00ffff;font-size:13px;font-weight:bold;">❖ <span id="aug-total">0</span></span>' +
         '</div>' +
         '<button id="aug-go" style="width:100%;height:44px;background:#030b10;border:2px solid #cc44ff;color:#fff;font-size:16px;font-family:\'Courier New\',monospace;font-weight:bold;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #cc44ff;-webkit-appearance:none;">전투 시작</button>' +
-        '<div id="aug-back" style="text-align:center;margin-top:8px;font-size:10px;color:#445566;cursor:pointer;">◂ 돌아가기</div>' +
+        '<div id="aug-back" style="text-align:center;margin-top:10px;font-size:11px;color:#778899;cursor:pointer;padding:6px;border:1px solid #1a2a3a;">◂ 돌아가기</div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(_popup);
@@ -13904,16 +13904,17 @@ function _render() {
     if (on) total += a.cost;
     var c = document.createElement('div');
     c.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;' +
-      'background:' + (on ? 'rgba(204,68,255,0.08)' : '#080c1a') + ';' +
-      'border:1px solid ' + (on ? '#cc44ff' : '#1a2a3a') + ';transition:border-color 0.15s;';
+      'background:' + (on ? 'rgba(0,255,255,0.06)' : '#080c1a') + ';' +
+      'border:1px solid ' + (on ? '#00ffff' : '#1a2a3a') + ';transition:border-color 0.15s;';
     c.innerHTML =
+      '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;color:'+a.color+';text-shadow:0 0 8px '+a.color+';">'+a.icon+'</div>' +
       '<div style="flex:1;">' +
         '<div style="font-size:11px;color:'+(on?'#fff':'#94a3b8')+';font-weight:bold;">'+a.name+'</div>' +
         '<div style="font-size:9px;color:#556677;margin-top:2px;">'+a.desc+'</div>' +
       '</div>' +
       '<div style="text-align:right;">' +
         '<span style="color:#00ffff;font-size:11px;">❖ '+a.cost+'</span>' +
-        (on ? '<div style="font-size:8px;color:#cc44ff;margin-top:2px;">선택됨</div>' : '') +
+        (on ? '<div style="font-size:8px;color:#00ffff;margin-top:2px;">선택됨</div>' : '') +
       '</div>';
     (function(id){
       function tog(){ _sel[id]=!_sel[id]; _render(); }
@@ -13923,8 +13924,6 @@ function _render() {
     list.appendChild(c);
   });
 
-  var cr = document.getElementById('aug-cost-row');
-  cr.style.display = total > 0 ? 'flex' : 'none';
   document.getElementById('aug-total').textContent = total;
 
   var btn = document.getElementById('aug-go');
