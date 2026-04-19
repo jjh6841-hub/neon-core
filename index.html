@@ -9284,9 +9284,11 @@ var PRISMS = [
 ];
 var PRISM_CAT_LABEL = {active:'활성화',inven:'인벤토리',etc:'기타'};
 var PRISM_CAT_COLOR = {active:'#00ffff',inven:'#f59e0b',etc:'#cc44ff'};
-var PRISM_SINGLE = 50, PRISM_TEN = 450;
+var PRISM_SINGLE = 20;
 /* 레벨업 필요 중복 수: Lv1→2:3, 2→3:3, 3→4:3, 4→5:5 */
 var PRISM_DUP_NEEDED = [0,3,3,3,5]; /* index = target level -1 */
+/* 활성화 슬롯 비용: 1번 무료, 2번 100보석, ... 최대 10슬롯 */
+var PRISM_SLOT_COSTS = [0,100,300,500,800,1200,1600,2000,2500,3000];
 
 function _getPrism(id) {
   var d = (window.PERM && window.PERM.prisms) || {};
@@ -9299,6 +9301,20 @@ function _setPrism(id, lv, dup) {
 }
 function _getFragments() { return (window.PERM && window.PERM.prismFragments) || 0; }
 function _setFragments(v) { if(window.PERM) window.PERM.prismFragments = v; }
+function _getSlots() { return (window.PERM && window.PERM.prismSlotCount) || 1; }
+function _setSlots(v) { if(window.PERM) window.PERM.prismSlotCount = v; }
+function _getEquipped() { return (window.PERM && window.PERM.prismEquipped) || []; }
+function _setEquipped(arr) { if(window.PERM) window.PERM.prismEquipped = arr; }
+function _isEquipped(id) { return _getEquipped().indexOf(id) !== -1; }
+function _toggleEquip(id) {
+  var eq = _getEquipped().slice();
+  var idx = eq.indexOf(id);
+  if (idx !== -1) { eq.splice(idx, 1); }
+  else if (eq.length < _getSlots()) { eq.push(id); }
+  else { return false; }
+  _setEquipped(eq);
+  return true;
+}
 function _getOverflow(id) {
   var p = _getPrism(id);
   return p.lv >= 5 ? p.dup : 0;
@@ -9329,7 +9345,7 @@ function _drawOnePrism() {
 }
 
 function _doDraw(n) {
-  var cost = n === 10 ? PRISM_TEN : PRISM_SINGLE;
+  var cost = PRISM_SINGLE * n;
   if (!window.PERM || (window.PERM.gems || 0) < cost) return null;
   window.PERM.gems -= cost;
   var drawn = [];
@@ -9338,11 +9354,13 @@ function _doDraw(n) {
   return drawn;
 }
 
-/* ── 프리즘 효과 적용 ── */
+/* ── 프리즘 효과 적용 (장착된 프리즘만) ── */
 function _applyPrismEffects() {
   if (!window.G || !window.G.tower) return;
   var t = window.G.tower;
+  var equipped = _getEquipped();
   PRISMS.forEach(function(pr) {
+    if (equipped.indexOf(pr.id) === -1) return;
     var p = _getPrism(pr.id);
     if (p.lv <= 0) return;
     var val = pr.lvEff[p.lv - 1];
@@ -9435,38 +9453,65 @@ function _renderCardTab() {
   var frags=_getFragments();
   var totalOverflow=0;
   PRISMS.forEach(function(pr){ totalOverflow+=_getOverflow(pr.id); });
+  var slots=_getSlots();
+  var equipped=_getEquipped();
 
-  var html='<div style="padding:12px;display:flex;flex-direction:column;gap:12px;">';
+  var html='<div style="padding:12px;display:flex;flex-direction:column;gap:10px;">';
 
   // 헤더
-  html+='<div style="background:#0a1020;border:1px solid #cc44ff33;padding:12px;">'+
-    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">◈ 프리즘 컬렉션</div>'+
+  html+='<div style="background:#0a1020;border:1px solid #cc44ff33;padding:10px;">'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">◈ 프리즘</div>'+
     '<div style="display:flex;justify-content:space-between;font-family:monospace;font-size:10px;">'+
       '<span style="color:#556677;">수집: <span style="color:#cc44ff;">'+ownedCount+'/'+PRISMS.length+'</span></span>'+
       '<span style="color:#556677;">파편: <span style="color:#f59e0b;">'+frags+'</span></span>'+
     '</div></div>';
+
+  // 활성화 슬롯
+  html+='<div style="background:#0a0a18;border:1px solid #cc44ff22;padding:10px;">';
+  html+='<div style="color:#cc44ff;font-family:monospace;font-size:10px;margin-bottom:6px;">장착 슬롯 ('+equipped.length+'/'+slots+')</div>';
+  html+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  for(var si=0;si<10;si++){
+    var unlocked=si<slots;
+    var eqId=equipped[si]||null;
+    var eqPr=eqId?PRISMS.filter(function(x){return x.id===eqId;})[0]:null;
+    var eqP=eqId?_getPrism(eqId):null;
+    if(unlocked&&eqPr){
+      var catCol=PRISM_CAT_COLOR[eqPr.cat]||'#cc44ff';
+      html+='<div data-slot-unequip="'+eqId+'" style="width:52px;height:52px;background:#0a1020;border:1px solid '+catCol+';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:1px;">'+
+        '<span style="font-size:12px;color:'+catCol+';">◈</span>'+
+        '<span style="font-size:7px;color:#f1f5f9;font-family:monospace;text-align:center;line-height:1.1;">'+eqPr.name+'</span>'+
+        '<span style="font-size:7px;color:'+catCol+';font-family:monospace;">Lv.'+eqP.lv+'</span></div>';
+    } else if(unlocked){
+      html+='<div style="width:52px;height:52px;background:#060810;border:1px dashed #334455;display:flex;align-items:center;justify-content:center;">'+
+        '<span style="font-size:9px;color:#334455;font-family:monospace;">빈 슬롯</span></div>';
+    } else {
+      var slotCost=PRISM_SLOT_COSTS[si]||9999;
+      html+='<div data-slot-unlock="'+si+'" style="width:52px;height:52px;background:#0a0510;border:1px solid #cc44ff22;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:2px;">'+
+        '<span style="font-size:10px;color:#cc44ff44;">🔒</span>'+
+        '<span style="font-size:8px;color:#cc44ff88;font-family:monospace;">❖'+slotCost+'</span></div>';
+    }
+  }
+  html+='</div></div>';
 
   // 뽑기 버튼
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
     '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
       '<span style="font-size:16px;">◈</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+PRISM_SINGLE+'</span></button>'+
     '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-      '<span style="font-size:16px;">◈×10</span><span>10연 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+PRISM_TEN+'</span></button>'+
+      '<span style="font-size:16px;">◈×10</span><span>10연 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+(PRISM_SINGLE*10)+'</span></button>'+
   '</div>';
 
-  // 분해 버튼 (초과분 있을 때)
+  // 분해/파편 교환
   if(totalOverflow>0){
     html+='<button id="prism-decompose" style="background:#1a0a20;border:1px solid #f59e0b55;color:#f59e0b;font-family:monospace;font-size:10px;padding:8px;cursor:pointer;text-align:center;">'+
-      '분해 가능: '+totalOverflow+'개 → 파편 '+(totalOverflow*5)+'개</button>';
+      '분해: '+totalOverflow+'개 → 파편 '+(totalOverflow*5)+'개</button>';
   }
-
-  // 파편 교환
   if(frags>=30){
     html+='<button id="prism-exchange" style="background:#0a1a10;border:1px solid #10b98155;color:#10b981;font-family:monospace;font-size:10px;padding:8px;cursor:pointer;text-align:center;">'+
       '파편 30개 → 프리즘 선택 획득</button>';
   }
 
-  // 카테고리별 프리즘 목록
+  // 프리즘 목록
   ['active','inven','etc'].forEach(function(cat){
     var catPrisms=PRISMS.filter(function(pr){return pr.cat===cat;});
     var catCol=PRISM_CAT_COLOR[cat];
@@ -9476,14 +9521,16 @@ function _renderCardTab() {
       var p=_getPrism(pr.id);
       var owned=p.lv>0;
       var maxed=p.lv>=5;
+      var isEq=_isEquipped(pr.id);
       var dupNeeded=maxed?0:p.lv===0?1:(PRISM_DUP_NEEDED[p.lv]||3);
       var dupProg=maxed?'MAX':p.lv===0?'-':p.dup+'/'+dupNeeded;
       var effText=owned?(pr.unit==='x'?'+'+pr.lvEff[p.lv-1]+'x':'+'+pr.lvEff[p.lv-1]+pr.unit):'미보유';
+      var eqBorder=isEq?'#00ff88':owned?catCol+'44':'#0a1a2a';
 
-      html+='<div style="background:'+(owned?'#0a1020':'#060810')+';border:1px solid '+(owned?catCol+'44':'#0a1a2a')+';padding:8px;display:flex;flex-direction:column;gap:3px;opacity:'+(owned?1:0.4)+';">'+
+      html+='<div data-prism-toggle="'+pr.id+'" style="background:'+(owned?'#0a1020':'#060810')+';border:1px solid '+eqBorder+';padding:8px;display:flex;flex-direction:column;gap:3px;opacity:'+(owned?1:0.4)+';cursor:'+(owned?'pointer':'default')+';">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;">'+
           '<span style="font-size:10px;color:'+(owned?'#f1f5f9':'#334455')+';font-family:monospace;font-weight:bold;">'+pr.name+'</span>'+
-          '<span style="font-size:9px;color:'+catCol+';font-family:monospace;">'+(owned?'Lv.'+p.lv:'')+'</span>'+
+          '<span style="font-size:9px;color:'+(isEq?'#00ff88':catCol)+';font-family:monospace;">'+(isEq?'장착':'')+(owned?' Lv.'+p.lv:'')+'</span>'+
         '</div>'+
         '<div style="font-size:8px;color:#556677;font-family:monospace;">'+pr.desc+' <span style="color:'+catCol+';">'+effText+'</span></div>'+
         (owned&&!maxed?'<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">'+
@@ -9498,7 +9545,42 @@ function _renderCardTab() {
   html+='</div>';
   content.innerHTML=html;
 
-  // 뽑기 버튼 바인딩
+  // 이벤트 바인딩
+  // 슬롯 해제
+  content.querySelectorAll('[data-slot-unequip]').forEach(function(el){
+    el.addEventListener('click',function(){
+      _toggleEquip(el.dataset.slotUnequip);
+      window.savePerm&&window.savePerm();
+      _renderCardTab();
+    });
+  });
+  // 슬롯 해금
+  content.querySelectorAll('[data-slot-unlock]').forEach(function(el){
+    el.addEventListener('click',function(){
+      var idx=parseInt(el.dataset.slotUnlock);
+      var cost=PRISM_SLOT_COSTS[idx]||9999;
+      if(!window.PERM||(window.PERM.gems||0)<cost){ el.style.borderColor='#ef4444'; setTimeout(function(){el.style.borderColor='';},400); return; }
+      window.PERM.gems-=cost;
+      _setSlots(idx+1);
+      window.savePerm&&window.savePerm();
+      if(window.showAchievementToast) showAchievementToast('슬롯 '+(idx+1)+'번 해금!');
+      _renderCardTab();
+    });
+  });
+  // 프리즘 장착/해제 토글
+  content.querySelectorAll('[data-prism-toggle]').forEach(function(el){
+    el.addEventListener('click',function(){
+      var pid=el.dataset.prismToggle;
+      if(_getPrism(pid).lv<=0) return;
+      if(!_toggleEquip(pid)){
+        if(window.showAchievementToast) showAchievementToast('슬롯이 가득 찼습니다');
+        return;
+      }
+      window.savePerm&&window.savePerm();
+      _renderCardTab();
+    });
+  });
+  // 뽑기
   var d1=document.getElementById('prism-draw-1');
   if(d1) d1.addEventListener('click',function(){
     var res=_doDraw(1);
@@ -9511,14 +9593,13 @@ function _renderCardTab() {
     if(res===null){ d10.style.borderColor='#ef4444'; setTimeout(function(){d10.style.borderColor='#f59e0b';},400); }
     else _showDrawResult(res);
   });
-
-  // 분해 버튼
+  // 분해
   var decBtn=document.getElementById('prism-decompose');
   if(decBtn) decBtn.addEventListener('click',function(){
     var total=0;
     PRISMS.forEach(function(pr){
       var ov=_getOverflow(pr.id);
-      if(ov>0){ total+=ov; var pp=_getPrism(pr.id); _setPrism(pr.id,5,0); }
+      if(ov>0){ total+=ov; _setPrism(pr.id,5,0); }
     });
     if(total>0){
       _setFragments(_getFragments()+total*5);
@@ -9527,12 +9608,10 @@ function _renderCardTab() {
       _renderCardTab();
     }
   });
-
   // 파편 교환
   var exBtn=document.getElementById('prism-exchange');
   if(exBtn) exBtn.addEventListener('click',function(){
     if(_getFragments()<30) return;
-    // 선택 팝업
     var prev2=document.getElementById('prism-select-popup');
     if(prev2) prev2.remove();
     var pop=document.createElement('div');
@@ -9553,7 +9632,7 @@ function _renderCardTab() {
     document.body.appendChild(pop);
     document.getElementById('prism-select-cancel').addEventListener('click',function(){pop.remove();});
     var sBtns=pop.querySelectorAll('[data-select-prism]');
-    for(var si=0;si<sBtns.length;si++){
+    for(var si2=0;si2<sBtns.length;si2++){
       (function(btn){
         btn.addEventListener('click',function(){
           if(_getFragments()<30) return;
@@ -9566,7 +9645,7 @@ function _renderCardTab() {
           pop.remove();
           _renderCardTab();
         });
-      })(sBtns[si]);
+      })(sBtns[si2]);
     }
   });
 }
