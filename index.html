@@ -2007,7 +2007,7 @@ var UPGRADES = [
   },
   { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null, maxLv:30,
     cost()   { return upgCost('spd',7); },
-    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2) + ' (' + totalLv + '/30)'; },
+    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2); },
     canBuy() { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return coreChips>=upgCost('spd',7) && totalLv<30; },
     apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round((window.BASE_ATKMS||1200)/(1+totalLv*0.05))); },
   },
@@ -8547,9 +8547,9 @@ function _patchUpgrades() {
   for (var j = 0; j < UPGRADES.length; j++) { if (UPGRADES[j].key === 'critMult') { hasCM = true; break; } }
   if (!hasCM && critIdx >= 0) {
     UPGRADES.splice(critIdx + 1, 0, {
-      key: 'critMult', tab: 'atk', icon: '×!', name: '치명타 계수', baseCost: 10, unlock: null,
+      key: 'critMult', tab: 'atk', icon: '×!', name: '치명타<br>계수', baseCost: 10, unlock: null,
       cost:   function() { return Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0)); },
-      stat:   function() { return '×' + (window.G ? (G.critMult || 2).toFixed(1) : '2.0'); },
+      stat:   function() { return (window.G ? (G.critMult || 2).toFixed(1) : '2.0'); },
       canBuy: function() {
         var c = Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0));
         return !!(window.G && coreChips >= c && G.critChance > 0);
@@ -9113,8 +9113,8 @@ function _applyWsCostPatches() {
     items.hpRegen.nxt = function(lv) { return ((lv+1) * 0.05).toFixed(2); };
   }
   if (items.atkspd) {
-    items.atkspd.cur = function(lv) { return (1.00 + lv * 0.20).toFixed(2); };
-    items.atkspd.nxt = function(lv) { return (1.00 + (lv + 1) * 0.20).toFixed(2); };
+    items.atkspd.cur = function(lv) { return (1.00 + lv * 0.05).toFixed(2); };
+    items.atkspd.nxt = function(lv) { return (1.00 + (lv + 1) * 0.05).toFixed(2); };
   }
   if (items.goldGain) {
     items.goldGain.cur = function(lv) { return (1 + lv*0.05).toFixed(2); };
