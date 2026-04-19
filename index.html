@@ -1518,6 +1518,18 @@ canvas {
   <div id="store-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 </div>
 
+<!-- ── 프리즘 전용 화면 ── -->
+<div id="screen-module" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(204,68,255,0.15); flex-shrink:0; background:#040c14;">
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="module-gold">0</span></span>
+      <span style="color:#00ffff; font-family:monospace; font-size:13px;">❖ <span id="module-gem">0</span></span>
+    </div>
+  </div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#cc44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0;">◈ 프리즘</div>
+  <div id="module-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
+</div>
+
 <!-- ── 하단 네비게이션 (전역 공유) ── -->
 <div id="bottom-nav" style="display:none; position:fixed; bottom:0; left:0; width:100%; height:52px; background:#040c14; border-top:1px solid #1a2a3a; z-index:9999; padding-bottom:env(safe-area-inset-bottom, 0px);"></div>
 
@@ -9482,7 +9494,7 @@ function _showDrawResult(drawn) {
 
 // 프리즘 탭 렌더링
 function _renderCardTab() {
-  var content=document.getElementById('store-content');
+  var content=document.getElementById('module-content')||document.getElementById('store-content');
   if(!content) return;
   var ownedCount=PRISMS.filter(function(pr){ return _getPrism(pr.id).lv>0; }).length;
   var frags=_getFragments();
@@ -10510,6 +10522,8 @@ function _mainInit() {
     }).observe(homeEl,{attributes:true,attributeFilter:['style']});
   }
 }
+
+window._renderCardTab = _renderCardTab;
 
 setTimeout(_mainInit, 600);
 
@@ -11676,8 +11690,8 @@ window.showScreen = function (name) {
   try {
     var _pg = (window.PERM && PERM.gold) || 0;
     var _pgm = (window.PERM && PERM.gems) || 0;
-    ['home-gold','ws-gold','store-gold','lab-gold','trn-gold','skin-gold','cl-gold'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_pg; });
-    ['home-gem','ws-gem','store-gem','lab-gem','trn-gem','skin-gem','cl-gem'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_pgm; });
+    ['home-gold','ws-gold','store-gold','lab-gold','trn-gold','skin-gold','cl-gold','module-gold'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_pg; });
+    ['home-gem','ws-gem','store-gem','lab-gem','trn-gem','skin-gem','cl-gem','module-gem'].forEach(function(id){ var e=document.getElementById(id); if(e) e.textContent=_pgm; });
   } catch(_) {}
 
   // 화면별 초기화
@@ -11686,6 +11700,12 @@ window.showScreen = function (name) {
     try { fixIconPositions(); } catch(_) {}
   } else if (name === 'workshop') {
     try { window._wsExt.sync(); window._wsExt.build(); } catch(_) {}
+  } else if (name === 'module') {
+    try {
+      var _mg=document.getElementById('module-gold'); if(_mg) _mg.textContent=(PERM&&PERM.gold)||0;
+      var _mgm=document.getElementById('module-gem'); if(_mgm) _mgm.textContent=(PERM&&PERM.gems)||0;
+      if(window._renderCardTab) window._renderCardTab();
+    } catch(_) {}
   } else if (name === 'store') {
     try { window._storeExt.sync(); window._storeExt.render(); } catch(_) {}
   } else if (name === 'research' || name === 'lab') {
