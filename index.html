@@ -8549,7 +8549,7 @@ function _patchUpgrades() {
     UPGRADES.splice(critIdx + 1, 0, {
       key: 'critMult', tab: 'atk', icon: '×!', name: '치명타<br>계수', baseCost: 10, unlock: null,
       cost:   function() { return Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0)); },
-      stat:   function() { return (window.G ? (G.critMult || 2).toFixed(1) : '2.0'); },
+      stat:   function() { return (window.G ? (G.critMult || 1.5).toFixed(1) : '1.5'); },
       canBuy: function() {
         var c = Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0));
         return !!(window.G && coreChips >= c && G.critChance > 0);
@@ -8558,7 +8558,7 @@ function _patchUpgrades() {
         var c = Math.floor(10 * Math.pow(1.4, G.upgLvl.critMult || 0));
         coreChips -= c;
         G.upgLvl.critMult = (G.upgLvl.critMult || 0) + 1;
-        G.critMult = (G.critMult || 2) + 0.1;
+        G.critMult = (G.critMult || 1.5) + 0.1;
       },
     });
   }
@@ -8574,7 +8574,7 @@ function _patchStart() {
       G.unlocks = G.unlocks || {};
       G.unlocks.crit = true;   // 치명타 확률: 항상 기본 해금
       if (window.PERM && window.PERM.ws && window.PERM.ws.rng_u) G.unlocks.rng = true;
-      if (!G.critMult) G.critMult = 2;
+      if (!G.critMult) G.critMult = 1.5;
     }
     return r;
   };
@@ -9041,7 +9041,7 @@ function _patchApplyPermStats() {
     // §7 치명타 — fireTower가 참조하는 G.critChance / G.critMult 에도 반영
     t.critChance = Math.min(0.9, (ws.critChance || 0) * 0.01);       // 1%/lv (was 5%)
     G.critChance = Math.min(0.9, (G.critChance || 0) + t.critChance);
-    t.critMult   = 2.0 + (ws.critMult || 0) * 0.05;                  // +5%/lv (was +25%)
+    t.critMult   = 1.5 + (ws.critMult || 0) * 0.05;                  // +5%/lv (was +25%)
     G.critMult   = t.critMult;
     // §7 방어/재생/골드
     t.defense  = Math.min(0.9, (ws.defense  || 0) * 0.02);           // 2%/lv, 90% 캡
@@ -9097,8 +9097,8 @@ function _applyWsCostPatches() {
     items.critChance.nxt = function(lv) { return '' + (lv + 1); };
   }
   if (items.critMult) {
-    items.critMult.cur = function(lv) { return (2.0 + lv*0.05).toFixed(2); };
-    items.critMult.nxt = function(lv) { return (2.0 + (lv+1)*0.05).toFixed(2); };
+    items.critMult.cur = function(lv) { return (1.5 + lv*0.05).toFixed(2); };
+    items.critMult.nxt = function(lv) { return (1.5 + (lv+1)*0.05).toFixed(2); };
   }
   if (items.maxHp) {
     items.maxHp.cur = function(lv) { return '' + (lv * 2); };
