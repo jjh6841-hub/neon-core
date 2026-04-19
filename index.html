@@ -13113,54 +13113,9 @@ if (typeof _origWC === 'function') {
   };
 }
 
-/* ── 접근 코드: 보스 처치 시 획득 (update 래핑 — 기존 보스 감시 확장) ── */
-var _origUpdate_ac = window.update;
-if (typeof _origUpdate_ac === 'function') {
-  var _acBossBefore = {};
-  window.update = function(dt) {
-    // 보스 스냅샷
-    var before = {};
-    if (window.G && G.enemies) {
-      for (var i=0; i<G.enemies.length; i++) {
-        var e = G.enemies[i];
-        if (e.boss) before[i+'_'+e.r+'_'+(e.bossGrade||'n')] = e.bossGrade||'normal';
-      }
-    }
-    _origUpdate_ac.apply(this, arguments);
-    // 처치 감지
-    if (window.G && G.enemies) {
-      var after = {};
-      for (var j=0; j<G.enemies.length; j++) {
-        var e2 = G.enemies[j];
-        if (e2.boss) after[j+'_'+e2.r+'_'+(e2.bossGrade||'n')] = true;
-      }
-      Object.keys(before).forEach(function(k) {
-        if (!after[k]) {
-          var grade = before[k];
-          var earned = grade==='hyper'?3:grade==='elite'?2:1;
-          var cur = parseInt(localStorage.getItem('accessCodes')||'0',10);
-          localStorage.setItem('accessCodes', cur + earned);
-          localStorage.setItem('stat_ac_earned', parseInt(localStorage.getItem('stat_ac_earned')||'0',10) + earned);
-        }
-      });
-    }
-  };
-}
+/* ── 접근 코드: 획득처 미정 (비활성) ── */
 
-/* ── 데이터 셀: 게임 종료 시 고웨이브 보상 ── */
-var _origTGO_dc = window.triggerGameOver;
-if (typeof _origTGO_dc === 'function') {
-  window.triggerGameOver = function() {
-    var wave = (window.G && G.wave) || 0;
-    _origTGO_dc.apply(this, arguments);
-    if (wave >= 20) {
-      var earned = Math.floor(wave / 20);
-      var cur = parseInt(localStorage.getItem('dataCells')||'0',10);
-      localStorage.setItem('dataCells', cur + earned);
-      localStorage.setItem('stat_dc_earned', parseInt(localStorage.getItem('stat_dc_earned')||'0',10) + earned);
-    }
-  };
-}
+/* ── 데이터 셀: 획득처 미정 (비활성) ── */
 
 }());
 </script>
