@@ -13912,12 +13912,45 @@ function _submitCoupon() {
      요일탐사 시스템 (속성 코어 획득)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-explore" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;">
-  <div style="display:flex; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
-    <span style="margin:0 auto; font-size:13px; letter-spacing:2px; color:#ff8822; font-family:'Courier New',monospace;">요일 탐사</span>
-    <span style="width:40px;"></span>
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀</button>
+      <button id="explore-help-btn" style="background:none;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:22px;height:22px;cursor:pointer;padding:0;-webkit-appearance:none;">?</button>
+    </div>
+    <span style="font-size:13px; letter-spacing:2px; color:#ff8822; font-family:'Courier New',monospace;">요일 탐사</span>
+    <span id="explore-ticket-hud" style="font-size:11px;color:#ff8822;font-family:monospace;min-width:40px;text-align:right;"></span>
   </div>
-  <div id="explore-content" style="padding:14px;"></div>
+  <div id="explore-content" style="padding:14px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+</div>
+<div id="explore-help-popup" style="display:none;position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:10500;flex-direction:column;align-items:center;justify-content:center;font-family:'Courier New',monospace;">
+  <div style="background:#0a1020;border:1px solid #ff8822;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;padding:20px;">
+    <div style="font-size:13px;color:#ff8822;font-weight:bold;margin-bottom:12px;text-align:center;">요일 탐사 안내</div>
+    <div style="font-size:10px;color:#94a3b8;line-height:1.8;">
+      <div style="margin-bottom:8px;">매일 00시에 탐사 티켓 3장이 충전됩니다.<br>보유 티켓이 3장 이상이면 유지됩니다.</div>
+      <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 속성</div>
+      <div style="margin-bottom:8px;color:#778899;">
+        월: <span style="color:#ef4444;">화염</span> · 화: <span style="color:#3b82f6;">심해</span> · 수: <span style="color:#f59e0b;">번개</span><br>
+        목: <span style="color:#8b5cf6;">대지</span> · 금: <span style="color:#10b981;">질풍</span> · 토: <span style="color:#6b21a8;">암흑</span><br>
+        일: 화염/심해/번개/대지/질풍 전부 개방
+      </div>
+      <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 적용 시스템</div>
+      <div style="margin-bottom:8px;color:#778899;">
+        월: 강화 + 모듈 + 스토어 + 전투 증강<br>
+        화: 코어랩 + 모듈 + 스토어 + 전투 증강<br>
+        수: 프리즘 + 모듈 + 스토어 + 전투 증강<br>
+        목: 스킨 + 모듈 + 스토어 + 전투 증강<br>
+        금: 프로토콜 + 모듈 + 스토어 + 전투 증강<br>
+        토: 모듈 + 스토어 + 전투 증강
+      </div>
+      <div style="color:#ff8822;margin-bottom:4px;">▸ 규칙</div>
+      <div style="color:#778899;">
+        승리 시: 코어 획득 + 티켓 소모 + 다음 단계 해금<br>
+        패배 시: 소모 없음, 재도전 가능<br>
+        클리어한 단계: 즉시 수확 가능 (티켓 1장)
+      </div>
+    </div>
+    <button id="explore-help-close" style="width:100%;margin-top:14px;height:36px;background:#030b10;border:1px solid #ff8822;color:#ff8822;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">닫기</button>
+  </div>
 </div>
 
 <script>
@@ -13926,12 +13959,12 @@ function _submitCoupon() {
 
 /* ── 속성 정의 ── */
 var ELEMENTS = [
-  { id:'fire',    name:'화염', color:'#ef4444', core:'화염 코어', icon:'🔥', day:1 },
-  { id:'water',   name:'심해', color:'#3b82f6', core:'심해 코어', icon:'💧', day:2 },
-  { id:'electric',name:'번개', color:'#f59e0b', core:'번개 코어', icon:'⚡', day:3 },
-  { id:'earth',   name:'대지', color:'#8b5cf6', core:'대지 코어', icon:'🪨', day:4 },
-  { id:'wind',    name:'질풍', color:'#10b981', core:'질풍 코어', icon:'🌪', day:5 },
-  { id:'dark',    name:'암흑', color:'#6b21a8', core:'암흑 코어', icon:'🌑', day:6 },
+  { id:'fire',    name:'화염', color:'#ef4444', core:'화염 코어', icon:'◆', day:1 },
+  { id:'water',   name:'심해', color:'#3b82f6', core:'심해 코어', icon:'◇', day:2 },
+  { id:'electric',name:'번개', color:'#f59e0b', core:'번개 코어', icon:'⟐', day:3 },
+  { id:'earth',   name:'대지', color:'#8b5cf6', core:'대지 코어', icon:'◈', day:4 },
+  { id:'wind',    name:'질풍', color:'#10b981', core:'질풍 코어', icon:'◎', day:5 },
+  { id:'dark',    name:'암흑', color:'#6b21a8', core:'암흑 코어', icon:'●', day:6 },
 ];
 
 /* ── 속성 스탯 정의 (각 속성 공통) ── */
@@ -14091,29 +14124,38 @@ var _exploreElem = null;
 
 function renderExplore() {
   _checkDailyReset();
+  // 티켓 HUD 업데이트
+  var thud = document.getElementById('explore-ticket-hud');
+  if (thud) thud.textContent = '🎫 ' + _getTickets();
+  // 도움말 버튼 바인딩
+  var helpBtn = document.getElementById('explore-help-btn');
+  var helpPopup = document.getElementById('explore-help-popup');
+  if (helpBtn && helpPopup) {
+    helpBtn.onclick = function() { helpPopup.style.display = 'flex'; };
+    var closeBtn = document.getElementById('explore-help-close');
+    if (closeBtn) closeBtn.onclick = function() { helpPopup.style.display = 'none'; };
+    helpPopup.onclick = function(e) { if (e.target === helpPopup) helpPopup.style.display = 'none'; };
+  }
   var container = document.getElementById('explore-content');
   if (!container) return;
-  if (_exploreView === 'list') _renderExploreList(container);
-  else _renderExploreStages(container);
+  _renderExploreList(container);
 }
 
 function _renderExploreList(container) {
   var dayNames = ['일','월','화','수','목','금','토'];
   var today = new Date().getDay();
   var open = _getTodayElements();
-  var tickets = _getTickets();
 
   var html = '<div style="text-align:center;margin-bottom:14px;">'+
     '<div style="font-size:11px;color:#778899;font-family:monospace;">오늘: <span style="color:#ff8822;font-weight:bold;">'+dayNames[today]+'요일</span></div>'+
-    '<div style="font-size:9px;color:#445566;font-family:monospace;margin-top:4px;">열린 속성: '+open.map(function(e){return '<span style="color:'+e.color+';">'+e.name+'</span>';}).join(' · ')+'</div>'+
-    '<div style="margin-top:6px;font-size:12px;color:#ff8822;font-family:monospace;">🎫 탐사 티켓: <span style="font-weight:bold;">'+tickets+'</span></div>'+
+    '<div style="font-size:9px;color:#445566;font-family:monospace;margin-top:4px;">'+open.map(function(e){return '<span style="color:'+e.color+';">'+e.icon+' '+e.name+'</span>';}).join('  ')+'</div>'+
   '</div>';
 
   // 보유 코어
   html += '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px;">';
   ELEMENTS.forEach(function(el) {
-    html += '<div style="background:#0a1020;border:1px solid '+el.color+'33;padding:4px 8px;font-family:monospace;font-size:9px;">'+
-      '<span style="color:'+el.color+';">'+el.icon+' '+el.core+'</span> <span style="color:#94a3b8;">'+_getCore(el.id)+'</span></div>';
+    html += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:4px 8px;font-family:monospace;font-size:9px;">'+
+      '<span style="color:'+el.color+';">'+el.icon+'</span> <span style="color:#94a3b8;">'+_getCore(el.id)+'</span></div>';
   });
   html += '</div>';
 
@@ -14121,20 +14163,16 @@ function _renderExploreList(container) {
   html += '<div style="display:flex;flex-direction:column;gap:8px;">';
   ELEMENTS.forEach(function(el) {
     var isOpen = open.some(function(o){return o.id===el.id;});
-    var cleared = _getCleared(el.id);
-    var curStage = _getStage(el.id);
-    var sys = DAY_SYSTEMS[el.id];
-    html += '<div data-elem-select="'+el.id+'" style="background:'+(isOpen?'#0a1020':'#060810')+';border:1px solid '+(isOpen?el.color+'55':'#0a1a2a')+';padding:12px;cursor:'+(isOpen?'pointer':'default')+';opacity:'+(isOpen?'1':'0.4')+';">'+
+    var curStage = Math.min(_getStage(el.id), MAX_STAGE);
+    var allClear = _getStage(el.id) > MAX_STAGE;
+    html += '<div data-elem-select="'+el.id+'" style="background:'+(isOpen?'#0a1020':'#060810')+';border:1px solid '+(isOpen?el.color+'44':'#0a1a2a')+';padding:12px;cursor:'+(isOpen?'pointer':'default')+';opacity:'+(isOpen?'1':'0.35')+';">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;">'+
-        '<div style="display:flex;align-items:center;gap:8px;">'+
-          '<span style="font-size:18px;">'+el.icon+'</span>'+
-          '<div><div style="font-size:12px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.name+' 탐사</div>'+
-          '<div style="font-size:8px;color:#445566;font-family:monospace;margin-top:2px;">'+sys.label+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+          '<div style="width:32px;height:32px;border:1.5px solid '+el.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:'+el.color+';text-shadow:0 0 8px '+el.color+';">'+ el.icon+'</div>'+
+          '<div><div style="font-size:12px;color:'+(isOpen?el.color:'#334455')+';font-family:monospace;font-weight:bold;">'+el.name+' 탐사</div>'+
+          '<div style="font-size:9px;color:#445566;font-family:monospace;margin-top:2px;">'+(allClear?'전 단계 클리어':'스테이지 '+curStage)+'</div></div>'+
         '</div>'+
-        '<div style="text-align:right;">'+
-          '<div style="font-size:10px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+cleared+' / '+MAX_STAGE+'</div>'+
-          (isOpen?'<div style="font-size:8px;color:#556677;font-family:monospace;">터치하여 입장 ▸</div>':'<div style="font-size:8px;color:#334455;font-family:monospace;">'+(el.day<=5?dayNames[el.day]:'토')+'요일</div>')+
-        '</div>'+
+        (isOpen?'<span style="font-size:10px;color:#556677;font-family:monospace;">▸</span>':'<span style="font-size:8px;color:#334455;font-family:monospace;">'+(el.day<=5?dayNames[el.day]:'토')+'요일</span>')+
       '</div>'+
     '</div>';
   });
@@ -14142,7 +14180,6 @@ function _renderExploreList(container) {
 
   container.innerHTML = html;
 
-  // 속성 카드 클릭 → 단계 목록
   var open2 = open;
   var cards = container.querySelectorAll('[data-elem-select]');
   for (var i = 0; i < cards.length; i++) {
@@ -14150,123 +14187,126 @@ function _renderExploreList(container) {
       card.addEventListener('click', function() {
         var eId = card.getAttribute('data-elem-select');
         if (!open2.some(function(o){return o.id===eId;})) return;
-        _exploreView = eId;
         _exploreElem = ELEMENTS.filter(function(e){return e.id===eId;})[0];
-        renderExplore();
+        _showStagePopup();
       });
     })(cards[i]);
   }
 }
 
-function _renderExploreStages(container) {
+/* ── 스테이지 팝업 (좌우 화살표) ── */
+var _stagePopup = null;
+function _showStagePopup() {
   var el = _exploreElem;
-  if (!el) { _exploreView='list'; renderExplore(); return; }
+  if (!el) return;
+  if (!_stagePopup) {
+    _stagePopup = document.createElement('div');
+    _stagePopup.id = 'stage-popup';
+    _stagePopup.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:10500;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+    _stagePopup.addEventListener('click', function(e) { if (e.target === _stagePopup) _closeStagePopup(); });
+    document.body.appendChild(_stagePopup);
+  }
+  _stagePopup.style.display = 'flex';
+  _renderStagePopup();
+}
+function _closeStagePopup() { if (_stagePopup) _stagePopup.style.display = 'none'; }
+
+var _viewStage = 0; // 0 = current
+function _renderStagePopup() {
+  var el = _exploreElem;
+  if (!el || !_stagePopup) return;
   var tickets = _getTickets();
   var cleared = _getCleared(el.id);
   var curStage = Math.min(_getStage(el.id), MAX_STAGE);
+  if (_viewStage <= 0 || _viewStage > MAX_STAGE) _viewStage = curStage;
+  var s = _viewStage;
+  var isCleared = s <= cleared;
+  var isCurrent = s === curStage;
+  var isLocked = s > curStage;
+  var reward = _stageReward(s);
+  var canBattle = isCurrent && tickets > 0 && curStage <= MAX_STAGE;
+  var canHarvest = isCleared && tickets > 0;
 
-  var html = '<div style="display:flex;align-items:center;margin-bottom:14px;">'+
-    '<div data-back-list style="cursor:pointer;color:#778899;font-family:monospace;font-size:11px;">◂ 뒤로</div>'+
-    '<div style="flex:1;text-align:center;">'+
-      '<span style="font-size:14px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.icon+' '+el.name+' 탐사</span>'+
+  // 즉시 수확 총량
+  var totalHarvest = 0;
+  for (var h = 1; h <= cleared; h++) totalHarvest += _stageReward(h);
+
+  var html = '<div style="background:#0a1020;border:1px solid '+el.color+'44;width:min(300px,88%);padding:0;box-shadow:0 0 30px '+el.color+'15;">';
+
+  // 헤더
+  html += '<div style="padding:14px 16px 10px;border-bottom:1px solid #1a2a3a;display:flex;justify-content:space-between;align-items:center;">'+
+    '<div style="display:flex;align-items:center;gap:8px;">'+
+      '<div style="width:28px;height:28px;border:1.5px solid '+el.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:'+el.color+';text-shadow:0 0 6px '+el.color+';">'+el.icon+'</div>'+
+      '<span style="font-size:13px;color:'+el.color+';font-weight:bold;">'+el.name+' 탐사</span>'+
     '</div>'+
-    '<div style="font-size:11px;color:#ff8822;font-family:monospace;">🎫 '+tickets+'</div>'+
+    '<button data-sp-close style="background:none;border:none;color:#556677;font-size:16px;cursor:pointer;font-family:monospace;">×</button>'+
   '</div>';
 
-  // 코어 보유
-  html += '<div style="text-align:center;margin-bottom:12px;font-size:11px;color:'+el.color+';font-family:monospace;">'+el.core+': '+_getCore(el.id)+'</div>';
-
-  // 단계 그리드
-  html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">';
-  for (var s = 1; s <= MAX_STAGE; s++) {
-    var isCleared = s <= cleared;
-    var isCurrent = s === curStage && curStage <= MAX_STAGE;
-    var isLocked = s > curStage;
-    var reward = _stageReward(s);
-    var canHarvest = isCleared && tickets > 0;
-    var canBattle = isCurrent && tickets > 0;
-
-    var borderColor = isCleared ? el.color+'88' : isCurrent ? el.color : '#1a2a3a';
-    var bgColor = isCleared ? el.color+'11' : isCurrent ? el.color+'22' : '#060810';
-    var numColor = isCleared ? el.color : isCurrent ? '#fff' : '#334455';
-
-    html += '<div data-stage="'+s+'" style="background:'+bgColor+';border:1px solid '+borderColor+';padding:8px 4px;text-align:center;cursor:'+(isLocked?'default':'pointer')+';opacity:'+(isLocked?'0.3':'1')+';">'+
-      '<div style="font-size:13px;color:'+numColor+';font-family:monospace;font-weight:bold;">'+s+'</div>'+
-      '<div style="font-size:7px;color:#556677;font-family:monospace;margin-top:2px;">'+el.core.split(' ')[0]+' '+reward+'</div>'+
-      (isCleared?'<div style="font-size:7px;color:'+el.color+';margin-top:2px;">✓</div>':'')+
-    '</div>';
-  }
-  html += '</div>';
-
-  // 하단 액션 영역
-  if (curStage <= MAX_STAGE) {
-    var canBattle2 = tickets > 0;
-    html += '<div style="margin-top:14px;padding:12px;border:1px solid '+el.color+'33;background:#0a1020;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
-        '<span style="font-size:12px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+curStage+'단계</span>'+
-        '<span style="font-size:10px;color:#556677;font-family:monospace;">보상: '+el.core+' x'+_stageReward(curStage)+'</span>'+
+  // 스테이지 네비게이션
+  html += '<div style="padding:20px 16px;text-align:center;">'+
+    '<div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:16px;">'+
+      '<button data-sp-prev style="background:none;border:1px solid '+(s>1?'#334455':'#1a1a2a')+';color:'+(s>1?'#778899':'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">◀</button>'+
+      '<div>'+
+        '<div style="font-size:24px;color:'+(isLocked?'#334455':el.color)+';font-weight:bold;">'+s+'</div>'+
+        '<div style="font-size:9px;color:#556677;margin-top:2px;">STAGE</div>'+
       '</div>'+
-      '<button data-battle="'+el.id+'" '+(canBattle2?'':'disabled ')+
-        'style="width:100%;height:40px;background:#030b10;border:1px solid '+(canBattle2?el.color:'#1a2a3a')+';color:'+(canBattle2?el.color:'#334455')+
-        ';font-family:monospace;font-size:12px;cursor:'+(canBattle2?'pointer':'default')+';letter-spacing:1px;-webkit-appearance:none;">'+
-        (canBattle2?'🎫 탐사 출발':'티켓 부족')+'</button>'+
+      '<button data-sp-next style="background:none;border:1px solid '+(s<MAX_STAGE?'#334455':'#1a1a2a')+';color:'+(s<MAX_STAGE?'#778899':'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">▶</button>'+
     '</div>';
-  } else {
-    html += '<div style="margin-top:14px;text-align:center;font-size:12px;color:'+el.color+';font-family:monospace;">모든 단계 클리어!</div>';
-  }
 
-  // 즉시 수확 (클리어한 단계가 있고 티켓이 있을 때)
+  // 상태 & 보상
+  var statusText = isCleared ? '<span style="color:'+el.color+';">✓ 클리어</span>' : isCurrent ? '<span style="color:#fff;">도전 가능</span>' : '<span style="color:#334455;">잠김</span>';
+  html += '<div style="font-size:10px;color:#778899;margin-bottom:6px;">'+statusText+'</div>'+
+    '<div style="font-size:10px;color:#556677;">보상: <span style="color:'+el.color+';">'+el.icon+' '+reward+'</span></div>'+
+  '</div>';
+
+  // 액션 버튼
+  html += '<div style="padding:0 16px 14px;display:flex;flex-direction:column;gap:6px;">';
+  if (isCurrent && curStage <= MAX_STAGE) {
+    html += '<button data-sp-battle style="width:100%;height:40px;background:#030b10;border:1px solid '+(canBattle?el.color:'#1a2a3a')+';color:'+(canBattle?el.color:'#334455')+';font-size:12px;cursor:'+(canBattle?'pointer':'default')+';letter-spacing:1px;-webkit-appearance:none;">'+(canBattle?'탐사 출발':'티켓 부족')+'</button>';
+  }
   if (cleared > 0) {
-    var canHarvest2 = tickets > 0;
-    var totalHarvest = 0;
-    for (var h = 1; h <= cleared; h++) totalHarvest += _stageReward(h);
-    html += '<div style="margin-top:8px;">'+
-      '<button data-harvest="'+el.id+'" '+(canHarvest2?'':'disabled ')+
-        'style="width:100%;height:36px;background:'+(canHarvest2?el.color+'22':'#060810')+';border:1px solid '+(canHarvest2?el.color+'55':'#1a2a3a')+';color:'+(canHarvest2?el.color:'#334455')+
-        ';font-family:monospace;font-size:11px;cursor:'+(canHarvest2?'pointer':'default')+';-webkit-appearance:none;">'+
-        (canHarvest2?'⚡ 즉시 수확 ('+el.core+' x'+totalHarvest+')':'티켓 부족')+'</button>'+
-    '</div>';
+    html += '<button data-sp-harvest style="width:100%;height:36px;background:'+(canHarvest?el.color+'15':'#060810')+';border:1px solid '+(canHarvest?el.color+'44':'#1a2a3a')+';color:'+(canHarvest?el.color:'#334455')+';font-size:11px;cursor:'+(canHarvest?'pointer':'default')+';-webkit-appearance:none;">'+(canHarvest?'⚡ 즉시 수확 ('+el.icon+' '+totalHarvest+')':'티켓 부족')+'</button>';
   }
+  html += '</div></div>';
 
-  container.innerHTML = html;
+  _stagePopup.innerHTML = html;
 
-  // 뒤로 버튼
-  var backBtn = container.querySelector('[data-back-list]');
-  if (backBtn) backBtn.addEventListener('click', function() { _exploreView='list'; renderExplore(); });
+  // 이벤트 바인딩
+  _stagePopup.querySelector('[data-sp-close]').onclick = _closeStagePopup;
+  _stagePopup.querySelector('[data-sp-prev]').onclick = function() { if (_viewStage > 1) { _viewStage--; _renderStagePopup(); } };
+  _stagePopup.querySelector('[data-sp-next]').onclick = function() { if (_viewStage < MAX_STAGE) { _viewStage++; _renderStagePopup(); } };
 
-  // 탐사 출발 (placeholder — 전투 미구현, 임시 승리 처리)
-  var battleBtn = container.querySelector('[data-battle]:not([disabled])');
-  if (battleBtn) battleBtn.addEventListener('click', function() {
+  var battleBtn = _stagePopup.querySelector('[data-sp-battle]');
+  if (battleBtn) battleBtn.onclick = function() {
     if (_getTickets() <= 0) return;
-    var eId = battleBtn.getAttribute('data-battle');
+    var eId = el.id;
     var stg = _getStage(eId);
-    if (stg > MAX_STAGE) return;
-    // TODO: 실제 탐사 전투 구현 — 현재는 임시 승리
+    if (stg > MAX_STAGE || stg !== _viewStage) return;
     _setTickets(_getTickets() - 1);
-    var reward = _stageReward(stg);
-    _setCore(eId, _getCore(eId) + reward);
+    var rw = _stageReward(stg);
+    _setCore(eId, _getCore(eId) + rw);
     _setCleared(eId, Math.max(_getCleared(eId), stg));
     _setStage(eId, stg + 1);
-    var e2 = ELEMENTS.filter(function(x){return x.id===eId;})[0];
-    if (e2 && window.showAchievementToast) showAchievementToast(e2.icon+' '+stg+'단계 클리어! '+e2.core+' +'+reward);
+    if (window.showAchievementToast) showAchievementToast(el.icon + ' ' + stg + '단계 클리어! ' + el.core + ' +' + rw);
+    _viewStage = Math.min(stg + 1, MAX_STAGE);
+    _renderStagePopup();
     renderExplore();
-  });
+  };
 
-  // 즉시 수확
-  var harvestBtn = container.querySelector('[data-harvest]:not([disabled])');
-  if (harvestBtn) harvestBtn.addEventListener('click', function() {
+  var harvestBtn = _stagePopup.querySelector('[data-sp-harvest]');
+  if (harvestBtn) harvestBtn.onclick = function() {
     if (_getTickets() <= 0) return;
-    var eId = harvestBtn.getAttribute('data-harvest');
+    var eId = el.id;
     var clr = _getCleared(eId);
     if (clr <= 0) return;
     _setTickets(_getTickets() - 1);
     var total = 0;
-    for (var h = 1; h <= clr; h++) total += _stageReward(h);
+    for (var hh = 1; hh <= clr; hh++) total += _stageReward(hh);
     _setCore(eId, _getCore(eId) + total);
-    var e2 = ELEMENTS.filter(function(x){return x.id===eId;})[0];
-    if (e2 && window.showAchievementToast) showAchievementToast(e2.icon+' 즉시 수확! '+e2.core+' +'+total);
+    if (window.showAchievementToast) showAchievementToast(el.icon + ' 즉시 수확! ' + el.core + ' +' + total);
+    _renderStagePopup();
     renderExplore();
-  });
+  };
 }
 
 // showScreen 확장
