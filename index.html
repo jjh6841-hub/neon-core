@@ -13725,7 +13725,7 @@ function _getSkinCount() {
 
 function _getSkinMultipliers() {
   var count = _getSkinCount();
-  var mult = Math.pow(1.10, count); // 스킨당 10% 곱연산
+  var mult = 1 + count * 0.10; // 스킨당 +10% 합산, 다른 시스템과 곱연산
   return { atk: mult, def: mult, hp: mult };
 }
 window._getSkinMultipliers = _getSkinMultipliers;
