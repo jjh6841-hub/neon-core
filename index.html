@@ -4190,12 +4190,13 @@ function renderNavTabs(currentScreen) {
     }
 
     if (!unlocked) {
+      btn.style.position = 'relative';
       btn.innerHTML =
-        '<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">' +
           iconHTML +
-          '<span style="position:absolute;top:-3px;right:-6px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>' +
           '<span style="font-size:9px;color:' + labelColor + ';font-family:Courier New,monospace;">' + tab.label + '</span>' +
-        '</div>';
+        '</div>' +
+        '<span style="position:absolute;top:2px;right:2px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>';
     } else {
       btn.innerHTML =
         iconHTML +
@@ -12367,7 +12368,7 @@ document.addEventListener('click', function (e) {
 var LEFT_ICONS = [
   { id: 'achievement',  label: '\uC5C5\uC801',      icon: '\u2605', screen: 'achievements',  unlockWave: 0,  color: '#00ffff' },
   { id: 'event',        label: '\uC774\uBCA4\uD2B8',    icon: '\u25C8', screen: 'signal-market', unlockWave: 10, color: '#ffc800' },
-  { id: 'explore',      label: '\uD0D0\uC0AC',      icon: 'EXP',    screen: 'explore',       unlockWave: 10, color: '#ff8822' },
+  { id: 'explore',      label: '\uD0D0\uC0AC',      icon: 'EXP',    screen: 'explore',       unlockWave: 0, color: '#ff8822' },
   { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',    unlockWave: 30, color: '#bb44ff' },
   { id: 'guild',        label: '\uAE38\uB4DC',          icon: 'GLD',    screen: 'guild',         unlockWave: 999999, comingSoon: true, color: '#ff6644' }
 ];
