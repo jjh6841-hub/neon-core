@@ -2084,12 +2084,6 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('vamp',9); },
     apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal++; },
   },
-  { key:'regen',   tab:'def', icon:'~',  name:'재생',     baseCost:11, unlock:'regen',
-    cost()   { return upgCost('regen',11); },
-    stat()   { return G.regenRate+'/s'; },
-    canBuy() { return coreChips>=upgCost('regen',11); },
-    apply()  { var c=upgCost('regen',11); coreChips-=c; G.upgLvl.regen=(G.upgLvl.regen||0)+1; G.regenRate++; },
-  },
   // ─ 특수 탭 ─
   { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:'explode',
     cost()   { return upgCost('explode',15); },
@@ -2123,7 +2117,6 @@ var UNLOCKS = [
   { key:'multi',   gems:5, tab:'atk', icon:'+', name:'다발 해금',      desc:'다발 사격 업그레이드 해금' },
   { key:'pierce',  gems:5, tab:'atk', icon:'>', name:'관통 해금',      desc:'관통 업그레이드 해금' },
   { key:'vamp',    gems:3, tab:'def', icon:'*', name:'흡혈 해금',      desc:'처치 시 HP 회복 업그레이드 해금' },
-  { key:'regen',   gems:4, tab:'def', icon:'~', name:'재생 해금',      desc:'초당 HP 자동 회복 해금' },
   { key:'explode', gems:7, gold:100, tab:'utl', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
   { key:'slow',    gems:4, gold:60,  tab:'utl', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
   { key:'gemup',   gems:5, gold:80,  tab:'utl', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
@@ -4610,7 +4603,7 @@ if (dailyPopup) {
             PERM.gold -= cost;
             PERM.ws_def_unlocks = grp;
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {3:['vamp'], 4:['regen']};
+            var unlockMap = {3:['vamp']};
             var ulks = unlockMap[grp];
             if (ulks) ulks.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
