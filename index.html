@@ -2462,6 +2462,16 @@ function update(dt) {
   // Buff countdown
   if (G.tower.buffMs > 0) G.tower.buffMs = Math.max(0, G.tower.buffMs - dt);
 
+  // 프리즘 보호막 쿨타임
+  if (G.pShieldMax > 0 && G.pShieldCdTimer > 0) {
+    G.pShieldCdTimer -= dt;
+    if (G.pShieldCdTimer <= 0) {
+      G.pShieldCdTimer = 0;
+      G.pShieldCur = G.pShieldMax;
+      G.floatTexts.push({ x: G.cx, y: G.cy - 50, text: 'SHIELD!', color: '#0088ff', timer: 0 });
+    }
+  }
+
   // Regen (인게임 regenRate + 영구 ws.hpRegen 합산)
   var _totalRegen = (G.regenRate || 0) + ((G.tower && G.tower.hpRegen) || 0);
   if (_totalRegen > 0) {
@@ -2692,23 +2702,21 @@ function update(dt) {
         const dmgTaken = Math.max(0, Math.round(_rawDmg * (1 - _defPct) - _defAbs));
         if (dmgTaken <= 0) { continue; }
         // 실드 흡수 처리
+        var _rem = dmgTaken;
         if (G.tower.shdCur > 0) {
-          const _sAbs = Math.min(G.tower.shdCur, dmgTaken);
+          const _sAbs = Math.min(G.tower.shdCur, _rem);
           G.tower.shdCur -= _sAbs;
+          _rem -= _sAbs;
           shieldAbsorbCount++;
           try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs } })); } catch(_) {}
           if (shieldAbsorbCount >= 10) {
             try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
             shieldAbsorbCount = 0;
           }
-          if (_sAbs >= dmgTaken) {
-            addFx(e.x, e.y, e.r * 2, '#0088ff');
-            continue;
-          }
-          G.tower.hp = Math.max(0, G.tower.hp - (dmgTaken - _sAbs));
-        } else {
-          G.tower.hp = Math.max(0, G.tower.hp - dmgTaken);
         }
+        if (_rem > 0 && window._absorbPrismShield) _rem = window._absorbPrismShield(_rem);
+        if (_rem <= 0) { addFx(e.x, e.y, e.r * 2, '#0088ff'); continue; }
+        G.tower.hp = Math.max(0, G.tower.hp - _rem);
         G.flashAlpha = 1;
         triggerShake(4);
         addFx(e.x, e.y, e.r * 2, '#f87171');
@@ -2720,7 +2728,8 @@ function update(dt) {
     // Slow tick
     if (e.slowTimer > 0) e.slowTimer = Math.max(0, e.slowTimer - dt);
     const spdMult = (e.slowTimer > 0) ? (1 - G.slowPct) : 1;
-    const mv = e.spd * spdMult * (dt / 16.667);
+    const auraSlow = G.auraSlowPct ? (1 - Math.min(0.8, G.auraSlowPct)) : 1;
+    const mv = e.spd * spdMult * auraSlow * (dt / 16.667);
     e.x += (dx / dist) * mv;
     e.y += (dy / dist) * mv;
 
@@ -2760,20 +2769,21 @@ function update(dt) {
       var _sbDmg = Math.max(0, sb.dmg * (1 - _sDefPct) - _sDefAbs);
       if (_sbDmg <= 0) { G.sniperBullets.splice(sbi, 1); continue; }
       // 스나이퍼 탄 실드 흡수 처리
+      var _sRem = _sbDmg;
       if (G.tower.shdCur > 0) {
-        const _sAbs2 = Math.min(G.tower.shdCur, _sbDmg);
+        const _sAbs2 = Math.min(G.tower.shdCur, _sRem);
         G.tower.shdCur -= _sAbs2;
+        _sRem -= _sAbs2;
         shieldAbsorbCount++;
         try { document.dispatchEvent(new CustomEvent('ev_shield_absorbed', { detail: { absorbed: _sAbs2 } })); } catch(_) {}
         if (shieldAbsorbCount >= 10) {
           try { document.dispatchEvent(new CustomEvent('ev_shield_10')); } catch(_) {}
           shieldAbsorbCount = 0;
         }
-        if (_sAbs2 >= _sbDmg) { G.sniperBullets.splice(sbi, 1); continue; } // 완전 차단
-        G.tower.hp = Math.max(0, G.tower.hp - (_sbDmg - _sAbs2));
-      } else {
-        G.tower.hp = Math.max(0, G.tower.hp - _sbDmg);
       }
+      if (_sRem > 0 && window._absorbPrismShield) _sRem = window._absorbPrismShield(_sRem);
+      if (_sRem <= 0) { G.sniperBullets.splice(sbi, 1); continue; }
+      G.tower.hp = Math.max(0, G.tower.hp - _sRem);
       G.flashAlpha = 1;
       triggerShake(3);
       G.sniperBullets.splice(sbi, 1);
@@ -3572,7 +3582,11 @@ function renderHUD() {
     hpBar.style.width = Math.max(0, hr * 100) + '%';
     hpBar.style.background = hr <= 0.3 ? '#ef4444' : hr <= 0.5 ? '#f59e0b' : '#00ff88';
   }
-  if (hpText) hpText.textContent = Math.ceil(G.tower.hp) + '/' + Math.ceil(G.tower.maxHp);
+  if (hpText) {
+    var _hpStr = Math.ceil(G.tower.hp) + '/' + Math.ceil(G.tower.maxHp);
+    if (G.pShieldMax > 0) _hpStr += ' +' + Math.ceil(G.pShieldCur||0) + '🛡';
+    hpText.textContent = _hpStr;
+  }
   var goldEl = document.getElementById('hud-gold-battle');
   if (goldEl) goldEl.textContent = G.gold;
   var gemsEl = document.getElementById('hud-gems-battle');
@@ -9255,7 +9269,7 @@ var PRISMS = [
   /* 활성화 (6종) */
   {id:'p_kill_cash',  cat:'active', name:'전리품 수집',     desc:'적 처치 시 자원 보상', lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_plasma_rep', cat:'active', name:'플라즈마 과부하', desc:'플라즈마 공격 위력',   lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_shield_cd',  cat:'active', name:'보호막 가속',     desc:'보호막 재생 쿨타임 감소', lvEff:[-4,-8,-12,-16,-20], unit:'%'},
+  {id:'p_shield_cd',  cat:'active', name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
   {id:'p_free_upg',   cat:'active', name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
   {id:'p_max_hp',     cat:'active', name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_death_ray',  cat:'active', name:'소멸 광선',       desc:'광선 공격 데미지',     lvEff:[10,20,30,40,50], unit:'%'},
@@ -9266,7 +9280,7 @@ var PRISMS = [
   {id:'p_range',      cat:'inven',  name:'탐지 확장',       desc:'공격 사거리 확장',     lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_cash',       cat:'inven',  name:'자원 증폭',       desc:'웨이브 골드 보너스',   lvEff:[5,10,15,20,25], unit:'%'},
   {id:'p_coin',       cat:'inven',  name:'추가 보급',       desc:'코인 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_aura',       cat:'inven',  name:'에너지 필드',     desc:'지속 효과 범위',       lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_aura',       cat:'inven',  name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
   {id:'p_crit_rate',  cat:'inven',  name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
   {id:'p_enemy_stat', cat:'inven',  name:'자원 약탈',       desc:'적 드롭 자원 증가',    lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_def',        cat:'inven',  name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[2,4,6,8,10], unit:'%'},
@@ -9381,10 +9395,10 @@ function _applyPrismEffects() {
       case 'p_death_ray':  G.dwDmgBonus = (G.dwDmgBonus||0) + val/100; break;
       case 'p_kill_cash':  G.killCashMult = (G.killCashMult||1) * (1 + val/100); break;
       case 'p_enemy_stat': G.killCashMult = (G.killCashMult||1) * (1 + val/100); break;
-      case 'p_shield_cd':  G.shieldCdReduction = (G.shieldCdReduction||0) + Math.abs(val)/100; break;
+      case 'p_shield_cd':  break; // 아래에서 maxHp 확정 후 처리
       case 'p_free_upg':   G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
       case 'p_free_upg2':  G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
-      case 'p_aura':       G.auraMult = (G.auraMult||1) * (1 + val/100); break;
+      case 'p_aura':       G.auraSlowPct = (G.auraSlowPct||0) + val/100; break;
       case 'p_fort':       G.fortMult = (G.fortMult||1) * (1 + val/100); break;
       case 'p_plasma_rep': G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
       case 'p_plasma_rep2':G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
@@ -9393,7 +9407,28 @@ function _applyPrismEffects() {
       case 'p_intro_sprint':G.introBonus = (G.introBonus||0) + val/100; break;
     }
   });
+  // 보호막 가속: maxHp 확정 후 보호막 계산
+  var _shPr = PRISMS.filter(function(x){return x.id==='p_shield_cd';})[0];
+  if (_shPr && equipped.indexOf(_shPr.id) !== -1) {
+    var _shP = _getPrism(_shPr.id);
+    if (_shP.lv > 0) {
+      var _shVal = _shPr.lvEff[_shP.lv - 1];
+      G.pShieldMax = Math.round(t.maxHp * _shVal / 100);
+      G.pShieldCur = G.pShieldMax;
+      G.pShieldCdBase = 30000;
+      G.pShieldCdTimer = 0;
+    }
+  }
 }
+
+// 프리즘 보호막 피격 흡수 헬퍼
+window._absorbPrismShield = function(remaining) {
+  if (!G.pShieldCur || G.pShieldCur <= 0 || remaining <= 0) return remaining;
+  var abs = Math.min(G.pShieldCur, remaining);
+  G.pShieldCur -= abs;
+  G.pShieldCdTimer = G.pShieldCdBase || 30000;
+  return remaining - abs;
+};
 
 // applyPermStats 체이닝
 (function(){
