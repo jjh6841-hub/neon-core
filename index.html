@@ -1381,11 +1381,6 @@ canvas {
 <!-- ── 홈화면 ── -->
 <div id="screen-home" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
 
-  <!-- JS 호환용 숨김 요소 (buildUnlockUI 참조) -->
-  <div style="display:none" aria-hidden="true">
-    <div id="unlock-section"></div>
-  </div>
-
   <!-- 상단 HUD -->
   <div id="home-hud" style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; position:relative;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
@@ -2085,25 +2080,25 @@ var UPGRADES = [
     apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal++; },
   },
   // ─ 특수 탭 ─
-  { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:'explode',
+  { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
     cost()   { return upgCost('explode',15); },
     stat()   { return 'r='+G.explodeR; },
     canBuy() { return coreChips>=upgCost('explode',15); },
     apply()  { var c=upgCost('explode',15); coreChips-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
   },
-  { key:'slow',    tab:'utl', icon:'#',  name:'감속',     baseCost:12, unlock:'slow',
+  { key:'slow',    tab:'utl', icon:'#',  name:'감속',     baseCost:12, unlock:null,
     cost()   { return upgCost('slow',12); },
     stat()   { return Math.round(G.slowPct*100)+'%'; },
     canBuy() { return coreChips>=upgCost('slow',12); },
     apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
   },
-  { key:'gemup',   tab:'utl', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:'gemup',
+  { key:'gemup',   tab:'utl', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:null,
     cost()   { return upgCost('gemup',12); },
     stat()   { return 'x'+G.gemBonus.toFixed(1); },
     canBuy() { return coreChips>=upgCost('gemup',12); },
     apply()  { var c=upgCost('gemup',12); coreChips-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
   },
-  { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:'goldup',
+  { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:null,
     cost()   { return upgCost('goldup',11); },
     stat()   { return 'x'+G.goldBonus.toFixed(1); },
     canBuy() { return coreChips>=upgCost('goldup',11); },
@@ -2111,17 +2106,6 @@ var UPGRADES = [
   },
 ];
 
-/* ── 잠금 해제 정의 (상점) ── */
-var UNLOCKS = [
-  { key:'crit',    gems:3, tab:'atk', icon:'!', name:'치명타 해금',    desc:'치명타 확률 업그레이드 해금 (2x 피해)' },
-  { key:'multi',   gems:5, tab:'atk', icon:'+', name:'다발 해금',      desc:'다발 사격 업그레이드 해금' },
-  { key:'pierce',  gems:5, tab:'atk', icon:'>', name:'관통 해금',      desc:'관통 업그레이드 해금' },
-  { key:'vamp',    gems:3, tab:'def', icon:'*', name:'흡혈 해금',      desc:'처치 시 HP 회복 업그레이드 해금' },
-  { key:'explode', gems:7, gold:100, tab:'utl', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
-  { key:'slow',    gems:4, gold:60,  tab:'utl', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
-  { key:'gemup',   gems:5, gold:80,  tab:'utl', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
-  { key:'goldup',  gems:4, gold:60,  tab:'utl', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
-];
 
 /* ── 업적 정의 ── */
 var ACHIEVEMENTS = [
@@ -3875,7 +3859,7 @@ function openShop() {
   if (bnav) bnav.style.display = 'flex';
   const home = document.getElementById('screen-home');
   home.style.display = 'flex';
-  buildUnlockUI();
+
   syncShopUI();
   renderNavTabs('home');
 }
@@ -3885,68 +3869,6 @@ function syncShopUI() {
   try { document.getElementById('home-gem').textContent  = PERM.gems; } catch(_) {}
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   SHOP UNLOCK SECTION
-═══════════════════════════════════════════════════════════════ */
-function buildUnlockUI() {
-  const section = document.getElementById('unlock-section');
-  if (!section) return;
-  section.innerHTML = '<p class="unlock-title">■ 특수 해금</p>';
-  for (const ul of UNLOCKS) {
-    const owned = !!PERM.unlocks[ul.key];
-    const div = document.createElement('div');
-    div.className = 'unlock-item' + (owned ? ' owned' : '');
-    div.id = 'unlock-item-' + ul.key;
-    div.innerHTML =
-      '<div class="ui-info">' +
-        '<span class="ui-name">' + ul.icon + ' ' + ul.name + '</span>' +
-        '<span class="ui-desc">' + ul.desc + '</span>' +
-      '</div>' +
-      '<button class="ui-btn' + (owned ? ' owned-btn' : '') + '" id="unlock-btn-' + ul.key + '">' +
-        (owned ? '보유' : ul.gems + '❖') +
-      '</button>';
-    section.appendChild(div);
-    if (!owned) {
-      const btn = div.querySelector('button');
-      btn.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
-      btn.addEventListener('touchend',   function(e) { e.preventDefault(); buyUnlock(ul.key); }, { passive: false });
-      btn.addEventListener('click', function() { buyUnlock(ul.key); });
-    }
-  }
-}
-
-function syncUnlockUI() {
-  for (const ul of UNLOCKS) {
-    const owned = !!PERM.unlocks[ul.key];
-    const item  = document.getElementById('unlock-item-' + ul.key);
-    const btn   = document.getElementById('unlock-btn-' + ul.key);
-    if (!item || !btn) continue;
-    item.className = 'unlock-item' + (owned ? ' owned' : '');
-    if (owned) {
-      btn.className = 'ui-btn owned-btn';
-      btn.textContent = '보유';
-    } else {
-      btn.className = 'ui-btn' + (PERM.gems < ul.gems ? ' disabled' : '');
-      btn.textContent = ul.gems + '❖';
-    }
-  }
-}
-
-function buyUnlock(key) {
-  const ul = UNLOCKS.find(function(u) { return u.key === key; });
-  if (!ul || PERM.unlocks[ul.key] || PERM.gems < ul.gems) return;
-  PERM.gems -= ul.gems;
-  PERM.unlocks[ul.key] = true;
-  savePerm();
-  buildUnlockUI();
-  syncShopUI();
-  // Prepare highlight for when game starts
-  _pendingHighlight = ul.key;
-  // Rebuild cards now to show unlocked state
-  buildCards();
-  // Auto-switch to the relevant tab
-  setActiveTab(ul.tab);
-}
 
 function startNewGame() {
   document.getElementById('screen-home').style.display = 'none';
@@ -4091,7 +4013,7 @@ document.addEventListener('touchend', function(e) {
               home.style.display    = 'flex';
               home.style.opacity    = '0';
               home.style.transition = 'opacity 0.4s';
-              buildUnlockUI();
+            
               syncShopUI();
               renderNavTabs('home');
               renderLeftIcons();
@@ -4823,33 +4745,8 @@ if (dailyPopup) {
     return html;
   }
 
-  function buildUnlockTab() {
-    var html = '<div style="padding:8px; display:flex; flex-direction:column; gap:6px;">';
-    try {
-      for (var i = 0; i < UNLOCKS.length; i++) {
-        var ul = UNLOCKS[i];
-        var owned = !!(PERM.unlocks && PERM.unlocks[ul.key]);
-        var afford = PERM.gems >= ul.gems;
-        html += '<div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;' + (owned ? ' opacity:0.5;' : '') + '">';
-        html += '<div><div style="color:#ffffff; font-family:monospace; font-size:12px;">' + ul.name + '</div>';
-        html += '<div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-top:2px;">' + ul.desc + '</div></div>';
-        if (owned) {
-          html += '<span style="color:#00ff88; font-family:monospace; font-size:12px; flex-shrink:0; margin-left:8px;">V \uD574\uC81C\uB428</span>';
-        } else {
-          var bdrColor = afford ? '#00ffff' : '#ef4444';
-          html += '<button data-unlock="' + ul.key + '" style="background:#030b10; border:1px solid ' + bdrColor + '; color:#00ffff; font-family:monospace; font-size:13px; padding:6px 10px; cursor:pointer; flex-shrink:0; margin-left:8px;">\u25C6' + ul.gems + '</button>';
-        }
-        html += '</div>';
-      }
-    } catch (e) {
-      html += '<div style="color:#334455; font-family:monospace; font-size:11px; padding:20px; text-align:center;">\uB370\uC774\uD130 \uB85C\uB4DC \uC624\uB958</div>';
-    }
-    html += '</div>';
-    return html;
-  }
-
   function renderStoreTab(tabKey) {
-    if (tabKey === 'unlock') tabKey = 'gem'; // 잠금해제 탭 제거됨 → 기본 탭으로 폴백
+    if (tabKey === 'unlock') tabKey = 'gem';
     activeStoreTab = tabKey;
     var content = document.getElementById('store-content');
     if (!content) return;
@@ -6131,211 +6028,6 @@ function _buildCrystalTab(container) {
 }());
 </script>
 
-<!-- ══════════════════════════════════════════════════════
-     스크립트: 강화 잠금 해제 시스템
-══════════════════════════════════════════════════════ -->
-<script>
-(function() {
-'use strict';
-
-if (!window._wsExt) return;
-
-/* ── 9개 해금 노드 정의 ── */
-var WORKSHOP_UNLOCKS = {
-  'atk-1': { tab:'atk', name:'전술 연구 I',   desc:'치명타 시스템 해금', cost:50,  color:'#00ccff',
-    items:[
-      { key:'critChance',     name:'치명타 확률', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (lv*0.5).toFixed(1);},           nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
-      { key:'critDmgMult',    name:'치명타 배율', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);},   cur:function(lv){return ''+(150+lv*5);},                  nxt:function(lv){return ''+(150+(lv+1)*5);} },
-    ]},
-  'atk-2': { tab:'atk', name:'전술 연구 II',  desc:'다중 발사체 해금', cost:150, color:'#00ccff',
-    items:[
-      { key:'multiShotCount', name:'다중 발사',   maxLv:9,  cost:function(lv){return 25+lv*10;},              cur:function(lv){return ''+(lv+1);},                      nxt:function(lv){return ''+(lv+2);} },
-      { key:'pierceLv',       name:'관통',         maxLv:9,  cost:function(lv){return 30+lv*12;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
-    ]},
-  'atk-3': { tab:'atk', name:'전술 연구 III', desc:'연쇄 공격 해금', cost:400, color:'#00ccff',
-    items:[
-      { key:'chainCount',     name:'연쇄 공격',   maxLv:9,  cost:function(lv){return 40+lv*15;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
-      { key:'chainDmgPct',    name:'연쇄 피해',   maxLv:30, cost:function(lv){return 35+Math.floor(lv*5);},   cur:function(lv){return ''+(60+lv*5);},                   nxt:function(lv){return ''+(60+(lv+1)*5);} },
-    ]},
-  'def-1': { tab:'def', name:'방호 연구 I',   desc:'생존 시스템 해금', cost:50,  color:'#00ff88',
-    items:[
-      { key:'regenRate',      name:'체력 재생',   maxLv:50, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (lv*0.02).toFixed(2);},           nxt:function(lv){return ((lv+1)*0.02).toFixed(2);} },
-      { key:'vampireRate',    name:'흡혈',         maxLv:30, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},            nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
-    ]},
-  'def-2': { tab:'def', name:'방호 연구 II',  desc:'방어 반격 해금', cost:150, color:'#00ff88',
-    items:[
-      { key:'thornsPct',      name:'반격 피해',   maxLv:30, cost:function(lv){return 15+Math.floor(lv*2.8);}, cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
-      { key:'shieldHP',       name:'에너지 방패', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);},   cur:function(lv){return ''+lv*5;},                        nxt:function(lv){return ''+(lv+1)*5;} },
-    ]},
-  'def-3': { tab:'def', name:'방호 연구 III', desc:'불사/흡수 해금', cost:400, color:'#00ff88',
-    items:[
-      { key:'immortalPct',    name:'불사 확률',   maxLv:30, cost:function(lv){return 25+Math.floor(lv*5);},   cur:function(lv){return (lv*0.1).toFixed(1);},            nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
-      { key:'absorbPct',      name:'피해 흡수',   maxLv:30, cost:function(lv){return 30+Math.floor(lv*5);},   cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
-    ]},
-  'spc-1': { tab:'utl', name:'특수 연구 I',   desc:'재화 부스트 해금', cost:100, color:'#f59e0b',
-    items:[
-      { key:'goldBoostPct',   name:'골드 부스트', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},        nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
-      { key:'gemBoostPct',    name:'크리스탈 보너스', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);}, cur:function(lv){return ''+lv;},                        nxt:function(lv){return ''+(lv+1);} },
-    ]},
-  'spc-2': { tab:'utl', name:'특수 연구 II',  desc:'경험/웨이브 보너스 해금', cost:250, color:'#f59e0b',
-    items:[
-      { key:'expBoostPct',    name:'경험치 보너스', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);}, cur:function(lv){return ''+(lv*5);},                      nxt:function(lv){return ''+(lv+1)*5;} },
-      { key:'waveGoldBonus',  name:'웨이브 보너스', maxLv:30, cost:function(lv){return 18+Math.floor(lv*3.5);},cur:function(lv){return ''+lv*10;},                     nxt:function(lv){return ''+(lv+1)*10;} },
-    ]},
-  'spc-3': { tab:'utl', name:'특수 연구 III', desc:'시간조작/추가 카드 해금', cost:600, color:'#f59e0b',
-    items:[
-      { key:'timeSlowPct',    name:'시간 지연',   maxLv:10, cost:function(lv){return 50+lv*20;},              cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
-      { key:'extraCardCount', name:'추가 카드',   maxLv:5,  cost:function(lv){return 80+lv*30;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
-    ]},
-};
-
-/* ── 해금 상태 (PERM.ws에 node_atk_1 등으로 저장) ── */
-function _isUnlocked(id) {
-  return !!((PERM.ws || {})['node_' + id.replace('-','_')]);
-}
-function _setUnlocked(id) {
-  if (!PERM.ws) PERM.ws = {};
-  PERM.ws['node_' + id.replace('-','_')] = 1;
-  savePerm();
-}
-
-/* ── 전역 해금 함수 ── */
-window.unlockWorkshop = function(nodeId) {
-  var node = WORKSHOP_UNLOCKS[nodeId];
-  if (!node || _isUnlocked(nodeId)) return false;
-  if (PERM.gold < node.cost) return false;
-  PERM.gold -= node.cost;
-  _setUnlocked(nodeId);
-  try { window._wsExt.sync(); } catch(_) {}
-  setTimeout(function() {
-    try { document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {}
-  }, 10);
-  return true;
-};
-
-/* ── 해금된 아이템 업그레이드 카드 ── */
-function _buildItemCard(item, ws) {
-  var lv    = (ws || {})[item.key] || 0;
-  var maxed = lv >= item.maxLv;
-  var cost  = maxed ? 0 : item.cost(lv);
-  var aff   = PERM.gold >= cost;
-  var card  = document.createElement('div');
-  card.style.cssText =
-    'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,220,100,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
-  var rhs = maxed
-    ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
-    : '<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;flex-shrink:0;">' +
-        '<span style="font-family:monospace;white-space:nowrap;">' +
-          '<span style="font-size:16px;color:#00ffff;font-weight:bold;">' + item.nxt(lv) + '</span>' +
-          '<span style="font-size:11px;color:#334455;"> → </span>' +
-          '<span style="font-size:11px;color:#445566;">' + item.cur(lv) + '</span>' +
-        '</span>' +
-        '<button data-ukey="' + item.key + '" style="background:#030b10;border:1px solid ' +
-          (aff?'#0a3344':'#ef4444') + ';color:' + (aff?'#f59e0b':'#ef4444') +
-          ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;' +
-          '-webkit-appearance:none;margin-top:3px;">◈' + cost + '</button>' +
-      '</div>';
-  card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;">' +
-      '<span style="font-size:11px;color:#7aacac;font-family:monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">' + item.name + '</span>' +
-      '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed?' ✓':'') + '</span>' +
-    '</div>' + rhs;
-  if (!maxed) {
-    var btn = card.querySelector('[data-ukey]');
-    if (btn) (function(it) {
-      btn.addEventListener('click', function() {
-        var lv2 = (PERM.ws||{})[it.key]||0;
-        if (lv2 >= it.maxLv) return;
-        var co = it.cost(lv2);
-        if (PERM.gold < co) { card.style.borderLeftColor='#ef4444'; setTimeout(function(){card.style.borderLeftColor='rgba(0,220,100,0.25)';},250); return; }
-        PERM.gold -= co;
-        if (!PERM.ws) PERM.ws={};
-        PERM.ws[it.key] = lv2+1;
-        savePerm();
-        try { window._wsExt.sync(); } catch(_) {}
-        setTimeout(function(){ try{document.querySelector('.ws-tab[style*="00ffff"]').click();}catch(_){} },10);
-      });
-    }(item));
-  }
-  return card;
-}
-
-/* ── 잠금 노드 카드 ── */
-function _buildNodeCard(nodeId, node) {
-  var aff  = PERM.gold >= node.cost;
-  var card = document.createElement('div');
-  card.setAttribute('data-unlock-node', nodeId);
-  card.style.cssText =
-    'background:#060f18;border:1px solid ' + (aff ? node.color+'33' : '#1a2030') + ';' +
-    'border-left:2px solid ' + node.color + '44;padding:10px 12px;' +
-    'display:flex;flex-direction:row;justify-content:space-between;align-items:center;';
-  var names = node.items.map(function(it){return it.name;}).join(', ');
-  card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;">' +
-      '<span style="font-size:11px;color:' + node.color + ';font-family:monospace;opacity:0.7;">🔒 ' + node.name + '</span>' +
-      '<span style="font-size:10px;color:#1a3a4a;font-family:monospace;">' + node.desc + '</span>' +
-      '<span style="font-size:9px;color:#1a2a3a;font-family:monospace;">' + names + '</span>' +
-    '</div>' +
-    '<button data-unlock-btn="' + nodeId + '" style="background:#030b10;border:1px solid ' +
-      (aff ? node.color+'55' : '#2a1522') + ';color:' + (aff ? node.color : '#443344') +
-      ';font-family:monospace;font-size:11px;padding:4px 10px;cursor:pointer;' +
-      '-webkit-appearance:none;white-space:nowrap;">◈' + node.cost + ' 해금</button>';
-  var btn = card.querySelector('[data-unlock-btn]');
-  if (btn) (function(nId) {
-    btn.addEventListener('click', function() {
-      if (!window.unlockWorkshop(nId)) {
-        card.style.borderColor = '#ef4444';
-        setTimeout(function(){ card.style.borderColor=''; }, 300);
-      }
-    });
-  }(nodeId));
-  return card;
-}
-
-/* ── MutationObserver (60ms 디바운스, _building 윈도우 내 실행) ── */
-var _bld2 = false, _bldT2 = null;
-var _wsCnt = document.getElementById('ws-content');
-if (_wsCnt) {
-  new MutationObserver(function() {
-    if (_bld2) return;
-    clearTimeout(_bldT2);
-    _bldT2 = setTimeout(function() {
-      _bld2 = true;
-      _doUnlockAppend();
-      setTimeout(function(){ _bld2 = false; }, 200);
-    }, 60);
-  }).observe(_wsCnt, { childList: true });
-}
-
-function _doUnlockAppend() {
-  var container = document.getElementById('ws-content');
-  if (!container) return;
-  var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
-  if (activeTab === 'ult' || activeTab === 'atk' || activeTab === 'def') return;
-  // 이미 처리됨 (마커 존재 여부로 판단)
-  if (container.querySelector('[data-upr="' + activeTab + '"]')) return;
-  // 처리 마커 추가 (hidden)
-  var marker = document.createElement('span');
-  marker.setAttribute('data-upr', activeTab);
-  marker.style.display = 'none';
-  container.appendChild(marker);
-  var ws = PERM.ws || {};
-  Object.keys(WORKSHOP_UNLOCKS).forEach(function(nodeId) {
-    var node = WORKSHOP_UNLOCKS[nodeId];
-    if (node.tab !== activeTab) return;
-    if (_isUnlocked(nodeId)) {
-      node.items.forEach(function(item) {
-        container.appendChild(_buildItemCard(item, ws));
-      });
-    } else {
-      container.appendChild(_buildNodeCard(nodeId, node));
-    }
-  });
-}
-
-}());
-</script>
 
 <!-- ══════════════════════════════════════════════════════
      스크립트: 연구소 시스템
@@ -8080,17 +7772,6 @@ if (typeof _origGetCost === 'function') {
     }, 3500);
   }
 
-  setTimeout(function() {
-    var orig = window.unlockWorkshop;
-    if (typeof orig !== 'function') return;
-    window.unlockWorkshop = function(nodeId) {
-      var ok = orig.apply(this, arguments);
-      if (ok && window.WORKSHOP_UNLOCKS && window.WORKSHOP_UNLOCKS[nodeId]) {
-        setTimeout(function(){ _show(window.WORKSHOP_UNLOCKS[nodeId]); }, 300);
-      }
-      return ok;
-    };
-  }, 150);
 }());
 
 
@@ -13586,148 +13267,6 @@ if (typeof _origStart === 'function') {
 }());
 </script>
 
-<!-- ══════════════════════════════════════════════════════
-     스크립트: 강화 탭 — 스토어 잠금해제 항목 직접 해금 카드
-══════════════════════════════════════════════════════ -->
-<script>
-(function() {
-'use strict';
-
-/* 잠금 항목 → 강화 탭 매핑 (프롬프트 표 기준) */
-var UNLOCK_TAB_MAP = {
-  crit:    'atk',
-  multi:   'atk',
-  pierce:  'atk',
-  vamp:    'def',
-  regen:   'def',
-  explode: 'utl',
-  slow:    'utl',
-  goldup:  'utl',
-  gemup:   'utl'
-};
-
-function _activeWsTab() {
-  try {
-    if (window._wsExt && window._wsExt.activeTab) return window._wsExt.activeTab();
-  } catch(_) {}
-  return 'atk';
-}
-
-function _findUnlock(key) {
-  if (typeof UNLOCKS === 'undefined') return null;
-  for (var i = 0; i < UNLOCKS.length; i++) {
-    if (UNLOCKS[i].key === key) return UNLOCKS[i];
-  }
-  return null;
-}
-
-function _isUnlocked(key) {
-  return !!(window.PERM && PERM.unlocks && PERM.unlocks[key]);
-}
-
-function _buildUnlockCard(key) {
-  var ul = _findUnlock(key);
-  if (!ul) return null;
-  var cost = ul.gold || 60;
-  var gold = (window.PERM ? PERM.gold : 0);
-  var afford = gold >= cost;
-
-  var card = document.createElement('div');
-  card.setAttribute('data-wsunlock', key);
-  card.style.cssText =
-    'background:#0a1020;border:1px solid #1a2a3a;border-left:2px solid rgba(0,255,255,0.2);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;' +
-    'gap:8px;min-width:0;overflow:hidden;opacity:0.92;transition:border-color 0.2s;';
-
-  card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;">' +
-      '<div style="display:flex;align-items:center;gap:6px;">' +
-        '<span style="font-size:12px;color:#445566;">🔒</span>' +
-        '<span style="font-size:11px;color:#7aacac;font-family:\'Courier New\',monospace;word-break:keep-all;line-height:1.4;">' +
-          ul.name +
-        '</span>' +
-      '</div>' +
-      '<span style="font-size:9px;color:#334455;font-family:\'Courier New\',monospace;word-break:keep-all;line-height:1.4;">' +
-        ul.desc +
-      '</span>' +
-    '</div>' +
-    '<button data-wsunlock-btn="' + key + '" style="background:#030b10;border:1px solid ' +
-      (afford ? '#f59e0b' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
-      ';font-family:\'Courier New\',monospace;font-size:11px;padding:6px 10px;cursor:pointer;' +
-      '-webkit-appearance:none;white-space:nowrap;flex-shrink:0;">◈ ' + cost + '</button>';
-
-  var btn = card.querySelector('[data-wsunlock-btn]');
-  if (btn) btn.addEventListener('click', function() {
-    if (!window.PERM) return;
-    if (PERM.gold < cost) {
-      card.style.borderColor = '#ef4444';
-      setTimeout(function() { card.style.borderColor = '#1a2a3a'; }, 250);
-      return;
-    }
-    PERM.gold -= cost;
-    if (!PERM.unlocks) PERM.unlocks = {};
-    PERM.unlocks[key] = true;
-    try { savePerm(); } catch(_) {}
-    try { window._wsExt && window._wsExt.sync && window._wsExt.sync(); } catch(_) {}
-    setTimeout(function() {
-      try {
-        var tab = _activeWsTab();
-        var tabBtn = document.querySelector('.ws-tab[data-tab="' + tab + '"]');
-        if (tabBtn) tabBtn.click();
-      } catch(_) {}
-    }, 10);
-  });
-
-  return card;
-}
-
-function _injectUnlockCards() {
-  var container = document.getElementById('ws-content');
-  if (!container) return;
-  var tab = _activeWsTab();
-  if (tab === 'atk' || tab === 'def') return; // 공격/방어 탭은 새 잠금 시스템에서 처리
-  // 기존 마커 제거 (재렌더링 대응)
-  var existing = container.querySelectorAll('[data-wsunlock]');
-  for (var e = 0; e < existing.length; e++) existing[e].parentNode && existing[e].parentNode.removeChild(existing[e]);
-
-  var keys = Object.keys(UNLOCK_TAB_MAP);
-  for (var i = 0; i < keys.length; i++) {
-    var k = keys[i];
-    if (UNLOCK_TAB_MAP[k] !== tab) continue;
-    if (_isUnlocked(k)) continue; // 이미 해금된 항목은 워크샵 일반 카드로 표시되므로 skip
-    var card = _buildUnlockCard(k);
-    if (card) container.appendChild(card);
-  }
-}
-
-/* MutationObserver: ws-content 변경 감지 후 디바운스 주입 */
-var _injecting = false, _injTimer = null;
-function _scheduleInject() {
-  if (_injecting) return;
-  clearTimeout(_injTimer);
-  _injTimer = setTimeout(function() {
-    _injecting = true;
-    try { _injectUnlockCards(); } catch(_) {}
-    setTimeout(function() { _injecting = false; }, 220);
-  }, 90);
-}
-
-function _attach() {
-  var c = document.getElementById('ws-content');
-  if (!c) { setTimeout(_attach, 200); return; }
-  new MutationObserver(_scheduleInject).observe(c, { childList: true });
-  // 초기 1회
-  setTimeout(_scheduleInject, 300);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _attach);
-} else {
-  _attach();
-}
-
-}());
-</script>
 
 <!-- ══════════════════════════════════════════════════════
      스크립트: NEON CORE 메인 아이콘 (로딩/홈 공용 SVG)
