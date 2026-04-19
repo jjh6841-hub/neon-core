@@ -2337,6 +2337,13 @@ function startGame() {
   var _wb = document.getElementById('hud-wave-bar');
   if (_wb) { _wb.style.transition = 'none'; _wb.style.width = '0%'; _wb.offsetHeight; _wb.style.transition = 'width 0.3s'; }
   applyPermStats();
+
+  // 선행 배치: 최고기록 비례 시작 웨이브
+  if (G.introBonus && PERM.bestWave > 1) {
+    var skipTo = Math.floor(PERM.bestWave * G.introBonus);
+    if (skipTo > 1) G.wave = skipTo;
+  }
+
   buildCards();
   setActiveTab(activeTab);
   applyPendingHighlight();
@@ -2513,6 +2520,10 @@ function update(dt) {
     G.betweenTimer -= dt;
     if (G.betweenTimer <= 0) {
       G.wave++;
+      if (G.waveSkipChance && Math.random() < G.waveSkipChance) {
+        G.wave++;
+        G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: 'WAVE SKIP!', color: '#cc44ff', timer: 0 });
+      }
       startWave();
     }
     return;
@@ -2563,6 +2574,7 @@ function update(dt) {
       if (ddx * ddx + ddy * ddy < (e.r + 5) * (e.r + 5)) {
         if (b.hitSet) b.hitSet.add(e);
         let dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
+        if (G.goldDmgPct) dmg += Math.floor(G.gold * G.goldDmgPct);
         if (b.crit) dmg *= 2;
         // Slow on hit
         if (G.slowPct > 0) e.slowTimer = 1500;
@@ -3643,7 +3655,12 @@ function doUpgrade(key) {
   if (!G || G.phase !== 'playing') return;
   const upg = UPGRADES.find(function(u) { return u.key === key; });
   if (!upg || !isUnlocked(upg.unlock) || !upg.canBuy()) return;
+  var prevChips = coreChips;
   upg.apply();
+  if (G.freeUpgChance && Math.random() < G.freeUpgChance) {
+    coreChips = prevChips;
+    G.floatTexts.push({ x: G.cx, y: G.cy - 30, text: 'FREE!', color: '#00ff88', timer: 0 });
+  }
   AudioManager.playSfx('upgrade');
   PERM.upgradeCount++;
   try { var _su=parseInt(localStorage.getItem('stat_upgrades')||'0',10); localStorage.setItem('stat_upgrades',_su+1); } catch(_){}
@@ -9236,34 +9253,34 @@ setTimeout(_init, 350);
 /* ══ 프리즘 시스템 (26종 레벨형) ══ */
 var PRISMS = [
   /* 활성화 (6종) */
-  {id:'p_kill_cash',  cat:'active', name:'적 처치 보상',    desc:'적이 떨어트리는 현금', lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_plasma_rep', cat:'active', name:'플라즈마 대표',   desc:'플라즈마 대표 공격력', lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_shield_cd',  cat:'active', name:'에너지 보호막',   desc:'에너지 보호막 쿨타임', lvEff:[-4,-8,-12,-16,-20], unit:'%'},
-  {id:'p_free_upg',   cat:'active', name:'무료 업그레이드', desc:'무료 업그레이드 확률', lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_max_hp',     cat:'active', name:'체력',            desc:'최대 체력',           lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_death_ray',  cat:'active', name:'죽음의 광선',     desc:'죽음의 광선 데미지',  lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_kill_cash',  cat:'active', name:'전리품 수집',     desc:'적 처치 시 자원 보상', lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_plasma_rep', cat:'active', name:'플라즈마 과부하', desc:'플라즈마 공격 위력',   lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_shield_cd',  cat:'active', name:'보호막 가속',     desc:'보호막 재생 쿨타임 감소', lvEff:[-4,-8,-12,-16,-20], unit:'%'},
+  {id:'p_free_upg',   cat:'active', name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_max_hp',     cat:'active', name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_death_ray',  cat:'active', name:'소멸 광선',       desc:'광선 공격 데미지',     lvEff:[10,20,30,40,50], unit:'%'},
   /* 인벤토리 (12종) */
-  {id:'p_damage',     cat:'inven',  name:'데미지',          desc:'기본 데미지',         lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_atk_spd',    cat:'inven',  name:'공격 속도',       desc:'공격 속도',           lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_hp_regen',   cat:'inven',  name:'체력 재생',       desc:'초당 체력 재생',      lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_range',      cat:'inven',  name:'범위',            desc:'공격 범위',           lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_cash',       cat:'inven',  name:'현금',            desc:'웨이브 현금',         lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_coin',       cat:'inven',  name:'동전',            desc:'코인 획득량',         lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_aura',       cat:'inven',  name:'지속 아우라',     desc:'지속 아우라 효과',    lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_crit_rate',  cat:'inven',  name:'치명타 확률',     desc:'치명타 확률',         lvEff:[3,6,9,12,15], unit:'%'},
-  {id:'p_enemy_stat', cat:'inven',  name:'적 수치',         desc:'적 떨어트리는 자원',  lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_def',        cat:'inven',  name:'추가 방어',       desc:'방어력',              lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_fort',       cat:'inven',  name:'요새',            desc:'요새 효과',           lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_crit_dmg',   cat:'inven',  name:'치명타 피해',     desc:'치명타 피해 배율',    lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
+  {id:'p_damage',     cat:'inven',  name:'화력 증폭',       desc:'기본 공격력 증가',     lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_atk_spd',    cat:'inven',  name:'속사 모듈',       desc:'발사 속도 증가',       lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_hp_regen',   cat:'inven',  name:'자가 수복',       desc:'초당 체력 재생',       lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_range',      cat:'inven',  name:'탐지 확장',       desc:'공격 사거리 확장',     lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_cash',       cat:'inven',  name:'자원 증폭',       desc:'웨이브 골드 보너스',   lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_coin',       cat:'inven',  name:'추가 보급',       desc:'코인 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_aura',       cat:'inven',  name:'에너지 필드',     desc:'지속 효과 범위',       lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_crit_rate',  cat:'inven',  name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
+  {id:'p_enemy_stat', cat:'inven',  name:'자원 약탈',       desc:'적 드롭 자원 증가',    lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_def',        cat:'inven',  name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_fort',       cat:'inven',  name:'방벽 프로토콜',   desc:'방어 시설 강화',       lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_crit_dmg',   cat:'inven',  name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
   /* 기타 (8종) */
-  {id:'p_free_upg2',  cat:'etc',    name:'무료 업그레이드+', desc:'무료 업그레이드 확률', lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_inner_orb',  cat:'etc',    name:'내부 오브',       desc:'내부 오브 데미지',    lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_plasma_rep2',cat:'etc',    name:'플라즈마 대표+',  desc:'플라즈마 대표 공격력',lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_crit_coin',  cat:'etc',    name:'치명적 동전',     desc:'치명타 시 동전 보너스',lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_wave_skip',  cat:'etc',    name:'웨이브 건너뛰기', desc:'웨이브 스킵 확률',    lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_intro_sprint',cat:'etc',   name:'인트로 스프린트', desc:'게임 시작 시간 보너스',lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_inner_orb2', cat:'etc',    name:'내부 오브+',      desc:'내부 오브 데미지',    lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_boss_dmg',   cat:'etc',    name:'보스 피해',       desc:'보스에게 주는 데미지',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_free_upg2',  cat:'etc',    name:'행운의 강화+',    desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_inner_orb',  cat:'etc',    name:'내핵 방출',       desc:'오브 공격 데미지',     lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_plasma_rep2',cat:'etc',    name:'플라즈마 과부하+',desc:'플라즈마 추가 위력',   lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_crit_coin',  cat:'etc',    name:'황금 일격',       desc:'보유 골드 비례 추가 대미지',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_wave_skip',  cat:'etc',    name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_intro_sprint',cat:'etc',   name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_inner_orb2', cat:'etc',    name:'내핵 방출+',      desc:'오브 추가 데미지',     lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_boss_dmg',   cat:'etc',    name:'거대 처치',       desc:'보스 추가 데미지',     lvEff:[5,10,15,20,25], unit:'%'},
 ];
 var PRISM_CAT_LABEL = {active:'활성화',inven:'인벤토리',etc:'기타'};
 var PRISM_CAT_COLOR = {active:'#00ffff',inven:'#f59e0b',etc:'#cc44ff'};
@@ -9336,7 +9353,7 @@ function _applyPrismEffects() {
       case 'p_range':      t.range = Math.round(t.range * (1 + val/100)); break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) + val * 0.1; break;
       case 'p_crit_rate':  t.critChance = Math.min(0.9, (t.critChance||0) + val/100); break;
-      case 'p_crit_dmg':   G.critMult = (G.critMult||2) + val; break;
+      case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
       case 'p_def':        t.defense = (t.defense||0) + val/100; break;
       case 'p_cash':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
       case 'p_coin':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
@@ -9353,7 +9370,7 @@ function _applyPrismEffects() {
       case 'p_fort':       G.fortMult = (G.fortMult||1) * (1 + val/100); break;
       case 'p_plasma_rep': G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
       case 'p_plasma_rep2':G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
-      case 'p_crit_coin':  G.critCoinMult = (G.critCoinMult||1) * (1 + val/100); break;
+      case 'p_crit_coin':  G.goldDmgPct = (G.goldDmgPct||0) + val/100; break;
       case 'p_wave_skip':  G.waveSkipChance = (G.waveSkipChance||0) + val/100; break;
       case 'p_intro_sprint':G.introBonus = (G.introBonus||0) + val/100; break;
     }
