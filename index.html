@@ -4115,7 +4115,7 @@ var navTabs = [
   { id: 'module',   label: '\uD504\uB9AC\uC998',    icon: 'svg_module', screen: 'module',   unlock: 10 },
   { id: 'research', label: '\uCF54\uC5B4\uB7A9',  icon: 'svg_research', screen: 'lab',      unlock: 10 },
   { id: 'corelab',  label: '\uD504\uB85C\uD1A0\uCF5C',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
-  { id: 'skin',     label: '\uC2A4\uD0A8',    icon: 'svg_skin', screen: 'skin',     unlock: 'spectra' },
+  { id: 'mods',     label: '\uBAA8\uB4C8',    icon: 'svg_mods', screen: 'mods',     unlock: 10 },
   { id: 'store',    label: '\uC2A4\uD1A0\uC5B4',  icon: 'svg_store', screen: 'store',    unlock: 0 }
 ];
 
@@ -4181,8 +4181,8 @@ function renderNavTabs(currentScreen) {
       iconHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="display:block;"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><circle cx="4.5" cy="4.5" r="1" fill="' + iconColor + '"/><circle cx="11.5" cy="4.5" r="1" fill="' + iconColor + '"/><circle cx="4.5" cy="11.5" r="1" fill="' + iconColor + '"/><circle cx="11.5" cy="11.5" r="1" fill="' + iconColor + '"/></svg>';
     } else if (tab.icon === 'svg_research') {
       iconHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="display:block;"><circle cx="7" cy="7" r="4.5" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><line x1="10.5" y1="10.5" x2="14" y2="14" stroke="' + iconColor + '" stroke-width="1.3" stroke-linecap="round"/><circle cx="7" cy="7" r="1.5" fill="none" stroke="' + iconColor + '" stroke-width="0.8"/><line x1="7" y1="3.5" x2="7" y2="5" stroke="' + iconColor + '" stroke-width="0.7"/><line x1="7" y1="9" x2="7" y2="10.5" stroke="' + iconColor + '" stroke-width="0.7"/><line x1="3.5" y1="7" x2="5" y2="7" stroke="' + iconColor + '" stroke-width="0.7"/><line x1="9" y1="7" x2="10.5" y2="7" stroke="' + iconColor + '" stroke-width="0.7"/></svg>';
-    } else if (tab.icon === 'svg_skin') {
-      iconHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="display:block;"><circle cx="8" cy="8" r="6" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><path d="M8,2 Q12,5 12,8 Q12,11 8,14 Q4,11 4,8 Q4,5 8,2Z" fill="none" stroke="' + iconColor + '" stroke-width="0.8"/><circle cx="8" cy="6.5" r="1.8" fill="none" stroke="' + iconColor + '" stroke-width="0.8"/><circle cx="8" cy="6.5" r="0.6" fill="' + iconColor + '"/></svg>';
+    } else if (tab.icon === 'svg_mods') {
+      iconHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="display:block;"><rect x="3" y="1" width="10" height="14" rx="1.5" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><line x1="5" y1="4" x2="11" y2="4" stroke="' + iconColor + '" stroke-width="0.8"/><line x1="5" y1="7" x2="11" y2="7" stroke="' + iconColor + '" stroke-width="0.8"/><line x1="5" y1="10" x2="9" y2="10" stroke="' + iconColor + '" stroke-width="0.8"/><circle cx="11" cy="11" r="2.5" fill="none" stroke="' + iconColor + '" stroke-width="0.9"/><line x1="11" y1="9.5" x2="11" y2="12.5" stroke="' + iconColor + '" stroke-width="0.7"/><line x1="9.5" y1="11" x2="12.5" y2="11" stroke="' + iconColor + '" stroke-width="0.7"/></svg>';
     } else if (tab.icon === 'svg_store') {
       iconHTML = '<svg width="16" height="16" viewBox="0 0 16 16" style="display:block;"><polygon points="8,1 15,5 15,11 8,15 1,11 1,5" fill="none" stroke="' + iconColor + '" stroke-width="1.1"/><polygon points="8,4 11.5,6 11.5,10 8,12 4.5,10 4.5,6" fill="none" stroke="' + iconColor + '" stroke-width="0.7" opacity="0.5"/><circle cx="8" cy="7" r="1" fill="' + iconColor + '"/><line x1="8" y1="8" x2="8" y2="10.5" stroke="' + iconColor + '" stroke-width="0.8"/></svg>';
     } else {
@@ -11672,7 +11672,7 @@ window.showScreen = function (name) {
     if (el) el.style.display = 'none';
   });
   // 메인 화면들 모두 숨기기
-  ['home','workshop','store','lab','tournament','module','research','corelab','skin'].forEach(function(s) {
+  ['home','workshop','store','lab','tournament','module','research','corelab','skin','mods','explore'].forEach(function(s) {
     var el = document.getElementById('screen-' + s);
     if (el) el.style.display = 'none';
   });
@@ -12368,6 +12368,8 @@ document.addEventListener('click', function (e) {
 var LEFT_ICONS = [
   { id: 'achievement',  label: '\uC5C5\uC801',      icon: '\u2605', screen: 'achievements',  unlockWave: 0,  color: '#00ffff' },
   { id: 'event',        label: '\uC774\uBCA4\uD2B8',    icon: '\u25C8', screen: 'signal-market', unlockWave: 10, color: '#ffc800' },
+  { id: 'explore',      label: '\uD0D0\uC0AC',      icon: 'EXP',    screen: 'explore',       unlockWave: 10, color: '#ff8822' },
+  { id: 'skin',         label: '\uC2A4\uD0A8',      icon: 'SKN',    screen: 'skin',          unlockWave: 0,  color: '#cc44ff' },
   { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',    unlockWave: 30, color: '#bb44ff' },
   { id: 'guild',        label: '\uAE38\uB4DC',          icon: 'GLD',    screen: 'guild',         unlockWave: 999999, comingSoon: true, color: '#ff6644' }
 ];
@@ -12387,6 +12389,8 @@ function _getLeftIcon(id, unlocked, color) {
   // 길드 SVG stroke은 currentColor — 부모 button의 color 속성을 따라감
   if (id === 'tournament')  return _TOURNAMENT_ICON.replace(/CLC/g, unlocked ? on : off);
   if (id === 'guild')       return _GUILD_ICON.replace(/CLC/g,   'currentColor');
+  if (id === 'explore')    return '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="'+(unlocked?color:off)+'" stroke-width="1.3" style="display:block;"><circle cx="11" cy="11" r="9"/><path d="M11,2 L14,9 L11,8 L8,9 Z" fill="'+(unlocked?color:off)+'" opacity="0.3"/><line x1="11" y1="2" x2="11" y2="20" stroke-width="0.6" opacity="0.4"/><line x1="2" y1="11" x2="20" y2="11" stroke-width="0.6" opacity="0.4"/><circle cx="11" cy="11" r="4" stroke-width="0.8"/></svg>';
+  if (id === 'skin')       return '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="'+(unlocked?color:off)+'" stroke-width="1.3" style="display:block;"><circle cx="11" cy="11" r="8"/><path d="M11,3 Q16,7 16,11 Q16,15 11,19 Q6,15 6,11 Q6,7 11,3Z" stroke-width="0.8"/><circle cx="11" cy="9" r="2.2" stroke-width="0.8"/><circle cx="11" cy="9" r="0.7" fill="'+(unlocked?color:off)+'"/></svg>';
   return null;
 }
 
@@ -13840,6 +13844,170 @@ function _submitCoupon() {
 }
 
 })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     모듈 화면 (비행선 모듈 관리)
+══════════════════════════════════════════════════════ -->
+<div id="screen-mods" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+  <div style="display:flex; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
+    <span style="margin:0 auto; font-size:13px; letter-spacing:2px; color:#00ffff; font-family:'Courier New',monospace;">모듈</span>
+    <span style="width:40px;"></span>
+  </div>
+  <div style="padding:20px; text-align:center;">
+    <div style="font-size:10px; color:#334455; font-family:'Courier New',monospace; line-height:1.8;">
+      비행선 모듈을 장착하여 탐사 능력을 강화합니다.<br>
+      모듈 시스템 준비 중입니다.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     요일탐사 시스템 (속성 코어 획득)
+══════════════════════════════════════════════════════ -->
+<div id="screen-explore" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+  <div style="display:flex; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
+    <span style="margin:0 auto; font-size:13px; letter-spacing:2px; color:#ff8822; font-family:'Courier New',monospace;">요일 탐사</span>
+    <span style="width:40px;"></span>
+  </div>
+  <div id="explore-content" style="padding:14px;"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── 속성 정의 ── */
+var ELEMENTS = [
+  { id:'fire',    name:'불',   color:'#ef4444', core:'화염 코어',  icon:'🔥', day:1 },
+  { id:'water',   name:'물',   color:'#3b82f6', core:'심해 코어',  icon:'💧', day:2 },
+  { id:'electric',name:'전기', color:'#f59e0b', core:'번개 코어',  icon:'⚡', day:3 },
+  { id:'earth',   name:'흙',   color:'#8b5cf6', core:'대지 코어',  icon:'🪨', day:4 },
+  { id:'wind',    name:'바람', color:'#10b981', core:'질풍 코어',  icon:'🌪', day:5 },
+  { id:'dark',    name:'어둠', color:'#6b21a8', core:'암흑 코어',  icon:'🌑', day:6 },
+];
+
+/* 상성: 불<물<전기<흙<바람<불 (순환), 어둠은 별도 (범용) */
+var WEAKNESS = { fire:'water', water:'electric', electric:'earth', earth:'wind', wind:'fire' };
+/* 강점: 반대 방향 */
+var STRENGTH = { fire:'wind', water:'fire', electric:'water', earth:'electric', wind:'earth' };
+
+function _getCore(id) { return parseInt(localStorage.getItem('core_'+id)||'0',10); }
+function _setCore(id,v) { localStorage.setItem('core_'+id, Math.max(0,v)); }
+
+/* ── 오늘 열린 속성 ── */
+function _getTodayElements() {
+  var d = new Date().getDay(); // 0=일,1=월,...6=토
+  if (d === 0) return ELEMENTS.filter(function(e){return e.id!=='dark';}); // 일요일: 5속성 전부
+  return ELEMENTS.filter(function(e){return e.day===d;});
+}
+
+/* ── 탐사 화면 렌더링 ── */
+function renderExplore() {
+  var container = document.getElementById('explore-content');
+  if (!container) return;
+
+  var dayNames = ['일','월','화','수','목','금','토'];
+  var today = new Date().getDay();
+  var open = _getTodayElements();
+
+  var html = '<div style="text-align:center;margin-bottom:14px;">' +
+    '<div style="font-size:11px;color:#778899;font-family:monospace;">오늘: <span style="color:#ff8822;font-weight:bold;">'+dayNames[today]+'요일</span></div>' +
+    '<div style="font-size:9px;color:#445566;font-family:monospace;margin-top:4px;">열린 속성: '+open.map(function(e){return '<span style="color:'+e.color+';">'+e.name+'</span>';}).join(' · ')+'</div>' +
+    '</div>';
+
+  // 보유 코어 표시
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px;">';
+  ELEMENTS.forEach(function(el) {
+    var count = _getCore(el.id);
+    html += '<div style="background:#0a1020;border:1px solid '+el.color+'33;padding:4px 8px;font-family:monospace;font-size:9px;">' +
+      '<span style="color:'+el.color+';">'+el.icon+' '+el.core+'</span> <span style="color:#94a3b8;">'+count+'</span></div>';
+  });
+  html += '</div>';
+
+  // 요일별 탐사 카드
+  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  ELEMENTS.forEach(function(el) {
+    var isOpen = open.some(function(o){return o.id===el.id;});
+    var count = _getCore(el.id);
+    var weakTo = WEAKNESS[el.id] ? ELEMENTS.filter(function(e){return e.id===WEAKNESS[el.id];})[0] : null;
+    var strongTo = STRENGTH[el.id] ? ELEMENTS.filter(function(e){return e.id===STRENGTH[el.id];})[0] : null;
+
+    html += '<div style="background:'+(isOpen?'#0a1020':'#060810')+';border:1px solid '+(isOpen?el.color+'55':'#0a1a2a')+';padding:12px;opacity:'+(isOpen?'1':'0.4')+';">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<span style="font-size:18px;">'+el.icon+'</span>' +
+          '<div>' +
+            '<div style="font-size:12px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.name+' 탐사</div>' +
+            '<div style="font-size:9px;color:#556677;font-family:monospace;">보상: '+el.core+'</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:9px;color:#556677;font-family:monospace;">보유 '+count+'</div>' +
+          (el.id !== 'dark' && weakTo ? '<div style="font-size:8px;color:#445566;font-family:monospace;">약점: <span style="color:'+weakTo.color+';">'+weakTo.name+'</span> | 강점: <span style="color:'+(strongTo?strongTo.color:'#445566')+';">'+(strongTo?strongTo.name:'-')+'</span></div>' : '') +
+          (el.id === 'dark' ? '<div style="font-size:8px;color:#445566;font-family:monospace;">범용 (전 속성 소폭 효과)</div>' : '') +
+        '</div>' +
+      '</div>' +
+      (isOpen
+        ? '<button data-explore="'+el.id+'" style="width:100%;height:36px;background:#030b10;border:1px solid '+el.color+';color:'+el.color+';font-family:monospace;font-size:11px;cursor:pointer;letter-spacing:1px;-webkit-appearance:none;">탐사 출발</button>'
+        : '<div style="text-align:center;font-size:10px;color:#334455;font-family:monospace;padding:8px 0;">'+
+          (el.day<=5?dayNames[el.day]+'요일에 열립니다':'토요일에 열립니다')+'</div>') +
+    '</div>';
+  });
+  html += '</div>';
+
+  // 상성 안내
+  html += '<div style="margin-top:16px;padding:10px;border:1px solid #1a2a3a;background:#060810;">' +
+    '<div style="font-size:10px;color:#556677;font-family:monospace;text-align:center;margin-bottom:6px;">상성 관계</div>' +
+    '<div style="font-size:9px;color:#445566;font-family:monospace;text-align:center;line-height:1.8;">' +
+      '<span style="color:#ef4444;">불</span> → <span style="color:#10b981;">바람</span> → <span style="color:#8b5cf6;">흙</span> → <span style="color:#f59e0b;">전기</span> → <span style="color:#3b82f6;">물</span> → <span style="color:#ef4444;">불</span><br>' +
+      '<span style="color:#6b21a8;">어둠</span>: 모든 속성에 소폭 효과 (범용)' +
+    '</div>' +
+  '</div>';
+
+  container.innerHTML = html;
+
+  // 탐사 버튼 바인딩 (placeholder — 탐사 전투 미구현)
+  var btns = container.querySelectorAll('[data-explore]');
+  for (var i = 0; i < btns.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        var elId = btn.getAttribute('data-explore');
+        var el = ELEMENTS.filter(function(e){return e.id===elId;})[0];
+        if (!el) return;
+        // TODO: 탐사 전투 구현 후 교체
+        var earned = 2 + Math.floor(Math.random() * 3);
+        _setCore(elId, _getCore(elId) + earned);
+        if (window.showAchievementToast) showAchievementToast(el.icon + ' ' + el.core + ' +' + earned + ' 획득!');
+        renderExplore();
+      });
+    })(btns[i]);
+  }
+}
+
+// showScreen에서 explore 호출 시 렌더링
+var _origShowScreen = window.showScreen;
+window.showScreen = function(name) {
+  _origShowScreen.apply(this, arguments);
+  if (name === 'explore') {
+    var sc = document.getElementById('screen-explore');
+    if (sc) { sc.style.display = 'flex'; renderExplore(); }
+  }
+  if (name === 'mods') {
+    var mc = document.getElementById('screen-mods');
+    if (mc) mc.style.display = 'flex';
+  }
+};
+
+window._ELEMENTS = ELEMENTS;
+window._WEAKNESS = WEAKNESS;
+window._STRENGTH = STRENGTH;
+window._getElementCore = _getCore;
+window._setElementCore = _setCore;
+
+}());
 </script>
 
 <!-- ══════════════════════════════════════════════════════
