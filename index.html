@@ -13839,12 +13839,12 @@ function _submitCoupon() {
 'use strict';
 
 var AUGMENTS = [
-  { id:'aug_dmg',   name:'레이저 과부하', desc:'공격력 +30%',      cost:3, icon:'▲', color:'#ff4444'  },
-  { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',     cost:3, icon:'◆', color:'#00ff88'  },
-  { id:'aug_gold',  name:'자원 스캐너',   desc:'골드 획득 +50%',   cost:2, icon:'◈', color:'#f59e0b'  },
-  { id:'aug_regen', name:'나노 수복',     desc:'HP 재생 +3/s',     cost:2, icon:'✦', color:'#00dddd'  },
-  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',  cost:3, icon:'◎', color:'#cc44ff'  },
-  { id:'aug_chips', name:'선행 보급',     desc:'시작 코어칩 +300', cost:2, icon:'▣', color:'#3b82f6'  },
+  { id:'aug_dmg',   name:'레이저 과부하', desc:'공격력 +30%',            cost:3 },
+  { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',           cost:3 },
+  { id:'aug_chips', name:'자원 스캐너',   desc:'코어칩 획득 +50%',       cost:3 },
+  { id:'aug_regen', name:'나노 수복',     desc:'초당 최대체력 3% 재생',  cost:2 },
+  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',        cost:3 },
+  { id:'aug_start', name:'선행 보급',     desc:'시작 코어칩 +300',       cost:2 },
 ];
 
 var _sel = {};
@@ -13907,7 +13907,6 @@ function _render() {
       'background:' + (on ? 'rgba(204,68,255,0.08)' : '#080c1a') + ';' +
       'border:1px solid ' + (on ? '#cc44ff' : '#1a2a3a') + ';transition:border-color 0.15s;';
     c.innerHTML =
-      '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;color:'+a.color+';text-shadow:0 0 8px '+a.color+';">'+a.icon+'</div>' +
       '<div style="flex:1;">' +
         '<div style="font-size:11px;color:'+(on?'#fff':'#94a3b8')+';font-weight:bold;">'+a.name+'</div>' +
         '<div style="font-size:9px;color:#556677;margin-top:2px;">'+a.desc+'</div>' +
@@ -13975,12 +13974,41 @@ if (typeof _prevApply === 'function') {
     _pendingAugs.forEach(function(a) {
       if (a.id === 'aug_dmg')   t.dmg = Math.round(t.dmg * 1.3);
       if (a.id === 'aug_hp')  { t.maxHp = Math.round(t.maxHp * 1.5); t.hp = t.maxHp; }
-      if (a.id === 'aug_gold')  G.goldBonus = (G.goldBonus || 1) * 1.5;
-      if (a.id === 'aug_regen') G.regenRate = (G.regenRate || 0) + 3;
+      if (a.id === 'aug_chips') G._augChipMult = true;
+      if (a.id === 'aug_regen') G._augRegenPct = 0.03;
       if (a.id === 'aug_crit')  t.critChance = Math.min(0.9, (t.critChance || 0) + 0.05);
-      if (a.id === 'aug_chips' && typeof coreChips !== 'undefined') coreChips += 300;
+      if (a.id === 'aug_start' && typeof coreChips !== 'undefined') coreChips += 300;
     });
     _pendingAugs = [];
+  };
+}
+
+/* ── 코어칩 +50% 보너스 · 최대체력 3% 재생 (update/startWave 래핑) ── */
+var _augUpd = window.update;
+if (typeof _augUpd === 'function') {
+  window.update = function(dt) {
+    var pre = (typeof coreChips !== 'undefined') ? coreChips : 0;
+    _augUpd.apply(this, arguments);
+    if (window.G && G._augChipMult && typeof coreChips !== 'undefined' && coreChips > pre) {
+      coreChips += Math.floor((coreChips - pre) * 0.5);
+    }
+    if (window.G && G._augRegenPct && G.tower && G.phase === 'playing') {
+      G._augRegenT = (G._augRegenT || 0) + dt;
+      if (G._augRegenT >= 1000) {
+        G._augRegenT -= 1000;
+        G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + Math.floor(G.tower.maxHp * G._augRegenPct));
+      }
+    }
+  };
+}
+var _augSW = window.startWave;
+if (typeof _augSW === 'function') {
+  window.startWave = function() {
+    var pre = (typeof coreChips !== 'undefined') ? coreChips : 0;
+    _augSW.apply(this, arguments);
+    if (window.G && G._augChipMult && typeof coreChips !== 'undefined' && coreChips > pre) {
+      coreChips += Math.floor((coreChips - pre) * 0.5);
+    }
   };
 }
 
