@@ -1147,12 +1147,12 @@ canvas {
         <button id="speed-btn" style="display:none;"></button>
         <button class="tab-btn active" id="tab-atk">ATTACK</button>
         <button class="tab-btn"        id="tab-def">DEFENSE</button>
-        <button class="tab-btn"        id="tab-spc">SPECIAL</button>
+        <button class="tab-btn"        id="tab-utl">UTIL</button>
       </div>
       <div id="tab-content">
         <div class="tab-pane active" id="pane-atk"></div>
         <div class="tab-pane"        id="pane-def"></div>
-        <div class="tab-pane"        id="pane-spc"></div>
+        <div class="tab-pane"        id="pane-utl"></div>
       </div>
     </div>
   </div>
@@ -1494,8 +1494,8 @@ canvas {
   <div id="ws-tab-bar" style="display:flex; height:36px; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
     <button class="ws-tab" data-tab="atk" data-tabcolor="#3b82f6" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid #3b82f6;color:#3b82f6;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">⚔</span><span style="letter-spacing:1px;">공격</span></button>
     <button class="ws-tab" data-tab="def" data-tabcolor="#ef4444" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><path d="M7,1 L12,4 L12,10 L7,13 L2,10 L2,4 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7,4 L9.5,5.5 L9.5,8.5 L7,10 L4.5,8.5 L4.5,5.5 Z" fill="none" stroke="currentColor" stroke-width="0.8"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg><span style="letter-spacing:1px;">방어</span></button>
-    <button class="ws-tab" data-tab="spc" data-tabcolor="#f59e0b" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 8.5,5 13,5.5 9.5,8.5 10.5,13 7,10.5 3.5,13 4.5,8.5 1,5.5 5.5,5" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg><span style="letter-spacing:1px;">특수</span></button>
-    <button class="ws-tab" data-tab="pwr" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" fill="none" stroke="currentColor" stroke-width="1.1"/><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><circle cx="7" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg><span style="letter-spacing:1px;">크리스탈</span></button>
+    <button class="ws-tab" data-tab="utl" data-tabcolor="#f59e0b" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 8.5,5 13,5.5 9.5,8.5 10.5,13 7,10.5 3.5,13 4.5,8.5 1,5.5 5.5,5" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg><span style="letter-spacing:1px;">유틸</span></button>
+    <button class="ws-tab" data-tab="ult" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" fill="none" stroke="currentColor" stroke-width="1.1"/><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><circle cx="7" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg><span style="letter-spacing:1px;">궁극기</span></button>
   </div>
 
   <!-- 업그레이드 목록 -->
@@ -2085,25 +2085,25 @@ var UPGRADES = [
     apply()  { var c=upgCost('regen',11); coreChips-=c; G.upgLvl.regen=(G.upgLvl.regen||0)+1; G.regenRate++; },
   },
   // ─ 특수 탭 ─
-  { key:'explode', tab:'spc', icon:'*',  name:'폭발',     baseCost:15, unlock:'explode',
+  { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:'explode',
     cost()   { return upgCost('explode',15); },
     stat()   { return 'r='+G.explodeR; },
     canBuy() { return coreChips>=upgCost('explode',15); },
     apply()  { var c=upgCost('explode',15); coreChips-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
   },
-  { key:'slow',    tab:'spc', icon:'#',  name:'감속',     baseCost:12, unlock:'slow',
+  { key:'slow',    tab:'utl', icon:'#',  name:'감속',     baseCost:12, unlock:'slow',
     cost()   { return upgCost('slow',12); },
     stat()   { return Math.round(G.slowPct*100)+'%'; },
     canBuy() { return coreChips>=upgCost('slow',12); },
     apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
   },
-  { key:'gemup',   tab:'spc', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:'gemup',
+  { key:'gemup',   tab:'utl', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:'gemup',
     cost()   { return upgCost('gemup',12); },
     stat()   { return 'x'+G.gemBonus.toFixed(1); },
     canBuy() { return coreChips>=upgCost('gemup',12); },
     apply()  { var c=upgCost('gemup',12); coreChips-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
   },
-  { key:'goldup',  tab:'spc', icon:'G',  name:'골드증폭',  baseCost:11, unlock:'goldup',
+  { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:'goldup',
     cost()   { return upgCost('goldup',11); },
     stat()   { return 'x'+G.goldBonus.toFixed(1); },
     canBuy() { return coreChips>=upgCost('goldup',11); },
@@ -2118,10 +2118,10 @@ var UNLOCKS = [
   { key:'pierce',  gems:5, tab:'atk', icon:'>', name:'관통 해금',      desc:'관통 업그레이드 해금' },
   { key:'vamp',    gems:3, tab:'def', icon:'*', name:'흡혈 해금',      desc:'처치 시 HP 회복 업그레이드 해금' },
   { key:'regen',   gems:4, tab:'def', icon:'~', name:'재생 해금',      desc:'초당 HP 자동 회복 해금' },
-  { key:'explode', gems:7, gold:100, tab:'spc', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
-  { key:'slow',    gems:4, gold:60,  tab:'spc', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
-  { key:'gemup',   gems:5, gold:80,  tab:'spc', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
-  { key:'goldup',  gems:4, gold:60,  tab:'spc', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
+  { key:'explode', gems:7, gold:100, tab:'utl', icon:'*', name:'폭발 해금',      desc:'적 처치 시 범위 폭발 해금' },
+  { key:'slow',    gems:4, gold:60,  tab:'utl', icon:'#', name:'감속 해금',      desc:'명중 시 적 감속 해금' },
+  { key:'gemup',   gems:5, gold:80,  tab:'utl', icon:'❖', name:'젬증폭 해금',    desc:'젬 획득량 배율 업그레이드 해금' },
+  { key:'goldup',  gems:4, gold:60,  tab:'utl', icon:'G', name:'골드증폭 해금',  desc:'골드 획득량 배율 업그레이드 해금' },
 ];
 
 /* ── 업적 정의 ── */
@@ -3601,7 +3601,7 @@ function isUnlocked(key) {
 }
 
 function buildCards() {
-  for (const tabKey of ['atk', 'def', 'spc']) {
+  for (const tabKey of ['atk', 'def', 'utl']) {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
     pane.innerHTML = '';
@@ -3627,7 +3627,7 @@ function buildCards() {
 
 function setActiveTab(tabKey) {
   activeTab = tabKey;
-  for (const k of ['atk', 'def', 'spc']) {
+  for (const k of ['atk', 'def', 'utl']) {
     const tb = document.getElementById('tab-' + k);
     const pn = document.getElementById('pane-' + k);
     if (tb) tb.classList.toggle('active', k === tabKey);
@@ -3674,7 +3674,7 @@ function applyPendingHighlight() {
 
 // Tab button bindings
 (function() {
-  for (const k of ['atk', 'def', 'spc']) {
+  for (const k of ['atk', 'def', 'utl']) {
     const btn = document.getElementById('tab-' + k);
     if (!btn) continue;
     btn.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
@@ -4450,11 +4450,11 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 10); },
       nxt:  function(lv) { return '' + ((lv + 1) * 10); } },
-    goldGain:   { tab:'spc', name:'골드 획득량', maxLv:10,
+    goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
       nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
-    gemGain:    { tab:'spc', name:'보석 획득량', maxLv:5,
+    gemGain:    { tab:'utl', name:'보석 획득량', maxLv:5,
       cost: function(lv) { return 10 + lv * 10; },
       cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
       nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
@@ -5836,13 +5836,13 @@ var NEW_ITEMS = {
   deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},     nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 
   // 특수 탭 1단계 확장
-  cashBonus:       { tab:'spc', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
-  cashPerWave:     { tab:'spc', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
+  cashBonus:       { tab:'utl', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
+  cashPerWave:     { tab:'utl', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
   // 특수 탭 2단계
-  coinsPerKill:    { tab:'spc', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
-  coinsPerWave:    { tab:'spc', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
+  coinsPerKill:    { tab:'utl', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
+  coinsPerWave:    { tab:'utl', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
   // 특수 탭 4단계
-  interest:        { tab:'spc', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
+  interest:        { tab:'utl', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 };
 
 // WS에 주입
@@ -5872,7 +5872,7 @@ function _appendExtended() {
   // 현재 활성 탭 확인
   var activeTab = (_ext.activeTab && _ext.activeTab()) || 'atk';
 
-  if (activeTab === 'pwr') {
+  if (activeTab === 'ult') {
     _buildCrystalTab(container);
     return;
   }
@@ -6090,7 +6090,7 @@ function _buildCrystalTab(container) {
         uwSave[id].unlocked = true;
         window._saveUW(uwSave);
         try { _ext.sync(); } catch(_) {}
-        try { document.querySelector('.ws-tab[data-tab="pwr"]').click(); } catch(_) {}
+        try { document.querySelector('.ws-tab[data-tab="ult"]').click(); } catch(_) {}
       });
     }
     // 업그레이드 버튼 바인딩
@@ -6108,7 +6108,7 @@ function _buildCrystalTab(container) {
           uwSave[uid][skey] = (uwSave[uid][skey] || 0) + 1;
           window._saveUW(uwSave);
           try { _ext.sync(); } catch(_) {}
-          setTimeout(function() { try { document.querySelector('.ws-tab[data-tab="pwr"]').click(); } catch(_) {} }, 10);
+          setTimeout(function() { try { document.querySelector('.ws-tab[data-tab="ult"]').click(); } catch(_) {} }, 10);
         });
       })(upgBtns[bi]);
     }
@@ -6160,17 +6160,17 @@ var WORKSHOP_UNLOCKS = {
       { key:'immortalPct',    name:'불사 확률',   maxLv:30, cost:function(lv){return 25+Math.floor(lv*5);},   cur:function(lv){return (lv*0.1).toFixed(1);},            nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
       { key:'absorbPct',      name:'피해 흡수',   maxLv:30, cost:function(lv){return 30+Math.floor(lv*5);},   cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
     ]},
-  'spc-1': { tab:'spc', name:'특수 연구 I',   desc:'재화 부스트 해금', cost:100, color:'#f59e0b',
+  'spc-1': { tab:'utl', name:'특수 연구 I',   desc:'재화 부스트 해금', cost:100, color:'#f59e0b',
     items:[
       { key:'goldBoostPct',   name:'골드 부스트', maxLv:50, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},        nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
       { key:'gemBoostPct',    name:'크리스탈 보너스', maxLv:20, cost:function(lv){return 20+Math.floor(lv*4);}, cur:function(lv){return ''+lv;},                        nxt:function(lv){return ''+(lv+1);} },
     ]},
-  'spc-2': { tab:'spc', name:'특수 연구 II',  desc:'경험/웨이브 보너스 해금', cost:250, color:'#f59e0b',
+  'spc-2': { tab:'utl', name:'특수 연구 II',  desc:'경험/웨이브 보너스 해금', cost:250, color:'#f59e0b',
     items:[
       { key:'expBoostPct',    name:'경험치 보너스', maxLv:30, cost:function(lv){return 15+Math.floor(lv*3);}, cur:function(lv){return ''+(lv*5);},                      nxt:function(lv){return ''+(lv+1)*5;} },
       { key:'waveGoldBonus',  name:'웨이브 보너스', maxLv:30, cost:function(lv){return 18+Math.floor(lv*3.5);},cur:function(lv){return ''+lv*10;},                     nxt:function(lv){return ''+(lv+1)*10;} },
     ]},
-  'spc-3': { tab:'spc', name:'특수 연구 III', desc:'시간조작/추가 카드 해금', cost:600, color:'#f59e0b',
+  'spc-3': { tab:'utl', name:'특수 연구 III', desc:'시간조작/추가 카드 해금', cost:600, color:'#f59e0b',
     items:[
       { key:'timeSlowPct',    name:'시간 지연',   maxLv:10, cost:function(lv){return 50+lv*20;},              cur:function(lv){return ''+lv*2;},                        nxt:function(lv){return ''+(lv+1)*2;} },
       { key:'extraCardCount', name:'추가 카드',   maxLv:5,  cost:function(lv){return 80+lv*30;},              cur:function(lv){return ''+lv;},                          nxt:function(lv){return ''+(lv+1);} },
@@ -6300,7 +6300,7 @@ function _doUnlockAppend() {
   var container = document.getElementById('ws-content');
   if (!container) return;
   var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
-  if (activeTab === 'pwr' || activeTab === 'atk' || activeTab === 'def') return;
+  if (activeTab === 'ult' || activeTab === 'atk' || activeTab === 'def') return;
   // 이미 처리됨 (마커 존재 여부로 판단)
   if (container.querySelector('[data-upr="' + activeTab + '"]')) return;
   // 처리 마커 추가 (hidden)
@@ -7207,7 +7207,7 @@ setInterval(function() {
 (function() {
 'use strict';
 
-var TAB_COLORS = { atk:'#3b82f6', def:'#ef4444', spc:'#f59e0b', pwr:'#00ff88' };
+var TAB_COLORS = { atk:'#3b82f6', def:'#ef4444', utl:'#f59e0b', ult:'#00ff88' };
 
 function _applyTabColors() {
   var activeTab = (window._wsExt && window._wsExt.activeTab) ? window._wsExt.activeTab() : null;
@@ -8005,8 +8005,9 @@ if (typeof _origGetCost === 'function') {
     var container = document.getElementById('ws-content');
     if (!container) return;
     if (window._wsExt && window._wsExt.activeTab() !== 'utl') return;
-    container.innerHTML = '';
-    UTL_ITEMS.forEach(function(item) { container.appendChild(_buildCard(item)); });
+    var old = container.querySelectorAll('[data-utl-ext]');
+    for (var i = 0; i < old.length; i++) old[i].remove();
+    UTL_ITEMS.forEach(function(item) { var c = _buildCard(item); c.setAttribute('data-utl-ext','1'); container.appendChild(c); });
   }
 
   function _init() {
@@ -8734,8 +8735,8 @@ var _iv = setInterval(function() {
 
 /* ─ 잠금 설정 ─ */
 var TAB_LOCKS = {
-  spc: { label:'특수', goldCost:100, gemCost:0,  permKey:'tab_spc_u', color:'#f59e0b' },
-  pwr: { label:'크리스탈', goldCost:0,  gemCost:30, permKey:'tab_pwr_u', color:'#00ff88' },
+  utl: { label:'유틸', goldCost:100, gemCost:0,  permKey:'tab_utl_u', color:'#f59e0b' },
+  ult: { label:'궁극기', goldCost:0,  gemCost:0, acCost:5, permKey:'tab_ult_u', color:'#00ff88' },
 };
 
 function _isUnlocked(tab) {
@@ -8769,10 +8770,10 @@ function _showPopup(tab) {
   var p = _getPopup();
   var borderC = cfg.color;
   p.querySelector('div[style*="background:#0a1a2a"]').style.borderColor = borderC + '55';
-  document.getElementById('tlp-icon').textContent  = tab === 'spc' ? '★' : '❖';
+  document.getElementById('tlp-icon').textContent  = tab === 'utl' ? '★' : '⌘';
   document.getElementById('tlp-icon').style.color  = cfg.color;
   document.getElementById('tlp-title').textContent = cfg.label + ' 탭 해금';
-  var costStr = cfg.goldCost > 0 ? ('◈ ' + cfg.goldCost + ' 골드') : ('❖ ' + cfg.gemCost + ' 보석');
+  var costStr = cfg.acCost > 0 ? ('⌘ ' + cfg.acCost + ' 접근 코드') : cfg.goldCost > 0 ? ('◈ ' + cfg.goldCost + ' 골드') : ('❖ ' + cfg.gemCost + ' 보석');
   document.getElementById('tlp-desc').textContent  = cfg.label + ' 업그레이드 탭을 영구 해금합니다.\n해금 비용: ' + costStr;
   var btn = document.getElementById('tlp-unlock');
   btn.textContent = costStr + ' — 해금하기';
@@ -8785,7 +8786,11 @@ function _showPopup(tab) {
 function _doUnlock(tab) {
   if (!window.PERM) return;
   var cfg = TAB_LOCKS[tab];
-  if (cfg.goldCost > 0) {
+  if (cfg.acCost > 0) {
+    var _ac = parseInt(localStorage.getItem('accessCodes')||'0',10);
+    if (_ac < cfg.acCost) { _flash('접근 코드가 부족합니다'); return; }
+    localStorage.setItem('accessCodes', _ac - cfg.acCost);
+  } else if (cfg.goldCost > 0) {
     if (PERM.gold < cfg.goldCost) { _flash('골드가 부족합니다'); return; }
     PERM.gold -= cfg.goldCost;
   } else {
@@ -10410,9 +10415,9 @@ function _initCrystalTabFirstVisit() {
   if(!wsBar) return;
   wsBar.addEventListener('click',function(e){
     var btn=e.target.closest?e.target.closest('[data-tab]'):e.target;
-    if(!btn||btn.getAttribute('data-tab')!=='pwr') return;
-    if(window.PERM&&!window.PERM.pwrVisited){
-      window.PERM.pwrVisited=1;
+    if(!btn||btn.getAttribute('data-tab')!=='ult') return;
+    if(window.PERM&&!window.PERM.ultVisited){
+      window.PERM.ultVisited=1;
       window.savePerm&&window.savePerm();
       setTimeout(_showCrystalFirstVisit, 200);
     }
@@ -10798,15 +10803,15 @@ window.update = function(dt) {
 
 /* ── 아이템 정의 ── */
 var FREE_UPG_ITEMS = {
-  freeAtkUpgrade: { tab:'spc', name:'무료 공격 업글', tier:3, maxLv:99,
+  freeAtkUpgrade: { tab:'utl', name:'무료 공격 업글', tier:3, maxLv:99,
     cost:function(lv){return 20+Math.floor(lv*3.5);},
     cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
     nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
-  freeDefUpgrade: { tab:'spc', name:'무료 방어 업글', tier:3, maxLv:99,
+  freeDefUpgrade: { tab:'utl', name:'무료 방어 업글', tier:3, maxLv:99,
     cost:function(lv){return 20+Math.floor(lv*3.5);},
     cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
     nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
-  freeUtlUpgrade: { tab:'spc', name:'무료 유틸 업글', tier:3, maxLv:99,
+  freeUtlUpgrade: { tab:'utl', name:'무료 유틸 업글', tier:3, maxLv:99,
     cost:function(lv){return 20+Math.floor(lv*3.5);},
     cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
     nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
@@ -10844,7 +10849,7 @@ if (_fuContent) {
 function _injectFreeCards() {
   if (!window._wsExt) return;
   var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
-  if (activeTab !== 'spc') return;
+  if (activeTab !== 'utl') return;
   var ws = PERM.ws || {};
   if ((ws['tier_spc'] || 1) < 3) return;              // 3단계 미해금
   if (document.querySelector('[data-freeupg]')) return; // 이미 주입됨
@@ -10951,7 +10956,7 @@ window.startWave = function() {
   if (!G) return;
   if (G.freeAtkChance > 0 && Math.random() < G.freeAtkChance) _applyFreeUpgrade('atk');
   if (G.freeDefChance > 0 && Math.random() < G.freeDefChance) _applyFreeUpgrade('def');
-  if (G.freeUtlChance > 0 && Math.random() < G.freeUtlChance) _applyFreeUpgrade('spc');
+  if (G.freeUtlChance > 0 && Math.random() < G.freeUtlChance) _applyFreeUpgrade('utl');
 };
 
 function _applyFreeUpgrade(tab) {
@@ -13344,7 +13349,7 @@ function selectUpgradeTab(tab) {
 window.selectUpgradeTab = selectUpgradeTab;
 
 function _showTab(tab) {
-  ['atk','def','spc'].forEach(function(t) {
+  ['atk','def','utl'].forEach(function(t) {
     var btn = document.getElementById('tab-' + t);
     if (btn) { if (t===tab) btn.classList.add('active'); else btn.classList.remove('active'); }
   });
@@ -13409,9 +13414,9 @@ var UNLOCK_TAB_MAP = {
   pierce:  'atk',
   vamp:    'def',
   regen:   'def',
-  explode: 'spc',
-  slow:    'spc',
-  goldup:  'spc',
+  explode: 'utl',
+  slow:    'utl',
+  goldup:  'utl',
   gemup:   'utl'
 };
 
