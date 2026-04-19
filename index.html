@@ -6030,9 +6030,10 @@ function _buildCrystalTab(container) {
   // 해금 버튼 헤더
   var header = document.createElement('div');
   header.style.cssText = 'grid-column:1/-1;padding:8px 0 4px;display:flex;justify-content:space-between;align-items:center;';
+  var _ac = parseInt(localStorage.getItem('accessCodes')||'0',10);
   header.innerHTML =
-    '<span style="font-size:11px;color:#334455;font-family:monospace;">❖ 크리스탈로 해금</span>' +
-    '<span style="color:#cc44ff;font-family:monospace;font-size:12px;">❖ ' + (PERM.gems || 0) + '</span>';
+    '<span style="font-size:11px;color:#334455;font-family:monospace;">⌘ 접근 코드로 해금</span>' +
+    '<span style="color:#bb44ff;font-family:monospace;font-size:12px;">⌘ ' + _ac + '</span>';
   container.appendChild(header);
 
   ULTIMATE_WEAPONS.forEach(function(uw2) {
@@ -6048,7 +6049,7 @@ function _buildCrystalTab(container) {
       '<div style="font-size:10px;color:#334455;font-family:monospace;margin-top:2px;">' + uw2.desc + '</div></div>';
 
     if (!unlocked) {
-      top += '<button data-uw-unlock="' + uw2.id + '" style="background:#030b10;border:1px solid ' + uw2.color + ';color:' + uw2.color + ';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">❖' + uw2.unlockCost + ' 해금</button>';
+      top += '<button data-uw-unlock="' + uw2.id + '" style="background:#030b10;border:1px solid ' + uw2.color + ';color:' + uw2.color + ';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">⌘' + uw2.unlockCost + ' 해금</button>';
     } else {
       top += '<span style="font-size:10px;color:#00ff88;font-family:monospace;flex-shrink:0;">✓ 해금</span>';
     }
@@ -6059,14 +6060,15 @@ function _buildCrystalTab(container) {
       statsHTML = '<div style="display:flex;flex-direction:column;gap:4px;">';
       uw2.stats.forEach(function(st) {
         var lv     = uwData[st.key] || 0;
-        var afford = PERM.gems >= 3;
+        var _acUp = parseInt(localStorage.getItem('accessCodes')||'0',10);
+        var afford = _acUp >= 3;
         statsHTML +=
           '<div style="display:flex;justify-content:space-between;align-items:center;">' +
           '<div style="font-size:10px;color:#94a3b8;font-family:monospace;">' + st.name + ' <span style="color:' + uw2.color + ';">' + st.fmt(lv) + '</span>' +
           '<span style="color:#4a6a7a;"> → ' + st.fmt(lv+1) + '</span></div>' +
           '<button data-uw-upgrade="' + uw2.id + '" data-uw-stat="' + st.key + '" style="background:#030b10;border:1px solid ' +
-            (afford ? '#334455' : '#ef4444') + ';color:' + (afford ? '#00ffff' : '#ef4444') +
-            ';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">❖3</button>' +
+            (afford ? '#334455' : '#ef4444') + ';color:' + (afford ? '#bb44ff' : '#ef4444') +
+            ';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">⌘3</button>' +
           '</div>';
       });
       statsHTML += '</div>';
@@ -6080,9 +6082,9 @@ function _buildCrystalTab(container) {
       unlockBtn.addEventListener('click', function() {
         var id   = unlockBtn.getAttribute('data-uw-unlock');
         var wep  = ULTIMATE_WEAPONS.filter(function(w){return w.id===id;})[0];
-        if (!wep || PERM.gems < wep.unlockCost) { unlockBtn.style.borderColor='#ef4444'; setTimeout(function(){unlockBtn.style.borderColor=wep.color;},300); return; }
-        PERM.gems -= wep.unlockCost;
-        savePerm();
+        var _acCur = parseInt(localStorage.getItem('accessCodes')||'0',10);
+        if (!wep || _acCur < wep.unlockCost) { unlockBtn.style.borderColor='#ef4444'; setTimeout(function(){unlockBtn.style.borderColor=wep.color;},300); return; }
+        localStorage.setItem('accessCodes', _acCur - wep.unlockCost);
         var uwSave = window._loadUW();
         if (!uwSave[id]) uwSave[id] = {};
         uwSave[id].unlocked = true;
@@ -6096,11 +6098,11 @@ function _buildCrystalTab(container) {
     for (var bi = 0; bi < upgBtns.length; bi++) {
       (function(btn) {
         btn.addEventListener('click', function() {
-          if (PERM.gems < 3) { btn.style.borderColor='#ef4444'; setTimeout(function(){btn.style.borderColor='';},300); return; }
+          var _acCur2 = parseInt(localStorage.getItem('accessCodes')||'0',10);
+          if (_acCur2 < 3) { btn.style.borderColor='#ef4444'; setTimeout(function(){btn.style.borderColor='';},300); return; }
           var uid = btn.getAttribute('data-uw-upgrade');
           var skey= btn.getAttribute('data-uw-stat');
-          PERM.gems -= 3;
-          savePerm();
+          localStorage.setItem('accessCodes', _acCur2 - 3);
           var uwSave = window._loadUW();
           if (!uwSave[uid]) uwSave[uid] = { unlocked: true };
           uwSave[uid][skey] = (uwSave[uid][skey] || 0) + 1;
@@ -10425,9 +10427,9 @@ function _showCrystalFirstVisit() {
     '<div style="color:#00ff88;font-family:monospace;font-size:15px;font-weight:bold;letter-spacing:2px;text-align:center;">코어 크리스탈</div>'+
     '<div style="background:#0a1a2a;border:1px solid #00ff8833;padding:16px;max-width:280px;width:100%;">'+
       '<div style="color:#94a3b8;font-family:monospace;font-size:10px;line-height:1.8;text-align:center;">'+
-        '코어 크리스탈(❖)로 궁극기를 해금하세요.<br>'+
+        '접근 코드(⌘)로 궁극기를 해금하세요.<br>'+
         '강력한 스킬로 더 높은 웨이브에 도전!<br>'+
-        '<span style="color:#cc44ff;">❖ 보석은 업적·임무·출석으로 획득</span>'+
+        '<span style="color:#bb44ff;">⌘ 접근 코드는 보스 처치 시 획득</span>'+
       '</div>'+
     '</div>'+
     '<div style="color:#334455;font-family:monospace;font-size:10px;text-align:center;">잠금 해제 비용: ❖ 5 ~ 10</div>'+
@@ -12865,18 +12867,18 @@ _injectLabScreen();
 (function(){
 
 var RESEARCH = [
-  { id:'res_base_dmg',  name:'레이저 출력 강화',   desc:'기본 공격력 영구 +2%',       maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);}, effect:function(lv){return lv*0.02;}, cat:'공격', unit:'%' },
-  { id:'res_base_hp',   name:'코어 장갑 강화',     desc:'최대 HP 영구 +3%',           maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);}, effect:function(lv){return lv*0.03;}, cat:'방어', unit:'%' },
-  { id:'res_gold_bonus',name:'골드 회수율 향상',   desc:'골드 획득량 영구 +2%',       maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);}, effect:function(lv){return lv*0.02;}, cat:'유틸', unit:'%' },
-  { id:'res_crit_rate', name:'정밀 타격 연구',     desc:'치명타 확률 영구 +0.5%',     maxLv:20, cost:function(lv){return 2+Math.floor(lv/5);},  effect:function(lv){return lv*0.005;},cat:'공격', unit:'%' },
-  { id:'res_regen',     name:'자가 수복 프로토콜', desc:'HP 재생 영구 +0.1/s',        maxLv:30, cost:function(lv){return 2+Math.floor(lv/10);}, effect:function(lv){return lv*0.1;},  cat:'방어', unit:'/s' },
-  { id:'res_start_gold',name:'선행 자원 배분',     desc:'게임 시작 골드 +50',          maxLv:20, cost:function(lv){return 3;},                   effect:function(lv){return lv*50;},   cat:'유틸', unit:'' },
-  { id:'res_absorb',   name:'에너지 순환 연구',   desc:'에너지 흡수율 영구 +0.2%',    maxLv:10, cost:function(lv){return 3+lv;},                effect:function(lv){return lv*0.002;}, cat:'방어', unit:'%' },
-  { id:'res_start_chips',name:'선행 보급 연구',     desc:'전투 시작 코어 칩 +5',        maxLv:10, cost:function(lv){return 2+lv;},                effect:function(lv){return lv*5;},     cat:'유틸', unit:'' },
+  { id:'res_base_dmg',  name:'레이저 출력 강화',   desc:'기본 공격력 영구 +2%',       maxLv:50, cost:function(lv){return 30+lv*8;},   effect:function(lv){return lv*0.02;}, cat:'공격', unit:'%' },
+  { id:'res_base_hp',   name:'코어 장갑 강화',     desc:'최대 HP 영구 +3%',           maxLv:50, cost:function(lv){return 30+lv*8;},   effect:function(lv){return lv*0.03;}, cat:'방어', unit:'%' },
+  { id:'res_gold_bonus',name:'골드 회수율 향상',   desc:'골드 획득량 영구 +2%',       maxLv:50, cost:function(lv){return 40+lv*10;},  effect:function(lv){return lv*0.02;}, cat:'유틸', unit:'%' },
+  { id:'res_crit_rate', name:'정밀 타격 연구',     desc:'치명타 확률 영구 +0.5%',     maxLv:20, cost:function(lv){return 50+lv*15;},  effect:function(lv){return lv*0.005;},cat:'공격', unit:'%' },
+  { id:'res_regen',     name:'자가 수복 프로토콜', desc:'HP 재생 영구 +0.1/s',        maxLv:30, cost:function(lv){return 40+lv*12;},  effect:function(lv){return lv*0.1;},  cat:'방어', unit:'/s' },
+  { id:'res_start_gold',name:'선행 자원 배분',     desc:'게임 시작 골드 +50',          maxLv:20, cost:function(lv){return 60+lv*20;},  effect:function(lv){return lv*50;},   cat:'유틸', unit:'' },
+  { id:'res_absorb',   name:'에너지 순환 연구',   desc:'에너지 흡수율 영구 +0.2%',    maxLv:10, cost:function(lv){return 80+lv*30;},  effect:function(lv){return lv*0.002;}, cat:'방어', unit:'%' },
+  { id:'res_start_chips',name:'선행 보급 연구',     desc:'전투 시작 코어 칩 +5',        maxLv:10, cost:function(lv){return 50+lv*20;},  effect:function(lv){return lv*5;},     cat:'유틸', unit:'' },
 ];
 
 function _getResLv(id){ return parseInt(localStorage.getItem('res_'+id)||'0',10); }
-function _getDC(){ return parseInt(localStorage.getItem('dataCells')||'0',10); }
+function _getResGold(){ return (window.PERM && PERM.gold) || 0; }
 
 /* ── HTML 삽입 ── */
 function _injectScreen() {
@@ -12888,10 +12890,10 @@ function _injectScreen() {
     '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
       '<button id="res-back" style="background:none;border:none;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
       '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#00ff88;">연구소</span>'+
-      '<span style="font-size:11px;color:#00ff88;">▣ <span id="research-cells">0</span></span>'+
+      '<span style="font-size:11px;color:#f59e0b;">◈ <span id="research-gold">0</span></span>'+
     '</div>'+
     '<div style="padding:14px;">'+
-      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">데이터 셀을 소모하여 영구 능력치를 강화합니다.<br>효과는 모든 게임에 적용됩니다.</div>'+
+      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">골드를 소모하여 영구 능력치를 강화합니다.<br>효과는 모든 게임에 적용됩니다.</div>'+
       '<div id="research-list"></div>'+
     '</div>';
   document.body.appendChild(sc);
@@ -12907,15 +12909,15 @@ function renderResearch() {
   _injectScreen();
   var list=document.getElementById('research-list');
   if(!list) return;
-  var dc=_getDC();
-  var cellEl=document.getElementById('research-cells');
-  if(cellEl) cellEl.textContent=dc;
+  var gold=_getResGold();
+  var goldEl=document.getElementById('research-gold');
+  if(goldEl) goldEl.textContent=gold;
   list.innerHTML='';
   RESEARCH.forEach(function(item){
     var lv=_getResLv(item.id);
     var maxed=lv>=item.maxLv;
     var cost=maxed?0:item.cost(lv);
-    var canAfford=dc>=cost;
+    var canAfford=gold>=cost;
     var effVal=item.effect(lv);
     var effStr=item.unit==='%'?'+'+(effVal*100).toFixed(1).replace(/\.0$/,'')+'%'
               :item.unit==='/s'?'+'+effVal.toFixed(1)+'/s'
@@ -12932,18 +12934,18 @@ function renderResearch() {
         '<span style="font-size:11px;color:#00ff88;">현재 효과: '+effStr+'</span>'+
         (maxed
           ?'<span style="color:#334455;font-size:11px;">MAX</span>'
-          :'<button data-res-buy="'+item.id+'" style="background:'+(canAfford?'#00ff88':'#1a2a3a')+';color:'+(canAfford?'#001a0a':'#334455')+';border:none;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">▣ '+cost+'</button>')+
+          :'<button data-res-buy="'+item.id+'" style="background:'+(canAfford?'#f59e0b':'#1a2a3a')+';color:'+(canAfford?'#0a0500':'#334455')+';border:none;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◈ '+cost+'</button>')+
       '</div>';
     var btn=card.querySelector('[data-res-buy]');
     if(btn)(function(rid){
       btn.addEventListener('click',function(){
-        var curDC=_getDC();
+        var curGold=_getResGold();
         var curLv=_getResLv(rid);
         var it=RESEARCH.filter(function(r){return r.id===rid;})[0];
         if(!it||curLv>=it.maxLv) return;
         var c=it.cost(curLv);
-        if(curDC<c) return;
-        localStorage.setItem('dataCells', curDC-c);
+        if(curGold<c) return;
+        PERM.gold-=c; try{savePerm();}catch(_){}
         localStorage.setItem('res_'+rid, curLv+1);
         localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1);
         renderResearch();
@@ -13113,7 +13115,37 @@ if (typeof _origWC === 'function') {
   };
 }
 
-/* ── 접근 코드: 획득처 미정 (비활성) ── */
+/* ── 접근 코드: 보스 처치 시 획득 ── */
+var _origUpdate_ac = window.update;
+if (typeof _origUpdate_ac === 'function') {
+  window.update = function(dt) {
+    var before = {};
+    if (window.G && G.enemies) {
+      for (var i=0; i<G.enemies.length; i++) {
+        var e = G.enemies[i];
+        if (e.boss) before[i+'_'+e.r+'_'+(e.bossGrade||'n')] = e.bossGrade||'normal';
+      }
+    }
+    _origUpdate_ac.apply(this, arguments);
+    if (window.G && G.enemies) {
+      var after = {};
+      for (var j=0; j<G.enemies.length; j++) {
+        var e2 = G.enemies[j];
+        if (e2.boss) after[j+'_'+e2.r+'_'+(e2.bossGrade||'n')] = true;
+      }
+      Object.keys(before).forEach(function(k) {
+        if (!after[k]) {
+          var grade = before[k];
+          var earned = grade==='hyper'?3:grade==='elite'?2:1;
+          var cur = parseInt(localStorage.getItem('accessCodes')||'0',10);
+          localStorage.setItem('accessCodes', cur + earned);
+          localStorage.setItem('stat_ac_earned', parseInt(localStorage.getItem('stat_ac_earned')||'0',10) + earned);
+          if (G.floatTexts) G.floatTexts.push({x:G.cx,y:G.cy-20,text:'+'+earned+' 접근코드',color:'#bb44ff',timer:0});
+        }
+      });
+    }
+  };
+}
 
 /* ── 데이터 셀: 획득처 미정 (비활성) ── */
 
