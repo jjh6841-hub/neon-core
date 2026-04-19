@@ -13890,11 +13890,11 @@ var ELEMENTS = [
 
 /* ── 속성 스탯 정의 (각 속성 공통) ── */
 var ELEM_STATS = [
-  { key:'atk',  name:'공격력',   perLv:0.02, maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);} },
-  { key:'def',  name:'방어력',   perLv:0.02, maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);} },
-  { key:'hp',   name:'체력',     perLv:0.03, maxLv:50, cost:function(lv){return 1+Math.floor(lv/10);} },
-  { key:'crit', name:'치명타',   perLv:0.005,maxLv:20, cost:function(lv){return 2+Math.floor(lv/5);} },
-  { key:'regen',name:'재생',     perLv:0.01, maxLv:30, cost:function(lv){return 2+Math.floor(lv/10);} },
+  { key:'atk',     name:'공격력',     perLv:0.03, cost:function(lv){return 10;} },
+  { key:'def',     name:'방어력',     perLv:0.03, cost:function(lv){return 10;} },
+  { key:'hp',      name:'체력',       perLv:0.03, cost:function(lv){return 10;} },
+  { key:'critDmg', name:'치명타 피해', perLv:0.03, cost:function(lv){return 10;} },
+  { key:'critRate',name:'치명타율',   perLv:0.002,cost:function(lv){return 10;} },
 ];
 
 function _getCore(id) { return parseInt(localStorage.getItem('core_'+id)||'0',10); }
@@ -13904,12 +13904,12 @@ function _setElemLv(elemId,statKey,v) { localStorage.setItem('elem_'+elemId+'_'+
 
 /* ── 속성 배율 합산 (applyPermStats에서 호출) ── */
 function _getElementMultipliers() {
-  var m = { atk:1, def:1, hp:1, crit:0, regen:1 };
+  var m = { atk:1, def:1, hp:1, critDmg:1, critRate:0 };
   ELEMENTS.forEach(function(el) {
     ELEM_STATS.forEach(function(st) {
       var lv = _getElemLv(el.id, st.key);
       if (lv > 0) {
-        if (st.key === 'crit') m.crit += lv * st.perLv;
+        if (st.key === 'critRate') m.critRate += lv * st.perLv;
         else m[st.key] *= (1 + lv * st.perLv);
       }
     });
@@ -13945,21 +13945,18 @@ window._renderElementTab = function(container) {
   var stats = '';
   ELEM_STATS.forEach(function(st) {
     var lv = _getElemLv(el.id, st.key);
-    var maxed = lv >= st.maxLv;
-    var cost = maxed ? 0 : st.cost(lv);
+    var cost = st.cost(lv);
     var afford = cores >= cost;
-    var curMult = st.key === 'crit' ? '+'+(lv*st.perLv*100).toFixed(1)+'%' : 'x'+(1+lv*st.perLv).toFixed(2);
-    var nxtMult = st.key === 'crit' ? '+'+((lv+1)*st.perLv*100).toFixed(1)+'%' : 'x'+(1+(lv+1)*st.perLv).toFixed(2);
+    var curMult = st.key === 'critRate' ? '+'+(lv*st.perLv*100).toFixed(1)+'%' : 'x'+(1+lv*st.perLv).toFixed(2);
+    var nxtMult = st.key === 'critRate' ? '+'+((lv+1)*st.perLv*100).toFixed(1)+'%' : 'x'+(1+(lv+1)*st.perLv).toFixed(2);
 
     stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'+
       '<div>'+
-        '<div style="font-size:11px;color:#94a3b8;font-family:monospace;">'+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
-        (!maxed ? ' <span style="color:#4a6a7a;">→ '+nxtMult+'</span>' : '')+'</div>'+
-        '<div style="font-size:9px;color:#445566;font-family:monospace;">Lv.'+lv+' / '+st.maxLv+'</div>'+
+        '<div style="font-size:11px;color:#94a3b8;font-family:monospace;">'+el.name+' '+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
+        ' <span style="color:#4a6a7a;">→ '+nxtMult+'</span></div>'+
+        '<div style="font-size:9px;color:#445566;font-family:monospace;">Lv.'+lv+'</div>'+
       '</div>'+
-      (maxed
-        ? '<span style="color:#334455;font-size:10px;font-family:monospace;">MAX</span>'
-        : '<button data-elem-up="'+el.id+'" data-elem-stat="'+st.key+'" style="background:'+(afford?el.color:'#1a2a3a')+';color:'+(afford?'#000':'#334455')+';border:none;padding:5px 10px;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">'+cost+' 코어</button>')+
+      '<button data-elem-up="'+el.id+'" data-elem-stat="'+st.key+'" style="background:'+(afford?el.color:'#1a2a3a')+';color:'+(afford?'#000':'#334455')+';border:none;padding:5px 10px;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">'+cost+' 코어</button>'+
     '</div>';
   });
 
@@ -13986,7 +13983,6 @@ window._renderElementTab = function(container) {
         var st = ELEM_STATS.filter(function(s){return s.key===sKey;})[0];
         if (!st) return;
         var lv = _getElemLv(eId, sKey);
-        if (lv >= st.maxLv) return;
         var cost = st.cost(lv);
         var cur = _getCore(eId);
         if (cur < cost) return;
@@ -14086,12 +14082,12 @@ if (typeof _prevApplyElem === 'function') {
     _prevApplyElem.apply(this, arguments);
     if (!window.G || !G.tower) return;
     var m = _getElementMultipliers();
-    G.tower.dmg    = Math.round(G.tower.dmg * m.atk);
-    G.tower.maxHp  = Math.round(G.tower.maxHp * m.hp);
-    G.tower.hp     = G.tower.maxHp;
-    G.tower.defense= Math.round((G.tower.defense||0) * m.def);
-    G.tower.critChance = Math.min(0.9, (G.tower.critChance||0) + m.crit);
-    G.regenRate    = (G.regenRate||0) * m.regen;
+    G.tower.dmg     = Math.round(G.tower.dmg * m.atk);
+    G.tower.maxHp   = Math.round(G.tower.maxHp * m.hp);
+    G.tower.hp      = G.tower.maxHp;
+    G.tower.defense = Math.round((G.tower.defense||0) * m.def);
+    G.critMult      = (G.critMult||2) * m.critDmg;
+    G.tower.critChance = Math.min(0.9, (G.tower.critChance||0) + m.critRate);
   };
 }
 
