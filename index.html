@@ -1469,7 +1469,7 @@ canvas {
 
     <!-- 전투 시작 버튼 -->
     <button id="btn-start-game" style="width:100%; height:52px; margin-top:16px; margin-bottom:calc(76px + env(safe-area-inset-bottom, 0px)); background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
-      전투 시작
+      전투 준비
     </button>
 
   </div>
@@ -13829,6 +13829,162 @@ function _submitCoupon() {
 }
 
 })();
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     전투 증강 시스템 (보석 → 이번 전투 한정 버프)
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+var AUGMENTS = [
+  { id:'aug_dmg',   name:'레이저 과부하', desc:'공격력 +30%',      cost:3, icon:'▲', color:'#ff4444'  },
+  { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',     cost:3, icon:'◆', color:'#00ff88'  },
+  { id:'aug_gold',  name:'자원 스캐너',   desc:'골드 획득 +50%',   cost:2, icon:'◈', color:'#f59e0b'  },
+  { id:'aug_regen', name:'나노 수복',     desc:'HP 재생 +3/s',     cost:2, icon:'✦', color:'#00dddd'  },
+  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',  cost:3, icon:'◎', color:'#cc44ff'  },
+  { id:'aug_chips', name:'선행 보급',     desc:'시작 코어칩 +300', cost:2, icon:'▣', color:'#3b82f6'  },
+];
+
+var _sel = {};
+var _pendingAugs = [];
+var _popup = null;
+
+/* ── 팝업 생성 ── */
+function _create() {
+  if (_popup) return;
+  _popup = document.createElement('div');
+  _popup.id = 'aug-popup';
+  _popup.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(3,8,16,0.97);z-index:10000;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+  _popup.innerHTML =
+    '<div style="background:#0a1020;border:1px solid #cc44ff;max-width:340px;width:92%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 0 30px rgba(204,68,255,0.15);">' +
+      '<div style="padding:14px 16px 10px;border-bottom:1px solid #1a2a3a;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="color:#cc44ff;font-size:14px;font-weight:bold;letter-spacing:2px;text-shadow:0 0 8px rgba(204,68,255,0.4);">⟐ 전투 증강</span>' +
+          '<span style="color:#00ffff;font-size:12px;">❖ <span id="aug-gems">0</span></span>' +
+        '</div>' +
+        '<div style="font-size:9px;color:#445566;margin-top:6px;">보석을 소모하여 이번 전투를 증강합니다</div>' +
+      '</div>' +
+      '<div id="aug-list" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch;"></div>' +
+      '<div style="padding:10px 16px;border-top:1px solid #1a2a3a;">' +
+        '<div id="aug-cost-row" style="display:none;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+          '<span style="font-size:10px;color:#778899;">총 비용</span>' +
+          '<span style="color:#00ffff;font-size:13px;font-weight:bold;">❖ <span id="aug-total">0</span></span>' +
+        '</div>' +
+        '<button id="aug-go" style="width:100%;height:44px;background:#030b10;border:2px solid #cc44ff;color:#fff;font-size:16px;font-family:\'Courier New\',monospace;font-weight:bold;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #cc44ff;-webkit-appearance:none;">전투 시작</button>' +
+        '<div id="aug-back" style="text-align:center;margin-top:8px;font-size:10px;color:#445566;cursor:pointer;">◂ 돌아가기</div>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(_popup);
+
+  var goBtn = document.getElementById('aug-go');
+  goBtn.addEventListener('touchstart', function(e){ e.preventDefault(); }, { passive:false });
+  goBtn.addEventListener('touchend', function(e){ e.preventDefault(); _doStart(); }, { passive:false });
+  goBtn.addEventListener('click', _doStart);
+
+  var back = document.getElementById('aug-back');
+  back.addEventListener('touchend', function(e){ e.preventDefault(); _close(); });
+  back.addEventListener('click', _close);
+
+  _popup.addEventListener('click', function(e){ if(e.target===_popup) _close(); });
+}
+
+/* ── 렌더 ── */
+function _render() {
+  var list = document.getElementById('aug-list');
+  if (!list) return;
+  var gems = (window.PERM && PERM.gems) || 0;
+  document.getElementById('aug-gems').textContent = gems;
+  list.innerHTML = '';
+  var total = 0;
+
+  AUGMENTS.forEach(function(a) {
+    var on = !!_sel[a.id];
+    if (on) total += a.cost;
+    var c = document.createElement('div');
+    c.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;' +
+      'background:' + (on ? 'rgba(204,68,255,0.08)' : '#080c1a') + ';' +
+      'border:1px solid ' + (on ? '#cc44ff' : '#1a2a3a') + ';transition:border-color 0.15s;';
+    c.innerHTML =
+      '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:16px;color:'+a.color+';text-shadow:0 0 8px '+a.color+';">'+a.icon+'</div>' +
+      '<div style="flex:1;">' +
+        '<div style="font-size:11px;color:'+(on?'#fff':'#94a3b8')+';font-weight:bold;">'+a.name+'</div>' +
+        '<div style="font-size:9px;color:#556677;margin-top:2px;">'+a.desc+'</div>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        '<span style="color:#00ffff;font-size:11px;">❖ '+a.cost+'</span>' +
+        (on ? '<div style="font-size:8px;color:#cc44ff;margin-top:2px;">선택됨</div>' : '') +
+      '</div>';
+    (function(id){
+      function tog(){ _sel[id]=!_sel[id]; _render(); }
+      c.addEventListener('click', tog);
+      c.addEventListener('touchend', function(e){ e.preventDefault(); tog(); });
+    })(a.id);
+    list.appendChild(c);
+  });
+
+  var cr = document.getElementById('aug-cost-row');
+  cr.style.display = total > 0 ? 'flex' : 'none';
+  document.getElementById('aug-total').textContent = total;
+
+  var btn = document.getElementById('aug-go');
+  if (total > 0 && gems < total) {
+    btn.style.borderColor = '#333'; btn.style.color = '#555';
+    btn.style.textShadow = 'none'; btn.textContent = '보석 부족';
+  } else {
+    btn.style.borderColor = '#cc44ff'; btn.style.color = '#fff';
+    btn.style.textShadow = '0 0 8px #cc44ff';
+    btn.textContent = total > 0 ? '전투 시작 (❖ ' + total + ')' : '전투 시작';
+  }
+}
+
+/* ── 열기/닫기 ── */
+function _open() { _create(); _sel = {}; _render(); _popup.style.display = 'flex'; }
+function _close() { if (_popup) _popup.style.display = 'none'; }
+
+/* ── 전투 시작 ── */
+function _doStart() {
+  var total = 0;
+  _pendingAugs = [];
+  AUGMENTS.forEach(function(a){ if(_sel[a.id]){ total+=a.cost; _pendingAugs.push(a); } });
+  var gems = (window.PERM && PERM.gems) || 0;
+  if (total > 0 && gems < total) return;
+  if (total > 0) { PERM.gems -= total; try{ savePerm(); }catch(_){} }
+  _close();
+  window.startNewGame();
+}
+
+/* ── btn-start-game → 팝업 열기로 교체 ── */
+var ob = document.getElementById('btn-start-game');
+if (ob) {
+  var nb = ob.cloneNode(true);
+  ob.parentNode.replaceChild(nb, ob);
+  nb.addEventListener('touchstart', function(e){ e.preventDefault(); }, { passive:false });
+  nb.addEventListener('touchend', function(e){ e.preventDefault(); _open(); }, { passive:false });
+  nb.addEventListener('click', _open);
+}
+
+/* ── 버프 적용 (applyPermStats 체이닝) ── */
+var _prevApply = window.applyPermStats;
+if (typeof _prevApply === 'function') {
+  window.applyPermStats = function() {
+    _prevApply.apply(this, arguments);
+    if (!window.G || !G.tower || _pendingAugs.length === 0) return;
+    var t = G.tower;
+    _pendingAugs.forEach(function(a) {
+      if (a.id === 'aug_dmg')   t.dmg = Math.round(t.dmg * 1.3);
+      if (a.id === 'aug_hp')  { t.maxHp = Math.round(t.maxHp * 1.5); t.hp = t.maxHp; }
+      if (a.id === 'aug_gold')  G.goldBonus = (G.goldBonus || 1) * 1.5;
+      if (a.id === 'aug_regen') G.regenRate = (G.regenRate || 0) + 3;
+      if (a.id === 'aug_crit')  t.critChance = Math.min(0.9, (t.critChance || 0) + 0.05);
+      if (a.id === 'aug_chips' && typeof coreChips !== 'undefined') coreChips += 300;
+    });
+    _pendingAugs = [];
+  };
+}
+
+}());
 </script>
 
 </body>
