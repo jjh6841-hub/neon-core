@@ -1495,7 +1495,7 @@ canvas {
     <button class="ws-tab" data-tab="atk" data-tabcolor="#3b82f6" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid #3b82f6;color:#3b82f6;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">⚔</span><span style="letter-spacing:1px;">공격</span></button>
     <button class="ws-tab" data-tab="def" data-tabcolor="#ef4444" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><path d="M7,1 L12,4 L12,10 L7,13 L2,10 L2,4 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7,4 L9.5,5.5 L9.5,8.5 L7,10 L4.5,8.5 L4.5,5.5 Z" fill="none" stroke="currentColor" stroke-width="0.8"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg><span style="letter-spacing:1px;">방어</span></button>
     <button class="ws-tab" data-tab="utl" data-tabcolor="#f59e0b" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 8.5,5 13,5.5 9.5,8.5 10.5,13 7,10.5 3.5,13 4.5,8.5 1,5.5 5.5,5" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg><span style="letter-spacing:1px;">유틸</span></button>
-    <button class="ws-tab" data-tab="ult" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" fill="none" stroke="currentColor" stroke-width="1.1"/><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><circle cx="7" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg><span style="letter-spacing:1px;">궁극기</span></button>
+    <button class="ws-tab" data-tab="ult" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" fill="none" stroke="currentColor" stroke-width="1.1"/><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><circle cx="7" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg><span style="letter-spacing:1px;">속성</span></button>
   </div>
 
   <!-- 업그레이드 목록 -->
@@ -5873,7 +5873,8 @@ function _appendExtended() {
   var activeTab = (_ext.activeTab && _ext.activeTab()) || 'atk';
 
   if (activeTab === 'ult') {
-    _buildCrystalTab(container);
+    container.style.gridTemplateColumns = '1fr';
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#334455;font-family:monospace;font-size:11px;">속성 시스템 준비 중</div>';
     return;
   }
 
@@ -8736,7 +8737,7 @@ var _iv = setInterval(function() {
 /* ─ 잠금 설정 ─ */
 var TAB_LOCKS = {
   utl: { label:'유틸', goldCost:100, gemCost:0,  permKey:'tab_utl_u', color:'#f59e0b' },
-  ult: { label:'궁극기', goldCost:0,  gemCost:0, acCost:5, permKey:'tab_ult_u', color:'#00ff88' },
+  ult: { label:'속성', goldCost:100,  gemCost:0, acCost:0, permKey:'tab_ult_u', color:'#00ff88' },
 };
 
 function _isUnlocked(tab) {
@@ -12755,13 +12756,12 @@ function _injectLabScreen(){
   sc.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
       '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;">'+
-        '<span style="color:#f59e0b;font-size:13px;font-family:monospace;">◈ <span id="cl-gold">0</span></span>'+
-        '<span style="color:#00ffff;font-size:13px;font-family:monospace;">❖ <span id="cl-gem">0</span></span>'+
+        '<span style="color:#bb44ff;font-size:13px;font-family:monospace;">⌘ <span id="cl-ac">0</span></span>'+
       '</div>'+
     '</div>'+
     '<div style="text-align:center;padding:5px;font-size:10px;color:#00ffff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(0,255,255,0.10);flex-shrink:0;">프로토콜</div>'+
     '<div style="padding:14px;">'+
-      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">파워 코어를 소모하여 한 판 버프를 구매합니다.<br>효과는 다음 게임 1판에만 적용됩니다.</div>'+
+      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">접근 코드를 소모하여 전투 스킬을 해금·강화합니다.<br>스킬은 전투 중 쿨타임마다 자동 발동됩니다.</div>'+
       '<div id="lab-list"></div>'+
     '</div>';
   document.body.appendChild(sc);
@@ -12772,49 +12772,78 @@ function _injectLabScreen(){
   });
 }
 
-/* ── 렌더링 ── */
+/* ── 렌더링 (궁극기 스킬) ── */
 function renderLab(){
   _injectLabScreen();
   var list=document.getElementById('lab-list');
   if(!list) return;
-  var pc=_getPC();
-  var buffs=_getActiveBuffs();
-  var cellEl=document.getElementById('lab-pc');
-  if(cellEl) cellEl.textContent=pc;
-  list.innerHTML='';
-  LAB_ITEMS.forEach(function(item){
-    var owned=buffs.some(function(b){return b.id===item.id;});
-    var canAfford=pc>=item.cost;
+  var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
+  var uw=window._loadUW?window._loadUW():{};
+
+  // 헤더: 접근 코드 표시
+  list.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><span style="color:#bb44ff;font-family:monospace;font-size:12px;">⌘ '+ac+'</span></div>';
+
+  if(typeof ULTIMATE_WEAPONS==='undefined') return;
+  ULTIMATE_WEAPONS.forEach(function(wep){
+    var uwData=uw[wep.id]||{};
+    var unlocked=!!uwData.unlocked;
     var card=document.createElement('div');
-    card.style.cssText='background:#0c0c22;border:1px solid '+(owned?'#ff8822':'#1a3444')+';border-radius:10px;padding:12px;margin-bottom:8px;';
-    card.innerHTML=
-      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
-        '<span style="font-size:12px;color:#ff8822;font-weight:bold;">'+item.name+'</span>'+
-        (owned?'<span style="font-size:10px;color:#ff8822;">적용됨</span>':'')+
-      '</div>'+
-      '<div style="font-size:10px;color:#556677;margin-bottom:8px;">'+item.desc+'</div>'+
-      '<div style="display:flex;justify-content:flex-end;">'+
-        (owned
-          ?'<span style="color:#334455;font-size:11px;">구매 완료</span>'
-          :'<button data-lab-buy="'+item.id+'" style="background:'+(canAfford?'#ff8822':'#1a2a3a')+';color:'+(canAfford?'#0a0500':'#334455')+';border:none;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◉ '+item.cost+'</button>')+
-      '</div>';
-    var btn=card.querySelector('[data-lab-buy]');
-    if(btn)(function(lid){
-      btn.addEventListener('click',function(){
-        var curPC=_getPC();
-        var it=LAB_ITEMS.filter(function(i){return i.id===lid;})[0];
-        if(!it) return;
-        var curBuffs=_getActiveBuffs();
-        if(curBuffs.some(function(b){return b.id===lid;})){ if(window.showAchievementToast) showAchievementToast('이미 적용된 버프입니다.'); return; }
-        if(curPC<it.cost){ if(window.showAchievementToast) showAchievementToast('파워 코어가 부족합니다.'); return; }
-        localStorage.setItem('powerCores',curPC-it.cost);
-        curBuffs.push({id:lid,effect:it.effect});
-        _saveActiveBuffs(curBuffs);
-        localStorage.setItem('stat_lab_pc_used',parseInt(localStorage.getItem('stat_lab_pc_used')||'0',10)+it.cost);
-        renderLab();
-        if(window.showAchievementToast) showAchievementToast(it.name+' 버프 적용!');
+    card.style.cssText='background:#0c0c22;border:1px solid '+(unlocked?wep.color+'44':'#1a3444')+';padding:12px;margin-bottom:8px;';
+
+    var top='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
+      '<div style="width:40px;height:40px;border:2px solid '+wep.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:'+wep.color+';flex-shrink:0;'+(unlocked?'box-shadow:0 0 10px '+wep.color+'44;':'opacity:0.4;')+'">'+wep.icon+'</div>'+
+      '<div style="flex:1;"><div style="font-family:monospace;font-size:13px;color:'+(unlocked?'#f1f5f9':'#334455')+';font-weight:bold;">'+wep.name+'</div>'+
+      '<div style="font-size:10px;color:#334455;font-family:monospace;margin-top:2px;">'+wep.desc+'</div></div>';
+    if(!unlocked){
+      top+='<button data-proto-unlock="'+wep.id+'" style="background:#030b10;border:1px solid '+wep.color+';color:'+wep.color+';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">⌘'+wep.unlockCost+' 해금</button>';
+    } else {
+      top+='<span style="font-size:10px;color:#00ff88;font-family:monospace;flex-shrink:0;">✓ 해금</span>';
+    }
+    top+='</div>';
+
+    var statsHTML='';
+    if(unlocked){
+      statsHTML='<div style="display:flex;flex-direction:column;gap:4px;">';
+      wep.stats.forEach(function(st){
+        var lv=uwData[st.key]||0;
+        var afford=ac>=3;
+        statsHTML+='<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<div style="font-size:10px;color:#94a3b8;font-family:monospace;">'+st.name+' <span style="color:'+wep.color+';">'+st.fmt(lv)+'</span>'+
+          '<span style="color:#4a6a7a;"> → '+st.fmt(lv+1)+'</span></div>'+
+          '<button data-proto-up="'+wep.id+'" data-proto-stat="'+st.key+'" style="background:#030b10;border:1px solid '+(afford?'#334455':'#ef4444')+';color:'+(afford?'#bb44ff':'#ef4444')+';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">⌘3</button></div>';
       });
-    })(item.id);
+      statsHTML+='</div>';
+    }
+    card.innerHTML=top+statsHTML;
+
+    // 해금 버튼
+    var ubtn=card.querySelector('[data-proto-unlock]');
+    if(ubtn)(function(id){
+      ubtn.addEventListener('click',function(){
+        var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
+        var w=ULTIMATE_WEAPONS.filter(function(x){return x.id===id;})[0];
+        if(!w||cur<w.unlockCost) return;
+        localStorage.setItem('accessCodes',cur-w.unlockCost);
+        var s=window._loadUW(); if(!s[id])s[id]={}; s[id].unlocked=true; window._saveUW(s);
+        renderLab();
+        if(window.showAchievementToast) showAchievementToast(w.name+' 해금!');
+      });
+    })(wep.id);
+
+    // 강화 버튼
+    var upBtns=card.querySelectorAll('[data-proto-up]');
+    for(var i=0;i<upBtns.length;i++)(function(btn){
+      btn.addEventListener('click',function(){
+        var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
+        if(cur<3) return;
+        var uid=btn.getAttribute('data-proto-up');
+        var skey=btn.getAttribute('data-proto-stat');
+        localStorage.setItem('accessCodes',cur-3);
+        var s=window._loadUW(); if(!s[uid])s[uid]={unlocked:true}; s[uid][skey]=(s[uid][skey]||0)+1; window._saveUW(s);
+        renderLab();
+      });
+    })(upBtns[i]);
+
     list.appendChild(card);
   });
 }
