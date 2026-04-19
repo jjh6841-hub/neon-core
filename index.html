@@ -9552,101 +9552,154 @@ setTimeout(_init, 350);
 /* ════════════════════════════════════════════════════════
    FEATURE 1: 카드 컬렉션 시스템 (스토어 새 탭)
 ════════════════════════════════════════════════════════ */
-var CARDS = [
-  { id:'fire_core',     rarity:'common', name:'파이어코어',       icon:'🔥', color:'#f59e0b', desc:'+1 공격력' },
-  { id:'iron_shell',    rarity:'common', name:'아이언쉘',         icon:'🛡', color:'#f59e0b', desc:'+5% 최대HP' },
-  { id:'speed_coil',    rarity:'common', name:'스피드코일',       icon:'⚡', color:'#f59e0b', desc:'+5% 공격속도' },
-  { id:'coin_magnet',   rarity:'common', name:'골드마그넷',       icon:'💰', color:'#f59e0b', desc:'+5% 골드' },
-  { id:'crit_lens',     rarity:'rare',   name:'크리트렌즈',       icon:'🔭', color:'#3b82f6', desc:'+3% 치명타' },
-  { id:'plasma_blade',  rarity:'rare',   name:'플라즈마블레이드', icon:'⚔', color:'#3b82f6', desc:'+2 공격력' },
-  { id:'shield_matrix', rarity:'rare',   name:'실드매트릭스',     icon:'◎', color:'#3b82f6', desc:'+15% 최대HP' },
-  { id:'wave_scout',    rarity:'rare',   name:'웨이브스카우트',   icon:'📡', color:'#3b82f6', desc:'보너스 +5' },
-  { id:'death_core',    rarity:'epic',   name:'데스코어',         icon:'💀', color:'#cc44ff', desc:'+5 공격력' },
-  { id:'chrono_mod',    rarity:'epic',   name:'크로노모드',       icon:'⏱', color:'#cc44ff', desc:'공격속도 +15%' },
-  { id:'quantum_armor', rarity:'epic',   name:'퀀텀아머',         icon:'🔮', color:'#cc44ff', desc:'+30% 최대HP' },
-  { id:'gold_rush',     rarity:'epic',   name:'골드러시',         icon:'✨', color:'#cc44ff', desc:'+15% 골드' },
-  { id:'blood_circuit', rarity:'rare',   name:'블러드 서킷',     icon:'❖', color:'#3b82f6', desc:'에너지 흡수율 영구 +1%' },
+/* ══ 프리즘 시스템 (26종 레벨형) ══ */
+var PRISMS = [
+  /* 활성화 (6종) */
+  {id:'p_kill_cash',  cat:'active', name:'적 처치 보상',    desc:'적이 떨어트리는 현금', lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_plasma_rep', cat:'active', name:'플라즈마 대표',   desc:'플라즈마 대표 공격력', lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_shield_cd',  cat:'active', name:'에너지 보호막',   desc:'에너지 보호막 쿨타임', lvEff:[-4,-8,-12,-16,-20], unit:'%'},
+  {id:'p_free_upg',   cat:'active', name:'무료 업그레이드', desc:'무료 업그레이드 확률', lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_max_hp',     cat:'active', name:'체력',            desc:'최대 체력',           lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_death_ray',  cat:'active', name:'죽음의 광선',     desc:'죽음의 광선 데미지',  lvEff:[10,20,30,40,50], unit:'%'},
+  /* 인벤토리 (12종) */
+  {id:'p_damage',     cat:'inven',  name:'데미지',          desc:'기본 데미지',         lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_atk_spd',    cat:'inven',  name:'공격 속도',       desc:'공격 속도',           lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_hp_regen',   cat:'inven',  name:'체력 재생',       desc:'초당 체력 재생',      lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_range',      cat:'inven',  name:'범위',            desc:'공격 범위',           lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_cash',       cat:'inven',  name:'현금',            desc:'웨이브 현금',         lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_coin',       cat:'inven',  name:'동전',            desc:'코인 획득량',         lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_aura',       cat:'inven',  name:'지속 아우라',     desc:'지속 아우라 효과',    lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_crit_rate',  cat:'inven',  name:'치명타 확률',     desc:'치명타 확률',         lvEff:[3,6,9,12,15], unit:'%'},
+  {id:'p_enemy_stat', cat:'inven',  name:'적 수치',         desc:'적 떨어트리는 자원',  lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_def',        cat:'inven',  name:'추가 방어',       desc:'방어력',              lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_fort',       cat:'inven',  name:'요새',            desc:'요새 효과',           lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_crit_dmg',   cat:'inven',  name:'치명타 피해',     desc:'치명타 피해 배율',    lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
+  /* 기타 (8종) */
+  {id:'p_free_upg2',  cat:'etc',    name:'무료 업그레이드+', desc:'무료 업그레이드 확률', lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_inner_orb',  cat:'etc',    name:'내부 오브',       desc:'내부 오브 데미지',    lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_plasma_rep2',cat:'etc',    name:'플라즈마 대표+',  desc:'플라즈마 대표 공격력',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_crit_coin',  cat:'etc',    name:'치명적 동전',     desc:'치명타 시 동전 보너스',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_wave_skip',  cat:'etc',    name:'웨이브 건너뛰기', desc:'웨이브 스킵 확률',    lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_intro_sprint',cat:'etc',   name:'인트로 스프린트', desc:'게임 시작 시간 보너스',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_inner_orb2', cat:'etc',    name:'내부 오브+',      desc:'내부 오브 데미지',    lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_boss_dmg',   cat:'etc',    name:'보스 피해',       desc:'보스에게 주는 데미지',lvEff:[5,10,15,20,25], unit:'%'},
 ];
-var CARD_RATES  = { common:70, rare:25, epic:5 };
-var CARD_LABEL  = { common:'일반', rare:'희귀', epic:'서사' };
-var CARD_MAX    = { common:10, rare:7, epic:5 };
-var CARD_ICON_STYLE = {
-  epic:   { bg:'#1a0030', border:'#cc44ff', shape:'❖', color:'#cc44ff' },
-  rare:   { bg:'#001a30', border:'#0088ff', shape:'⬡', color:'#0088ff' },
-  common: { bg:'#0a1a0a', border:'#00aa44', shape:'■', color:'#00aa44' }
-};
-function _cardIconHTML(rarity,size) {
-  var s=CARD_ICON_STYLE[rarity]||CARD_ICON_STYLE.common;
-  var sz=size||44;
-  return '<div style="width:'+sz+'px;height:'+sz+'px;background:'+s.bg+';border:1px solid '+s.border+';border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:\'Courier New\',monospace;font-size:'+(sz*0.41)+'px;color:'+s.color+';flex-shrink:0;">'+s.shape+'</div>';
+var PRISM_CAT_LABEL = {active:'활성화',inven:'인벤토리',etc:'기타'};
+var PRISM_CAT_COLOR = {active:'#00ffff',inven:'#f59e0b',etc:'#cc44ff'};
+var PRISM_SINGLE = 50, PRISM_TEN = 450;
+/* 레벨업 필요 중복 수: Lv1→2:3, 2→3:3, 3→4:3, 4→5:5 */
+var PRISM_DUP_NEEDED = [0,3,3,3,5]; /* index = target level -1 */
+
+function _getPrism(id) {
+  var d = (window.PERM && window.PERM.prisms) || {};
+  return d[id] || { lv:0, dup:0 };
 }
-var CARD_SINGLE = 50, CARD_TEN = 450;
-
-function _cardCount(id) { return (window.PERM && window.PERM.cards && window.PERM.cards[id]) || 0; }
-
-function _drawOne() {
-  var r = Math.random()*100;
-  var rarity = r < CARD_RATES.epic ? 'epic' : r < CARD_RATES.epic+CARD_RATES.rare ? 'rare' : 'common';
-  var pool = CARDS.filter(function(c){ return c.rarity===rarity; });
-  return pool[Math.floor(Math.random()*pool.length)];
-}
-
-function _addCard(card) {
+function _setPrism(id, lv, dup) {
   if (!window.PERM) return;
-  if (!window.PERM.cards) window.PERM.cards = {};
-  var cur = window.PERM.cards[card.id] || 0;
-  window.PERM.cards[card.id] = Math.min(cur+1, CARD_MAX[card.rarity]||10);
+  if (!window.PERM.prisms) window.PERM.prisms = {};
+  window.PERM.prisms[id] = { lv:lv, dup:dup };
+}
+function _getFragments() { return (window.PERM && window.PERM.prismFragments) || 0; }
+function _setFragments(v) { if(window.PERM) window.PERM.prismFragments = v; }
+function _getOverflow(id) {
+  var p = _getPrism(id);
+  return p.lv >= 5 ? p.dup : 0;
+}
+
+function _addPrismDrop(id) {
+  var p = _getPrism(id);
+  if (p.lv === 0) {
+    /* 처음 획득 → Lv.1 */
+    _setPrism(id, 1, 0);
+  } else if (p.lv < 5) {
+    /* 중복 → dup 증가, 자동 레벨업 체크 */
+    var dup = p.dup + 1;
+    var lv = p.lv;
+    var needed = PRISM_DUP_NEEDED[lv]; /* lv→lv+1 에 필요한 수 */
+    if (needed && dup >= needed) {
+      lv++; dup -= needed;
+    }
+    _setPrism(id, lv, dup);
+  } else {
+    /* Lv.5 — 초과 중복 누적 (분해용) */
+    _setPrism(id, 5, p.dup + 1);
+  }
+}
+
+function _drawOnePrism() {
+  return PRISMS[Math.floor(Math.random() * PRISMS.length)];
 }
 
 function _doDraw(n) {
-  var cost = n===10 ? CARD_TEN : CARD_SINGLE;
-  if (!window.PERM || (window.PERM.gems||0) < cost) return null;
+  var cost = n === 10 ? PRISM_TEN : PRISM_SINGLE;
+  if (!window.PERM || (window.PERM.gems || 0) < cost) return null;
   window.PERM.gems -= cost;
   var drawn = [];
-  for (var i=0; i<n; i++) { var c=_drawOne(); drawn.push(c); _addCard(c); }
+  for (var i = 0; i < n; i++) { var p = _drawOnePrism(); drawn.push(p); _addPrismDrop(p.id); }
   window.savePerm && window.savePerm();
   return drawn;
 }
 
-function _applyCardEffects() {
+/* ── 프리즘 효과 적용 ── */
+function _applyPrismEffects() {
   if (!window.G || !window.G.tower) return;
-  var t = window.G.tower, n;
-  var c = (window.PERM && window.PERM.cards) || {};
-  n=c.fire_core    ||0; if(n) t.dmg=(t.dmg||0)+n;
-  n=c.iron_shell   ||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.05*n));
-  n=c.speed_coil   ||0; if(n) t.atkMs=Math.max(200,Math.round((t.atkMs||1200)*Math.pow(0.95,n)));
-  n=c.coin_magnet  ||0; if(n) window.G.goldMult=(window.G.goldMult||1)*(1+0.05*n);
-  n=c.crit_lens    ||0; if(n){ window.G.critChance=(window.G.critChance||0)+0.03*n; t.critChance=(t.critChance||0)+0.03*n; }
-  n=c.plasma_blade ||0; if(n) t.dmg=(t.dmg||0)+2*n;
-  n=c.shield_matrix||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.15*n));
-  n=c.death_core   ||0; if(n) t.dmg=(t.dmg||0)+5*n;
-  n=c.chrono_mod   ||0; if(n) t.atkMs=Math.max(200,Math.round((t.atkMs||1200)*Math.pow(0.85,n)));
-  n=c.quantum_armor||0; if(n) t.maxHp=Math.round((t.maxHp||20)*(1+0.30*n));
-  n=c.gold_rush    ||0; if(n) window.G.goldMult=(window.G.goldMult||1)*(1+0.15*n);
-  n=c.blood_circuit||0; if(n) localStorage.setItem('card_absorb_bonus',(n*0.01).toFixed(3));
+  var t = window.G.tower;
+  PRISMS.forEach(function(pr) {
+    var p = _getPrism(pr.id);
+    if (p.lv <= 0) return;
+    var val = pr.lvEff[p.lv - 1];
+    switch(pr.id) {
+      case 'p_damage':     t.dmg = Math.round(t.dmg * (1 + val/100)); break;
+      case 'p_max_hp':     t.maxHp = Math.round(t.maxHp * (1 + val/100)); t.hp = t.maxHp; break;
+      case 'p_atk_spd':    t.atkMs = Math.max(200, Math.round(t.atkMs / (1 + val/100))); break;
+      case 'p_range':      t.range = Math.round(t.range * (1 + val/100)); break;
+      case 'p_hp_regen':   G.regenRate = (G.regenRate||0) + val * 0.1; break;
+      case 'p_crit_rate':  t.critChance = Math.min(0.9, (t.critChance||0) + val/100); break;
+      case 'p_crit_dmg':   G.critMult = (G.critMult||2) + val; break;
+      case 'p_def':        t.defense = (t.defense||0) + val/100; break;
+      case 'p_cash':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
+      case 'p_coin':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
+      case 'p_boss_dmg':   G.bossDmgMult = (G.bossDmgMult||1) * (1 + val/100); break;
+      case 'p_inner_orb':  G.orbDmgMult = (G.orbDmgMult||1) * (1 + val/100); break;
+      case 'p_inner_orb2': G.orbDmgMult = (G.orbDmgMult||1) * (1 + val/100); break;
+      case 'p_death_ray':  G.dwDmgBonus = (G.dwDmgBonus||0) + val/100; break;
+      case 'p_kill_cash':  G.killCashMult = (G.killCashMult||1) * (1 + val/100); break;
+      case 'p_enemy_stat': G.killCashMult = (G.killCashMult||1) * (1 + val/100); break;
+      case 'p_shield_cd':  G.shieldCdReduction = (G.shieldCdReduction||0) + Math.abs(val)/100; break;
+      case 'p_free_upg':   G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
+      case 'p_free_upg2':  G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
+      case 'p_aura':       G.auraMult = (G.auraMult||1) * (1 + val/100); break;
+      case 'p_fort':       G.fortMult = (G.fortMult||1) * (1 + val/100); break;
+      case 'p_plasma_rep': G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
+      case 'p_plasma_rep2':G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
+      case 'p_crit_coin':  G.critCoinMult = (G.critCoinMult||1) * (1 + val/100); break;
+      case 'p_wave_skip':  G.waveSkipChance = (G.waveSkipChance||0) + val/100; break;
+      case 'p_intro_sprint':G.introBonus = (G.introBonus||0) + val/100; break;
+    }
+  });
 }
 
-// 카드 효과를 applyPermStats에 연결
+// applyPermStats 체이닝
 (function(){
   var tries=0, iv=setInterval(function(){
     var orig=window.applyPermStats;
-    if(!orig||orig._fCard){ if(++tries>40) clearInterval(iv); return; }
-    window.applyPermStats=function(){ orig.apply(this,arguments); _applyCardEffects(); };
-    window.applyPermStats._fCard=true;
+    if(!orig||orig._fPrism){ if(++tries>40) clearInterval(iv); return; }
+    window.applyPermStats=function(){ orig.apply(this,arguments); _applyPrismEffects(); };
+    window.applyPermStats._fPrism=true;
     clearInterval(iv);
   },200);
 }());
 
-// 카드 뽑기 결과 모달
+// 프리즘 뽑기 결과 모달
 function _showDrawResult(drawn) {
   var prev=document.getElementById('card-draw-modal');
   if(prev) prev.remove();
   var modal=document.createElement('div');
   modal.id='card-draw-modal';
-  modal.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;-webkit-tap-highlight-color:transparent;';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;';
 
   var ttl=document.createElement('div');
-  ttl.style.cssText='color:#00ffff;font-family:monospace;font-size:14px;letter-spacing:2px;';
+  ttl.style.cssText='color:#cc44ff;font-family:monospace;font-size:14px;letter-spacing:2px;';
   ttl.textContent=drawn.length===1?'프리즘 획득':'10연 획득';
   modal.appendChild(ttl);
 
@@ -9654,78 +9707,169 @@ function _showDrawResult(drawn) {
   var cols=drawn.length===1?1:5;
   grid.style.cssText='display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;max-width:340px;width:100%;';
 
-  drawn.forEach(function(card,idx){
+  drawn.forEach(function(pr,idx){
+    var p=_getPrism(pr.id);
+    var catCol=PRISM_CAT_COLOR[pr.cat]||'#cc44ff';
     var cell=document.createElement('div');
-    cell.style.cssText='background:#0a1a2a;border:1px solid '+card.color+';padding:'+(drawn.length===1?'20px 12px':'8px 4px')+';display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;transition:opacity 0.3s '+(idx*0.08)+'s;';
-    cell.innerHTML=_cardIconHTML(card.rarity, drawn.length===1?56:32)+
-      '<div style="font-size:'+(drawn.length===1?'11px':'8px')+';color:'+card.color+';font-family:monospace;text-align:center;">'+CARD_LABEL[card.rarity]+'</div>'+
-      '<div style="font-size:'+(drawn.length===1?'11px':'8px')+';color:#f1f5f9;font-family:monospace;text-align:center;">'+card.name+'</div>';
+    cell.style.cssText='background:#0a1020;border:1px solid '+catCol+'55;padding:'+(drawn.length===1?'16px 12px':'6px 4px')+';display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;transition:opacity 0.3s '+(idx*0.08)+'s;';
+    cell.innerHTML=
+      '<div style="font-size:'+(drawn.length===1?'22px':'14px')+';color:'+catCol+';text-shadow:0 0 8px '+catCol+';">◈</div>'+
+      '<div style="font-size:'+(drawn.length===1?'11px':'8px')+';color:#f1f5f9;font-family:monospace;text-align:center;">'+pr.name+'</div>'+
+      '<div style="font-size:'+(drawn.length===1?'10px':'7px')+';color:'+catCol+';font-family:monospace;">Lv.'+p.lv+'</div>';
     grid.appendChild(cell);
     setTimeout(function(){ cell.style.opacity='1'; }, 50+idx*80);
   });
   modal.appendChild(grid);
 
   var okBtn=document.createElement('button');
-  okBtn.style.cssText='margin-top:8px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:13px;padding:10px 40px;cursor:pointer;';
+  okBtn.style.cssText='margin-top:8px;background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:13px;padding:10px 40px;cursor:pointer;';
   okBtn.textContent='확인';
   okBtn.addEventListener('click',function(){ modal.remove(); _renderCardTab(); });
   modal.appendChild(okBtn);
   document.body.appendChild(modal);
 }
 
-// 카드 탭 콘텐츠 렌더링
+// 프리즘 탭 렌더링
 function _renderCardTab() {
   var content=document.getElementById('store-content');
   if(!content) return;
-  var cards=(window.PERM&&window.PERM.cards)||{};
-  var ownedCount=CARDS.filter(function(c){ return (cards[c.id]||0)>0; }).length;
+  var ownedCount=PRISMS.filter(function(pr){ return _getPrism(pr.id).lv>0; }).length;
+  var frags=_getFragments();
+  var totalOverflow=0;
+  PRISMS.forEach(function(pr){ totalOverflow+=_getOverflow(pr.id); });
 
   var html='<div style="padding:12px;display:flex;flex-direction:column;gap:12px;">';
-  html+='<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;">'+
-    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><circle cx="4.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="4.5" cy="11.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="11.5" r="1" fill="#cc44ff"/></svg> 프리즘 컬렉션</div>'+
-    '<div style="color:#556677;font-family:monospace;font-size:10px;">프리즘을 수집하여 전투 능력을 강화하세요. ('+ownedCount+'/12 수집)</div>'+
-    '</div>';
 
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  html+='<button id="card-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-    '<span style="font-size:18px;color:#cc44ff;">❖</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+CARD_SINGLE+'</span></button>';
-  html+='<button id="card-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-    '<span style="font-size:18px;color:#f59e0b;">❖×10</span><span>10회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+CARD_TEN+'</span></button>';
-  html+='</div>';
+  // 헤더
+  html+='<div style="background:#0a1020;border:1px solid #cc44ff33;padding:12px;">'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">◈ 프리즘 컬렉션</div>'+
+    '<div style="display:flex;justify-content:space-between;font-family:monospace;font-size:10px;">'+
+      '<span style="color:#556677;">수집: <span style="color:#cc44ff;">'+ownedCount+'/'+PRISMS.length+'</span></span>'+
+      '<span style="color:#556677;">파편: <span style="color:#f59e0b;">'+frags+'</span></span>'+
+    '</div></div>';
 
-  var rarOrder={epic:0,rare:1,common:2};
-  var sorted=CARDS.slice().sort(function(a,b){ return rarOrder[a.rarity]-rarOrder[b.rarity]; });
-  html+='<div style="color:#94a3b8;font-family:monospace;font-size:10px;border-bottom:1px solid #0a2233;padding-bottom:4px;">보유 카드</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
-  sorted.forEach(function(card){
-    var cnt=cards[card.id]||0, max=CARD_MAX[card.rarity]||10, owned=cnt>0;
-    html+='<div style="background:'+(owned?'#0a1a2a':'#060f18')+';border:1px solid '+(owned?card.color+'55':'#0a2233')+';padding:8px;display:flex;flex-direction:column;gap:3px;opacity:'+(owned?1:0.45)+';">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
-        _cardIconHTML(card.rarity, 28)+
-        '<span style="font-size:9px;color:'+card.color+';font-family:monospace;">'+CARD_LABEL[card.rarity]+'</span>'+
-      '</div>'+
-      '<div style="font-size:10px;color:'+(owned?'#f1f5f9':'#334455')+';font-family:monospace;font-weight:bold;">'+card.name+'</div>'+
-      '<div style="font-size:9px;color:#556677;font-family:monospace;">'+card.desc+'</div>'+
-      '<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">'+
-        '<div style="flex:1;background:#030b10;height:3px;border-radius:2px;overflow:hidden;"><div style="background:'+card.color+';height:3px;width:'+Math.round(cnt/max*100)+'%;"></div></div>'+
-        '<span style="font-size:9px;color:'+card.color+';font-family:monospace;">'+cnt+'/'+max+'</span>'+
-      '</div>'+
-    '</div>';
+  // 뽑기 버튼
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+      '<span style="font-size:16px;">◈</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+PRISM_SINGLE+'</span></button>'+
+    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+      '<span style="font-size:16px;">◈×10</span><span>10연 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+PRISM_TEN+'</span></button>'+
+  '</div>';
+
+  // 분해 버튼 (초과분 있을 때)
+  if(totalOverflow>0){
+    html+='<button id="prism-decompose" style="background:#1a0a20;border:1px solid #f59e0b55;color:#f59e0b;font-family:monospace;font-size:10px;padding:8px;cursor:pointer;text-align:center;">'+
+      '분해 가능: '+totalOverflow+'개 → 파편 '+(totalOverflow*5)+'개</button>';
+  }
+
+  // 파편 교환
+  if(frags>=30){
+    html+='<button id="prism-exchange" style="background:#0a1a10;border:1px solid #10b98155;color:#10b981;font-family:monospace;font-size:10px;padding:8px;cursor:pointer;text-align:center;">'+
+      '파편 30개 → 프리즘 선택 획득</button>';
+  }
+
+  // 카테고리별 프리즘 목록
+  ['active','inven','etc'].forEach(function(cat){
+    var catPrisms=PRISMS.filter(function(pr){return pr.cat===cat;});
+    var catCol=PRISM_CAT_COLOR[cat];
+    html+='<div style="color:'+catCol+';font-family:monospace;font-size:10px;border-bottom:1px solid '+catCol+'22;padding:4px 0;">'+PRISM_CAT_LABEL[cat]+' ('+catPrisms.length+'종)</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+    catPrisms.forEach(function(pr){
+      var p=_getPrism(pr.id);
+      var owned=p.lv>0;
+      var maxed=p.lv>=5;
+      var dupNeeded=maxed?0:p.lv===0?1:(PRISM_DUP_NEEDED[p.lv]||3);
+      var dupProg=maxed?'MAX':p.lv===0?'-':p.dup+'/'+dupNeeded;
+      var effText=owned?(pr.unit==='x'?'+'+pr.lvEff[p.lv-1]+'x':'+'+pr.lvEff[p.lv-1]+pr.unit):'미보유';
+
+      html+='<div style="background:'+(owned?'#0a1020':'#060810')+';border:1px solid '+(owned?catCol+'44':'#0a1a2a')+';padding:8px;display:flex;flex-direction:column;gap:3px;opacity:'+(owned?1:0.4)+';">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<span style="font-size:10px;color:'+(owned?'#f1f5f9':'#334455')+';font-family:monospace;font-weight:bold;">'+pr.name+'</span>'+
+          '<span style="font-size:9px;color:'+catCol+';font-family:monospace;">'+(owned?'Lv.'+p.lv:'')+'</span>'+
+        '</div>'+
+        '<div style="font-size:8px;color:#556677;font-family:monospace;">'+pr.desc+' <span style="color:'+catCol+';">'+effText+'</span></div>'+
+        (owned&&!maxed?'<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">'+
+          '<div style="flex:1;background:#030b10;height:3px;overflow:hidden;"><div style="background:'+catCol+';height:3px;width:'+Math.round(p.dup/dupNeeded*100)+'%;"></div></div>'+
+          '<span style="font-size:8px;color:#556677;font-family:monospace;">'+dupProg+'</span></div>':'')+
+        (maxed&&p.dup>0?'<div style="font-size:8px;color:#f59e0b;font-family:monospace;margin-top:2px;">초과 +'+p.dup+'</div>':'')+
+      '</div>';
+    });
+    html+='</div>';
   });
-  html+='</div></div>';
+
+  html+='</div>';
   content.innerHTML=html;
 
-  var d1=document.getElementById('card-draw-1');
+  // 뽑기 버튼 바인딩
+  var d1=document.getElementById('prism-draw-1');
   if(d1) d1.addEventListener('click',function(){
     var res=_doDraw(1);
     if(res===null){ d1.style.borderColor='#ef4444'; setTimeout(function(){d1.style.borderColor='#cc44ff';},400); }
     else _showDrawResult(res);
   });
-  var d10=document.getElementById('card-draw-10');
+  var d10=document.getElementById('prism-draw-10');
   if(d10) d10.addEventListener('click',function(){
     var res=_doDraw(10);
     if(res===null){ d10.style.borderColor='#ef4444'; setTimeout(function(){d10.style.borderColor='#f59e0b';},400); }
     else _showDrawResult(res);
+  });
+
+  // 분해 버튼
+  var decBtn=document.getElementById('prism-decompose');
+  if(decBtn) decBtn.addEventListener('click',function(){
+    var total=0;
+    PRISMS.forEach(function(pr){
+      var ov=_getOverflow(pr.id);
+      if(ov>0){ total+=ov; var pp=_getPrism(pr.id); _setPrism(pr.id,5,0); }
+    });
+    if(total>0){
+      _setFragments(_getFragments()+total*5);
+      window.savePerm&&window.savePerm();
+      if(window.showAchievementToast) showAchievementToast('프리즘 '+total+'개 분해 → 파편 '+(total*5)+'개 획득!');
+      _renderCardTab();
+    }
+  });
+
+  // 파편 교환
+  var exBtn=document.getElementById('prism-exchange');
+  if(exBtn) exBtn.addEventListener('click',function(){
+    if(_getFragments()<30) return;
+    // 선택 팝업
+    var prev2=document.getElementById('prism-select-popup');
+    if(prev2) prev2.remove();
+    var pop=document.createElement('div');
+    pop.id='prism-select-popup';
+    pop.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
+    var inner='<div style="background:#0a1020;border:1px solid #10b981;max-width:320px;width:100%;max-height:80vh;overflow-y:auto;padding:14px;">'+
+      '<div style="color:#10b981;font-family:monospace;font-size:12px;font-weight:bold;margin-bottom:10px;text-align:center;">프리즘 선택 (파편 30 소모)</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+    PRISMS.forEach(function(pr){
+      var p=_getPrism(pr.id);
+      inner+='<button data-select-prism="'+pr.id+'" style="background:#060810;border:1px solid #10b98133;color:#f1f5f9;font-family:monospace;font-size:9px;padding:8px;cursor:pointer;text-align:left;">'+
+        '<div style="font-weight:bold;">'+pr.name+'</div>'+
+        '<div style="color:#556677;font-size:8px;">현재 Lv.'+p.lv+'</div></button>';
+    });
+    inner+='</div><button id="prism-select-cancel" style="width:100%;margin-top:10px;background:#030b10;border:1px solid #334455;color:#778899;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">취소</button></div>';
+    pop.innerHTML=inner;
+    pop.addEventListener('click',function(e){if(e.target===pop) pop.remove();});
+    document.body.appendChild(pop);
+    document.getElementById('prism-select-cancel').addEventListener('click',function(){pop.remove();});
+    var sBtns=pop.querySelectorAll('[data-select-prism]');
+    for(var si=0;si<sBtns.length;si++){
+      (function(btn){
+        btn.addEventListener('click',function(){
+          if(_getFragments()<30) return;
+          var pid=btn.getAttribute('data-select-prism');
+          _setFragments(_getFragments()-30);
+          _addPrismDrop(pid);
+          window.savePerm&&window.savePerm();
+          var pr2=PRISMS.filter(function(x){return x.id===pid;})[0];
+          if(pr2&&window.showAchievementToast) showAchievementToast('◈ '+pr2.name+' 획득!');
+          pop.remove();
+          _renderCardTab();
+        });
+      })(sBtns[si]);
+    }
   });
 }
 
