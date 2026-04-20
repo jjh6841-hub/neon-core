@@ -2434,7 +2434,7 @@ function createState() {
     wave:         1,
     gold:         0,   // set from PERM in startGame
     gems:         0,   // set from PERM in startGame
-    phase:        'playing', // 'playing' | 'between' | 'gameover'
+    phase:        'intro', // 'intro' | 'playing' | 'between' | 'gameover'
     betweenTimer: 0,
     killCount:    0,   // enemies killed this run
     goldEarned:   0,   // gold earned this run
@@ -2669,16 +2669,17 @@ var shieldAbsorbCount = 0; // 실드 피해 차단 누적 횟수 (ev_shield_10 �
 
 function update(dt) {
   if (G.phase === 'gameover' || G.phase === 'paused') return;
-  // 인트로 타워 배치 연출
-  if (G.introTimer >= 0) {
-    G.introTimer += dt;
+  // 인트로 타워 배치 연출 (phase='intro' 동안 게임 로직 차단)
+  if (G.introTimer >= 0 || G.phase === 'intro') {
+    if (G.introTimer >= 0) G.introTimer += dt;
     if (G.introTimer >= 1500) {
       G.introTimer = -1;
+      G.phase = 'playing';
       startWave();
     }
     return;
   }
-  // 배속 적용
+  // 배속 적용 (intro 단계에서는 여기 도달 불가)
   var _spd = (G.phase === 'playing' || G.phase === 'between') ? (G.speed || 1) : 1;
   dt = dt * _spd;
 
@@ -3035,7 +3036,7 @@ function update(dt) {
   }
 
   // ── Check wave complete ──
-  const spawnDone = G.spawnIdx >= G.spawnQ.length;
+  const spawnDone = G.spawnQ.length > 0 && G.spawnIdx >= G.spawnQ.length;
   if (spawnDone && G.enemies.length === 0 && G.phase === 'playing') {
     onWaveComplete();
   }
