@@ -1430,7 +1430,9 @@ canvas {
     </div>
     <button id="btn-currency-toggle" style="background:none; border:none; color:#334455; font-size:13px; font-family:monospace; cursor:pointer; padding:0; line-height:1;">▼</button>
     <!-- 재화 상세 패널 -->
-    <div id="currency-panel" style="display:none; position:absolute; top:48px; right:0; width:220px; max-height:320px; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#0a1a2a; border:1px solid #0a3344; border-top:none; z-index:200; padding:8px 0;">
+    <div id="currency-panel" style="display:none; position:absolute; top:48px; right:0; width:240px; max-height:70vh; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#0a1a2a; border:1px solid #0a3344; border-top:none; z-index:200; padding:8px 0;">
+      <!-- 기본 재화 -->
+      <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">기본 재화</div>
       <div class="currency-row">
         <span style="color:#f59e0b; font-family:monospace; font-size:11px;">◈ 골드</span>
         <span id="panel-gold" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
@@ -1440,12 +1442,57 @@ canvas {
         <span id="panel-gem" style="color:#00ffff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">✦ 펄스 조각</span>
-        <span id="panel-pulse" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+        <span style="color:#00ff88; font-family:monospace; font-size:11px;">▲ 코어 크리스탈</span>
+        <span id="panel-crystal" style="color:#00ff88; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <!-- 프리즘 -->
+      <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">프리즘</div>
+      <div class="currency-row">
+        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">◇ 프리즘 파편</span>
+        <span id="panel-prism-frag" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#f59e0b; font-family:monospace; font-size:11px;">◈ 프리즘 파편</span>
-        <span id="panel-prism-frag" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">⬡ 프리즘 슬롯</span>
+        <span id="panel-prism-slot" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <!-- 탐사 -->
+      <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">요일탐사</div>
+      <div class="currency-row">
+        <span style="color:#ff8822; font-family:monospace; font-size:11px;">🎫 탐사 티켓</span>
+        <span id="panel-ticket" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#ef4444; font-family:monospace; font-size:11px;">✹ 화염 코어</span>
+        <span id="panel-core-fire" style="color:#ef4444; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#3b82f6; font-family:monospace; font-size:11px;">⎈ 심해 코어</span>
+        <span id="panel-core-water" style="color:#3b82f6; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#f59e0b; font-family:monospace; font-size:11px;">⚛ 번개 코어</span>
+        <span id="panel-core-electric" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#d4a04a; font-family:monospace; font-size:11px;">⏣ 대지 코어</span>
+        <span id="panel-core-earth" style="color:#d4a04a; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#10b981; font-family:monospace; font-size:11px;">❊ 질풍 코어</span>
+        <span id="panel-core-wind" style="color:#10b981; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#6b21a8; font-family:monospace; font-size:11px;">☽ 암흑 코어</span>
+        <span id="panel-core-dark" style="color:#6b21a8; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <!-- 기타 -->
+      <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">기타</div>
+      <div class="currency-row">
+        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">✦ 펄스 조각</span>
+        <span id="panel-pulse" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
         <span style="color:#bb44ff; font-family:monospace; font-size:11px;">⌘ 접근 코드</span>
@@ -1455,11 +1502,9 @@ canvas {
         <span style="color:#ff8822; font-family:monospace; font-size:11px;">⊕ 파워 코어</span>
         <span id="panel-pcore" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
-      <div class="currency-row">
-        <span style="color:#ff8822; font-family:monospace; font-size:11px;">🎫 탐사 티켓</span>
-        <span id="panel-ticket" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
-      </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <!-- 기록 -->
+      <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">기록</div>
       <div class="currency-row">
         <span style="color:#94a3b8; font-family:monospace; font-size:10px;">최고 웨이브</span>
         <span id="panel-best-wave" style="color:#94a3b8; font-family:monospace; font-size:11px;">0</span>
@@ -7357,18 +7402,27 @@ var panel       = document.getElementById('currency-panel');
 var panelOpen   = false;
 
 function openPanel() {
-  document.getElementById('panel-gold').textContent       = PERM.gold       || 0;
-  document.getElementById('panel-gem').textContent        = PERM.gems       || 0;
+  document.getElementById('panel-gold').textContent       = (PERM.gold||0).toLocaleString();
+  document.getElementById('panel-gem').textContent        = (PERM.gems||0).toLocaleString();
   document.getElementById('panel-best-wave').textContent  = PERM.bestWave   || 0;
-  document.getElementById('panel-total-kills').textContent= PERM.totalKills || 0;
+  document.getElementById('panel-total-kills').textContent= (PERM.totalKills||0).toLocaleString();
   var streak = parseInt(localStorage.getItem('td_daily_streak') || '0');
   document.getElementById('panel-streak').textContent = streak + '일';
-  // 추가 재화
-  try { document.getElementById('panel-pulse').textContent = window.pulseFragments || 0; } catch(_) {}
+  // 기본 재화
+  try { document.getElementById('panel-crystal').textContent = (PERM.crystals||0).toLocaleString(); } catch(_) {}
+  // 프리즘
   try { document.getElementById('panel-prism-frag').textContent = PERM.prismFragments || 0; } catch(_) {}
+  try { document.getElementById('panel-prism-slot').textContent = (PERM.prismSlotCount||1) + ' / 10'; } catch(_) {}
+  // 탐사
+  try { document.getElementById('panel-ticket').textContent = parseInt(localStorage.getItem('explore_tickets')||'3',10); } catch(_) {}
+  var _coreIds = ['fire','water','electric','earth','wind','dark'];
+  _coreIds.forEach(function(eid) {
+    try { document.getElementById('panel-core-'+eid).textContent = parseInt(localStorage.getItem('core_'+eid)||'0',10); } catch(_) {}
+  });
+  // 기타
+  try { document.getElementById('panel-pulse').textContent = window.pulseFragments || 0; } catch(_) {}
   try { document.getElementById('panel-access').textContent = parseInt(localStorage.getItem('accessCodes')||'0',10); } catch(_) {}
   try { document.getElementById('panel-pcore').textContent = parseInt(localStorage.getItem('powerCores')||'0',10); } catch(_) {}
-  try { document.getElementById('panel-ticket').textContent = parseInt(localStorage.getItem('explore_tickets')||'3',10); } catch(_) {}
   panel.style.display = 'block';
   toggleBtn.textContent = '▲';
   toggleBtn.style.color = '#00ffff';
@@ -10549,7 +10603,7 @@ function _renderCardTab() {
       var slotCost=PRISM_SLOT_COSTS[si]||9999;
       html+='<div data-slot-unlock="'+si+'" style="width:52px;height:52px;background:#0a0510;border:1px solid #cc44ff22;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:2px;">'+
         '<span style="font-size:9px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">🔒</span>'+
-        '<span style="font-size:11px;color:#cc44ff88;font-family:monospace;font-weight:bold;">❖'+slotCost+'</span></div>';
+        '<span style="font-size:11px;color:#00ffff;font-family:monospace;font-weight:bold;">❖'+slotCost+'</span></div>';
     }
   }
   html+='</div></div>';
