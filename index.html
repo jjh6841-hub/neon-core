@@ -14859,44 +14859,56 @@ function renderSkinGrid() {
       }
       var W = cv.width, H = cv.height, t = Date.now()*0.001;
       ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
 
       if (motionType === 'cloud') {
-        // 느린 구름 펄스
         for (var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=(Math.sin(t*0.2+pp.phase)*0.15);pp.y-=0.08;if(pp.y<-10){pp.y=H+10;pp.x=Math.random()*W;}var pulse=0.5+Math.sin(t*0.5+pp.phase)*0.5;ctx.globalAlpha=pp.a*pulse;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*4,0,Math.PI*2);ctx.fillStyle=pp.col;ctx.fill();}
       } else if (motionType === 'ember') {
-        // 떨어지는 불씨
-        for (var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t+pp.phase)*0.3;pp.y+=0.3+pp.r*0.2;if(pp.y>H+5){pp.y=-5;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;ctx.fillRect(pp.x-pp.r*0.5,pp.y-pp.r*0.5,pp.r,pp.r);}
+        for (var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t+pp.phase)*0.2;pp.y+=0.2+pp.r*0.1;if(pp.y>H+5){pp.y=-5;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;ctx.fillRect(pp.x-pp.r*0.5,pp.y-pp.r*0.5,pp.r,pp.r);}
       } else if (motionType === 'bubble') {
-        // 올라가는 거품
-        for (var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t*0.8+pp.phase)*0.2;pp.y-=0.2+pp.r*0.1;if(pp.y<-10){pp.y=H+10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a*0.6;ctx.strokeStyle=pp.col;ctx.lineWidth=0.5;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*2,0,Math.PI*2);ctx.stroke();}
+        for (var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t*0.8+pp.phase)*0.15;pp.y-=0.15+pp.r*0.06;if(pp.y<-10){pp.y=H+10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a*0.6;ctx.strokeStyle=pp.col;ctx.lineWidth=0.5;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*2,0,Math.PI*2);ctx.stroke();}
       } else if (motionType === 'vortex') {
-        // 소용돌이
-        var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.008;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.6){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.4;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r,0,Math.PI*2);ctx.fill();}
+        var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.005;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.5){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.35;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r,0,Math.PI*2);ctx.fill();}
       } else if (motionType === 'wave') {
-        // 수평 오로라 밴드
-        for(var b=0;b<4;b++){var by=H*(0.2+b*0.2)+Math.sin(t*0.3+b)*20;ctx.globalAlpha=0.04;ctx.strokeStyle=cols[b%2];ctx.lineWidth=30+Math.sin(t*0.5+b)*10;ctx.beginPath();ctx.moveTo(0,by);for(var bx=0;bx<=W;bx+=20){ctx.lineTo(bx,by+Math.sin(bx*0.01+t*0.5+b)*15);}ctx.stroke();}
-        ctx.globalAlpha=1;
+        // 오로라 밴드: 다층 반투명 그라데이션 웨이브
+        for(var b=0;b<6;b++){
+          var baseY=H*(0.15+b*0.14);
+          var amp=12+b*3;
+          var freq=0.008+b*0.002;
+          var spd=0.15+b*0.05;
+          ctx.beginPath();
+          ctx.moveTo(0, H);
+          for(var bx=0;bx<=W;bx+=4){
+            var wy=baseY+Math.sin(bx*freq+t*spd+b*1.2)*amp+Math.sin(bx*freq*2.3+t*spd*0.7)*amp*0.3;
+            ctx.lineTo(bx, wy);
+          }
+          ctx.lineTo(W, H);
+          ctx.closePath();
+          var grd=ctx.createLinearGradient(0, baseY-amp, 0, baseY+amp*2);
+          grd.addColorStop(0, cols[b%2]+'00');
+          grd.addColorStop(0.3, cols[b%2]+'12');
+          grd.addColorStop(0.6, cols[(b+1)%2]+'08');
+          grd.addColorStop(1, cols[b%2]+'00');
+          ctx.globalAlpha=0.5;
+          ctx.fillStyle=grd;
+          ctx.fill();
+        }
       } else if (motionType === 'radiate') {
-        // 중심에서 퍼지는 입자
-        var cx2=W/2,cy2=H*0.4;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var dx=pp.x-cx2,dy=pp.y-cy2;var dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)dist=2;pp.x+=dx/dist*0.5;pp.y+=dy/dist*0.5;if(pp.x<-10||pp.x>W+10||pp.y<-10||pp.y>H+10){pp.x=cx2+(Math.random()-0.5)*30;pp.y=cy2+(Math.random()-0.5)*30;}ctx.globalAlpha=pp.a*(1-Math.min(1,dist/(W*0.5)));ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r,0,Math.PI*2);ctx.fill();}
+        var cx2=W/2,cy2=H*0.4;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var dx=pp.x-cx2,dy=pp.y-cy2;var dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)dist=2;pp.x+=dx/dist*0.3;pp.y+=dy/dist*0.3;if(dist>Math.min(W,H)*0.45){pp.x=cx2+(Math.random()-0.5)*30;pp.y=cy2+(Math.random()-0.5)*30;}ctx.globalAlpha=pp.a*(1-Math.min(1,dist/(W*0.45)));ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r,0,Math.PI*2);ctx.fill();}
       } else if (motionType === 'snow') {
-        // 눈처럼 떨어지는 입자
-        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t*0.5+pp.phase)*0.4;pp.y+=0.15+pp.r*0.08;if(pp.y>H+5){pp.y=-5;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;var sz=pp.r*1.5;ctx.beginPath();for(var si=0;si<6;si++){var sa=Math.PI/3*si;ctx.moveTo(pp.x,pp.y);ctx.lineTo(pp.x+sz*Math.cos(sa),pp.y+sz*Math.sin(sa));}ctx.strokeStyle=pp.col;ctx.lineWidth=0.5;ctx.stroke();}
+        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t*0.5+pp.phase)*0.3;pp.y+=0.12+pp.r*0.05;if(pp.y>H+5){pp.y=-5;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a;var sz=pp.r*1.5;ctx.beginPath();for(var si=0;si<6;si++){var sa=Math.PI/3*si;ctx.moveTo(pp.x,pp.y);ctx.lineTo(pp.x+sz*Math.cos(sa),pp.y+sz*Math.sin(sa));}ctx.strokeStyle=pp.col;ctx.lineWidth=0.5;ctx.stroke();}
       } else if (motionType === 'bolt') {
-        // 빠른 입자 + 간헐적 번개
-        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=(Math.random()-0.5)*1.5;pp.y+=(Math.random()-0.5)*1.5;if(pp.x<0)pp.x=W;if(pp.x>W)pp.x=0;if(pp.y<0)pp.y=H;if(pp.y>H)pp.y=0;ctx.globalAlpha=pp.a*0.8;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*0.8,0,Math.PI*2);ctx.fill();}
-        if(Math.random()<0.01){ctx.globalAlpha=0.06;ctx.strokeStyle=cols[0];ctx.lineWidth=2;ctx.beginPath();var lx=Math.random()*W;ctx.moveTo(lx,0);for(var ly2=0;ly2<H;ly2+=20)ctx.lineTo(lx+(Math.random()-0.5)*30,ly2);ctx.stroke();}
+        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=(Math.random()-0.5)*0.5;pp.y+=(Math.random()-0.5)*0.5;pp.x=Math.max(0,Math.min(W,pp.x));pp.y=Math.max(0,Math.min(H,pp.y));ctx.globalAlpha=pp.a*0.8;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*0.8,0,Math.PI*2);ctx.fill();}
+        if(Math.random()<0.006){ctx.globalAlpha=0.05;ctx.strokeStyle=cols[0];ctx.lineWidth=1.5;ctx.beginPath();var lx=Math.random()*W;ctx.moveTo(lx,0);for(var ly2=0;ly2<H;ly2+=25)ctx.lineTo(lx+(Math.random()-0.5)*20,ly2);ctx.stroke();}
       } else if (motionType === 'drift') {
-        // 수평 먼지 이동
-        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=0.3+pp.r*0.1;pp.y+=Math.sin(t+pp.phase)*0.1;if(pp.x>W+5){pp.x=-5;pp.y=Math.random()*H;}ctx.globalAlpha=pp.a*0.6;ctx.fillStyle=pp.col;ctx.fillRect(pp.x,pp.y,pp.r*3,pp.r*0.5);}
+        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=0.15+pp.r*0.05;pp.y+=Math.sin(t+pp.phase)*0.08;if(pp.x>W+5){pp.x=-5;pp.y=Math.random()*H;}ctx.globalAlpha=pp.a*0.6;ctx.fillStyle=pp.col;ctx.fillRect(pp.x,pp.y,pp.r*3,pp.r*0.5);}
       } else if (motionType === 'rain') {
-        // 매트릭스 레인
-        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.y+=1.5+pp.r;if(pp.y>H+10){pp.y=-10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;ctx.font=(6+pp.r*2)+'px monospace';ctx.fillText(String.fromCharCode(0x30A0+Math.floor(Math.random()*96)),pp.x,pp.y);}
+        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.y+=0.5+pp.r*0.3;if(pp.y>H+10){pp.y=-10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a;ctx.fillStyle=pp.col;ctx.font=(6+pp.r*2)+'px monospace';ctx.fillText(String.fromCharCode(0x30A0+Math.floor(Math.random()*96)),pp.x,pp.y);}
       } else if (motionType === 'ghost') {
-        // 페이드인/아웃 원
         for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var fade=Math.abs(Math.sin(t*0.3+pp.phase));ctx.globalAlpha=pp.a*fade*0.5;ctx.strokeStyle=pp.col;ctx.lineWidth=0.5;ctx.beginPath();ctx.arc(pp.x+Math.sin(t*0.2+pp.phase)*5,pp.y+Math.cos(t*0.15+pp.phase)*5,pp.r*5+fade*8,0,Math.PI*2);ctx.stroke();}
       }
-      ctx.globalAlpha = 1;
+      ctx.restore();
       _homeBgRaf = requestAnimationFrame(_drawHomeBg);
     }
     _homeBgRaf = requestAnimationFrame(_drawHomeBg);
