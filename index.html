@@ -3812,14 +3812,9 @@ function render() {
       }
     }
 
-    // Phase 4 (1100-1500ms): 플래시 + CORE ONLINE
+    // Phase 4 (1100-1500ms): CORE ONLINE 텍스트
     if (t > 1100) {
       var p4 = (t-1100)/400;
-      if (p4 < 0.15) {
-        ctx.globalAlpha = 0.25*(1-p4/0.15);
-        ctx.fillStyle = _ac;
-        ctx.fillRect(0, 0, CW, CH);
-      }
       ctx.globalAlpha = Math.max(0, 1-p4*1.8);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = 'bold 14px "Courier New", monospace';
@@ -4079,9 +4074,14 @@ function renderHUD() {
   }
   var waveBar = document.getElementById('hud-wave-bar');
   if (waveBar && G.spawnQ) {
-    var prog = G.spawnQ.length > 0 ? ((G.spawnQ.length - G.enemies.length) / G.spawnQ.length * 100) : 0;
-    if (G.spawnIdx < G.spawnQ.length) prog = (G.spawnIdx / G.spawnQ.length * 50);
-    else prog = G.enemies.length === 0 ? 100 : (50 + (1 - G.enemies.length / G.spawnQ.length) * 50);
+    var prog = 0;
+    if (G.phase === 'intro' || G.spawnQ.length === 0) {
+      prog = 0;
+    } else if (G.spawnIdx < G.spawnQ.length) {
+      prog = (G.spawnIdx / G.spawnQ.length * 50);
+    } else {
+      prog = G.enemies.length === 0 ? 100 : (50 + (1 - G.enemies.length / G.spawnQ.length) * 50);
+    }
     waveBar.style.width = Math.min(100, Math.max(0, prog)) + '%';
   }
   var hpBar = document.getElementById('hud-hp-bar');
@@ -4137,9 +4137,9 @@ function buildCards() {
     pane.innerHTML = '';
     // 유틸 탭 해금 안 되면 잠금 안내 표시
     if (tabKey === 'utl' && !_utlTabOpen) {
-      pane.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;opacity:0.5;">' +
-        '<div style="font-size:28px;">🔒</div>' +
-        '<div style="color:#334455;font-family:monospace;font-size:10px;">코어랩에서 해금</div></div>';
+      pane.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px;opacity:0.5;">' +
+        '<div style="color:#556677;font-family:monospace;font-size:11px;">유틸리티 잠금</div>' +
+        '<div style="color:#334455;font-family:monospace;font-size:9px;">강화 탭에서 해금할 수 있습니다</div></div>';
       continue;
     }
     for (const upg of UPGRADES) {
@@ -11527,7 +11527,7 @@ function _injectUtilTabInGame() {
     '<div style="font-size:40px;">🔨</div>'+
     '<div style="color:#334455;font-family:monospace;font-size:13px;font-weight:bold;text-align:center;letter-spacing:2px;">유틸리티 잠금</div>'+
     '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.8;max-width:220px;">'+
-      '유틸리티 업그레이드는<br>코어랩에서 해금할 수 있습니다.</div>'+
+      '유틸리티 업그레이드는<br>강화 탭에서 해금할 수 있습니다.</div>'+
     '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어랩으로 이동</button>';
   tabContent.appendChild(pane);
 
