@@ -1514,7 +1514,7 @@ canvas {
   <!-- 카테고리 탭 -->
   <div id="ws-tab-bar" style="display:flex; height:36px; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
     <button class="ws-tab" data-tab="atk" data-tabcolor="#3b82f6" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid #3b82f6;color:#3b82f6;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><span style="font-size:14px;line-height:1;">⚔</span><span style="letter-spacing:1px;">공격</span></button>
-    <button class="ws-tab" data-tab="def" data-tabcolor="#ef4444" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><path d="M7,1 L12,4 L12,10 L7,13 L2,10 L2,4 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7,4 L9.5,5.5 L9.5,8.5 L7,10 L4.5,8.5 L4.5,5.5 Z" fill="none" stroke="currentColor" stroke-width="0.8"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg><span style="letter-spacing:1px;">방어</span></button>
+    <button class="ws-tab" data-tab="def" data-tabcolor="#ef4444" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><path d="M7,1 L12,3 L12,8 Q12,12 7,13.5 Q2,12 2,8 L2,3 Z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7,4 L9.5,5.5 L9.5,8 Q9.5,10 7,11 Q4.5,10 4.5,8 L4.5,5.5 Z" fill="none" stroke="currentColor" stroke-width="0.7" opacity="0.5"/><line x1="7" y1="5" x2="7" y2="9" stroke="currentColor" stroke-width="0.8"/><line x1="5" y1="7" x2="9" y2="7" stroke="currentColor" stroke-width="0.8"/></svg><span style="letter-spacing:1px;">방어</span></button>
     <button class="ws-tab" data-tab="utl" data-tabcolor="#f59e0b" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 8.5,5 13,5.5 9.5,8.5 10.5,13 7,10.5 3.5,13 4.5,8.5 1,5.5 5.5,5" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg><span style="letter-spacing:1px;">유틸</span></button>
     <button class="ws-tab" data-tab="ult" data-tabcolor="#00ff88" style="flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:'Courier New',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;"><svg width="14" height="14" viewBox="0 0 14 14" class="ws-tab-icon"><polygon points="7,1 13,4.5 13,9.5 7,13 1,9.5 1,4.5" fill="none" stroke="currentColor" stroke-width="1.1"/><line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="0.6" opacity="0.5"/><circle cx="7" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="0.9"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg><span style="letter-spacing:1px;">속성</span></button>
   </div>
@@ -2027,6 +2027,18 @@ function loadPerm() {
       PERM.ws           = (d.ws && typeof d.ws === 'object') ? d.ws : {};
       PERM.ws_atk_unlocks = d.ws_atk_unlocks ?? 0;
       PERM.ws_def_unlocks = d.ws_def_unlocks ?? 0;
+      // 프리즘 데이터 복원
+      PERM.prisms         = (d.prisms && typeof d.prisms === 'object') ? d.prisms : {};
+      PERM.prismFragments = d.prismFragments ?? 0;
+      PERM.prismSlotCount = d.prismSlotCount ?? 1;
+      PERM.prismEquipped  = Array.isArray(d.prismEquipped) ? d.prismEquipped : [];
+      PERM.cardsVisited   = d.cardsVisited ?? 0;
+      // 기타 동적 필드 보존 (저장된 모든 키를 PERM에 병합)
+      for (var _pk in d) {
+        if (d.hasOwnProperty(_pk) && PERM[_pk] === undefined) {
+          PERM[_pk] = d[_pk];
+        }
+      }
     }
   } catch (_) {}
 }
@@ -4002,12 +4014,61 @@ function buildCards() {
         '<span class="card-name">'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
         '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
-      btn.addEventListener('touchstart', function(ev) { ev.preventDefault(); }, { passive: false });
-      btn.addEventListener('touchend',   function(ev) { ev.preventDefault(); doUpgrade(upg.key); }, { passive: false });
-      btn.addEventListener('click', function() { doUpgrade(upg.key); });
+      (function(_upg, _btn) {
+        var _lpt = null;
+        var _lpFired = false;
+        _btn.addEventListener('touchstart', function(ev) {
+          ev.preventDefault();
+          _lpFired = false;
+          _lpt = setTimeout(function() { _lpFired = true; _showUpgDetail(_upg); }, 400);
+        }, { passive: false });
+        _btn.addEventListener('touchend', function(ev) {
+          ev.preventDefault();
+          clearTimeout(_lpt);
+          if (!_lpFired) doUpgrade(_upg.key);
+        }, { passive: false });
+        _btn.addEventListener('touchmove', function() { clearTimeout(_lpt); }, { passive: true });
+        _btn.addEventListener('click', function() { if (!_lpFired) doUpgrade(_upg.key); });
+      })(upg, btn);
       pane.appendChild(btn);
     }
   }
+}
+
+function _showUpgDetail(upg) {
+  var old = document.getElementById('upg-detail-popup');
+  if (old) old.remove();
+  var lv = G ? (G.upgLvl[upg.key] || 0) : 0;
+  var maxLv = upg.maxLv || upg.maxLvl || '∞';
+  var statVal = G ? upg.stat() : '-';
+  var descMap = {
+    dmg:'레이저 기본 공격력을 증가시킵니다',spd:'레이저 발사 간격을 줄여 초당 공격 횟수를 증가시킵니다',
+    rng:'레이저 사거리를 확장합니다',crit:'적 적중 시 치명타가 발생할 확률을 높입니다',
+    multi:'한 번에 발사하는 레이저 수를 증가시킵니다',pierce:'레이저가 적을 관통하여 뒤의 적에게도 피해를 줍니다',
+    rapidChance:'일정 확률로 고속 연사 모드가 발동합니다',rapidDuration:'고속 연사 모드의 지속 시간을 늘립니다',
+    bounceChance:'레이저가 적에게 맞은 뒤 다른 적에게 튕길 확률',bounceTargets:'바운스 시 튕기는 최대 적 수',
+    maxhp:'타워의 최대 체력을 늘립니다',hpRegen:'매 초 자동으로 체력을 회복합니다',
+    armor:'받는 피해를 감소시키는 방어 중첩을 쌓습니다',vamp:'적 처치 시 체력을 흡수합니다',
+    explode:'적 사망 시 주변 적에게 범위 피해를 줍니다',slow:'적 이동 속도를 감소시킵니다',
+    gemup:'보석 획득량을 증폭합니다',goldup:'골드 획득량을 증폭합니다'
+  };
+  var desc = descMap[upg.key] || upg.name + ' 능력을 강화합니다';
+  var ov = document.createElement('div');
+  ov.id = 'upg-detail-popup';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML =
+    '<div style="background:#0a1520;border:1px solid #00ffff;padding:18px;max-width:260px;width:90%;font-family:\'Courier New\',monospace;">' +
+      '<div style="color:#00ffff;font-size:14px;font-weight:bold;margin-bottom:8px;">' + upg.icon + ' ' + upg.name + '</div>' +
+      '<div style="color:#94a3b8;font-size:10px;margin-bottom:10px;line-height:1.6;">' + desc + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 레벨</span><span style="color:#00ffff;">' + lv + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">최대 레벨</span><span style="color:#f59e0b;">' + maxLv + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 능력치</span><span style="color:#00ff88;">' + statVal + '</span></div>' +
+      '</div>' +
+      '<button id="upg-detail-close" style="width:100%;background:transparent;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">닫기</button>' +
+    '</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', function(e) { if (e.target === ov || e.target.id === 'upg-detail-close') ov.remove(); });
 }
 
 function setActiveTab(tabKey) {
@@ -6879,6 +6940,29 @@ for (var fi = 0; fi < filterBtns.length; fi++) {
   }(filterBtns[fi]));
 }
 
+/* ── 코어랩 연구 완료 알림 ── */
+var _labNotified = {};
+setInterval(function() {
+  try {
+    var lab = _loadLab();
+    var now = Date.now();
+    for (var i = 0; i < LAB_SLOT_COUNT; i++) {
+      var sd = lab['slot' + i];
+      if (!sd || !sd.researchId || !sd.endTime) continue;
+      var nk = 'slot' + i + '_' + sd.researchId;
+      if (_labNotified[nk]) continue;
+      if (now >= sd.endTime) {
+        _labNotified[nk] = true;
+        var rObj = ALL_RESEARCH.filter(function(r) { return r.id === sd.researchId; })[0];
+        var rName = rObj ? rObj.name : sd.researchId;
+        if (window.showAchievementToast) showAchievementToast('연구 완료: ' + rName);
+        if (window.showRewardPopup) showRewardPopup([{icon:'◈', label:rName, amount:1, color:'#00ff88'}], '연구 완료');
+        _buildLabSlots();
+      }
+    }
+  } catch(_) {}
+}, 3000);
+
 }());
 </script>
 
@@ -9040,7 +9124,7 @@ function _applyTabStyles() {
         btn._lockPatched = true;
         var lock = document.createElement('span');
         lock.className = 'tab-lock-icon';
-        lock.style.cssText = 'font-size:8px;position:absolute;top:2px;right:3px;color:#334455;';
+        lock.style.cssText = 'font-size:7px;position:absolute;top:2px;right:3px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);';
         lock.textContent = '🔒';
         btn.style.position = 'relative';
         btn.appendChild(lock);
@@ -10131,7 +10215,7 @@ function _renderCardTab() {
 
   // 헤더
   html+='<div style="background:#0a1020;border:1px solid #cc44ff33;padding:10px;">'+
-    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;">◈ 프리즘</div>'+
+    '<div style="color:#cc44ff;font-family:monospace;font-size:13px;font-weight:bold;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 16 16" style="display:inline-block;vertical-align:middle;"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><circle cx="4.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="4.5" cy="11.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="11.5" r="1" fill="#cc44ff"/></svg> 프리즘</div>'+
     '<div style="display:flex;justify-content:space-between;font-family:monospace;font-size:10px;">'+
       '<span style="color:#556677;">수집: <span style="color:#cc44ff;">'+ownedCount+'/'+PRISMS.length+'</span></span>'+
       '<span style="color:#556677;">파편: <span style="color:#f59e0b;">'+frags+'</span></span>'+
@@ -10158,8 +10242,8 @@ function _renderCardTab() {
     } else {
       var slotCost=PRISM_SLOT_COSTS[si]||9999;
       html+='<div data-slot-unlock="'+si+'" style="width:52px;height:52px;background:#0a0510;border:1px solid #cc44ff22;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:2px;">'+
-        '<span style="font-size:10px;color:#cc44ff44;">🔒</span>'+
-        '<span style="font-size:8px;color:#cc44ff88;font-family:monospace;">❖'+slotCost+'</span></div>';
+        '<span style="font-size:9px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">🔒</span>'+
+        '<span style="font-size:10px;color:#cc44ff88;font-family:monospace;">❖'+slotCost+'</span></div>';
     }
   }
   html+='</div></div>';
@@ -11109,8 +11193,7 @@ function _injectUtilTabInGame() {
    INITIALIZATION
 ════════════════════════════════════════════════════════ */
 function _mainInit() {
-  // Feature 1: 카드 탭
-  _injectCardTab();
+  // Feature 1: 카드 탭 (스토어에서 제거됨 — 프리즘은 별도 탭으로 접근)
 
   // Feature 2: 랭킹 화면
   _buildRankingScreen();
@@ -13029,10 +13112,10 @@ function renderLeftIcons() {
       var lockHtml = !unlocked ? '<span style="position:absolute;top:2px;right:2px;font-size:7px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">\uD83D\uDD12</span>' : '';
       // 활성 테두리: 이벤트만 alpha 유지, 나머지(업적/토너먼트/길드)는 풀 컬러
       var borderCol;
-      if (!unlocked) borderCol = '#0a1a2a';
+      if (!unlocked) borderCol = '#1a2a3a';
       else if (icon.id === 'event') borderCol = unlockedColor + '55';
       else borderCol = unlockedColor;
-      var labelCol = unlocked ? unlockedColor : '#1a2a3a';
+      var labelCol = unlocked ? unlockedColor : '#334455';
       // 부모 button의 color는 SVG currentColor 동작용 (길드)
       btn.style.cssText = 'width:44px; height:44px; background:#0a1a2a; border:1px solid ' + borderCol + '; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; cursor:' + (unlocked ? 'pointer' : 'default') + '; flex-shrink:0; position:relative; color:' + labelCol + ';';
       if (customIcon) {
@@ -13824,7 +13907,7 @@ function _injectAbsorbPack() {
   card.id = 'absorb-pack-card';
   card.style.cssText = 'background:#0a1a2a;border:1px solid #cc0044;border-left:4px solid #cc0044;padding:12px;display:flex;justify-content:space-between;align-items:center;margin:0 8px 8px;position:relative;';
   card.innerHTML =
-    '<div style="position:absolute;top:8px;right:8px;background:#cc0044;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-family:monospace;">유료</div>' +
+    '' +
     '<div><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">흡혈 코어 팩</div>' +
     '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:4px;">에너지 흡수율 영구 +5%<br>레이저 적중 시 추가 회복</div></div>' +
     (owned
