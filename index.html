@@ -7099,7 +7099,9 @@ document.getElementById('lab-hide-complete') && document.getElementById('lab-hid
   _buildLabPopupList();
 });
 var _lhToggle = document.getElementById('lab-hide-toggle');
-if (_lhToggle) _lhToggle.addEventListener('click', function() {
+if (_lhToggle) _lhToggle.addEventListener('click', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
   var cb = document.getElementById('lab-hide-complete');
   if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
 });
