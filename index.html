@@ -9707,8 +9707,44 @@ var _SP_TIERS = [];
   }
 })();
 
+function _spGetSeasonKey() {
+  var d = new Date();
+  var m = d.getMonth() + 1;
+  return d.getFullYear() + '-' + (m < 10 ? '0' + m : '' + m);
+}
+
+function _spCheckSeasonReset() {
+  var cur = _spGetSeasonKey();
+  var stored = localStorage.getItem('sp_season') || '';
+  if (stored !== cur) {
+    localStorage.setItem('sp_season', cur);
+    localStorage.setItem('sp_season_kills_base', localStorage.getItem('inf_elite_total') || '0');
+    localStorage.setItem('sp_claimed', '[]');
+    localStorage.setItem('sp_premium_claimed', '[]');
+    localStorage.setItem('sp_premium', '0');
+  }
+}
+
 function _spGetKills() {
-  return parseInt(localStorage.getItem('inf_elite_total') || '0', 10);
+  _spCheckSeasonReset();
+  var total = parseInt(localStorage.getItem('inf_elite_total') || '0', 10);
+  var base = parseInt(localStorage.getItem('sp_season_kills_base') || '0', 10);
+  return Math.max(0, total - base);
+}
+
+function _spGetTimeRemaining() {
+  var now = new Date();
+  var next = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0);
+  var diff = next - now;
+  if (diff <= 0) return '시즌 종료';
+  var d = Math.floor(diff / 86400000);
+  var h = Math.floor((diff % 86400000) / 3600000);
+  var m = Math.floor((diff % 3600000) / 60000);
+  return d + '일 ' + h + '시간 ' + m + '분';
+}
+
+function _spGetSeasonMonth() {
+  return (new Date()).getMonth() + 1;
 }
 function _spGetClaimed() {
   try { return JSON.parse(localStorage.getItem('sp_claimed') || '[]'); } catch(e) { return []; }
@@ -9791,6 +9827,10 @@ function _spRenderPopup() {
       '</div>' +
       '<div style="width:100%;height:6px;background:#0a1a2a;border:1px solid #1a3344;border-radius:3px;overflow:hidden;">' +
         '<div style="width:' + pctGlobal + '%;height:100%;background:linear-gradient(90deg,#ff8822,#f59e0b);transition:width 0.3s;"></div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:6px 8px;background:#0a1520;border:1px solid #1a2a3a;">' +
+        '<span style="color:#94a3b8;font-size:9px;">' + _spGetSeasonMonth() + '월 시즌 종료까지</span>' +
+        '<span style="color:#ff8822;font-size:11px;font-weight:bold;">' + _spGetTimeRemaining() + '</span>' +
       '</div>' +
       (hasPremium
         ? '<div style="margin-top:8px;text-align:center;padding:6px;border:1px solid #ff8822;background:rgba(255,136,34,0.1);"><span style="color:#ff8822;font-size:11px;font-weight:bold;letter-spacing:1px;">✦ 프리미엄 패스 활성화</span></div>'
