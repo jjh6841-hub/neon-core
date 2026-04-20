@@ -1415,7 +1415,7 @@ canvas {
     </div>
     <button id="btn-currency-toggle" style="background:none; border:none; color:#334455; font-size:13px; font-family:monospace; cursor:pointer; padding:0; line-height:1;">▼</button>
     <!-- 재화 상세 패널 -->
-    <div id="currency-panel" style="display:none; position:absolute; top:48px; right:0; width:200px; background:#0a1a2a; border:1px solid #0a3344; border-top:none; z-index:200; padding:8px 0;">
+    <div id="currency-panel" style="display:none; position:absolute; top:48px; right:0; width:220px; max-height:320px; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#0a1a2a; border:1px solid #0a3344; border-top:none; z-index:200; padding:8px 0;">
       <div class="currency-row">
         <span style="color:#f59e0b; font-family:monospace; font-size:11px;">◈ 골드</span>
         <span id="panel-gold" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
@@ -1423,6 +1423,26 @@ canvas {
       <div class="currency-row">
         <span style="color:#00ffff; font-family:monospace; font-size:11px;">❖ 보석</span>
         <span id="panel-gem" style="color:#00ffff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">✦ 펄스 조각</span>
+        <span id="panel-pulse" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#f59e0b; font-family:monospace; font-size:11px;">◈ 프리즘 파편</span>
+        <span id="panel-prism-frag" style="color:#f59e0b; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#bb44ff; font-family:monospace; font-size:11px;">⌘ 접근 코드</span>
+        <span id="panel-access" style="color:#bb44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#ff8822; font-family:monospace; font-size:11px;">⊕ 파워 코어</span>
+        <span id="panel-pcore" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#ff8822; font-family:monospace; font-size:11px;">🎫 탐사 티켓</span>
+        <span id="panel-ticket" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
       <div class="currency-row">
@@ -1507,7 +1527,6 @@ canvas {
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="ws-gold">0</span></span>
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="ws-gem">0</span></span>
     </div>
-    <span style="color:#334455; font-size:13px; cursor:pointer;">▼</span>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">강화</div>
 
@@ -6642,9 +6661,9 @@ Object.keys(RESEARCH_LIST).forEach(function(cat) {
   RESEARCH_LIST[cat].forEach(function(r) { r.cat = cat; ALL_RESEARCH.push(r); });
 });
 
-var LAB_SLOT_COUNT = 3;
-var LAB_SLOT_UNLOCK = [0, 20, 35]; // wave 달성 시 해금
-var LAB_SLOT_COST   = [0, 500, 1000];
+var LAB_SLOT_COUNT = 10;
+var LAB_SLOT_UNLOCK = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 웨이브 조건 없음
+var LAB_SLOT_COST   = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800]; // 기본 1개 무료, 보석 200씩 증가
 var _labSelectSlot  = null;
 var _labFilterCat   = 'main';
 var _labHideComplete = false;
@@ -6714,13 +6733,13 @@ function _buildLabSlots() {
       title += '<span style="font-size:10px;color:#1a2a3a;font-family:monospace;">웨이브 ' + LAB_SLOT_UNLOCK[i] + ' 달성 시 해금</span>';
       slotEl.innerHTML = title + '</div>';
     } else if (needBuy) {
-      title += '<button data-lab-buy="' + i + '" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:4px 10px;cursor:pointer;">◈' + LAB_SLOT_COST[i] + ' 해금</button>';
+      title += '<button data-lab-buy="' + i + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 10px;cursor:pointer;">❖' + LAB_SLOT_COST[i] + ' 해금</button>';
       slotEl.innerHTML = title + '</div><div style="color:#334455;font-family:monospace;font-size:10px;">슬롯 ' + (i+1) + ' 해금 필요</div>';
       (function(idx, cost) {
         var buyBtn = slotEl.querySelector('[data-lab-buy]');
         buyBtn.addEventListener('click', function() {
-          if (PERM.gold < cost) return;
-          PERM.gold -= cost;
+          if ((PERM.gems||0) < cost) return;
+          PERM.gems -= cost;
           savePerm();
           var labData = _loadLab();
           if (!labData['slot' + idx]) labData['slot' + idx] = {};
@@ -7233,6 +7252,12 @@ function openPanel() {
   document.getElementById('panel-total-kills').textContent= PERM.totalKills || 0;
   var streak = parseInt(localStorage.getItem('td_daily_streak') || '0');
   document.getElementById('panel-streak').textContent = streak + '일';
+  // 추가 재화
+  try { document.getElementById('panel-pulse').textContent = window.pulseFragments || 0; } catch(_) {}
+  try { document.getElementById('panel-prism-frag').textContent = PERM.prismFragments || 0; } catch(_) {}
+  try { document.getElementById('panel-access').textContent = parseInt(localStorage.getItem('accessCodes')||'0',10); } catch(_) {}
+  try { document.getElementById('panel-pcore').textContent = parseInt(localStorage.getItem('powerCores')||'0',10); } catch(_) {}
+  try { document.getElementById('panel-ticket').textContent = parseInt(localStorage.getItem('explore_tickets')||'3',10); } catch(_) {}
   panel.style.display = 'block';
   toggleBtn.textContent = '▲';
   toggleBtn.style.color = '#00ffff';
@@ -9875,7 +9900,7 @@ var PRISM_SINGLE = 20;
 /* 레벨업 필요 중복 수: Lv1→2:3, 2→3:3, 3→4:3, 4→5:5 */
 var PRISM_DUP_NEEDED = [0,3,3,3,5]; /* index = target level -1 */
 /* 활성화 슬롯 비용: 1번 무료, 2번 100보석, ... 최대 10슬롯 */
-var PRISM_SLOT_COSTS = [0,100,300,500,800,1200,1600,2000,2500,3000];
+var PRISM_SLOT_COSTS = [0,100,200,300,400,500,600,700,800,900];
 
 function _getPrism(id) {
   var d = (window.PERM && window.PERM.prisms) || {};
@@ -10243,17 +10268,17 @@ function _renderCardTab() {
       var slotCost=PRISM_SLOT_COSTS[si]||9999;
       html+='<div data-slot-unlock="'+si+'" style="width:52px;height:52px;background:#0a0510;border:1px solid #cc44ff22;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:2px;">'+
         '<span style="font-size:9px;filter:grayscale(1) brightness(0.6) sepia(1) hue-rotate(130deg) saturate(4);">🔒</span>'+
-        '<span style="font-size:10px;color:#cc44ff88;font-family:monospace;">❖'+slotCost+'</span></div>';
+        '<span style="font-size:11px;color:#cc44ff88;font-family:monospace;font-weight:bold;">❖'+slotCost+'</span></div>';
     }
   }
   html+='</div></div>';
 
   // 뽑기 버튼
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
-    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-      '<span style="font-size:16px;">◈</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+PRISM_SINGLE+'</span></button>'+
-    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:10px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-      '<span style="font-size:16px;">◈×10</span><span>10연 뽑기</span><span style="color:#00ffff;font-size:10px;">❖ '+(PRISM_SINGLE*10)+'</span></button>'+
+    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">'+
+      '<span style="font-size:18px;">◈</span><span>1회 뽑기</span><span style="color:#00ffff;font-size:11px;">❖ '+PRISM_SINGLE+'</span></button>'+
+    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:12px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;">'+
+      '<span style="font-size:18px;">◈×10</span><span>10연 뽑기</span><span style="color:#00ffff;font-size:11px;">❖ '+(PRISM_SINGLE*10)+'</span></button>'+
   '</div>';
 
   // 분해/파편 교환
@@ -14349,7 +14374,11 @@ function renderSkinGrid() {
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="skin-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">스킨</div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; flex-shrink:0;">스킨</div>
+  <div id="skin-sub-tabs" style="display:flex; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">
+    <button class="skin-sub-tab active" data-skin-tab="ship" style="flex:1;height:32px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">탐사선</button>
+    <button class="skin-sub-tab" data-skin-tab="bg" style="flex:1;height:32px;background:none;border:none;border-bottom:2px solid transparent;color:#4a7a8a;font-family:monospace;font-size:10px;cursor:pointer;">배경</button>
+  </div>
   <div id="skin-bonus" style="text-align:center; padding:6px; font-family:'Courier New',monospace; font-size:9px; color:#556677; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.05); flex-shrink:0;"></div>
   <div id="skin-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:0 12px; overflow-y:auto; flex:1;"></div>
   <div style="padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); background:#040c14; border-top:1px solid rgba(0,255,255,0.15); flex-shrink:0;">
