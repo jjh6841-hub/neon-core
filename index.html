@@ -2082,8 +2082,12 @@ function savePerm() {
   try {
     if (window._fbDb && window._fbUid) {
       var _tierBest = {};
+      var _curTier = parseInt(localStorage.getItem('td_tier')||'1',10);
       for (var _ti = 1; _ti <= 5; _ti++) {
-        _tierBest['tier'+_ti] = parseInt(localStorage.getItem('tier'+_ti+'_best')||'0',10);
+        var _tbv = parseInt(localStorage.getItem('tier'+_ti+'_best')||'0',10);
+        // 기존 유저 호환: 현재 행성의 bestWave가 localStorage보다 높으면 반영
+        if (_ti === _curTier && (PERM.bestWave||0) > _tbv) _tbv = PERM.bestWave;
+        _tierBest['tier'+_ti] = _tbv;
       }
       var _elemIds = ['fire','water','electric','earth','wind','dark'];
       var _exploreData = { tickets: parseInt(localStorage.getItem('explore_tickets')||'0',10) };
