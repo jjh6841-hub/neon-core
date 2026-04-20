@@ -79,6 +79,7 @@ tr { cursor:pointer; }
         <th>골드</th>
         <th>보석</th>
         <th>최고 웨이브</th>
+        <th>행성 최고</th>
         <th>마지막 접속</th>
       </tr>
     </thead>
@@ -184,11 +185,20 @@ function renderUsers(list) {
   list.forEach(function(u){
     var p = u.data.perm || {};
     var tr = document.createElement('tr');
+    var tb = u.data.tierBest || {};
+    var planetMax = Math.max(tb.tier1||0, tb.tier2||0, tb.tier3||0, tb.tier4||0, tb.tier5||0);
+    var planetNames = ['에','스','넥','피','오'];
+    var planetSummary = '';
+    for (var ti = 1; ti <= 5; ti++) {
+      var tv = tb['tier'+ti] || 0;
+      if (tv > 0) planetSummary += (planetSummary?'/':'') + tv;
+    }
     tr.innerHTML =
       '<td class="uid-cell">' + u.id + '</td>' +
       '<td class="gold">' + (p.gold||0).toLocaleString() + '</td>' +
       '<td class="gem">' + (p.gems||0).toLocaleString() + '</td>' +
       '<td class="wave">' + (p.bestWave||0) + '</td>' +
+      '<td style="color:#10b981;font-size:10px;">' + (planetSummary||'-') + '</td>' +
       '<td class="time">' + formatTime(u.data.lastActive) + '</td>';
     tr.addEventListener('click', function(){ openModal(u); });
     tbody.appendChild(tr);
@@ -248,13 +258,45 @@ function renderModal() {
   // 기록
   html += '<div class="modal-section" style="color:#00ff88;">기록</div>';
   var records = [
-    { key:'bestWave',     label:'최고 웨이브',  val:p.bestWave||0 },
+    { key:'bestWave',     label:'최고 웨이브 (전체)',  val:p.bestWave||0 },
     { key:'totalKills',   label:'총 처치수',    val:p.totalKills||0 },
     { key:'bossKills',    label:'보스 처치',    val:p.bossKills||0 },
     { key:'upgradeCount', label:'강화 횟수',    val:p.upgradeCount||0 },
   ];
   records.forEach(function(r){
     html += '<div class="modal-row"><label>'+r.label+'</label><input type="number" data-field="'+r.key+'" value="'+r.val+'"></div>';
+  });
+
+  // 행성별 최고 웨이브
+  var tb = currentUser.data.tierBest || {};
+  html += '<div class="modal-section" style="color:#00ff88;">행성별 최고 웨이브</div>';
+  var planets = [
+    { key:'tier1', label:'에이온',   val:tb.tier1||0 },
+    { key:'tier2', label:'스펙트라', val:tb.tier2||0 },
+    { key:'tier3', label:'넥사르',   val:tb.tier3||0 },
+    { key:'tier4', label:'피라온',   val:tb.tier4||0 },
+    { key:'tier5', label:'오메가',   val:tb.tier5||0 },
+  ];
+  planets.forEach(function(pl){
+    html += '<div class="modal-row"><label>'+pl.label+'</label><input type="number" data-tier="'+pl.key+'" value="'+pl.val+'"></div>';
+  });
+
+  // 요일탐사
+  var exp = currentUser.data.explore || {};
+  html += '<div class="modal-section" style="color:#ff8822;">요일탐사</div>';
+  html += '<div class="modal-row"><label>탐사 티켓</label><input type="number" data-exp="tickets" value="'+(exp.tickets||0)+'"></div>';
+  var elemNames = [
+    { id:'fire',    label:'화염 ✹' },
+    { id:'water',   label:'심해 ⎈' },
+    { id:'electric',label:'번개 ⚛' },
+    { id:'earth',   label:'대지 ⏣' },
+    { id:'wind',    label:'질풍 ❊' },
+    { id:'dark',    label:'암흑 ☽' },
+  ];
+  elemNames.forEach(function(el){
+    html += '<div class="modal-row"><label>'+el.label+' 스테이지</label><input type="number" data-exp="stage_'+el.id+'" value="'+(exp['stage_'+el.id]||1)+'"></div>';
+    html += '<div class="modal-row"><label>'+el.label+' 클리어</label><input type="number" data-exp="cleared_'+el.id+'" value="'+(exp['cleared_'+el.id]||0)+'"></div>';
+    html += '<div class="modal-row"><label>'+el.label+' 코어</label><input type="number" data-exp="core_'+el.id+'" value="'+(exp['core_'+el.id]||0)+'"></div>';
   });
 
   // 강화 레벨
@@ -296,6 +338,16 @@ document.getElementById('modal-save').addEventListener('click', async function()
   // 강화 레벨
   document.querySelectorAll('#modal-content input[data-ws]').forEach(function(inp){
     updates['perm.ws.'+inp.dataset.ws] = parseInt(inp.value)||0;
+  });
+
+  // 행성별 최고 웨이브
+  document.querySelectorAll('#modal-content input[data-tier]').forEach(function(inp){
+    updates['tierBest.'+inp.dataset.tier] = parseInt(inp.value)||0;
+  });
+
+  // 요일탐사
+  document.querySelectorAll('#modal-content input[data-exp]').forEach(function(inp){
+    updates['explore.'+inp.dataset.exp] = parseInt(inp.value)||0;
   });
 
   await db.collection('users').doc(currentUser.id).update(updates);

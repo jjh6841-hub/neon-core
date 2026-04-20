@@ -2081,8 +2081,21 @@ function savePerm() {
   // Firestore 동기화
   try {
     if (window._fbDb && window._fbUid) {
+      var _tierBest = {};
+      for (var _ti = 1; _ti <= 5; _ti++) {
+        _tierBest['tier'+_ti] = parseInt(localStorage.getItem('tier'+_ti+'_best')||'0',10);
+      }
+      var _elemIds = ['fire','water','electric','earth','wind','dark'];
+      var _exploreData = { tickets: parseInt(localStorage.getItem('explore_tickets')||'0',10) };
+      _elemIds.forEach(function(eid) {
+        _exploreData['stage_'+eid]   = parseInt(localStorage.getItem('explore_stage_'+eid)||'1',10);
+        _exploreData['cleared_'+eid] = parseInt(localStorage.getItem('explore_cleared_'+eid)||'0',10);
+        _exploreData['core_'+eid]    = parseInt(localStorage.getItem('core_'+eid)||'0',10);
+      });
       window._fbDb.collection('users').doc(window._fbUid).set({
         perm: JSON.parse(JSON.stringify(PERM)),
+        tierBest: _tierBest,
+        explore: _exploreData,
         uid: window._fbUid,
         lastActive: new Date().toISOString(),
         ua: navigator.userAgent || ''
@@ -2113,6 +2126,33 @@ function syncFromFirebase() {
         var hgm = document.getElementById('home-gem'); if(hgm) hgm.textContent = PERM.gems||0;
         syncShopUI && syncShopUI();
       } catch(_) {}
+    }
+    // 행성별 최고 웨이브 복원
+    var cTierBest = doc.data().tierBest;
+    if (cTierBest) {
+      for (var _ti = 1; _ti <= 5; _ti++) {
+        var cv = cTierBest['tier'+_ti] || 0;
+        var lv = parseInt(localStorage.getItem('tier'+_ti+'_best')||'0',10);
+        if (cv > lv) localStorage.setItem('tier'+_ti+'_best', cv);
+      }
+    }
+    // 요일탐사 데이터 복원
+    var cExp = doc.data().explore;
+    if (cExp) {
+      var _eids = ['fire','water','electric','earth','wind','dark'];
+      _eids.forEach(function(eid) {
+        var cs = cExp['stage_'+eid] || 1;
+        var ls = parseInt(localStorage.getItem('explore_stage_'+eid)||'1',10);
+        if (cs > ls) localStorage.setItem('explore_stage_'+eid, cs);
+        var cc = cExp['cleared_'+eid] || 0;
+        var lc = parseInt(localStorage.getItem('explore_cleared_'+eid)||'0',10);
+        if (cc > lc) localStorage.setItem('explore_cleared_'+eid, cc);
+        var ck = cExp['core_'+eid] || 0;
+        var lk = parseInt(localStorage.getItem('core_'+eid)||'0',10);
+        if (ck > lk) localStorage.setItem('core_'+eid, ck);
+      });
+      if ((cExp.tickets||0) > parseInt(localStorage.getItem('explore_tickets')||'0',10))
+        localStorage.setItem('explore_tickets', cExp.tickets);
     }
   }).catch(function(){});
 }
