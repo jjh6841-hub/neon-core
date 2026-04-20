@@ -2516,10 +2516,10 @@ function startGame() {
   if (_wb) { _wb.style.transition = 'none'; _wb.style.width = '0%'; _wb.offsetHeight; _wb.style.transition = 'width 0.3s'; }
   applyPermStats();
 
-  // 선행 배치: 최고기록 비례 시작 웨이브
+  // 선행 배치: 최고기록 비례 시작 웨이브 (1웨이브 이후 적용)
   if (G.introBonus && PERM.bestWave > 1) {
     var skipTo = Math.floor(PERM.bestWave * G.introBonus);
-    if (skipTo > 1) G.wave = skipTo;
+    if (skipTo > 1) G._introSkipTarget = skipTo;
   }
 
   buildCards();
@@ -2716,10 +2716,15 @@ function update(dt) {
   if (G.phase === 'between') {
     G.betweenTimer -= dt;
     if (G.betweenTimer <= 0) {
-      G.wave++;
-      if (G.waveSkipChance && Math.random() < G.waveSkipChance) {
+      if (G._introSkipTarget && G._introSkipTarget > G.wave + 1) {
+        G.wave = G._introSkipTarget;
+        G._introSkipTarget = null;
+      } else {
         G.wave++;
-        G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: 'WAVE SKIP!', color: '#cc44ff', timer: 0 });
+        if (G.waveSkipChance && Math.random() < G.waveSkipChance) {
+          G.wave++;
+          G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: 'WAVE SKIP!', color: '#cc44ff', timer: 0 });
+        }
       }
       startWave();
     }
@@ -3778,6 +3783,7 @@ function render() {
     }
 
     ctx.restore();
+    ctx.globalAlpha = 1;
   }());
   } else {
     const TR = 20;
@@ -4084,8 +4090,13 @@ function buildCards() {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
     pane.innerHTML = '';
-    // 유틸 탭 해금 안 되어 있으면 전투에서도 숨김
-    if (tabKey === 'utl' && !_utlTabOpen) continue;
+    // 유틸 탭 해금 안 되면 잠금 안내 표시
+    if (tabKey === 'utl' && !_utlTabOpen) {
+      pane.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;opacity:0.5;">' +
+        '<div style="font-size:28px;">🔒</div>' +
+        '<div style="color:#334455;font-family:monospace;font-size:10px;">코어랩에서 해금</div></div>';
+      continue;
+    }
     for (const upg of UPGRADES) {
       if (upg.tab !== tabKey) continue;
       if (!isUnlocked(upg.unlock)) continue;
@@ -4165,7 +4176,7 @@ function setActiveTab(tabKey) {
     const pn = document.getElementById('pane-' + k);
     if (tb) {
       tb.classList.toggle('active', k === tabKey);
-      if (k === 'utl') tb.style.display = _utlOpen ? '' : 'none';
+      if (k === 'utl') { tb.style.display = ''; tb.style.opacity = _utlOpen ? '1' : '0.4'; }
     }
     if (pn) pn.classList.toggle('active', k === tabKey);
   }
@@ -4427,8 +4438,8 @@ function startNewGame() {
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'none';
   loopGen++;
-  startGame();
   window.resizeCanvas();
+  startGame();
 }
 
 /* ─── 버튼 이벤트 (touch + click) ─────────────────────────────── */
@@ -6817,8 +6828,8 @@ function _buildLabSlots() {
       title += '<span style="font-size:10px;color:#1a2a3a;font-family:monospace;">웨이브 ' + LAB_SLOT_UNLOCK[i] + ' 달성 시 해금</span>';
       slotEl.innerHTML = title + '</div>';
     } else if (needBuy) {
-      title += '<button data-lab-buy="' + i + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 10px;cursor:pointer;">❖' + LAB_SLOT_COST[i] + ' 해금</button>';
-      slotEl.innerHTML = title + '</div><div style="color:#334455;font-family:monospace;font-size:10px;">슬롯 ' + (i+1) + ' 해금 필요</div>';
+      title += '<button data-lab-buy="' + i + '" style="background:#030b10;border:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;font-weight:bold;letter-spacing:1px;">❖' + LAB_SLOT_COST[i] + ' 해금</button>';
+      slotEl.innerHTML = title + '</div><div style="text-align:center;color:#556677;font-family:monospace;font-size:11px;padding:6px 0;">연구 슬롯 ' + (i+1) + ' — 보석으로 해금</div>';
       (function(idx, cost) {
         var buyBtn = slotEl.querySelector('[data-lab-buy]');
         buyBtn.addEventListener('click', function() {
@@ -8121,11 +8132,15 @@ function _renderMissions() {
   list.innerHTML = '';
   var anyClaimable = false;
 
-  // 수령 완료된 임무를 하단으로 정렬
+  // 수령 가능 → 진행 중 → 수령 완료 순 정렬
   var sortedDaily = DAILY_MISSIONS.slice().sort(function(a,b){
-    var aC = localStorage.getItem('daily_claimed_'+a.id)==='true' ? 1 : 0;
-    var bC = localStorage.getItem('daily_claimed_'+b.id)==='true' ? 1 : 0;
-    return aC - bC;
+    var aP = parseInt(localStorage.getItem(a.trackKey)||'0',10);
+    var bP = parseInt(localStorage.getItem(b.trackKey)||'0',10);
+    var aClaimed = localStorage.getItem('daily_claimed_'+a.id)==='true';
+    var bClaimed = localStorage.getItem('daily_claimed_'+b.id)==='true';
+    var aR = aClaimed ? 2 : (aP >= a.target ? 0 : 1);
+    var bR = bClaimed ? 2 : (bP >= b.target ? 0 : 1);
+    return aR - bR;
   });
   sortedDaily.forEach(function(m) {
     var prog    = parseInt(localStorage.getItem(m.trackKey)||'0',10);
@@ -8622,7 +8637,12 @@ if (typeof _origGetCost === 'function') {
 
     function _renderInf() {
       infW.innerHTML='';
-      INF_MISSIONS.forEach(function(m) {
+      var sortedInf = INF_MISSIONS.slice().sort(function(a,b) {
+        var aC = _getInfState(a).claimable > 0 ? 0 : 1;
+        var bC = _getInfState(b).claimable > 0 ? 0 : 1;
+        return aC - bC;
+      });
+      sortedInf.forEach(function(m) {
         var s = _getInfState(m);
         var rwText = '◈'+m.reward.gold+(m.reward.gems>0?' ❖'+m.reward.gems:'');
         var canClaim = s.claimable > 0;
@@ -8747,11 +8767,15 @@ if (typeof _origGetCost === 'function') {
     var list=document.getElementById('ms4-wlist'); if(!list) return;
     list.innerHTML='';
     var anyClaimable=false;
-    // 수령 완료된 임무를 하단으로 정렬
+    // 수령 가능 → 진행 중 → 수령 완료 순 정렬
     var sortedWeekly = WMISS.slice().sort(function(a,b){
-      var aC = localStorage.getItem('wk_claimed_'+a.id)==='true' ? 1 : 0;
-      var bC = localStorage.getItem('wk_claimed_'+b.id)==='true' ? 1 : 0;
-      return aC - bC;
+      var aP = parseInt(localStorage.getItem(a.trackKey)||'0',10);
+      var bP = parseInt(localStorage.getItem(b.trackKey)||'0',10);
+      var aClaimed = localStorage.getItem('wk_claimed_'+a.id)==='true';
+      var bClaimed = localStorage.getItem('wk_claimed_'+b.id)==='true';
+      var aR = aClaimed ? 2 : (aP >= a.target ? 0 : 1);
+      var bR = bClaimed ? 2 : (bP >= b.target ? 0 : 1);
+      return aR - bR;
     });
     sortedWeekly.forEach(function(m) {
       var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
