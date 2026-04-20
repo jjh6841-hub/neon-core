@@ -4034,13 +4034,23 @@ function isUnlocked(key) {
 }
 
 function buildCards() {
+  // 강화 탭 해금 상태 확인
+  var _atkUn = PERM.ws_atk_unlocks || 0;
+  var _defUn = PERM.ws_def_unlocks || 0;
+  var _utlTabOpen = !!(PERM.unlocks && PERM.unlocks.tab_utl_u);
+  // 강화 탭 그룹과 전투 업그레이드 unlock 키 매핑
+  var _defKeyToGroup = { maxhp:0, hpRegen:0, armor:1, vamp:3 };
   for (const tabKey of ['atk', 'def', 'utl']) {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
     pane.innerHTML = '';
+    // 유틸 탭 해금 안 되어 있으면 전투에서도 숨김
+    if (tabKey === 'utl' && !_utlTabOpen) continue;
     for (const upg of UPGRADES) {
       if (upg.tab !== tabKey) continue;
-      if (!isUnlocked(upg.unlock)) continue; // 잠긴 항목은 표시 안 함
+      if (!isUnlocked(upg.unlock)) continue;
+      // 방어 탭: 강화에서 해금된 그룹만 표시
+      if (tabKey === 'def' && _defKeyToGroup[upg.key] !== undefined && _defKeyToGroup[upg.key] > _defUn) continue;
       const btn = document.createElement('button');
       btn.id        = 'upg-card-' + upg.key;
       btn.className = 'upg-card upgrade-btn';
@@ -4109,10 +4119,14 @@ function _showUpgDetail(upg) {
 
 function setActiveTab(tabKey) {
   activeTab = tabKey;
+  var _utlOpen = !!(PERM.unlocks && PERM.unlocks.tab_utl_u);
   for (const k of ['atk', 'def', 'utl']) {
     const tb = document.getElementById('tab-' + k);
     const pn = document.getElementById('pane-' + k);
-    if (tb) tb.classList.toggle('active', k === tabKey);
+    if (tb) {
+      tb.classList.toggle('active', k === tabKey);
+      if (k === 'utl') tb.style.display = _utlOpen ? '' : 'none';
+    }
     if (pn) pn.classList.toggle('active', k === tabKey);
   }
 }
@@ -5682,11 +5696,11 @@ if (dailyPopup) {
     <button id="lab-popup-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
   </div>
   <div id="lab-popup-filter" style="display:flex; gap:4px; padding:6px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14; overflow-x:auto;">
-    <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">전체</button>
+    <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">메타</button>
     <button class="lab-filter" data-cat="attack"  style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">공격</button>
     <button class="lab-filter" data-cat="defense" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">방어</button>
     <button class="lab-filter" data-cat="utility" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">유틸</button>
-    <button class="lab-filter" data-cat="ultimate" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">궁극</button>
+    <button class="lab-filter" data-cat="ultimate" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">속성</button>
   </div>
   <div style="padding:6px 12px; flex-shrink:0; display:flex; justify-content:flex-end;">
     <label style="color:#4a7a8a; font-family:'Courier New',monospace; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:5px;">
@@ -6651,26 +6665,38 @@ var RESEARCH_LIST = {
     { id:'buy_multi',    name:'구매 배수',   desc:'x5, x10 구매 해금',         time:13560, cost:9280,  maxLv:5  },
   ],
   attack: [
-    { id:'r_damage',     name:'대미지 연구', desc:'공격력 배율 향상',  time:15720, cost:7580,  maxLv:99 },
-    { id:'r_spd',        name:'속도 연구',   desc:'공격속도 향상',     time:12600, cost:5000,  maxLv:99 },
-    { id:'r_crit',       name:'치명타 연구', desc:'치명타 확률 향상',  time:18000, cost:9000,  maxLv:50 },
-    { id:'r_multishot',  name:'분열탄 연구', desc:'분열탄 효과 향상',  time:21600, cost:11000, maxLv:30 },
+    { id:'r_damage',     name:'대미지 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:99 },
+    { id:'r_spd',        name:'속도 연구',     desc:'공격속도 향상',            time:12600, cost:5000,  maxLv:99 },
+    { id:'r_crit',       name:'치명타 연구',   desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:50 },
+    { id:'r_multishot',  name:'분열탄 연구',   desc:'분열탄 효과 향상',         time:21600, cost:11000, maxLv:30 },
+    { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:30 },
+    { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
+    { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
   ],
   defense: [
-    { id:'r_health',     name:'체력 연구',   desc:'최대 체력 배율 향상', time:15720, cost:9800,  maxLv:99 },
-    { id:'r_regen',      name:'재생 연구',   desc:'체력 재생 향상',      time:3147,  cost:1240,  maxLv:50 },
-    { id:'r_defense',    name:'방어 연구',   desc:'방어력 향상',         time:8820,  cost:4180,  maxLv:30 },
-    { id:'r_mine',       name:'지뢰 연구',   desc:'에너지 지뢰 피해 향상',time:11400,cost:37120, maxLv:20 },
+    { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:99 },
+    { id:'r_regen',      name:'재생 연구',     desc:'체력 재생 향상',           time:3147,  cost:1240,  maxLv:50 },
+    { id:'r_defense',    name:'방어 연구',     desc:'방어력 향상',              time:8820,  cost:4180,  maxLv:30 },
+    { id:'r_mine',       name:'지뢰 연구',     desc:'에너지 지뢰 피해 향상',   time:11400, cost:37120, maxLv:20 },
+    { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 향상',         time:14400, cost:12000, maxLv:30 },
+    { id:'r_vamp',       name:'흡혈 연구',     desc:'흡혈 확률 향상',           time:18000, cost:15000, maxLv:30 },
+    { id:'r_shield',     name:'쉴드 연구',     desc:'쉴드 HP 향상',             time:21600, cost:20000, maxLv:20 },
+    { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
   ],
   utility: [
-    { id:'r_cash',       name:'크레딧 연구',    desc:'크레딧 보너스 향상',  time:23940, cost:15390,  maxLv:99 },
-    { id:'r_wave_cash',  name:'웨이브 연구',    desc:'웨이브 골드 향상',    time:15660, cost:9810,   maxLv:50 },
-    { id:'r_interest',   name:'이자율 연구',    desc:'이자율 향상',         time:32940, cost:252150, maxLv:30 },
+    { id:'r_cash',       name:'크레딧 연구',   desc:'크레딧 보너스 향상',       time:23940, cost:15390, maxLv:99 },
+    { id:'r_wave_cash',  name:'웨이브 연구',   desc:'웨이브 골드 향상',         time:15660, cost:9810,  maxLv:50 },
+    { id:'r_interest',   name:'이자율 연구',   desc:'이자율 향상',              time:32940, cost:252150,maxLv:30 },
+    { id:'r_gem_gain',   name:'보석 획득 연구',desc:'보석 획득량 향상',         time:18000, cost:12000, maxLv:20 },
+    { id:'r_gold_gain',  name:'골드 획득 연구',desc:'골드 획득량 향상',         time:14400, cost:8000,  maxLv:30 },
   ],
   ultimate: [
-    { id:'r_dw_dmg',     name:'데스웨이브 피해', desc:'피해량 향상',  time:61200, cost:461200, maxLv:10 },
-    { id:'r_cf_dur',     name:'크로노필드 지속', desc:'지속시간 향상', time:35160, cost:73000,  maxLv:10 },
-    { id:'r_cf_slow',    name:'크로노필드 감속', desc:'감속률 향상',  time:54600, cost:264480, maxLv:10 },
+    { id:'r_dw_dmg',     name:'데스웨이브 피해',desc:'피해량 향상',              time:61200, cost:461200,maxLv:10 },
+    { id:'r_cf_dur',     name:'크로노필드 지속',desc:'지속시간 향상',            time:35160, cost:73000, maxLv:10 },
+    { id:'r_cf_slow',    name:'크로노필드 감속',desc:'감속률 향상',              time:54600, cost:264480,maxLv:10 },
+    { id:'r_elem_atk',   name:'속성 공격 연구',desc:'속성 공격력 배율 향상',     time:28800, cost:50000, maxLv:30 },
+    { id:'r_elem_def',   name:'속성 방어 연구',desc:'속성 방어력 배율 향상',     time:28800, cost:50000, maxLv:30 },
+    { id:'r_elem_hp',    name:'속성 체력 연구',desc:'속성 체력 배율 향상',       time:28800, cost:50000, maxLv:30 },
   ],
 };
 
@@ -6880,7 +6906,7 @@ function _buildLabPopupList() {
   var done = lab.research || {};
 
   var items = ALL_RESEARCH.filter(function(r) {
-    if (_labFilterCat !== 'main' && r.cat !== _labFilterCat) return false;
+    if (r.cat !== _labFilterCat) return false;
     if (_labHideComplete && (done[r.id] || 0) >= r.maxLv) return false;
     return true;
   });
@@ -10680,9 +10706,9 @@ function _renderMailTab() {
       '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':'#f1f5f9')+';font-weight:bold;">'+mail.title+'</div>'+
       '<div style="font-family:monospace;font-size:10px;color:#556677;line-height:1.6;">'+mail.body+'</div>'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'+
-        '<span style="font-family:monospace;font-size:10px;color:#94a3b8;">'+
-          (mail.gems?'❖ '+mail.gems+'  ':'')+
-          (mail.gold?'◈ '+mail.gold:'')+'</span>'+
+        '<span style="font-family:monospace;font-size:12px;">'+
+          (mail.gems?'<span style="color:#00ffff;font-weight:bold;">❖ '+mail.gems+'</span>  ':'')+
+          (mail.gold?'<span style="color:#f59e0b;font-weight:bold;">◈ '+mail.gold+'</span>':'')+'</span>'+
         (claimed
           ? '<span style="font-family:monospace;font-size:10px;color:#334455;">수령완료</span>'
           : '<button data-mail-claim="'+mail.id+'" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer;">수령</button>')+
@@ -14213,6 +14239,18 @@ var IRIS_SKINS = [
   { id: 'iris10', name: 'IRIS-X',    color: '#cc44ff', petals: 0,  type: 'star10' },
   { id: 'iris11', name: 'IRIS-XI',   color: '#cc44ff', petals: 3,  type: 'eye' },
   { id: 'iris12', name: 'IRIS-XII',  color: '#cc44ff', petals: 0,  type: 'spiral' },
+  { id: 'iris13', name: 'NOVA-I',   color: '#ff6644', petals: 3,  type: 'tear' },
+  { id: 'iris14', name: 'NOVA-II',  color: '#ff6644', petals: 4,  type: 'cross' },
+  { id: 'iris15', name: 'NOVA-III', color: '#ff6644', petals: 4,  type: 'blade' },
+  { id: 'iris16', name: 'FLUX-I',   color: '#44ff88', petals: 0,  type: 'star5' },
+  { id: 'iris17', name: 'FLUX-II',  color: '#44ff88', petals: 0,  type: 'wave' },
+  { id: 'iris18', name: 'FLUX-III', color: '#44ff88', petals: 3,  type: 'line' },
+  { id: 'iris19', name: 'VOID-I',   color: '#8844ff', petals: 2,  type: 'lens' },
+  { id: 'iris20', name: 'VOID-II',  color: '#8844ff', petals: 5,  type: 'petal' },
+  { id: 'iris21', name: 'VOID-III', color: '#8844ff', petals: 6,  type: 'spoke' },
+  { id: 'iris22', name: 'CRYO-I',   color: '#44ddff', petals: 0,  type: 'star10' },
+  { id: 'iris23', name: 'CRYO-II',  color: '#44ddff', petals: 3,  type: 'eye' },
+  { id: 'iris24', name: 'CRYO-III', color: '#44ddff', petals: 0,  type: 'spiral' },
 ];
 
 /* ── 배경 스킨 ── */
@@ -15090,11 +15128,18 @@ function _render() {
         '<span style="color:#00ffff;font-size:11px;">❖ '+a.cost+'</span>' +
         (on ? '<div style="font-size:8px;color:#00ffff;margin-top:2px;">선택됨</div>' : '') +
       '</div>';
-    (function(id){
+    (function(id, el){
+      var _ts = null, _moved = false;
       function tog(){ _sel[id]=!_sel[id]; _render(); }
-      c.addEventListener('click', tog);
-      c.addEventListener('touchend', function(e){ e.preventDefault(); tog(); });
-    })(a.id);
+      el.addEventListener('touchstart', function(e){ _ts = { x:e.touches[0].clientX, y:e.touches[0].clientY }; _moved = false; }, { passive:true });
+      el.addEventListener('touchmove', function(e){
+        if (!_ts) return;
+        var dx = Math.abs(e.touches[0].clientX - _ts.x), dy = Math.abs(e.touches[0].clientY - _ts.y);
+        if (dx > 8 || dy > 8) _moved = true;
+      }, { passive:true });
+      el.addEventListener('touchend', function(e){ e.preventDefault(); if (!_moved) tog(); _ts = null; });
+      el.addEventListener('click', function(e){ if (!('ontouchstart' in window)) tog(); });
+    })(a.id, c);
     list.appendChild(c);
   });
 
