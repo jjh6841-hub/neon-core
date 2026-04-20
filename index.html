@@ -750,10 +750,23 @@ canvas {
   -webkit-align-items: center;
   align-items: center;
   z-index: 600;
-  padding: 20px 16px;
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+#achieve-screen .ach-header {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 16px 16px 10px;
+  background: #06061a;
+  border-bottom: 1px solid rgba(0,255,255,0.1);
+  position: relative;
+  z-index: 1;
+}
+#achieve-screen #ach-list {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  gap: 8px;
+  padding: 10px 16px 20px;
 }
 #achieve-screen.show { display: -webkit-flex; display: flex; }
 .achieve-title { display: none; }
@@ -1195,9 +1208,11 @@ canvas {
 
 <!-- ── 업적 화면 ── -->
 <div id="achieve-screen">
-  <button id="btn-achieve-back" style="position:absolute; top:14px; left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
-  <div style="text-align:center; padding:16px 0 12px; width:100%;">
-    <div style="display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="28" height="30" viewBox="0 0 22 24" fill="none" stroke="#00ffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="9" r="7"/><polygon points="11,3 12.8,7.2 17.4,7.6 14,10.6 15,15 11,12.5 7,15 8,10.6 4.6,7.6 9.2,7.2" fill="#00ffff" stroke="none" opacity="0.3"/><polygon points="11,4.5 12.3,7.8 16,8.1 13.2,10.5 14,14 11,12 8,14 8.8,10.5 6,8.1 9.7,7.8" fill="none" stroke="#00ffff" stroke-width="0.8"/><line x1="8" y1="16" x2="6.5" y2="22"/><line x1="14" y1="16" x2="15.5" y2="22"/><line x1="11" y1="17" x2="11" y2="23"/></svg><span style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">업적</span></div>
+  <div class="ach-header">
+    <button id="btn-achieve-back" style="position:absolute; top:14px; left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
+    <div style="text-align:center; padding:4px 0 0; width:100%;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="28" height="30" viewBox="0 0 22 24" fill="none" stroke="#00ffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="9" r="7"/><polygon points="11,3 12.8,7.2 17.4,7.6 14,10.6 15,15 11,12.5 7,15 8,10.6 4.6,7.6 9.2,7.2" fill="#00ffff" stroke="none" opacity="0.3"/><polygon points="11,4.5 12.3,7.8 16,8.1 13.2,10.5 14,14 11,12 8,14 8.8,10.5 6,8.1 9.7,7.8" fill="none" stroke="#00ffff" stroke-width="0.8"/><line x1="8" y1="16" x2="6.5" y2="22"/><line x1="14" y1="16" x2="15.5" y2="22"/><line x1="11" y1="17" x2="11" y2="23"/></svg><span style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">업적</span></div>
+    </div>
   </div>
   <div id="ach-list"></div>
 </div>
@@ -3360,10 +3375,12 @@ function triggerGameOver() {
 ═══════════════════════════════════════════════════════════════ */
 function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
-  // CYBER ABYSS 스킨: smOwned에 'abyss'가 있으면 배경색 변경
-  ctx.fillStyle = (window._smOwnedItems && window._smOwnedItems.indexOf('abyss') !== -1)
-    ? '#000e1a'   // CYBER ABYSS 배경
-    : '#030b10';  // 기본 배경
+  // 배경 스킨 적용
+  var _bgSkin = window.currentBgSkin || 'bg_default';
+  var _bgColor = '#030b10';
+  if (window.BG_SKINS) { for (var _bi=0;_bi<BG_SKINS.length;_bi++) { if(BG_SKINS[_bi].id===_bgSkin){_bgColor=BG_SKINS[_bi].color;break;} } }
+  if (window._smOwnedItems && window._smOwnedItems.indexOf('abyss') !== -1) _bgColor = '#000e1a';
+  ctx.fillStyle = _bgColor;
   ctx.fillRect(0, 0, CW, CH);
 
   // ── Screen shake wrapper ──────────────────────────────────────
@@ -7380,17 +7397,17 @@ if (storeBtn) {
       <button onclick="document.getElementById('coin-bonus-popup').style.display='none';" style="background:none;border:none;color:#334455;font-size:16px;cursor:pointer;font-family:monospace;">×</button>
     </div>
     <!-- 항목 목록 -->
-    <div style="padding:12px 0;">
-      <div class="cb-row"><span class="cb-label">광고 비활성화</span><span class="cb-val inactive">비활성</span></div>
-      <div class="cb-row"><span class="cb-label">스타터 팩</span><span class="cb-val inactive">비활성</span></div>
-      <div class="cb-row"><span class="cb-label">성장 팩</span><span class="cb-val inactive">비활성</span></div>
-      <div class="cb-row"><span class="cb-label">골드 보너스 (광고)</span><span id="cb-ad-val" class="cb-val inactive">비활성</span></div>
-      <div class="cb-row"><span class="cb-label">강화 보너스</span><span id="cb-ws-val" class="cb-val active">×1.00</span></div>
+    <div style="padding:12px 0;max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <div class="cb-row"><span class="cb-label">강화 · 크레딧 보너스</span><span id="cb-ws-val" class="cb-val active">×1.00</span></div>
+      <div class="cb-row"><span class="cb-label">강화 · 골드 획득량</span><span id="cb-ws-gold-val" class="cb-val active">×1.00</span></div>
       <div class="cb-row"><span class="cb-label">행성 보너스</span><span id="cb-tier-val" class="cb-val active">×1.00</span></div>
+      <div class="cb-row"><span class="cb-label">프리즘 · 골드 증폭</span><span id="cb-prism-val" class="cb-val active">×1.00</span></div>
+      <div class="cb-row"><span class="cb-label">전투 · 골드증폭 (인게임)</span><span id="cb-ingame-val" class="cb-val inactive">전투 중 적용</span></div>
+      <div class="cb-row"><span class="cb-label">골드 보너스 (광고)</span><span id="cb-ad-val" class="cb-val inactive">비활성</span></div>
       <div style="height:1px;background:#0a3344;margin:8px 14px;"></div>
       <div class="cb-row" style="padding:8px 14px 4px;"><span style="color:#f1f5f9;font-size:12px;font-family:monospace;font-weight:bold;">총 보너스</span><span id="cb-total-val" style="color:#f59e0b;font-size:14px;font-family:monospace;font-weight:bold;">×1.00</span></div>
     </div>
-    <div style="padding:0 14px 12px;font-size:9px;color:#334455;font-family:monospace;">모든 골드 보너스는 곱셈으로 계산됩니다.</div>
+    <div style="padding:0 14px 12px;font-size:9px;color:#334455;font-family:monospace;">모든 골드 보너스는 곱셈으로 계산됩니다.<br>전투 골드증폭은 인게임에서만 적용됩니다.</div>
   </div>
 </div>
 
@@ -7739,15 +7756,30 @@ window._showCoinBonusPopup = function() {
   var wsBonus  = _getWsBonus();
   var tierMult = _getTierMult();
   var adMult   = adActive ? 1.5 : 1.0;
-  var total    = wsBonus * tierMult * adMult;
+
+  // 강화 골드 획득량
+  var ws = PERM.ws || {};
+  var wsGoldGain = 1 + (ws.goldGain || 0) * 0.05;
+  // 프리즘 골드
+  var prismGold = 1;
+  try {
+    var eq = PERM.prismEquipped || [];
+    if (eq.indexOf('p_cash') !== -1) { var pv = (PERM.prisms && PERM.prisms.p_cash) || {}; if (pv.lv > 0) prismGold *= (1 + [5,10,15,20,25][pv.lv-1]/100); }
+    if (eq.indexOf('p_coin') !== -1) { var pv2 = (PERM.prisms && PERM.prisms.p_coin) || {}; if (pv2.lv > 0) prismGold *= (1 + [5,10,15,20,25][pv2.lv-1]/100); }
+  } catch(_) {}
+  var total = wsBonus * wsGoldGain * tierMult * prismGold * adMult;
 
   var wsEl   = document.getElementById('cb-ws-val');
   var tierEl = document.getElementById('cb-tier-val');
   var adEl   = document.getElementById('cb-ad-val');
   var totEl  = document.getElementById('cb-total-val');
+  var wsGoldEl = document.getElementById('cb-ws-gold-val');
+  var prismEl = document.getElementById('cb-prism-val');
 
-  if (wsEl)   wsEl.textContent  = '×' + wsBonus.toFixed(2);
-  if (tierEl) tierEl.textContent = '×' + tierMult.toFixed(2);
+  if (wsEl)     wsEl.textContent  = '×' + wsBonus.toFixed(2);
+  if (wsGoldEl) { wsGoldEl.textContent = '×' + wsGoldGain.toFixed(2); wsGoldEl.className = wsGoldGain > 1 ? 'cb-val active' : 'cb-val inactive'; }
+  if (tierEl)   tierEl.textContent = '×' + tierMult.toFixed(2);
+  if (prismEl)  { prismEl.textContent = '×' + prismGold.toFixed(2); prismEl.className = prismGold > 1 ? 'cb-val active' : 'cb-val inactive'; }
   if (adEl) {
     adEl.textContent = adActive ? '×1.50' : '비활성';
     adEl.className   = adActive ? 'cb-val active' : 'cb-val inactive';
@@ -10613,13 +10645,13 @@ function _buildMailScreen() {
   sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:300;overflow:hidden;';
   sc.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
-      '<button id="mail-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
+      '<button id="mail-back" style="background:none;border:none;color:#00dddd;font-size:12px;font-family:\'Courier New\',monospace;cursor:pointer;">◀ 뒤로</button>'+
       '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">우편함</span>'+
       '<div style="width:60px;"></div>'+
     '</div>'+
     '<div id="mail-tab-bar" style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
-      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">📬 우편</button>'+
-      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">📰 소식</button>'+
+      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">✉ 우편</button>'+
+      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">▣ 소식</button>'+
     '</div>'+
     '<div id="mail-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>';
   document.body.appendChild(sc);
@@ -14183,6 +14215,24 @@ var IRIS_SKINS = [
   { id: 'iris12', name: 'IRIS-XII',  color: '#cc44ff', petals: 0,  type: 'spiral' },
 ];
 
+/* ── 배경 스킨 ── */
+var BG_SKINS = [
+  { id:'bg_default',  name:'기본 공간',     color:'#030b10', desc:'기본 네온코어 배경' },
+  { id:'bg_nebula',   name:'네뷸러 필드',   color:'#0a0520', desc:'보라색 성운 지대' },
+  { id:'bg_crimson',  name:'크림슨 섹터',   color:'#120808', desc:'붉은 항성계' },
+  { id:'bg_deep',     name:'딥 블루',       color:'#020815', desc:'심해처럼 깊은 우주' },
+  { id:'bg_void',     name:'보이드 리프트',  color:'#050005', desc:'완전한 어둠' },
+  { id:'bg_aurora',   name:'오로라 벨트',    color:'#040e12', desc:'녹색 오로라 지대' },
+  { id:'bg_solar',    name:'솔라 플레어',    color:'#0f0a02', desc:'항성 근처 고열 지대' },
+  { id:'bg_ice',      name:'아이스 크래들',  color:'#030a10', desc:'얼음 행성 궤도' },
+  { id:'bg_storm',    name:'이온 스톰',     color:'#080812', desc:'전기 폭풍 지역' },
+  { id:'bg_rust',     name:'러스트 필드',    color:'#0e0805', desc:'폐기된 우주 정거장' },
+  { id:'bg_matrix',   name:'매트릭스 코어',  color:'#000a02', desc:'데이터 스트림 공간' },
+  { id:'bg_phantom',  name:'팬텀 존',       color:'#08050e', desc:'유령 신호 지역' },
+];
+var currentBgSkin = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
+var _skinSubTab = 'ship';
+
 var currentSkin = localStorage.getItem('neoncore_skin') || 'iris8';
 
 window.getNeonCoreIcon = function(size, skinId) {
@@ -14314,31 +14364,53 @@ function renderSkinGrid() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  // 보너스 표시
-  var bonusEl = document.getElementById('skin-bonus');
-  if (bonusEl) {
-    var count = _getSkinCount();
-    var m = _getSkinMultipliers();
-    bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + count + '/' + IRIS_SKINS.length + '</span>' +
-      '  |  공격력 <span style="color:#ef4444;">x' + m.atk.toFixed(2) + '</span>' +
-      '  방어력 <span style="color:#3b82f6;">x' + m.def.toFixed(2) + '</span>' +
-      '  체력 <span style="color:#10b981;">x' + m.hp.toFixed(2) + '</span>';
-  }
-
-  IRIS_SKINS.forEach(function(skin) {
-    var isSelected = skin.id === currentSkin;
-    var card = document.createElement('div');
-    card.style.cssText =
-      'background:#0a1a2a; border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';' +
-      'border-radius:8px; padding:10px; text-align:center; cursor:pointer;';
-    card.innerHTML =
-      getNeonCoreIcon(64, skin.id) +
-      '<div style="font-family:\'Courier New\',monospace; font-size:9px;' +
-      ' color:' + (isSelected ? '#00ffff' : '#445566') + '; margin-top:6px;">' +
-      skin.name + '</div>';
-    card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
-    grid.appendChild(card);
+  // 탭 바 바인딩
+  var tabBtns = document.querySelectorAll('.skin-sub-tab');
+  tabBtns.forEach(function(tb) {
+    var tId = tb.getAttribute('data-skin-tab');
+    tb.style.borderBottom = tId === _skinSubTab ? '2px solid #00ffff' : '2px solid transparent';
+    tb.style.color = tId === _skinSubTab ? '#00ffff' : '#4a7a8a';
+    tb.onclick = function() { _skinSubTab = tId; renderSkinGrid(); };
   });
+
+  var bonusEl = document.getElementById('skin-bonus');
+
+  if (_skinSubTab === 'ship') {
+    // 탐사선 스킨 (기존)
+    if (bonusEl) {
+      var count = _getSkinCount();
+      var m = _getSkinMultipliers();
+      bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + count + '/' + IRIS_SKINS.length + '</span>' +
+        '  |  공격력 <span style="color:#ef4444;">x' + m.atk.toFixed(2) + '</span>' +
+        '  방어력 <span style="color:#3b82f6;">x' + m.def.toFixed(2) + '</span>' +
+        '  체력 <span style="color:#10b981;">x' + m.hp.toFixed(2) + '</span>';
+    }
+    IRIS_SKINS.forEach(function(skin) {
+      var isSelected = skin.id === currentSkin;
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#0a1a2a;border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';border-radius:8px;padding:10px;text-align:center;cursor:pointer;';
+      card.innerHTML = getNeonCoreIcon(64, skin.id) +
+        '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';margin-top:6px;">' + skin.name + '</div>';
+      card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
+      grid.appendChild(card);
+    });
+  } else {
+    // 배경 스킨
+    if (bonusEl) bonusEl.innerHTML = '배경을 선택하여 전투 분위기를 변경합니다.';
+    BG_SKINS.forEach(function(bg) {
+      var isSelected = bg.id === currentBgSkin;
+      var card = document.createElement('div');
+      card.style.cssText = 'background:' + bg.color + ';border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;';
+      // 미니 배경 프리뷰
+      var preview = '<div style="width:48px;height:48px;border-radius:4px;background:' + bg.color + ';border:1px solid ' + (isSelected ? '#00ffff44' : '#1a2a3a') + ';display:flex;align-items:center;justify-content:center;">' +
+        '<div style="width:6px;height:6px;border-radius:50%;background:#00ffff;box-shadow:0 0 6px #00ffff;opacity:0.6;"></div></div>';
+      card.innerHTML = preview +
+        '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';">' + bg.name + '</div>' +
+        '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#334455;">' + bg.desc + '</div>';
+      card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); renderSkinGrid(); };
+      grid.appendChild(card);
+    });
+  }
 
   // 적용하기 버튼 바인딩
   var applyBtn = document.getElementById('skin-apply-btn');
@@ -14497,10 +14569,11 @@ function _submitCoupon() {
 <div id="screen-explore" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;">
   <div style="flex-shrink:0;background:#040c14;">
     <div style="display:flex; align-items:center; justify-content:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 6px;">
-      <button onclick="showScreen('home')" style="position:absolute;left:12px;background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀</button>
+      <button onclick="showScreen('home')" style="position:absolute;left:12px;background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
       <span style="font-size:13px; letter-spacing:2px; color:#ff8822; font-family:'Courier New',monospace;">요일 탐사</span>
     </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:0 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15);">
+    <div style="border-bottom:1px solid rgba(0,255,255,0.15);"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px 8px;">
       <button id="explore-help-btn" style="background:none;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:22px;height:22px;cursor:pointer;padding:0;-webkit-appearance:none;">?</button>
       <span id="explore-ticket-hud" style="font-size:11px;color:#ff8822;font-family:monospace;"></span>
     </div>
@@ -14515,8 +14588,8 @@ function _submitCoupon() {
       <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 속성</div>
       <div style="margin-bottom:8px;color:#778899;">
         월: <span style="color:#ef4444;">화염</span> · 화: <span style="color:#3b82f6;">심해</span> · 수: <span style="color:#f59e0b;">번개</span><br>
-        목: <span style="color:#8b5cf6;">대지</span> · 금: <span style="color:#10b981;">질풍</span> · 토: <span style="color:#6b21a8;">암흑</span><br>
-        일: 화염/심해/번개/대지/질풍 전부 개방
+        목: <span style="color:#d4a04a;">대지</span> · 금: <span style="color:#10b981;">질풍</span> · 토: <span style="color:#6b21a8;">암흑</span><br>
+        일: 화염/심해/번개/대지/질풍 개방
       </div>
       <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 적용 시스템</div>
       <div style="margin-bottom:8px;color:#778899;">
@@ -14531,7 +14604,7 @@ function _submitCoupon() {
       <div style="color:#778899;">
         승리 시: 코어 획득 + 티켓 소모 + 다음 단계 해금<br>
         패배 시: 소모 없음, 재도전 가능<br>
-        클리어한 단계: 즉시 수확 가능 (티켓 1장)
+        클리어한 단계: 즉시 수확 가능 (티켓 1장 소모)
       </div>
     </div>
     <button id="explore-help-close" style="width:100%;margin-top:14px;height:36px;background:#030b10;border:1px solid #ff8822;color:#ff8822;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">닫기</button>
@@ -14757,7 +14830,7 @@ function _renderExploreList(container) {
           '<div><div style="font-size:12px;color:'+(isOpen?el.color:'#334455')+';font-family:monospace;font-weight:bold;">'+el.name+' 탐사</div>'+
           '<div style="font-size:9px;color:#445566;font-family:monospace;margin-top:2px;">'+(allClear?'전 단계 클리어':'스테이지 '+curStage)+'</div></div>'+
         '</div>'+
-        (isOpen?'<span style="font-size:10px;color:#556677;font-family:monospace;">▸</span>':'<span style="font-size:8px;color:#334455;font-family:monospace;">'+(el.day<=5?dayNames[el.day]:'토')+'요일</span>')+
+        '<span style="font-size:10px;color:'+(isOpen?'#ff8822':'#556677')+';font-family:monospace;font-weight:'+(isOpen?'bold':'normal')+';">'+(el.day<=5?dayNames[el.day]:'토')+'요일'+(isOpen?' ▸':'')+'</span>'+
       '</div>'+
     '</div>';
   });
