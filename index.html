@@ -950,6 +950,32 @@ canvas {
   80%  { opacity: 1; }
   100% { opacity: 0; }
 }
+@keyframes rewardPopIn {
+  0%   { opacity:0; transform:translate(-50%,-50%) scale(0.7); }
+  50%  { opacity:1; transform:translate(-50%,-50%) scale(1.05); }
+  100% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+}
+@keyframes rewardPopOut {
+  0%   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  100% { opacity:0; transform:translate(-50%,-50%) scale(0.8); }
+}
+.reward-popup-overlay {
+  position:fixed; inset:0; z-index:10001; background:rgba(0,0,0,0.6);
+  display:flex; align-items:center; justify-content:center;
+  animation: fadeInOut 0.3s ease forwards; opacity:1;
+}
+.reward-popup-box {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:linear-gradient(180deg,#0d1b2a 0%,#0a1520 100%);
+  border:1px solid #00ffff; border-radius:12px;
+  padding:20px 28px; z-index:10002; text-align:center;
+  min-width:200px; max-width:280px;
+  box-shadow:0 0 30px rgba(0,255,255,0.15), inset 0 0 20px rgba(0,255,255,0.03);
+  animation: rewardPopIn 0.35s ease forwards;
+}
+.reward-popup-box.closing {
+  animation: rewardPopOut 0.25s ease forwards;
+}
 /* ── Title screen ── */
 #screen-title {
   position: fixed; inset: 0; z-index: 9998;
@@ -1901,6 +1927,58 @@ function showAchievementToast(name) {
   setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2000);
 }
 
+// ── 보상 수령 팝업 ──
+// items: [{icon, label, amount, color}]  예: [{icon:'◈', label:'골드', amount:50, color:'#f59e0b'}]
+// title: 상단 제목 (기본: '보상 획득!')
+window.showRewardPopup = function(items, title) {
+  // 기존 팝업 제거
+  var old = document.getElementById('reward-popup-overlay');
+  if (old) old.remove();
+  var oldBox = document.getElementById('reward-popup-box');
+  if (oldBox) oldBox.remove();
+
+  if (!items || items.length === 0) return;
+
+  var overlay = document.createElement('div');
+  overlay.id = 'reward-popup-overlay';
+  overlay.className = 'reward-popup-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.55);';
+
+  var box = document.createElement('div');
+  box.id = 'reward-popup-box';
+  box.className = 'reward-popup-box';
+
+  var html = '<div style="color:#00ffff;font-size:13px;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">' +
+    (title || '보상 획득!') + '</div>';
+
+  html += '<div style="display:flex;flex-direction:column;gap:8px;align-items:center;">';
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i];
+    html += '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="color:' + (it.color || '#00ffff') + ';font-size:18px;">' + (it.icon || '★') + '</span>' +
+      '<span style="color:#94a3b8;font-size:11px;">' + (it.label || '') + '</span>' +
+      '<span style="color:' + (it.color || '#00ffff') + ';font-size:16px;font-weight:bold;">+' + it.amount + '</span>' +
+    '</div>';
+  }
+  html += '</div>';
+
+  html += '<div style="margin-top:16px;">' +
+    '<button id="reward-popup-ok" style="background:transparent;border:1px solid #00ffff;color:#00ffff;font-family:\'Courier New\',monospace;font-size:11px;padding:6px 24px;cursor:pointer;letter-spacing:1px;">확인</button>' +
+  '</div>';
+
+  box.innerHTML = html;
+  document.body.appendChild(overlay);
+  document.body.appendChild(box);
+
+  function closePopup() {
+    box.classList.add('closing');
+    overlay.style.transition = 'opacity 0.25s'; overlay.style.opacity = '0';
+    setTimeout(function() { if (overlay.parentNode) overlay.remove(); if (box.parentNode) box.remove(); }, 260);
+  }
+  overlay.addEventListener('click', closePopup);
+  document.getElementById('reward-popup-ok').addEventListener('click', closePopup);
+};
+
 /* ═══════════════════════════════════════════════════════════════
    CANVAS SETUP
 ═══════════════════════════════════════════════════════════════ */
@@ -2151,6 +2229,7 @@ function claimAchievement(key) {
   if (window.G) G.gems = PERM.gems;
   savePerm();
   try { buildAchieveUI(); } catch(_) {}
+  if (window.showRewardPopup) showRewardPopup([{icon:'❖', label:'보석', amount:ach.gems, color:'#00ffff'}], '업적 보상');
 }
 window.claimAchievement = claimAchievement;
 
@@ -7478,9 +7557,11 @@ function _renderMissions() {
       var miss = DAILY_MISSIONS.filter(function(x){return x.id===mId;})[0];
       if (!miss || localStorage.getItem('daily_claimed_'+mId)==='true') return;
       localStorage.setItem('daily_claimed_'+mId,'true');
+      var _rwItems = [];
       if (window.PERM) {
         PERM.gold = (PERM.gold||0) + miss.reward.gold;
-        if (miss.reward.gem) PERM.gems = (PERM.gems||0) + miss.reward.gem;
+        if (miss.reward.gold) _rwItems.push({icon:'◈', label:'골드', amount:miss.reward.gold, color:'#f59e0b'});
+        if (miss.reward.gem) { PERM.gems = (PERM.gems||0) + miss.reward.gem; _rwItems.push({icon:'❖', label:'보석', amount:miss.reward.gem, color:'#00ffff'}); }
         if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
         if (window.savePerm) savePerm();
       }
@@ -7489,6 +7570,7 @@ function _renderMissions() {
       _updateBadge();
       var goldEl = document.getElementById('miss-gold-display');
       if (goldEl && window.PERM) goldEl.textContent = PERM.gold || 0;
+      if (_rwItems.length && window.showRewardPopup) showRewardPopup(_rwItems, '임무 보상');
     });
   });
 
@@ -7500,11 +7582,13 @@ function _renderMissions() {
     claimAllBtn.style.cssText='width:100%;padding:14px;background:transparent;border:1px solid '+(anyClaimable?'#00ffff':'#1a3344')+';border-radius:8px;color:'+(anyClaimable?'#00ffff':'#334455')+';font-family:monospace;font-size:12px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;';
     claimAllBtn.textContent='모두 받기';
     if(anyClaimable) claimAllBtn.addEventListener('click',function(){
+      var _totalGold=0, _totalGem=0;
       DAILY_MISSIONS.forEach(function(m){
         var prog=parseInt(localStorage.getItem(m.trackKey)||'0',10);
         if(prog>=m.target && localStorage.getItem('daily_claimed_'+m.id)!=='true'){
           localStorage.setItem('daily_claimed_'+m.id,'true');
-          if(window.PERM) PERM.gold=(PERM.gold||0)+m.reward.gold;
+          if(window.PERM) { PERM.gold=(PERM.gold||0)+m.reward.gold; _totalGold+=m.reward.gold; }
+          if(m.reward.gem && window.PERM) { PERM.gems=(PERM.gems||0)+m.reward.gem; _totalGem+=m.reward.gem; }
         }
       });
       if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
@@ -7513,6 +7597,10 @@ function _renderMissions() {
       _renderMissions();
       _updateBadge();
       var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
+      var _rwAll=[];
+      if(_totalGold) _rwAll.push({icon:'◈',label:'골드',amount:_totalGold,color:'#f59e0b'});
+      if(_totalGem) _rwAll.push({icon:'❖',label:'보석',amount:_totalGem,color:'#00ffff'});
+      if(_rwAll.length && window.showRewardPopup) showRewardPopup(_rwAll,'임무 보상');
     });
     _bar.appendChild(claimAllBtn);
   }
@@ -7558,7 +7646,7 @@ function _renderWeeklyNodes() {
           wk2.claimed.push(req);
           _saveWeekly(wk2);
           if (window.PERM) { window.PERM.gems = (window.PERM.gems||0) + gem; if (window.savePerm) window.savePerm(); }
-          if (window.showAchievementToast) window.showAchievementToast('❖ +' + gem + ' 주간 보상!');
+          if (window.showRewardPopup) showRewardPopup([{icon:'❖', label:'보석', amount:gem, color:'#00ffff'}], '주간 보상');
           _renderWeeklyNodes();
         });
       }
@@ -9080,6 +9168,10 @@ function _spClaimTier(tierNum) {
   savePerm();
   _spRenderPopup();
   syncShopUI();
+  var _spRw = [];
+  if (t.reward.gold > 0) _spRw.push({icon:'◈', label:'골드', amount:t.reward.gold, color:'#f59e0b'});
+  if (t.reward.gem > 0) _spRw.push({icon:'❖', label:'보석', amount:t.reward.gem, color:'#00ffff'});
+  if (_spRw.length && window.showRewardPopup) showRewardPopup(_spRw, '시즌 패스 보상');
 }
 
 function _spRenderPopup() {
@@ -11996,6 +12088,7 @@ window.claimMission = function (id, amount) {
     toast.style.display = 'block';
     setTimeout(function () { toast.style.display = 'none'; }, 2200);
   }
+  if (window.showRewardPopup) showRewardPopup([{icon:'✦', label:'펄스 조각', amount:amount, color:'#cc44ff'}], '미션 보상');
 };
 
 /* 마켓 구매 */
