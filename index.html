@@ -1586,7 +1586,7 @@ canvas {
       <span style="color:#00ffff; font-family:monospace; font-size:13px;">❖ <span id="module-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#cc44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0;">◈ 프리즘</div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#cc44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0;">◇ 프리즘</div>
   <div id="module-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 </div>
 
@@ -6834,15 +6834,22 @@ function _buildLabSlots() {
       (function(idx, cost) {
         var buyBtn = slotEl.querySelector('[data-lab-buy]');
         buyBtn.addEventListener('click', function() {
-          if ((PERM.gems||0) < cost) return;
-          PERM.gems -= cost;
-          savePerm();
-          var labData = _loadLab();
-          if (!labData['slot' + idx]) labData['slot' + idx] = {};
-          labData['slot' + idx].bought = true;
-          _saveLab(labData);
-          _syncLabHUD();
-          _buildLabSlots();
+          var gems = (PERM.gems||0);
+          if (gems < cost) {
+            if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석이 부족합니다\n보유: ❖'+gems+' / 필요: ❖'+cost,null);
+            return;
+          }
+          if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?',function(){
+            if((PERM.gems||0)<cost) return;
+            PERM.gems -= cost;
+            savePerm();
+            var labData = _loadLab();
+            if (!labData['slot' + idx]) labData['slot' + idx] = {};
+            labData['slot' + idx].bought = true;
+            _saveLab(labData);
+            _syncLabHUD();
+            _buildLabSlots();
+          });
         });
       }(i, LAB_SLOT_COST[i]));
     } else {
@@ -10150,6 +10157,32 @@ var PRISM_DUP_NEEDED = [0,3,3,3,5]; /* index = target level -1 */
 /* 활성화 슬롯 비용: 1번 무료, 2번 100보석, ... 최대 10슬롯 */
 var PRISM_SLOT_COSTS = [0,100,200,300,400,500,600,700,800,900];
 
+/* ── 슬롯 구매 확인 팝업 (프리즘 + 코어랩 공용) ── */
+function _showSlotConfirm(title, msg, onConfirm) {
+  var old = document.getElementById('slot-confirm-popup');
+  if (old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'slot-confirm-popup';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(3,11,16,0.92);z-index:20000;display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+  var box = '<div style="background:#0d1520;border:1px solid #00ffff;padding:24px;max-width:300px;width:85%;text-align:center;">' +
+    '<div style="color:#00ffff;font-size:13px;font-weight:bold;letter-spacing:1px;margin-bottom:12px;">'+title+'</div>' +
+    '<div style="color:#94a3b8;font-size:11px;white-space:pre-line;margin-bottom:18px;line-height:1.6;">'+msg+'</div>' +
+    '<div style="display:flex;gap:8px;">';
+  if (onConfirm) {
+    box += '<button id="slot-confirm-yes" style="flex:1;padding:10px;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">구매</button>';
+  }
+  box += '<button id="slot-confirm-no" style="flex:1;padding:10px;background:#030b10;border:1px solid #334455;color:#556677;font-family:monospace;font-size:12px;cursor:pointer;">'+(!onConfirm?'확인':'취소')+'</button>';
+  box += '</div></div>';
+  ov.innerHTML = box;
+  document.body.appendChild(ov);
+  document.getElementById('slot-confirm-no').addEventListener('click', function() { ov.remove(); });
+  ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
+  if (onConfirm) {
+    document.getElementById('slot-confirm-yes').addEventListener('click', function() { ov.remove(); onConfirm(); });
+  }
+}
+window._showSlotConfirm = _showSlotConfirm;
+
 function _getPrism(id) {
   var d = (window.PERM && window.PERM.prisms) || {};
   return d[id] || { lv:0, dup:0 };
@@ -10582,17 +10615,24 @@ function _renderCardTab() {
       _renderCardTab();
     });
   });
-  // 슬롯 해금
+  // 슬롯 해금 (확인 팝업)
   content.querySelectorAll('[data-slot-unlock]').forEach(function(el){
     el.addEventListener('click',function(){
       var idx=parseInt(el.dataset.slotUnlock);
       var cost=PRISM_SLOT_COSTS[idx]||9999;
-      if(!window.PERM||(window.PERM.gems||0)<cost){ el.style.borderColor='#ef4444'; setTimeout(function(){el.style.borderColor='';},400); return; }
-      window.PERM.gems-=cost;
-      _setSlots(idx+1);
-      window.savePerm&&window.savePerm();
-      if(window.showAchievementToast) showAchievementToast('슬롯 '+(idx+1)+'번 해금!');
-      _renderCardTab();
+      var gems=(window.PERM&&window.PERM.gems)||0;
+      if(gems<cost){
+        _showSlotConfirm('프리즘 슬롯 '+(idx+1)+'번 해금','보석이 부족합니다\n보유: ❖'+gems+' / 필요: ❖'+cost,null);
+        return;
+      }
+      _showSlotConfirm('프리즘 슬롯 '+(idx+1)+'번 해금','보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?',function(){
+        if((window.PERM.gems||0)<cost) return;
+        window.PERM.gems-=cost;
+        _setSlots(idx+1);
+        window.savePerm&&window.savePerm();
+        if(window.showAchievementToast) showAchievementToast('슬롯 '+(idx+1)+'번 해금!');
+        _renderCardTab();
+      });
     });
   });
   // 프리즘 장착/해제 토글
