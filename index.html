@@ -5428,7 +5428,7 @@ if (dailyPopup) {
     var html = '';
     // Free ad card
     html += '<div style="margin:8px; background:#0a1a2a; border:1px solid rgba(0,255,255,0.2); padding:12px; display:flex; justify-content:space-between; align-items:center;">';
-    html += '<div><div style="color:#00ffff; font-family:monospace; font-size:11px;">\u25C6 x15 \uBB34\uB8CC</div>';
+    html += '<div><div style="color:#00ffff; font-family:monospace; font-size:11px;">❖ x15 무료</div>';
     html += '<div style="color:#334455; font-family:monospace; font-size:9px;">\uAD11\uACE0 \uC2DC\uCCAD (\uD558\uB8E8 3\uD68C)</div></div>';
     html += '<button id="btn-watch-ad" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:10px; padding:6px 12px; cursor:pointer;" onclick="alert(\'\uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.\')">\uAD11\uACE0 \uBCF4\uAE30</button>';
     html += '</div>';
@@ -5440,7 +5440,7 @@ if (dailyPopup) {
       if (gp.bonus) {
         html += '<div style="position:absolute; top:4px; right:4px; background:#cc44ff; color:#fff; font-size:8px; padding:2px 4px; font-family:monospace;">' + gp.bonus + '</div>';
       }
-      html += '<div style="color:#00ffff; font-size:24px;">\u25C6</div>';
+      html += '<div style="color:#00ffff; font-size:24px;">❖</div>';
       html += '<div style="color:#00ffff; font-family:monospace; font-size:14px; font-weight:bold;">x' + gp.amount + '</div>';
       html += '<button style="background:#030b10; border:1px solid #0a3344; color:#ffffff; font-family:monospace; font-size:11px; padding:4px 8px; cursor:pointer; width:100%;" onclick="alert(\'\uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.\')">' + gp.price + '</button>';
       html += '</div>';
@@ -5796,6 +5796,7 @@ if (dailyPopup) {
     <button id="lab-popup-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
   </div>
   <div id="lab-popup-filter" style="display:flex; gap:4px; padding:6px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14; overflow-x:auto;">
+    <button class="lab-filter" data-cat="all"      style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">전체</button>
     <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">메타</button>
     <button class="lab-filter" data-cat="attack"  style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">공격</button>
     <button class="lab-filter" data-cat="defense" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">방어</button>
@@ -6912,9 +6913,8 @@ function _buildLabSlots() {
 
       if (!researchId) {
         var noRes = document.createElement('div');
-        noRes.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
-        noRes.innerHTML = '<span style="color:#334455;font-family:monospace;font-size:11px;">연구 없음</span>' +
-          '<button data-lab-select="' + i + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 10px;cursor:pointer;">선택</button>';
+        noRes.style.cssText = 'text-align:center;padding:4px 0;';
+        noRes.innerHTML = '<button data-lab-select="' + i + '" style="width:100%;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;font-weight:bold;letter-spacing:1px;">연구 선택</button>';
         slotEl.appendChild(noRes);
       } else {
         var res  = ALL_RESEARCH.filter(function(r){return r.id===researchId;})[0];
@@ -7013,7 +7013,7 @@ function _buildLabPopupList() {
   var done = lab.research || {};
 
   var items = ALL_RESEARCH.filter(function(r) {
-    if (r.cat !== _labFilterCat) return false;
+    if (_labFilterCat !== 'all' && r.cat !== _labFilterCat) return false;
     if (_labHideComplete && (done[r.id] || 0) >= r.maxLv) return false;
     return true;
   });
