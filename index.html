@@ -4092,9 +4092,7 @@ function renderHUD() {
     hpBar.style.background = hr <= 0.3 ? '#ef4444' : hr <= 0.5 ? '#f59e0b' : '#00ff88';
   }
   if (hpText) {
-    var _hpStr = Math.ceil(G.tower.hp) + '/' + Math.ceil(G.tower.maxHp);
-    if (G.pShieldMax > 0) _hpStr += ' +' + Math.ceil(G.pShieldCur||0) + '🛡';
-    hpText.textContent = _hpStr;
+    hpText.textContent = Math.ceil(G.tower.hp) + '/' + Math.ceil(G.tower.maxHp);
   }
   var goldEl = document.getElementById('hud-gold-battle');
   if (goldEl) goldEl.textContent = G.gold;
