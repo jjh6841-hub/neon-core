@@ -5672,8 +5672,9 @@ if (dailyPopup) {
     <button class="lab-filter" data-cat="ultimate" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">궁극</button>
   </div>
   <div style="padding:6px 12px; flex-shrink:0; display:flex; justify-content:flex-end;">
-    <label style="color:#334455; font-family:monospace; font-size:10px; cursor:pointer;">
-      <input type="checkbox" id="lab-hide-complete" style="margin-right:4px;">완료 숨기기
+    <label style="color:#4a7a8a; font-family:'Courier New',monospace; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+      <span id="lab-hide-toggle" style="display:inline-block;width:14px;height:14px;border:1px solid #0a3344;background:#030b10;text-align:center;line-height:14px;font-size:9px;color:#00ffff;"></span>
+      <input type="checkbox" id="lab-hide-complete" style="display:none;">완료 숨기기
     </label>
   </div>
   <div id="lab-popup-list" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 12px 12px;"></div>
@@ -6883,7 +6884,8 @@ function _buildLabPopupList() {
     card.innerHTML =
       '<div style="display:flex;flex-direction:column;gap:2px;">' +
         '<span style="font-size:11px;color:#f1f5f9;font-family:monospace;">' + r.name + ' <span style="color:#4a6a7a;font-size:9px;">Lv.' + lv + '</span></span>' +
-        '<span style="font-size:9px;color:#334455;font-family:monospace;">' + r.desc + ' · ' + _fmtTime(r.time) + ' · ◈' + r.cost + '</span>' +
+        '<span style="font-size:9px;color:#556677;font-family:monospace;">' + r.desc + '</span>' +
+        '<span style="font-size:10px;font-family:monospace;margin-top:2px;"><span style="color:#5bc0de;">⏱ ' + _fmtTime(r.time) + '</span> · <span style="color:#94a3b8;">비용</span> <span style="color:#f59e0b;font-weight:bold;">◈' + r.cost + '</span></span>' +
       '</div>' + status;
     if (!maxed && !inProg) {
       var btn = card.querySelector('[data-start-res]');
@@ -6942,7 +6944,14 @@ document.getElementById('lab-research-select-btn') && document.getElementById('l
 });
 document.getElementById('lab-hide-complete') && document.getElementById('lab-hide-complete').addEventListener('change', function(e) {
   _labHideComplete = e.target.checked;
+  var tog = document.getElementById('lab-hide-toggle');
+  if (tog) { tog.textContent = _labHideComplete ? '✓' : ''; tog.style.borderColor = _labHideComplete ? '#00ffff' : '#0a3344'; }
   _buildLabPopupList();
+});
+var _lhToggle = document.getElementById('lab-hide-toggle');
+if (_lhToggle) _lhToggle.addEventListener('click', function() {
+  var cb = document.getElementById('lab-hide-complete');
+  if (cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
 });
 
 var filterBtns = document.querySelectorAll('.lab-filter');
@@ -12395,6 +12404,9 @@ window.showScreen = function (name) {
   // 임무 화면 숨기기
   var _missScr = document.getElementById('screen-missions');
   if (_missScr) _missScr.style.display = 'none';
+  // 코어랩 연구 선택 팝업 숨기기
+  var _labPop = document.getElementById('lab-popup');
+  if (_labPop) _labPop.style.display = 'none';
 
   // 업적 화면은 별도 ID 사용
   if (name === 'achievements') {
