@@ -11360,46 +11360,134 @@ function _injectSettingsButtons() { /* 이미 HTML에 포함 */ }
 
 function _showStatsPopup() {
   var p=document.createElement('div');
-  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:12px;';
+  p.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.97);z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
   var _fn=typeof window.formatNumber==='function'?window.formatNumber:function(n){return n;};
-  var startDate=localStorage.getItem('stat_start_date')||'-';
-  var totalGold=parseInt(localStorage.getItem('stat_gold')||'0',10);
-  var totalKills=parseInt(localStorage.getItem('stat_kills')||'0',10);
-  var totalWaves=parseInt(localStorage.getItem('stat_waves')||'0',10);
-  var totalGames=parseInt(localStorage.getItem('stat_games')||'0',10);
-  var totalUpg=parseInt(localStorage.getItem('stat_upgrades')||'0',10);
-  var bossKills=(window.PERM&&window.PERM.bossKills)||0;
-  var bestWave=(window.PERM&&window.PERM.bestWave)||parseInt(localStorage.getItem('bestWave')||'0',10);
-  var rows=[
-    ['게임 시작일', startDate],
-    ['총 골드 획득', '◈ '+_fn(totalGold)],
-    ['총 적 처치', _fn(totalKills)+''],
-    ['총 웨이브 완료', totalWaves+''],
-    ['최고 웨이브', bestWave+''],
-    ['총 게임 플레이', totalGames+'회'],
-    ['총 업그레이드', totalUpg+'회'],
-    ['총 보스 처치', bossKills+''],
-    ['총 파워 코어 획득', _fn(parseInt(localStorage.getItem('stat_pc_earned')||'0',10))],
-    ['총 접근 코드 획득', parseInt(localStorage.getItem('stat_ac_earned')||'0',10)+''],
-    ['총 데이터 셀 획득', parseInt(localStorage.getItem('stat_dc_earned')||'0',10)+''],
-    ['총 치명타 횟수', _fn(parseInt(localStorage.getItem('stat_crit_cnt')||'0',10))],
-    ['총 치명타 대미지', _fn(parseFloat(localStorage.getItem('stat_crit_dmg')||'0'))],
-    ['총 에너지 흡수량', _fn(parseFloat(localStorage.getItem('stat_healed')||'0'))],
-    ['총 연구 완료', parseInt(localStorage.getItem('stat_research_done')||'0',10)+'회'],
-    ['사용한 파워 코어 (랩)', parseInt(localStorage.getItem('stat_lab_pc_used')||'0',10)+''],
+  var ws=(window.PERM&&PERM.ws)||{};
+
+  // ── 최종 스탯 계산 (applyPermStats 로직 재현) ──
+  var baseDmg=3+(PERM.dmgLv||0)+(ws.damage||0);
+  var baseHp=10+(PERM.hpLv||0)*2+(ws.maxHp||0)*5;
+  var baseDef=(ws.defense||0)*0.01;
+  var defAbs=ws.defenseAbsolute||0;
+  // 코어랩 연구 보너스
+  var rDmgLv=parseInt(localStorage.getItem('res_r_damage')||'0',10);
+  var rHpLv=parseInt(localStorage.getItem('res_r_health')||'0',10);
+  var rDefLv=parseInt(localStorage.getItem('res_r_defense')||'0',10);
+  if(rDmgLv>0)baseDmg=Math.round(baseDmg*(1+rDmgLv*0.02));
+  if(rHpLv>0)baseHp=Math.round(baseHp*(1+rHpLv*0.02));
+  if(rDefLv>0)baseDef=baseDef*(1+rDefLv*0.02);
+  // 속성 배율
+  var em=window._getElementMultipliers?window._getElementMultipliers():{atk:1,def:1,hp:1};
+  baseDmg=Math.round(baseDmg*em.atk);
+  baseHp=Math.round(baseHp*em.hp);
+  baseDef=baseDef*em.def;
+  // 스킨 보너스
+  var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
+  var finalDmg=Math.round(baseDmg*sm.atk);
+  var finalHp=Math.round(baseHp*sm.hp);
+  var finalDef=Math.round(baseDef*sm.def*10000)/100;
+
+  function _row(label,val,color){ return '<div style="display:flex;justify-content:space-between;padding:5px 0;"><span style="color:#556677;font-size:10px;">'+label+'</span><span style="color:'+(color||'#00ffff')+';font-size:10px;font-weight:bold;">'+val+'</span></div>'; }
+  function _section(title,color){ return '<div style="color:'+(color||'#00ffff')+';font-size:11px;font-weight:bold;margin-top:12px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #0a2233;">'+title+'</div>'; }
+
+  var h='';
+  // ── 최종 스탯 ──
+  h+=_section('⚡ 최종 전투 능력치','#f59e0b');
+  h+=_row('공격력',finalDmg,'#ef4444');
+  h+=_row('체력',finalHp,'#10b981');
+  h+=_row('방어율',finalDef.toFixed(2)+'%','#3b82f6');
+  h+=_row('절대 방어',defAbs,'#3b82f6');
+  h+=_row('공격 속도','x'+(1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05).toFixed(2),'#f59e0b');
+  h+=_row('치명타 확률',((ws.critChance||0)*5)+'%','#cc44ff');
+  h+=_row('치명타 배율','x'+(1.5+(ws.critMult||0)*0.25).toFixed(2),'#cc44ff');
+  h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
+
+  // ── 강화소 ──
+  h+=_section('🔧 강화소');
+  h+=_row('공격력 Lv',(ws.damage||0));
+  h+=_row('공격속도 Lv',(ws.atkspd||0));
+  h+=_row('최대 체력 Lv',(ws.maxHp||0));
+  h+=_row('치명타 확률 Lv',(ws.critChance||0));
+  h+=_row('치명타 배율 Lv',(ws.critMult||0));
+  h+=_row('방어율 Lv',(ws.defense||0));
+  h+=_row('절대 방어 Lv',(ws.defenseAbsolute||0));
+  h+=_row('체력 재생 Lv',(ws.hpRegen||0));
+  h+=_row('넉백 확률 Lv',(ws.knockbackChance||0));
+  h+=_row('반사 데미지 Lv',(ws.thornDamage||0));
+  h+=_row('흡혈 확률 Lv',(ws.vampChance||0));
+  h+=_row('쉴드 HP Lv',(ws.shieldHP||0));
+  h+=_row('골드 획득 Lv',(ws.goldGain||0));
+  h+=_row('보석 획득 Lv',(ws.gemGain||0));
+
+  // ── 코어랩 연구 ──
+  h+=_section('🔬 코어랩 연구');
+  var labItems=[
+    ['게임 속도','game_speed'],['공격 할인','atk_discount'],['방어 할인','def_discount'],
+    ['연구 속도','lab_speed'],['대미지','r_damage'],['속도','r_spd'],['치명타','r_crit'],
+    ['분열탄','r_multishot'],['치명타 계수','r_crit_mult'],['사거리','r_range'],['관통','r_pierce'],
+    ['넉백','r_knockback'],['체력','r_health'],['재생','r_regen'],['방어','r_defense'],
+    ['지뢰','r_mine'],['반사','r_reflect'],['흡혈','r_vamp'],['쉴드','r_shield'],
+    ['시작 골드','start_cash'],['웨이브 골드','r_wave_cash'],['보석 획득','r_gem_gain'],['골드 획득','r_gold_gain'],
+    ['속성 공격','r_elem_atk'],['속성 방어','r_elem_def'],['속성 체력','r_elem_hp']
   ];
-  var rowHtml=rows.map(function(r){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #0a2233;">'+
-      '<span style="color:#556677;font-family:monospace;font-size:11px;">'+r[0]+'</span>'+
-      '<span style="color:#00ffff;font-family:monospace;font-size:12px;font-weight:bold;">'+r[1]+'</span></div>';
-  }).join('');
+  labItems.forEach(function(li){
+    var lv=parseInt(localStorage.getItem('res_'+li[1])||'0',10);
+    if(lv>0) h+=_row(li[0]+' 연구','Lv.'+lv);
+  });
+  var labDone=parseInt(localStorage.getItem('stat_research_done')||'0',10);
+  h+=_row('총 연구 완료',labDone+'회','#556677');
+
+  // ── 프리즘 ──
+  h+=_section('◇ 프리즘');
+  var prisms=PERM.prisms||{};
+  var pCount=0,pLv5=0;
+  for(var pk in prisms){if(prisms[pk]&&prisms[pk].lv>0){pCount++;if(prisms[pk].lv>=5)pLv5++;}}
+  h+=_row('보유 프리즘',pCount+'개');
+  h+=_row('Lv.5 프리즘',pLv5+'개');
+  h+=_row('장착 슬롯',(PERM.prismSlotCount||1)+'개');
+  h+=_row('프리즘 파편',(PERM.prismFragments||0)+'개');
+
+  // ── 속성 ──
+  h+=_section('⚛ 속성');
+  var elemIds=['fire','water','electric','earth','wind','dark'];
+  var elemNames=['화염','심해','번개','대지','질풍','암흑'];
+  var statKeys=['atk','def','hp','critDmg','critRate'];
+  elemIds.forEach(function(eid,idx){
+    var total=0;
+    statKeys.forEach(function(sk){total+=parseInt(localStorage.getItem('elem_'+eid+'_'+sk)||'0',10);});
+    if(total>0) h+=_row(elemNames[idx]+' 속성 총 Lv',total);
+  });
+
+  // ── 스킨 보너스 ──
+  h+=_section('▲ 스킨 보너스');
+  if(sm.shipMult) h+=_row('탐사선 스킨 보너스','x'+sm.shipMult.toFixed(2));
+  if(sm.bgMult) h+=_row('배경 스킨 보너스','x'+sm.bgMult.toFixed(2));
+
+  // ── 행성별 최고 웨이브 ──
+  h+=_section('☆ 행성별 최고 웨이브');
+  var pNames=['에이온','스펙트라','넥사르','피라온','오메가'];
+  for(var ti=1;ti<=5;ti++){
+    var tb=parseInt(localStorage.getItem('tier'+ti+'_best')||'0',10);
+    h+=_row(pNames[ti-1],tb+'웨이브');
+  }
+
+  // ── 일반 통계 ──
+  h+=_section('📊 플레이 통계');
+  h+=_row('총 골드 획득','◈ '+_fn(parseInt(localStorage.getItem('stat_gold')||'0',10)));
+  h+=_row('총 적 처치',_fn((PERM.totalKills||0)));
+  h+=_row('총 보스 처치',(PERM.bossKills||0)+'');
+  h+=_row('총 게임 플레이',parseInt(localStorage.getItem('stat_games')||'0',10)+'회');
+  h+=_row('총 업그레이드',parseInt(localStorage.getItem('stat_upgrades')||'0',10)+'회');
+  h+=_row('전투 증강 사용',parseInt(localStorage.getItem('stat_augments')||'0',10)+'회');
+
   p.innerHTML=
-    '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:20px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:0;">'+
-      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;margin-bottom:12px;text-align:center;">📊 통계</div>'+
-      rowHtml+
-      '<button id="stats-close" style="margin-top:16px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;">닫기</button>'+
+    '<div style="background:#0a1a2a;border:1px solid #0a3344;width:100%;max-width:320px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;">'+
+      '<div style="color:#00ffff;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;padding:14px 16px 10px;flex-shrink:0;border-bottom:1px solid #0a3344;">통계</div>'+
+      '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 16px;font-family:\'Courier New\',monospace;">'+h+'</div>'+
+      '<button id="stats-close" style="margin:0 16px 12px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;flex-shrink:0;">닫기</button>'+
     '</div>';
   document.body.appendChild(p);
+  p.addEventListener('click',function(e){if(e.target===p)p.remove();});
   document.getElementById('stats-close').addEventListener('click',function(){ p.remove(); });
 }
 
