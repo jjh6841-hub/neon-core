@@ -5228,12 +5228,13 @@ if (dailyPopup) {
 
   /* ── 행성 설정 ── */
   var TIERS = [
-    { name: '에이온', mult: 1.0 },
-    { name: '스펙트라', mult: 1.5 },
-    { name: '넥사르', mult: 2.0 },
-    { name: '피라온', mult: 3.0 },
-    { name: '오메가', mult: 5.0 },
-  ];
+  { name:'\uc77c\ubc18',   color:'#94a3b8', border:'#4a5568' },
+  { name:'\uace0\uae09',   color:'#10b981', border:'#059669' },
+  { name:'\ud76c\uadc0',   color:'#3b82f6', border:'#2563eb' },
+  { name:'\uc601\uc6c5',   color:'#a855f7', border:'#9333ea' },
+  { name:'\uc804\uc124',   color:'#f59e0b', border:'#d97706' },
+  { name:'\uc2e0\ud654',   color:'#ef4444', border:'#dc2626' },
+]
   // 티어 N (idx N-1, N>=2) 해금 조건: 티어 N-1 에서 웨이브 100 클리어
   function isTierUnlocked(idx) {
     if (idx <= 0) return true;
@@ -15445,7 +15446,7 @@ function _submitCoupon() {
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="mods-gold">0</span></span>
-      <span style="color:#00ffff; font-family:monospace; font-size:13px;">❖ <span id="mods-gem">0</span></span>
+      <span style="color:#ff8822; font-family:monospace; font-size:13px;">⊕ <span id="mods-pcore">0</span></span>
       <span style="color:#88aaff; font-family:monospace; font-size:13px;">⊿ <span id="mods-frag">0</span></span>
     </div>
   </div>
@@ -16134,7 +16135,29 @@ var TIERS = [
 
 var MOD_SLOT_COUNT = 6;
 var MOD_SLOT_COST = [0, 50, 100, 200, 400, 800];
-var MOD_BUY_COST = 30; // 보석
+var MOD_BUY_COST = 5; // 파워 코어
+
+// 생성 레벨 시스템
+var MOD_LEVEL_THRESHOLDS = [0,10,30,70,130,210,310,430,570,730,910,1110,1330,1570,1830,2110,2410,2730,3070,3430];
+function _getModLevel() {
+  var d = _loadMods();
+  var totalPulls = d.totalPulls || 0;
+  var lv = 1;
+  for (var i = 1; i < MOD_LEVEL_THRESHOLDS.length; i++) {
+    if (totalPulls >= MOD_LEVEL_THRESHOLDS[i]) lv = i + 1;
+    else break;
+  }
+  return Math.min(lv, 20);
+}
+function _getModLevelInfo() {
+  var d = _loadMods();
+  var totalPulls = d.totalPulls || 0;
+  var lv = _getModLevel();
+  var curThreshold = MOD_LEVEL_THRESHOLDS[lv - 1] || 0;
+  var nextThreshold = lv < 20 ? MOD_LEVEL_THRESHOLDS[lv] : MOD_LEVEL_THRESHOLDS[19];
+  var progress = lv >= 20 ? 1 : (totalPulls - curThreshold) / (nextThreshold - curThreshold);
+  return { level: lv, totalPulls: totalPulls, progress: progress, next: nextThreshold };
+}
 
 function _loadMods() { try { return JSON.parse(localStorage.getItem('td_modules')||'{}'); } catch(_) { return {}; } }
 function _saveMods(d) { try { localStorage.setItem('td_modules', JSON.stringify(d)); } catch(_) {} }
@@ -16146,16 +16169,39 @@ function _getModSlotsBought() { var d=_loadMods(); return d.slotsBought || 1; }
 /* ── 모듈 생성 ── */
 function _createModule(forceTier) {
   var type = MODULE_TYPES[Math.floor(Math.random()*MODULE_TYPES.length)];
-  var tier = forceTier !== undefined ? forceTier : 0;
-  if (tier === 0) {
-    var r = Math.random();
-    if (r < 0.01) tier = 4;      // 전설 1%
-    else if (r < 0.05) tier = 3; // 영웅 4%
-    else if (r < 0.15) tier = 2; // 희귀 10%
-    else if (r < 0.40) tier = 1; // 고급 25%
-    else tier = 0;               // 일반 60%
-  }
-  return { typeId: type.id, tier: tier, uid: Date.now() + '_' + Math.random().toString(36).substr(2,5) };
+  if (forceTier !== undefined) return { typeId: type.id, tier: forceTier, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
+  var lv = _getModLevel();
+  // 등급별 확률 (레벨에 따라 변동)
+  // Lv.1: 일반90 고급10
+  // Lv.5: 희귀 해금
+  // Lv.10: 영웅 해금
+  // Lv.15: 전설 해금
+  // Lv.20: 신화 해금
+  var rates = [90, 10, 0, 0, 0, 0]; // [일반, 고급, 희귀, 영웅, 전설, 신화]
+  if (lv >= 2)  { rates = [82, 15, 3, 0, 0, 0]; }
+  if (lv >= 3)  { rates = [75, 18, 7, 0, 0, 0]; }
+  if (lv >= 4)  { rates = [68, 20, 12, 0, 0, 0]; }
+  if (lv >= 5)  { rates = [58, 22, 15, 5, 0, 0]; }
+  if (lv >= 6)  { rates = [50, 24, 17, 9, 0, 0]; }
+  if (lv >= 7)  { rates = [44, 25, 19, 12, 0, 0]; }
+  if (lv >= 8)  { rates = [38, 26, 21, 15, 0, 0]; }
+  if (lv >= 9)  { rates = [33, 26, 23, 18, 0, 0]; }
+  if (lv >= 10) { rates = [28, 25, 24, 20, 3, 0]; }
+  if (lv >= 11) { rates = [24, 24, 24, 22, 6, 0]; }
+  if (lv >= 12) { rates = [20, 23, 24, 23, 10, 0]; }
+  if (lv >= 13) { rates = [17, 22, 24, 24, 13, 0]; }
+  if (lv >= 14) { rates = [14, 21, 23, 25, 17, 0]; }
+  if (lv >= 15) { rates = [11, 19, 22, 25, 20, 3]; }
+  if (lv >= 16) { rates = [9, 17, 21, 25, 22, 6]; }
+  if (lv >= 17) { rates = [7, 15, 20, 25, 24, 9]; }
+  if (lv >= 18) { rates = [5, 13, 19, 25, 25, 13]; }
+  if (lv >= 19) { rates = [4, 11, 17, 24, 27, 17]; }
+  if (lv >= 20) { rates = [3, 9, 15, 23, 28, 22]; }
+  var total = rates.reduce(function(a,b){return a+b;},0);
+  var r = Math.random() * total;
+  var tier = 0, acc = 0;
+  for (var ti = 0; ti < rates.length; ti++) { acc += rates[ti]; if (r < acc) { tier = ti; break; } }
+  return { typeId: type.id, tier: tier, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
 }
 
 /* ── 모듈 효과 계산 ── */
@@ -16163,7 +16209,7 @@ function _getModEffect(mod) {
   var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
   if (!type) return 0;
   var base = type.perLv;
-  var mult = [1, 1.5, 2.5, 4, 7][mod.tier] || 1;
+  var mult = [1, 1.5, 2.5, 4, 7, 12][mod.tier] || 1;
   return Math.round(base * mult * 10) / 10;
 }
 
@@ -16189,7 +16235,7 @@ function _renderModuleContent() {
   cont.innerHTML = '';
   try {
     var mg=document.getElementById('mods-gold'); if(mg) mg.textContent=(PERM&&PERM.gold)||0;
-    var mgm=document.getElementById('mods-gem'); if(mgm) mgm.textContent=(PERM&&PERM.gems)||0;
+    var mpc2=document.getElementById('mods-pcore'); if(mpc2) mpc2.textContent=parseInt(localStorage.getItem('powerCores')||'0',10);
     var mf=document.getElementById('mods-frag'); if(mf) mf.textContent=(_loadMods().moduleFragments||0);
   } catch(_){}
 
@@ -16279,12 +16325,29 @@ function _renderModuleContent() {
   });
   wrap.appendChild(shipArea);
 
-  // ── \uad6c\ub9e4 \ubc84\ud2bc ──
+  // ── 생성 레벨 표시 ──
+  var lvInfo = _getModLevelInfo();
+  var lvBar = document.createElement('div');
+  lvBar.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;border-radius:6px;padding:10px 12px;margin-bottom:10px;';
+  var lvPct = Math.round(lvInfo.progress * 100);
+  lvBar.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+      '<span style="font-size:11px;color:#ff8822;font-weight:bold;">생성 Lv.' + lvInfo.level + '</span>' +
+      '<span style="font-size:9px;color:#556677;">총 ' + lvInfo.totalPulls + '회 생성</span>' +
+    '</div>' +
+    (lvInfo.level < 20 ?
+      '<div style="height:4px;background:#0a1520;border-radius:2px;"><div style="height:4px;background:#ff8822;border-radius:2px;width:' + lvPct + '%;"></div></div>' +
+      '<div style="text-align:right;font-size:8px;color:#445566;margin-top:2px;">다음 Lv: ' + lvInfo.next + '회</div>'
+    : '<div style="text-align:center;font-size:9px;color:#f59e0b;">MAX LEVEL</div>');
+  wrap.appendChild(lvBar);
+
+  // ── 생성 버튼 ──
+  var pc = parseInt(localStorage.getItem('powerCores')||'0',10);
   var buyRow = document.createElement('div');
   buyRow.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;';
   buyRow.innerHTML =
-    '<button id="mod-buy-1" style="flex:1;background:#0a1a2a;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="font-size:14px;margin-bottom:4px;">\u25c7</div>1\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+MOD_BUY_COST+'</span></button>'+
-    '<button id="mod-buy-10" style="flex:1;background:#0a1a2a;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="font-size:14px;margin-bottom:4px;">\u25c7 x10</div>10\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+(MOD_BUY_COST*9)+'</span></button>';
+    '<button id="mod-buy-1" style="flex:1;background:#0a1a2a;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="font-size:14px;margin-bottom:4px;">\u25c7</div>1\ud68c \uc0dd\uc131<br><span style="font-size:10px;">\u2295 '+MOD_BUY_COST+'</span></button>'+
+    '<button id="mod-buy-10" style="flex:1;background:#0a1a2a;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="font-size:14px;margin-bottom:4px;">\u25c7 x10</div>10\ud68c \uc0dd\uc131<br><span style="font-size:10px;">\u2295 '+(MOD_BUY_COST*10)+'</span></button>';
   wrap.appendChild(buyRow);
   setTimeout(function() {
     var b1=document.getElementById('mod-buy-1'), b10=document.getElementById('mod-buy-10');
@@ -16367,14 +16430,16 @@ function _showSlotEquipPopup(slotIdx) {
 
 /* ── 모듈 구매 ── */
 function _buyModule(count) {
-  var cost = count === 1 ? MOD_BUY_COST : MOD_BUY_COST * 9;
-  if ((PERM.gems||0) < cost) {
-    if(window._showSlotConfirm) _showSlotConfirm('\ubcf4\uc11d \ubd80\uc871','\ubcf4\uc11d\uc774 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2756'+(PERM.gems||0)+' / \ud544\uc694: \u2756'+cost, null);
+  var cost = count === 1 ? MOD_BUY_COST : MOD_BUY_COST * count;
+  var pc = parseInt(localStorage.getItem('powerCores')||'0',10);
+  if (pc < cost) {
+    if(window._showSlotConfirm) _showSlotConfirm('\ud30c\uc6cc \ucf54\uc5b4 \ubd80\uc871','\ud30c\uc6cc \ucf54\uc5b4\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2295'+pc+' / \ud544\uc694: \u2295'+cost, null);
     return;
   }
-  PERM.gems -= cost; savePerm();
+  localStorage.setItem('powerCores', pc - cost);
   var d = _loadMods();
   if (!d.inventory) d.inventory = [];
+  d.totalPulls = (d.totalPulls||0) + count;
   var newMods = [];
   for (var i=0; i<count; i++) {
     var m = _createModule();
@@ -16383,7 +16448,6 @@ function _buyModule(count) {
   }
   _saveMods(d);
   _renderModuleContent();
-  // 결과 토스트
   var best = newMods.reduce(function(a,b){return b.tier>a.tier?b:a;}, newMods[0]);
   var bType = MODULE_TYPES.filter(function(t){return t.id===best.typeId;})[0];
   var bTier = TIERS[best.tier];
@@ -16403,7 +16467,7 @@ function _showModuleDetail(mod) {
   var inv = _getModInv();
   // 합성 가능 여부: 같은 타입+같은 등급 3개 이상
   var sameCount = inv.filter(function(m){return m.typeId===mod.typeId && m.tier===mod.tier;}).length;
-  var canMerge = sameCount >= 3 && mod.tier < 4;
+  var canMerge = sameCount >= 3 && mod.tier < 5;
 
   var ov = document.createElement('div');
   ov.id = 'mod-detail-popup';
@@ -16484,7 +16548,7 @@ function _showModuleDetail(mod) {
   // 분해
   var shatterBtn = document.getElementById('mod-shatter');
   if(shatterBtn) shatterBtn.addEventListener('click', function() {
-    var frags = [5,15,50,150,500][mod.tier]||5;
+    var frags = [5,15,50,150,500,1500][mod.tier]||5;
     if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \ubd84\ud574','\uc774 \ubaa8\ub4c8\uc744 \ubd84\ud574\ud558\uba74\n\u29bf '+frags+' \ubaa8\ub4c8 \ud30c\ud3b8\uc744 \ud68d\ub4dd\ud569\ub2c8\ub2e4.\n\ubd84\ud574\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
       var d2=_loadMods(); var inv2=d2.inventory||[]; var sl2=d2.slots||[];
       // 장착 해제
@@ -16524,7 +16588,7 @@ if (typeof _origShowMod === 'function') {
     if (name === 'mods') {
       try {
         var mg2=document.getElementById('mods-gold'); if(mg2) mg2.textContent=(PERM&&PERM.gold)||0;
-        var mgm2=document.getElementById('mods-gem'); if(mgm2) mgm2.textContent=(PERM&&PERM.gems)||0;
+        var mpc=document.getElementById('mods-pcore'); if(mpc) mpc.textContent=parseInt(localStorage.getItem('powerCores')||'0',10);
         var mf2=document.getElementById('mods-frag'); if(mf2){ try{mf2.textContent=(JSON.parse(localStorage.getItem('td_modules')||'{}').moduleFragments||0);}catch(_){mf2.textContent=0;} }
       } catch(_){}
       _renderModuleContent();
