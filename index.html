@@ -1179,6 +1179,12 @@ canvas {
       </div>
     </div>
     <div id="screen-shop">
+      <div id="gem-ad-bar" style="display:none;padding:4px 8px;background:#06061a;border-bottom:1px solid #0a3344;">
+        <button id="gem-ad-btn" style="display:flex;align-items:center;gap:6px;width:100%;background:#0a1520;border:1px solid #cc44ff;padding:6px 10px;cursor:pointer;-webkit-appearance:none;">
+          <span style="font-size:14px;">▶</span>
+          <span style="font-family:'Courier New',monospace;font-size:11px;color:#cc44ff;font-weight:bold;">❖ 광고 시청 → 보석 +5</span>
+        </button>
+      </div>
       <div id="tab-bar">
         <div id="speed-ctrl" style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
           <button id="speed-minus" style="width:24px;height:24px;background:#030b10;border:1px solid #0a3344;color:#00ffff;font-size:15px;cursor:pointer;-webkit-appearance:none;line-height:1;font-family:monospace;padding:0;">−</button>
@@ -3079,8 +3085,7 @@ function update(dt) {
           var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1);
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
-          const gmEarned = e.gem ? Math.floor(e.gem * G.gemBonus) : 0;
-          G.gems       += gmEarned;
+          // 전투 중 보석 드랍 비활성화 (이벤트/광고로만 획득)
           G.killCount++;
           PERM.totalKills++;
           _infKill(e.type);
@@ -3691,9 +3696,9 @@ function triggerGameOver() {
   document.getElementById('r-best').textContent  = PERM.bestWave;
   document.getElementById('r-gold').textContent  = G.goldEarned;
 
-  // Gem row — only visible when boss was killed
+  // Gem row — 이벤트/광고로 획득한 보석 표시
   var gemRow = document.getElementById('r-gem-row');
-  if (bossKilledThisRun && gemsEarned > 0) {
+  if (gemsEarned > 0) {
     document.getElementById('r-gems').textContent = gemsEarned;
     gemRow.style.display = '';
   } else {
@@ -16613,6 +16618,235 @@ if (typeof _origShowMod === 'function') {
       _renderModuleContent();
     }
   };
+}
+
+}());
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     보석 이벤트 시스템: 떠다니는 보석 (15분) + 광고 보석 (30분)
+══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   §1 — 떠다니는 보석 이벤트 (15분마다, +2 보석)
+════════════════════════════════════════════════════════ */
+var GEM_EVENT_INTERVAL = 15 * 60 * 1000; // 15분
+var GEM_EVENT_REWARD   = 2;
+var _gemEventActive    = false;
+var _gemX = 0, _gemY = 0, _gemAngle = 0, _gemAlpha = 1;
+var _gemBaseX = 0, _gemBaseY = 0;
+
+function _getLastGemEvent() {
+  try { return parseInt(localStorage.getItem('td_gem_event_ts') || '0', 10); } catch(_) { return 0; }
+}
+function _setLastGemEvent() {
+  try { localStorage.setItem('td_gem_event_ts', String(Date.now())); } catch(_) {}
+}
+
+function _spawnGemEvent() {
+  if (_gemEventActive) return;
+  var cw = window.CW || 360, ch = window.CH || 640;
+  _gemBaseX = 60 + Math.random() * (cw - 120);
+  _gemBaseY = 80 + Math.random() * (ch * 0.4);
+  _gemX = _gemBaseX;
+  _gemY = _gemBaseY;
+  _gemAngle = Math.random() * Math.PI * 2;
+  _gemAlpha = 0;
+  _gemEventActive = true;
+}
+
+function _collectGem() {
+  if (!_gemEventActive) return;
+  _gemEventActive = false;
+  _setLastGemEvent();
+  if (window.G) {
+    G.gems += GEM_EVENT_REWARD;
+    if (window.PERM) { PERM.gems += GEM_EVENT_REWARD; if (window.savePerm) savePerm(); }
+    G.floatTexts.push({ x: _gemX, y: _gemY - 20, text: '+' + GEM_EVENT_REWARD + ' ❖', color: '#cc44ff', timer: 0 });
+    try { AudioManager.playSfx('upgrade'); } catch(_) {}
+  }
+}
+
+// 캔버스 클릭/터치로 보석 수집
+function _checkGemClick(px, py) {
+  if (!_gemEventActive) return false;
+  var dx = px - _gemX, dy = py - _gemY;
+  if (dx * dx + dy * dy < 35 * 35) {
+    _collectGem();
+    return true;
+  }
+  return false;
+}
+
+// gameCanvas에 클릭 이벤트 연결
+var _gc = document.getElementById('gameCanvas');
+if (_gc) {
+  _gc.addEventListener('click', function(e) {
+    var r = _gc.getBoundingClientRect();
+    var z = (window.G && G.zoom) || 1;
+    var px = (e.clientX - r.left) * (_gc.width / r.width);
+    var py = (e.clientY - r.top) * (_gc.height / r.height);
+    _checkGemClick(px, py);
+  });
+}
+
+// render에 체이닝: 보석 아이콘 그리기
+var _prevRenderGem = window.render;
+if (typeof _prevRenderGem === 'function' && !_prevRenderGem._fGemEvt) {
+  window.render = function() {
+    _prevRenderGem.apply(this, arguments);
+    if (!_gemEventActive || !window.G || G.phase !== 'playing') return;
+    var c = window.ctx;
+    if (!c) return;
+    var t = Date.now() * 0.001;
+    // 부드러운 떠다니기
+    _gemX = _gemBaseX + Math.sin(t * 0.8) * 20;
+    _gemY = _gemBaseY + Math.cos(t * 0.6) * 12;
+    _gemAlpha = Math.min(1, _gemAlpha + 0.02);
+
+    c.save();
+    c.globalAlpha = _gemAlpha * (0.8 + Math.sin(t * 3) * 0.2);
+
+    // 글로우 효과
+    c.shadowColor = '#cc44ff';
+    c.shadowBlur = 12 + Math.sin(t * 4) * 4;
+
+    // 보석 다이아몬드 모양
+    c.beginPath();
+    c.moveTo(_gemX, _gemY - 14);
+    c.lineTo(_gemX + 10, _gemY);
+    c.lineTo(_gemX, _gemY + 14);
+    c.lineTo(_gemX - 10, _gemY);
+    c.closePath();
+    c.fillStyle = '#cc44ff';
+    c.fill();
+    c.strokeStyle = '#ff88ff';
+    c.lineWidth = 1.5;
+    c.stroke();
+
+    // 내부 하이라이트
+    c.beginPath();
+    c.moveTo(_gemX, _gemY - 7);
+    c.lineTo(_gemX + 5, _gemY);
+    c.lineTo(_gemX, _gemY + 7);
+    c.lineTo(_gemX - 5, _gemY);
+    c.closePath();
+    c.fillStyle = 'rgba(255,200,255,0.4)';
+    c.fill();
+
+    c.shadowBlur = 0;
+
+    // "TAP!" 텍스트
+    c.font = 'bold 9px "Courier New", monospace';
+    c.fillStyle = '#ff88ff';
+    c.textAlign = 'center';
+    c.globalAlpha = _gemAlpha * (0.6 + Math.sin(t * 5) * 0.4);
+    c.fillText('TAP!', _gemX, _gemY + 28);
+
+    c.restore();
+  };
+  window.render._fGemEvt = true;
+}
+
+// update에 체이닝: 15분 타이머 체크
+var _prevUpdateGem = window.update;
+if (typeof _prevUpdateGem === 'function' && !_prevUpdateGem._fGemEvt) {
+  window.update = function(dt) {
+    _prevUpdateGem.apply(this, arguments);
+    if (!window.G || G.phase !== 'playing') return;
+    if (!_gemEventActive) {
+      var elapsed = Date.now() - _getLastGemEvent();
+      if (elapsed >= GEM_EVENT_INTERVAL) {
+        _spawnGemEvent();
+      }
+    }
+  };
+  window.update._fGemEvt = true;
+}
+
+
+/* ════════════════════════════════════════════════════════
+   §2 — 광고 보석 버튼 (30분마다, +5 보석)
+════════════════════════════════════════════════════════ */
+var GEM_AD_INTERVAL = 30 * 60 * 1000; // 30분
+var GEM_AD_REWARD   = 5;
+var GEM_AD_DURATION = 5000; // 광고 시뮬레이션 5초
+var _gemAdClaiming  = false;
+
+function _getLastGemAd() {
+  try { return parseInt(localStorage.getItem('td_gem_ad_ts') || '0', 10); } catch(_) { return 0; }
+}
+function _setLastGemAd() {
+  try { localStorage.setItem('td_gem_ad_ts', String(Date.now())); } catch(_) {}
+}
+
+var _gemAdBar = document.getElementById('gem-ad-bar');
+var _gemAdBtn = document.getElementById('gem-ad-btn');
+
+function _updateGemAdBtn() {
+  if (!_gemAdBar) return;
+  var elapsed = Date.now() - _getLastGemAd();
+  if (elapsed >= GEM_AD_INTERVAL) {
+    _gemAdBar.style.display = '';
+  } else {
+    _gemAdBar.style.display = 'none';
+  }
+}
+
+// 1초마다 버튼 상태 갱신
+setInterval(_updateGemAdBtn, 1000);
+_updateGemAdBtn();
+
+if (_gemAdBtn) {
+  _gemAdBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (_gemAdClaiming) return;
+    _gemAdClaiming = true;
+
+    // 광고 오버레이 표시
+    var ov = document.createElement('div');
+    ov.id = 'gem-ad-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+    var remaining = Math.ceil(GEM_AD_DURATION / 1000);
+    ov.innerHTML =
+      '<div style="color:#cc44ff;font-size:16px;font-weight:bold;margin-bottom:16px;">❖ 광고 시청 중...</div>' +
+      '<div id="gem-ad-timer" style="color:#ffffff;font-size:32px;font-weight:bold;">' + remaining + '</div>' +
+      '<div style="color:#556677;font-size:10px;margin-top:12px;">광고가 끝나면 보석 ' + GEM_AD_REWARD + '개를 받습니다</div>' +
+      '<div style="width:200px;height:4px;background:#1a2a3a;margin-top:16px;border-radius:2px;overflow:hidden;">' +
+        '<div id="gem-ad-progress" style="height:100%;width:0%;background:#cc44ff;transition:width 1s linear;"></div>' +
+      '</div>';
+    document.body.appendChild(ov);
+
+    var timerEl = document.getElementById('gem-ad-timer');
+    var progEl = document.getElementById('gem-ad-progress');
+    var count = remaining;
+
+    var iv = setInterval(function() {
+      count--;
+      if (timerEl) timerEl.textContent = count;
+      if (progEl) progEl.style.width = ((remaining - count) / remaining * 100) + '%';
+      if (count <= 0) {
+        clearInterval(iv);
+        // 보석 지급
+        if (window.G) { G.gems += GEM_AD_REWARD; }
+        if (window.PERM) { PERM.gems += GEM_AD_REWARD; if (window.savePerm) savePerm(); }
+        _setLastGemAd();
+        _gemAdBar.style.display = 'none';
+
+        // 완료 표시
+        ov.innerHTML =
+          '<div style="color:#00ff88;font-size:18px;font-weight:bold;">✓ 보석 +' + GEM_AD_REWARD + ' 획득!</div>';
+        setTimeout(function() {
+          ov.remove();
+          _gemAdClaiming = false;
+        }, 1200);
+      }
+    }, 1000);
+  });
 }
 
 }());
