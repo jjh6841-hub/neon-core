@@ -3094,7 +3094,6 @@ function update(dt) {
             }
           } else {
             // 골드 이미 위에서 지급됨
-            }
           }
           // Float text & death particles
           for (let dp = 0; dp < 4; dp++) {
@@ -3246,7 +3245,7 @@ function update(dt) {
       // 방어 % + 절대 방어 적용
       var _sEvadeChance = (G.tower && G.tower.defense) || 0;
       var _sDefAbs = G.defenseAbs || 0;
-      var _sbDmg = Math.max(0, sb.dmg * (1 - _sDefPct) - _sDefAbs);
+      var _sbDmg = Math.max(0, sb.dmg * (1 - _sEvadeChance) - _sDefAbs);
       if (_sbDmg <= 0) { G.sniperBullets.splice(sbi, 1); continue; }
       // 스나이퍼 탄 실드 흡수 처리
       var _sRem = _sbDmg;
