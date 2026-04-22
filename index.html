@@ -2351,16 +2351,125 @@ var UPGRADES = [
 
 
 /* ── 업적 정의 ── */
+// 헬퍼: 프리즘 보유 수
+function _achPrismCount() { var p=PERM.prisms||{}; var c=0; for(var k in p){if(p[k]&&p[k].lv>0)c++;} return c; }
+// 헬퍼: 탐사 클리어 수
+function _achExpCleared(eid) { return parseInt(localStorage.getItem('explore_cleared_'+eid)||'0',10); }
+// 헬퍼: 행성별 최고 웨이브
+function _achTierBest(t) { return parseInt(localStorage.getItem('tier'+t+'_best')||'0',10); }
+// 헬퍼: 코어랩 연구 완료 수
+function _achResearchDone() { return parseInt(localStorage.getItem('stat_research_done')||'0',10); }
+// 헬퍼: 탐사선 스킨 수 (기본 제외 - 모두 보유)
+function _achShipSkinCount() { return (window.IRIS_SKINS||[]).filter(function(s){return s.id!=='iris0';}).length; }
+// 헬퍼: 배경 스킨 수 (기본 제외 - 모두 보유)
+function _achBgSkinCount() { return (window.BG_SKINS||[]).filter(function(s){return s.id!=='bg_default';}).length; }
+
 var ACHIEVEMENTS = [
-  { key:'wave5',   icon:'~', name:'웨이브 5 달성',    desc:'웨이브 5까지 생존',       cond:()=>PERM.bestWave>=5,   prog:()=>Math.min(PERM.bestWave,5)+'/5',    gems:1 },
-  { key:'wave10',  icon:'~', name:'웨이브 10 달성',   desc:'웨이브 10까지 생존',      cond:()=>PERM.bestWave>=10,  prog:()=>Math.min(PERM.bestWave,10)+'/10',  gems:2 },
-  { key:'wave20',  icon:'★', name:'웨이브 20 달성',   desc:'웨이브 20까지 생존',      cond:()=>PERM.bestWave>=20,  prog:()=>Math.min(PERM.bestWave,20)+'/20',  gems:3 },
-  { key:'wave50',  icon:'★', name:'웨이브 50 달성',   desc:'웨이브 50까지 생존',      cond:()=>PERM.bestWave>=50,  prog:()=>Math.min(PERM.bestWave,50)+'/50',  gems:5 },
-  { key:'kill50',  icon:'/', name:'처치 50',          desc:'적 50마리 처치',          cond:()=>PERM.totalKills>=50,  prog:()=>Math.min(PERM.totalKills,50)+'/50',   gems:1 },
-  { key:'kill200', icon:'/', name:'처치 200',         desc:'적 200마리 처치',         cond:()=>PERM.totalKills>=200, prog:()=>Math.min(PERM.totalKills,200)+'/200', gems:2 },
-  { key:'kill500', icon:'X', name:'처치 500',         desc:'적 500마리 처치',         cond:()=>PERM.totalKills>=500, prog:()=>Math.min(PERM.totalKills,500)+'/500', gems:3 },
-  { key:'boss10',  icon:'★', name:'보스 처치 10',     desc:'보스 10마리 처치',        cond:()=>PERM.bossKills>=10,   prog:()=>Math.min(PERM.bossKills,10)+'/10',   gems:2 },
+  // ── 웨이브 (에이온) ──
+  { key:'wave10',  icon:'~', name:'에이온 웨이브 10',  desc:'에이온에서 웨이브 10 달성',  cond:()=>PERM.bestWave>=10,  prog:()=>Math.min(PERM.bestWave,10)+'/10',  gems:2 },
+  { key:'wave50',  icon:'★', name:'에이온 웨이브 50',  desc:'에이온에서 웨이브 50 달성',  cond:()=>PERM.bestWave>=50,  prog:()=>Math.min(PERM.bestWave,50)+'/50',  gems:5 },
+
+  // ── 처치 ──
+  { key:'kill500',    icon:'/', name:'처치 500',      desc:'적 500마리 처치',      cond:()=>PERM.totalKills>=500,     prog:()=>Math.min(PERM.totalKills,500)+'/500',         gems:3 },
+  { key:'kill2000',   icon:'/', name:'처치 2,000',    desc:'적 2,000마리 처치',    cond:()=>PERM.totalKills>=2000,    prog:()=>Math.min(PERM.totalKills,2000)+'/2000',       gems:5 },
+  { key:'kill10000',  icon:'X', name:'처치 10,000',   desc:'적 10,000마리 처치',   cond:()=>PERM.totalKills>=10000,   prog:()=>Math.min(PERM.totalKills,10000)+'/10000',     gems:8 },
+  { key:'kill30000',  icon:'X', name:'처치 30,000',   desc:'적 30,000마리 처치',   cond:()=>PERM.totalKills>=30000,   prog:()=>Math.min(PERM.totalKills,30000)+'/30000',     gems:10 },
+  { key:'kill50000',  icon:'X', name:'처치 50,000',   desc:'적 50,000마리 처치',   cond:()=>PERM.totalKills>=50000,   prog:()=>Math.min(PERM.totalKills,50000)+'/50000',     gems:15 },
+  { key:'kill100000', icon:'X', name:'처치 100,000',  desc:'적 100,000마리 처치',  cond:()=>PERM.totalKills>=100000,  prog:()=>Math.min(PERM.totalKills,100000)+'/100000',   gems:20 },
+  { key:'kill1000000',icon:'X', name:'처치 1,000,000',desc:'적 1,000,000마리 처치',cond:()=>PERM.totalKills>=1000000, prog:()=>Math.min(PERM.totalKills,1000000)+'/1000000', gems:50 },
+
+  // ── 보스 처치 ──
+  { key:'boss10',     icon:'★', name:'보스 처치 10',     desc:'보스 10마리 처치',     cond:()=>PERM.bossKills>=10,     prog:()=>Math.min(PERM.bossKills,10)+'/10',         gems:2 },
+  { key:'boss50',     icon:'★', name:'보스 처치 50',     desc:'보스 50마리 처치',     cond:()=>PERM.bossKills>=50,     prog:()=>Math.min(PERM.bossKills,50)+'/50',         gems:5 },
+  { key:'boss200',    icon:'★', name:'보스 처치 200',    desc:'보스 200마리 처치',    cond:()=>PERM.bossKills>=200,    prog:()=>Math.min(PERM.bossKills,200)+'/200',       gems:8 },
+  { key:'boss500',    icon:'★', name:'보스 처치 500',    desc:'보스 500마리 처치',    cond:()=>PERM.bossKills>=500,    prog:()=>Math.min(PERM.bossKills,500)+'/500',       gems:10 },
+  { key:'boss1000',   icon:'★', name:'보스 처치 1,000',  desc:'보스 1,000마리 처치',  cond:()=>PERM.bossKills>=1000,   prog:()=>Math.min(PERM.bossKills,1000)+'/1000',     gems:15 },
+  { key:'boss5000',   icon:'★', name:'보스 처치 5,000',  desc:'보스 5,000마리 처치',  cond:()=>PERM.bossKills>=5000,   prog:()=>Math.min(PERM.bossKills,5000)+'/5000',     gems:20 },
+  { key:'boss10000',  icon:'★', name:'보스 처치 10,000', desc:'보스 10,000마리 처치', cond:()=>PERM.bossKills>=10000,  prog:()=>Math.min(PERM.bossKills,10000)+'/10000',   gems:30 },
+  { key:'boss100000', icon:'★', name:'보스 처치 100,000',desc:'보스 100,000마리 처치',cond:()=>PERM.bossKills>=100000, prog:()=>Math.min(PERM.bossKills,100000)+'/100000', gems:50 },
+
+  // ── 업그레이드 ──
   { key:'upg30',   icon:'◈', name:'업그레이드 30회',  desc:'인게임 업그레이드 30회',  cond:()=>PERM.upgradeCount>=30,prog:()=>Math.min(PERM.upgradeCount,30)+'/30', gems:2 },
+
+  // ── 프리즘 보유 ──
+  { key:'prism1',  icon:'◇', name:'프리즘 수집가 I',   desc:'프리즘 1개 보유',   cond:()=>_achPrismCount()>=1,   prog:()=>Math.min(_achPrismCount(),1)+'/1',   gems:2 },
+  { key:'prism5',  icon:'◇', name:'프리즘 수집가 II',  desc:'프리즘 5개 보유',   cond:()=>_achPrismCount()>=5,   prog:()=>Math.min(_achPrismCount(),5)+'/5',   gems:5 },
+  { key:'prism10', icon:'◇', name:'프리즘 수집가 III', desc:'프리즘 10개 보유',  cond:()=>_achPrismCount()>=10,  prog:()=>Math.min(_achPrismCount(),10)+'/10', gems:8 },
+  { key:'prism15', icon:'◇', name:'프리즘 수집가 IV',  desc:'프리즘 15개 보유',  cond:()=>_achPrismCount()>=15,  prog:()=>Math.min(_achPrismCount(),15)+'/15', gems:12 },
+  { key:'prism20', icon:'◇', name:'프리즘 수집가 V',   desc:'프리즘 20개 보유',  cond:()=>_achPrismCount()>=20,  prog:()=>Math.min(_achPrismCount(),20)+'/20', gems:15 },
+  { key:'prism25', icon:'◇', name:'프리즘 마스터',     desc:'프리즘 25개 보유',  cond:()=>_achPrismCount()>=25,  prog:()=>Math.min(_achPrismCount(),25)+'/25', gems:25 },
+
+  // ── 코어랩 연구 완료 ──
+  { key:'lab1',    icon:'⊕', name:'연구자 I',    desc:'코어랩 연구 1회 완료',   cond:()=>_achResearchDone()>=1,   prog:()=>Math.min(_achResearchDone(),1)+'/1',   gems:2 },
+  { key:'lab10',   icon:'⊕', name:'연구자 II',   desc:'코어랩 연구 10회 완료',  cond:()=>_achResearchDone()>=10,  prog:()=>Math.min(_achResearchDone(),10)+'/10', gems:5 },
+  { key:'lab20',   icon:'⊕', name:'연구자 III',  desc:'코어랩 연구 20회 완료',  cond:()=>_achResearchDone()>=20,  prog:()=>Math.min(_achResearchDone(),20)+'/20', gems:8 },
+  { key:'lab50',   icon:'⊕', name:'수석 연구원', desc:'코어랩 연구 50회 완료',  cond:()=>_achResearchDone()>=50,  prog:()=>Math.min(_achResearchDone(),50)+'/50', gems:15 },
+
+  // ── 요일탐사 (화염) ──
+  { key:'exp_fire1',   icon:'✹', name:'화염 탐사 1',   desc:'화염 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('fire')>=1,   prog:()=>Math.min(_achExpCleared('fire'),1)+'/1',   gems:2 },
+  { key:'exp_fire10',  icon:'✹', name:'화염 탐사 10',  desc:'화염 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('fire')>=10,  prog:()=>Math.min(_achExpCleared('fire'),10)+'/10', gems:5 },
+  { key:'exp_fire20',  icon:'✹', name:'화염 탐사 20',  desc:'화염 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('fire')>=20,  prog:()=>Math.min(_achExpCleared('fire'),20)+'/20', gems:10 },
+  { key:'exp_fire30',  icon:'✹', name:'화염 탐사 30',  desc:'화염 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('fire')>=30,  prog:()=>Math.min(_achExpCleared('fire'),30)+'/30', gems:20 },
+  // ── 요일탐사 (심해) ──
+  { key:'exp_water1',  icon:'⎈', name:'심해 탐사 1',   desc:'심해 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('water')>=1,   prog:()=>Math.min(_achExpCleared('water'),1)+'/1',   gems:2 },
+  { key:'exp_water10', icon:'⎈', name:'심해 탐사 10',  desc:'심해 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('water')>=10,  prog:()=>Math.min(_achExpCleared('water'),10)+'/10', gems:5 },
+  { key:'exp_water20', icon:'⎈', name:'심해 탐사 20',  desc:'심해 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('water')>=20,  prog:()=>Math.min(_achExpCleared('water'),20)+'/20', gems:10 },
+  { key:'exp_water30', icon:'⎈', name:'심해 탐사 30',  desc:'심해 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('water')>=30,  prog:()=>Math.min(_achExpCleared('water'),30)+'/30', gems:20 },
+  // ── 요일탐사 (번개) ──
+  { key:'exp_elec1',   icon:'⚛', name:'번개 탐사 1',   desc:'번개 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('electric')>=1,   prog:()=>Math.min(_achExpCleared('electric'),1)+'/1',   gems:2 },
+  { key:'exp_elec10',  icon:'⚛', name:'번개 탐사 10',  desc:'번개 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('electric')>=10,  prog:()=>Math.min(_achExpCleared('electric'),10)+'/10', gems:5 },
+  { key:'exp_elec20',  icon:'⚛', name:'번개 탐사 20',  desc:'번개 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('electric')>=20,  prog:()=>Math.min(_achExpCleared('electric'),20)+'/20', gems:10 },
+  { key:'exp_elec30',  icon:'⚛', name:'번개 탐사 30',  desc:'번개 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('electric')>=30,  prog:()=>Math.min(_achExpCleared('electric'),30)+'/30', gems:20 },
+  // ── 요일탐사 (대지) ──
+  { key:'exp_earth1',  icon:'⏣', name:'대지 탐사 1',   desc:'대지 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('earth')>=1,   prog:()=>Math.min(_achExpCleared('earth'),1)+'/1',   gems:2 },
+  { key:'exp_earth10', icon:'⏣', name:'대지 탐사 10',  desc:'대지 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('earth')>=10,  prog:()=>Math.min(_achExpCleared('earth'),10)+'/10', gems:5 },
+  { key:'exp_earth20', icon:'⏣', name:'대지 탐사 20',  desc:'대지 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('earth')>=20,  prog:()=>Math.min(_achExpCleared('earth'),20)+'/20', gems:10 },
+  { key:'exp_earth30', icon:'⏣', name:'대지 탐사 30',  desc:'대지 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('earth')>=30,  prog:()=>Math.min(_achExpCleared('earth'),30)+'/30', gems:20 },
+  // ── 요일탐사 (질풍) ──
+  { key:'exp_wind1',   icon:'≋', name:'질풍 탐사 1',   desc:'질풍 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('wind')>=1,   prog:()=>Math.min(_achExpCleared('wind'),1)+'/1',   gems:2 },
+  { key:'exp_wind10',  icon:'≋', name:'질풍 탐사 10',  desc:'질풍 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('wind')>=10,  prog:()=>Math.min(_achExpCleared('wind'),10)+'/10', gems:5 },
+  { key:'exp_wind20',  icon:'≋', name:'질풍 탐사 20',  desc:'질풍 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('wind')>=20,  prog:()=>Math.min(_achExpCleared('wind'),20)+'/20', gems:10 },
+  { key:'exp_wind30',  icon:'≋', name:'질풍 탐사 30',  desc:'질풍 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('wind')>=30,  prog:()=>Math.min(_achExpCleared('wind'),30)+'/30', gems:20 },
+  // ── 요일탐사 (암흑) ──
+  { key:'exp_dark1',   icon:'◆', name:'암흑 탐사 1',   desc:'암흑 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('dark')>=1,   prog:()=>Math.min(_achExpCleared('dark'),1)+'/1',   gems:2 },
+  { key:'exp_dark10',  icon:'◆', name:'암흑 탐사 10',  desc:'암흑 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('dark')>=10,  prog:()=>Math.min(_achExpCleared('dark'),10)+'/10', gems:5 },
+  { key:'exp_dark20',  icon:'◆', name:'암흑 탐사 20',  desc:'암흑 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('dark')>=20,  prog:()=>Math.min(_achExpCleared('dark'),20)+'/20', gems:10 },
+  { key:'exp_dark30',  icon:'◆', name:'암흑 탐사 30',  desc:'암흑 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('dark')>=30,  prog:()=>Math.min(_achExpCleared('dark'),30)+'/30', gems:20 },
+
+  // ── 탐사선 스킨 (기본 제외) ──
+  { key:'skin_ship1',  icon:'▲', name:'파일럿 I',    desc:'탐사선 스킨 1개 보유',   cond:()=>_achShipSkinCount()>=1,   prog:()=>Math.min(_achShipSkinCount(),1)+'/1',   gems:2 },
+  { key:'skin_ship5',  icon:'▲', name:'파일럿 II',   desc:'탐사선 스킨 5개 보유',   cond:()=>_achShipSkinCount()>=5,   prog:()=>Math.min(_achShipSkinCount(),5)+'/5',   gems:5 },
+  { key:'skin_ship10', icon:'▲', name:'파일럿 III',  desc:'탐사선 스킨 10개 보유',  cond:()=>_achShipSkinCount()>=10,  prog:()=>Math.min(_achShipSkinCount(),10)+'/10', gems:8 },
+  { key:'skin_ship15', icon:'▲', name:'파일럿 IV',   desc:'탐사선 스킨 15개 보유',  cond:()=>_achShipSkinCount()>=15,  prog:()=>Math.min(_achShipSkinCount(),15)+'/15', gems:12 },
+  { key:'skin_ship20', icon:'▲', name:'함대 사령관', desc:'탐사선 스킨 20개 보유',  cond:()=>_achShipSkinCount()>=20,  prog:()=>Math.min(_achShipSkinCount(),20)+'/20', gems:20 },
+
+  // ── 배경 스킨 (기본 제외) ──
+  { key:'skin_bg1',    icon:'◎', name:'탐험가 I',    desc:'배경 스킨 1개 보유',     cond:()=>_achBgSkinCount()>=1,    prog:()=>Math.min(_achBgSkinCount(),1)+'/1',    gems:2 },
+  { key:'skin_bg5',    icon:'◎', name:'탐험가 II',   desc:'배경 스킨 5개 보유',     cond:()=>_achBgSkinCount()>=5,    prog:()=>Math.min(_achBgSkinCount(),5)+'/5',    gems:5 },
+  { key:'skin_bg10',   icon:'◎', name:'탐험가 III',  desc:'배경 스킨 10개 보유',    cond:()=>_achBgSkinCount()>=10,   prog:()=>Math.min(_achBgSkinCount(),10)+'/10',  gems:10 },
+  { key:'skin_bg15',   icon:'◎', name:'우주 정복자', desc:'배경 스킨 15개 보유',    cond:()=>_achBgSkinCount()>=15,   prog:()=>Math.min(_achBgSkinCount(),15)+'/15',  gems:20 },
+
+  // ── 행성별 웨이브 (에이온=1, 스펙트라=2, 넥사르=3, 피라온=4, 오메가=5) ──
+  { key:'p1_100',   icon:'☆', name:'에이온 100',     desc:'에이온 웨이브 100 클리어',    cond:()=>_achTierBest(1)>=100,   prog:()=>Math.min(_achTierBest(1),100)+'/100',     gems:5 },
+  { key:'p1_500',   icon:'☆', name:'에이온 500',     desc:'에이온 웨이브 500 클리어',    cond:()=>_achTierBest(1)>=500,   prog:()=>Math.min(_achTierBest(1),500)+'/500',     gems:10 },
+  { key:'p1_1000',  icon:'☆', name:'에이온 1000',    desc:'에이온 웨이브 1000 클리어',   cond:()=>_achTierBest(1)>=1000,  prog:()=>Math.min(_achTierBest(1),1000)+'/1000',   gems:20 },
+  { key:'p1_5000',  icon:'☆', name:'에이온 5000',    desc:'에이온 웨이브 5000 클리어',   cond:()=>_achTierBest(1)>=5000,  prog:()=>Math.min(_achTierBest(1),5000)+'/5000',   gems:50 },
+  { key:'p2_100',   icon:'☆', name:'스펙트라 100',   desc:'스펙트라 웨이브 100 클리어',  cond:()=>_achTierBest(2)>=100,   prog:()=>Math.min(_achTierBest(2),100)+'/100',     gems:5 },
+  { key:'p2_500',   icon:'☆', name:'스펙트라 500',   desc:'스펙트라 웨이브 500 클리어',  cond:()=>_achTierBest(2)>=500,   prog:()=>Math.min(_achTierBest(2),500)+'/500',     gems:10 },
+  { key:'p2_1000',  icon:'☆', name:'스펙트라 1000',  desc:'스펙트라 웨이브 1000 클리어', cond:()=>_achTierBest(2)>=1000,  prog:()=>Math.min(_achTierBest(2),1000)+'/1000',   gems:20 },
+  { key:'p2_5000',  icon:'☆', name:'스펙트라 5000',  desc:'스펙트라 웨이브 5000 클리어', cond:()=>_achTierBest(2)>=5000,  prog:()=>Math.min(_achTierBest(2),5000)+'/5000',   gems:50 },
+  { key:'p3_100',   icon:'☆', name:'넥사르 100',     desc:'넥사르 웨이브 100 클리어',    cond:()=>_achTierBest(3)>=100,   prog:()=>Math.min(_achTierBest(3),100)+'/100',     gems:5 },
+  { key:'p3_500',   icon:'☆', name:'넥사르 500',     desc:'넥사르 웨이브 500 클리어',    cond:()=>_achTierBest(3)>=500,   prog:()=>Math.min(_achTierBest(3),500)+'/500',     gems:10 },
+  { key:'p3_1000',  icon:'☆', name:'넥사르 1000',    desc:'넥사르 웨이브 1000 클리어',   cond:()=>_achTierBest(3)>=1000,  prog:()=>Math.min(_achTierBest(3),1000)+'/1000',   gems:20 },
+  { key:'p3_5000',  icon:'☆', name:'넥사르 5000',    desc:'넥사르 웨이브 5000 클리어',   cond:()=>_achTierBest(3)>=5000,  prog:()=>Math.min(_achTierBest(3),5000)+'/5000',   gems:50 },
+  { key:'p4_100',   icon:'☆', name:'피라온 100',     desc:'피라온 웨이브 100 클리어',    cond:()=>_achTierBest(4)>=100,   prog:()=>Math.min(_achTierBest(4),100)+'/100',     gems:5 },
+  { key:'p4_500',   icon:'☆', name:'피라온 500',     desc:'피라온 웨이브 500 클리어',    cond:()=>_achTierBest(4)>=500,   prog:()=>Math.min(_achTierBest(4),500)+'/500',     gems:10 },
+  { key:'p4_1000',  icon:'☆', name:'피라온 1000',    desc:'피라온 웨이브 1000 클리어',   cond:()=>_achTierBest(4)>=1000,  prog:()=>Math.min(_achTierBest(4),1000)+'/1000',   gems:20 },
+  { key:'p4_5000',  icon:'☆', name:'피라온 5000',    desc:'피라온 웨이브 5000 클리어',   cond:()=>_achTierBest(4)>=5000,  prog:()=>Math.min(_achTierBest(4),5000)+'/5000',   gems:50 },
+  { key:'p5_100',   icon:'☆', name:'오메가 100',     desc:'오메가 웨이브 100 클리어',    cond:()=>_achTierBest(5)>=100,   prog:()=>Math.min(_achTierBest(5),100)+'/100',     gems:5 },
+  { key:'p5_500',   icon:'☆', name:'오메가 500',     desc:'오메가 웨이브 500 클리어',    cond:()=>_achTierBest(5)>=500,   prog:()=>Math.min(_achTierBest(5),500)+'/500',     gems:10 },
+  { key:'p5_1000',  icon:'☆', name:'오메가 1000',    desc:'오메가 웨이브 1000 클리어',   cond:()=>_achTierBest(5)>=1000,  prog:()=>Math.min(_achTierBest(5),1000)+'/1000',   gems:20 },
+  { key:'p5_5000',  icon:'☆', name:'오메가 5000',    desc:'오메가 웨이브 5000 클리어',   cond:()=>_achTierBest(5)>=5000,  prog:()=>Math.min(_achTierBest(5),5000)+'/5000',   gems:50 },
 ];
 
 function checkAchievements() {
@@ -8726,8 +8835,10 @@ if (typeof _origGetCost === 'function') {
       { id:'inf_hyper',  title:'하이퍼 코어 처치',  storageKey:'inf_hyper_total',  interval:5,   reward:{gold:500,gems:0}, desc:'100스테이지 보스 5마리마다 ◈500 지급' },
       { id:'inf_upgrades',title:'강화 달인',         storageKey:'stat_upgrades',    interval:50,  reward:{gold:200,gems:0}, desc:'강화 50회마다 ◈200 지급' },
     ];
+    var _infPlanetNames = ['에이온','스펙트라','넥사르','피라온','오메가'];
     for(var ti=1;ti<=5;ti++){
-      INF_MISSIONS.push({ id:'inf_tier'+ti+'_wave', title:'TIER '+ti+' 웨이브 도전', storageKey:'inf_tier'+ti+'_wave', interval:100, reward:{gold:tierRw[ti],gems:0}, desc:'TIER '+ti+'에서 100스테이지마다 ◈'+tierRw[ti]+' 지급', tier:ti });
+      var pName = _infPlanetNames[ti-1];
+      INF_MISSIONS.push({ id:'inf_tier'+ti+'_wave', title:pName+' 웨이브 도전', storageKey:'inf_tier'+ti+'_wave', interval:100, reward:{gold:tierRw[ti],gems:0}, desc:pName+'에서 100스테이지마다 ◈'+tierRw[ti]+' 지급', tier:ti });
     }
     window._INF_MISSIONS = INF_MISSIONS;
 
