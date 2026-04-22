@@ -4439,11 +4439,11 @@ function buildCards() {
       (function(_upg, _btn) {
         _btn.addEventListener('click', function(ev) {
           ev.preventDefault();
-          _showUpgDetail(_upg);
+          doUpgrade(_upg.key);
         });
         _btn.addEventListener('touchend', function(ev) {
           ev.preventDefault();
-          _showUpgDetail(_upg);
+          doUpgrade(_upg.key);
         }, { passive: false });
       })(upg, btn);
       pane.appendChild(btn);
