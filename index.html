@@ -5364,64 +5364,64 @@ if (dailyPopup) {
 (function() {
   'use strict';
 
-  /* ══ WS_ITEMS 정의 (v1 밸런스) ══ */
+  /* ══ WS_ITEMS 정의 ══ */
   var WS_ITEMS = {
-    damage:     { tab:'atk', name:'대미지',      maxLv:50, atkGroup:0,
-      cost: function(lv) { return Math.floor(8 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return 'x' + Math.pow(1.20, lv).toFixed(2); },
-      nxt:  function(lv) { return 'x' + Math.pow(1.20, lv + 1).toFixed(2); } },
-    atkspd:     { tab:'atk', name:'공격 속도',   maxLv:30, atkGroup:0,
-      cost: function(lv) { return Math.floor(10 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return 'x' + (1 + lv * 0.05).toFixed(2); },
-      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.05).toFixed(2); } },
-    critChance: { tab:'atk', name:'치명타 확률', maxLv:18, atkGroup:1,
-      cost: function(lv) { return Math.floor(12 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return (lv * 5) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 5) + '%'; } },
-    critMult:   { tab:'atk', name:'치명타 계수', maxLv:20, atkGroup:1,
-      cost: function(lv) { return Math.floor(15 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return 'x' + (1.5 + lv * 0.25).toFixed(2); },
-      nxt:  function(lv) { return 'x' + (1.5 + (lv + 1) * 0.25).toFixed(2); } },
-    maxHp:      { tab:'def', name:'최대 체력',   maxLv:50, defGroup:0,
-      cost: function(lv) { return Math.floor(10 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return 'x' + Math.pow(1.20, lv).toFixed(2); },
-      nxt:  function(lv) { return 'x' + Math.pow(1.20, lv + 1).toFixed(2); } },
-    hpRegen:    { tab:'def', name:'체력 회복',    maxLv:30, defGroup:0,
-      cost: function(lv) { return Math.floor(10 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return (lv * 0.05).toFixed(2) + '/s'; },
-      nxt:  function(lv) { return ((lv + 1) * 0.05).toFixed(2) + '/s'; } },
-    defRate:    { tab:'def', name:'회피율',       maxLv:50, defGroup:1,
-      cost: function(lv) { return Math.floor(12 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return lv + '%'; },
-      nxt:  function(lv) { return (lv + 1) + '%'; } },
-    defAbs:     { tab:'def', name:'절대 방어',    maxLv:30, defGroup:1,
-      cost: function(lv) { return Math.floor(14 * Math.pow(1.25, lv)); },
+    damage:     { tab:'atk', name:'대미지',      maxLv:20, atkGroup:0,
+      cost: function(lv) { return 3 + Math.floor(lv * 1.8); },
       cur:  function(lv) { return '' + lv; },
       nxt:  function(lv) { return '' + (lv + 1); } },
-    reflectDmg: { tab:'def', name:'반사 데미지',  maxLv:30, defGroup:2,
-      cost: function(lv) { return Math.floor(16 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; } },
-    vampChance: { tab:'def', name:'흡혈',         maxLv:30, defGroup:3,
-      cost: function(lv) { return Math.floor(14 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; } },
-    knockChance:{ tab:'def', name:'넉백 확률',    maxLv:30, defGroup:4,
-      cost: function(lv) { return Math.floor(16 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; } },
-    shieldHP:   { tab:'def', name:'쉴드 HP',      maxLv:30, defGroup:5,
-      cost: function(lv) { return Math.floor(20 * Math.pow(1.25, lv)); },
+    atkspd:     { tab:'atk', name:'공격 속도',   maxLv:10, atkGroup:0,
+      cost: function(lv) { return 5 + lv * 4; },
+      cur:  function(lv) { return 'x' + (1 + lv * 0.05).toFixed(2); },
+      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.05).toFixed(2); } },
+    critChance: { tab:'atk', name:'치명타 확률', maxLv:10, atkGroup:1,
+      cost: function(lv) { return 8 + lv * 5; },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
-    goldGain:   { tab:'utl', name:'골드 획득량', maxLv:20,
-      cost: function(lv) { return Math.floor(13 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return 'x' + (1 + lv * 0.10).toFixed(2); },
-      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.10).toFixed(2); } },
-    gemGain:    { tab:'utl', name:'보석 획득량', maxLv:10,
-      cost: function(lv) { return Math.floor(12 * Math.pow(1.25, lv)); },
-      cur:  function(lv) { return 'x' + (1 + lv * 0.10).toFixed(2); },
-      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.10).toFixed(2); } },
+    critMult:   { tab:'atk', name:'치명타 계수', maxLv:5, atkGroup:1,
+      cost: function(lv) { return 15 + lv * 12; },
+      cur:  function(lv) { return (1.5 + lv * 0.25).toFixed(2); },
+      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.25).toFixed(2); } },
+    maxHp:      { tab:'def', name:'최대 체력',   maxLv:999, defGroup:0,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return '' + (lv * 5); },
+      nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
+    hpRegen:    { tab:'def', name:'체력 회복',    maxLv:999, defGroup:0,
+      cost: function(lv) { return 10 + lv * 5; },
+      cur:  function(lv) { return (lv * 0.05).toFixed(2); },
+      nxt:  function(lv) { return ((lv + 1) * 0.05).toFixed(2); } },
+    defRate:    { tab:'def', name:'방어율',       maxLv:120, defGroup:1,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return Math.min(60, (lv + 1) * 0.5).toFixed(1); } },
+    defAbs:     { tab:'def', name:'절대 방어',    maxLv:999, defGroup:1,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return Math.floor(Math.pow(1.25, lv)) + ''; },
+      nxt:  function(lv) { return Math.floor(Math.pow(1.25, lv + 1)) + ''; } },
+    reflectDmg: { tab:'def', name:'반사 데미지',  maxLv:198, defGroup:2,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return Math.min(99, (lv + 1) * 0.5).toFixed(1); } },
+    vampChance: { tab:'def', name:'흡혈 확률',    maxLv:99,  defGroup:3,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
+    knockChance:{ tab:'def', name:'넉백 확률',    maxLv:99,  defGroup:4,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
+      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
+    shieldHP:   { tab:'def', name:'쉴드 HP',      maxLv:99,  defGroup:5,
+      cost: function(lv) { return 50 * Math.pow(2, lv); },
+      cur:  function(lv) { return '' + (lv * 10); },
+      nxt:  function(lv) { return '' + ((lv + 1) * 10); } },
+    goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
+      cost: function(lv) { return 5 + lv * 4; },
+      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
+    gemGain:    { tab:'utl', name:'보석 획득량', maxLv:5,
+      cost: function(lv) { return 10 + lv * 10; },
+      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
   };
 
   var wsActiveTab = 'atk';
@@ -9560,7 +9560,12 @@ function _apply() {
   });
 }
 
-/* [#7] maxLv 확장 비활성화 — WS_ITEMS에 직접 반영됨 */
+/* _wsExt가 준비될 때까지 대기 */
+var _t = 0;
+var _iv = setInterval(function() {
+  if (window._wsExt && window._wsExt.items) { _apply(); clearInterval(_iv); }
+  if (++_t > 40) clearInterval(_iv);
+}, 150);
 
 }());
 </script>
@@ -10465,7 +10470,12 @@ function _init() {
   _watchHome();
   _fixShopItemsDisplay();
 
-  // §6 WS 비용 패치 제거됨 (WS_ITEMS 직접 반영)
+  // §6 WS 비용 패치 (_wsExt 준비 대기)
+  var _t = 0;
+  var _iv = setInterval(function() {
+    if (window._wsExt && window._wsExt.items) { _applyWsCostPatches(); clearInterval(_iv); }
+    if (++_t > 40) clearInterval(_iv);
+  }, 150);
 }
 
 setTimeout(_init, 350);
