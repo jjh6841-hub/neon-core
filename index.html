@@ -4095,7 +4095,19 @@ function render() {
     const TR = 20;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
-    // 탐사선 스킨 색상 적용
+    // 탐사선 스킨 SVG → 캐시 Image로 렌더링
+    if (!window._towerSkinImg || window._towerSkinId !== (localStorage.getItem('neoncore_skin')||'iris0')) {
+      try {
+        var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
+        var _svgStr = window.getNeonCoreIcon ? window.getNeonCoreIcon(80, _sid) : null;
+        if (_svgStr) {
+          var _img = new Image();
+          _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
+          window._towerSkinImg = _img;
+          window._towerSkinId = _sid;
+        }
+      } catch(_) {}
+    }
     var _skinColor = '#00ffff';
     try {
       var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
@@ -4106,40 +4118,36 @@ function render() {
     } catch(_){}
     const _towerAccent = _skinColor;
     ctx.save();
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-      const a = Math.PI / 3 * i - Math.PI / 6;
-      const hx = G.cx + TR * Math.cos(a);
-      const hy = G.cy + TR * Math.sin(a);
-      if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+    // 스킨 이미지가 있으면 SVG 패턴 사용, 없으면 기본 육각형
+    if (window._towerSkinImg && window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0) {
+      var _sz = TR * 2.4;
+      if (flashHit) { ctx.globalAlpha = 0.6; }
+      ctx.drawImage(window._towerSkinImg, G.cx - _sz/2, G.cy - _sz/2, _sz, _sz);
+      if (flashHit) {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath(); ctx.arc(G.cx, G.cy, TR, 0, Math.PI*2); ctx.fill();
+      }
+      if (buffed) {
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(G.cx, G.cy, TR+4, 0, Math.PI*2); ctx.stroke();
+      }
+    } else {
+      // 폴백: 기본 육각형
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI / 3 * i - Math.PI / 6;
+        const hx = G.cx + TR * Math.cos(a);
+        const hy = G.cy + TR * Math.sin(a);
+        if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#001a22'; ctx.fill();
+      ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
+      if (!flashHit && !buffed) { ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12; }
+      ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
     }
-    ctx.closePath();
-    ctx.fillStyle = '#001a22';
-    ctx.fill();
-    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
-    if (!flashHit && !buffed) { ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12; }
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = _towerAccent + 'b3';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(G.cx, G.cy - 8); ctx.lineTo(G.cx, G.cy + 8);
-    ctx.moveTo(G.cx - 8, G.cy); ctx.lineTo(G.cx + 8, G.cy);
-    ctx.stroke();
-    const bk = 6;
-    ctx.strokeStyle = _towerAccent;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(G.cx - TR, G.cy - TR); ctx.lineTo(G.cx - TR + bk, G.cy - TR);
-    ctx.moveTo(G.cx - TR, G.cy - TR); ctx.lineTo(G.cx - TR, G.cy - TR + bk);
-    ctx.moveTo(G.cx + TR, G.cy - TR); ctx.lineTo(G.cx + TR - bk, G.cy - TR);
-    ctx.moveTo(G.cx + TR, G.cy - TR); ctx.lineTo(G.cx + TR, G.cy - TR + bk);
-    ctx.moveTo(G.cx - TR, G.cy + TR); ctx.lineTo(G.cx - TR + bk, G.cy + TR);
-    ctx.moveTo(G.cx - TR, G.cy + TR); ctx.lineTo(G.cx - TR, G.cy + TR - bk);
-    ctx.moveTo(G.cx + TR, G.cy + TR); ctx.lineTo(G.cx + TR - bk, G.cy + TR);
-    ctx.moveTo(G.cx + TR, G.cy + TR); ctx.lineTo(G.cx + TR, G.cy + TR - bk);
-    ctx.stroke();
     ctx.restore();
   }
 
