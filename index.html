@@ -2120,6 +2120,8 @@ function loadPerm() {
       PERM.prismSlotCount = d.prismSlotCount ?? 1;
       PERM.prismEquipped  = Array.isArray(d.prismEquipped) ? d.prismEquipped : [];
       PERM.cardsVisited   = d.cardsVisited ?? 0;
+      // 보석 통계 추적 초기값
+      _prevPermGems = PERM.gems || 0;
       // 기타 동적 필드 보존 (저장된 모든 키를 PERM에 병합)
       for (var _pk in d) {
         if (d.hasOwnProperty(_pk) && PERM[_pk] === undefined) {
@@ -2129,7 +2131,18 @@ function loadPerm() {
     }
   } catch (_) {}
 }
+var _prevPermGems = 0;
 function savePerm() {
+  // 보석 획득 통계 추적
+  try {
+    var curGems = PERM.gems || 0;
+    if (curGems > _prevPermGems) {
+      var gained = curGems - _prevPermGems;
+      var prev = parseInt(localStorage.getItem('stat_gems_earned')||'0',10);
+      localStorage.setItem('stat_gems_earned', prev + gained);
+    }
+    _prevPermGems = curGems;
+  } catch(_){}
   try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
   // Firestore 동기화
   try {
@@ -2363,6 +2376,34 @@ function _achResearchDone() { return parseInt(localStorage.getItem('stat_researc
 function _achShipSkinCount() { return (window.IRIS_SKINS||[]).filter(function(s){return s.id!=='iris0';}).length; }
 // 헬퍼: 배경 스킨 수 (기본 제외 - 모두 보유)
 function _achBgSkinCount() { return (window.BG_SKINS||[]).filter(function(s){return s.id!=='bg_default';}).length; }
+// 헬퍼: 총 골드 획득
+function _achTotalGold() { return parseInt(localStorage.getItem('stat_gold')||'0',10); }
+// 헬퍼: 총 보석 획득
+function _achTotalGems() { return parseInt(localStorage.getItem('stat_gems_earned')||'0',10); }
+// 헬퍼: 전투 증강 사용 횟수
+function _achAugmentCount() { return parseInt(localStorage.getItem('stat_augments')||'0',10); }
+// 헬퍼: 프리즘 Lv5 개수
+function _achPrismLv5Count() { var p=PERM.prisms||{}; var c=0; for(var k in p){if(p[k]&&p[k].lv>=5)c++;} return c; }
+// 헬퍼: 한 속성의 모든 스탯 최소 레벨
+function _achElemMinLv(elemId) {
+  var stats = ['atk','def','hp','critDmg','critRate'];
+  var minLv = 999999;
+  stats.forEach(function(st){ var lv=parseInt(localStorage.getItem('elem_'+elemId+'_'+st)||'0',10); if(lv<minLv)minLv=lv; });
+  return minLv;
+}
+// 헬퍼: 최고 속성 최소 레벨 (6속성 중 가장 높은 것)
+function _achBestElemMinLv() {
+  var elems = ['fire','water','electric','earth','wind','dark'];
+  var best = 0;
+  elems.forEach(function(eid){ var m=_achElemMinLv(eid); if(m>best)best=m; });
+  return best;
+}
+// 헬퍼: 모든 속성 30스테이지 클리어 여부
+function _achAllExpCleared30() {
+  var elems = ['fire','water','electric','earth','wind','dark'];
+  for(var i=0;i<elems.length;i++){ if(_achExpCleared(elems[i])<30)return false; }
+  return true;
+}
 
 var ACHIEVEMENTS = [
   // ── 웨이브 (에이온) ──
@@ -2470,6 +2511,41 @@ var ACHIEVEMENTS = [
   { key:'p5_500',   icon:'☆', name:'오메가 500',     desc:'오메가 웨이브 500 클리어',    cond:()=>_achTierBest(5)>=500,   prog:()=>Math.min(_achTierBest(5),500)+'/500',     gems:10 },
   { key:'p5_1000',  icon:'☆', name:'오메가 1000',    desc:'오메가 웨이브 1000 클리어',   cond:()=>_achTierBest(5)>=1000,  prog:()=>Math.min(_achTierBest(5),1000)+'/1000',   gems:20 },
   { key:'p5_5000',  icon:'☆', name:'오메가 5000',    desc:'오메가 웨이브 5000 클리어',   cond:()=>_achTierBest(5)>=5000,  prog:()=>Math.min(_achTierBest(5),5000)+'/5000',   gems:50 },
+
+  // ── 총 골드 획득 ──
+  { key:'gold100k',  icon:'◈', name:'골드 수집가 I',   desc:'총 골드 100,000 획득',    cond:()=>_achTotalGold()>=100000,   prog:()=>Math.min(_achTotalGold(),100000)+'/100000',       gems:5 },
+  { key:'gold1m',    icon:'◈', name:'골드 수집가 II',  desc:'총 골드 1,000,000 획득',  cond:()=>_achTotalGold()>=1000000,  prog:()=>Math.min(_achTotalGold(),1000000)+'/1000000',     gems:15 },
+  { key:'gold10m',   icon:'◈', name:'골드 재벌',       desc:'총 골드 10,000,000 획득', cond:()=>_achTotalGold()>=10000000, prog:()=>Math.min(_achTotalGold(),10000000)+'/10000000',   gems:30 },
+
+  // ── 총 보석 획득 ──
+  { key:'gem1k',     icon:'❖', name:'보석 수집가 I',   desc:'총 보석 1,000 획득',    cond:()=>_achTotalGems()>=1000,    prog:()=>Math.min(_achTotalGems(),1000)+'/1000',       gems:5 },
+  { key:'gem10k',    icon:'❖', name:'보석 수집가 II',  desc:'총 보석 10,000 획득',   cond:()=>_achTotalGems()>=10000,   prog:()=>Math.min(_achTotalGems(),10000)+'/10000',     gems:15 },
+  { key:'gem100k',   icon:'❖', name:'보석 재벌',       desc:'총 보석 100,000 획득',  cond:()=>_achTotalGems()>=100000,  prog:()=>Math.min(_achTotalGems(),100000)+'/100000',   gems:30 },
+
+  // ── 한 게임 업그레이드 100회 ──
+  { key:'upg100',    icon:'◈', name:'강화 중독',  desc:'한 게임에서 업그레이드 100회', cond:()=>PERM.upgradeCount>=100, prog:()=>Math.min(PERM.upgradeCount,100)+'/100', gems:5 },
+
+  // ── 전투 증강 사용 ──
+  { key:'aug10',     icon:'▲', name:'증강 입문자',   desc:'전투 증강 10회 사용',     cond:()=>_achAugmentCount()>=10,    prog:()=>Math.min(_achAugmentCount(),10)+'/10',       gems:3 },
+  { key:'aug50',     icon:'▲', name:'증강 숙련자',   desc:'전투 증강 50회 사용',     cond:()=>_achAugmentCount()>=50,    prog:()=>Math.min(_achAugmentCount(),50)+'/50',       gems:8 },
+  { key:'aug100',    icon:'▲', name:'증강 전문가',   desc:'전투 증강 100회 사용',    cond:()=>_achAugmentCount()>=100,   prog:()=>Math.min(_achAugmentCount(),100)+'/100',     gems:15 },
+  { key:'aug1000',   icon:'▲', name:'증강 마스터',   desc:'전투 증강 1,000회 사용',  cond:()=>_achAugmentCount()>=1000,  prog:()=>Math.min(_achAugmentCount(),1000)+'/1000',   gems:30 },
+
+  // ── 프리즘 Lv.5 달성 ──
+  { key:'plv5_1',    icon:'◇', name:'프리즘 강화 I',    desc:'프리즘 1개 Lv.5 달성',   cond:()=>_achPrismLv5Count()>=1,   prog:()=>Math.min(_achPrismLv5Count(),1)+'/1',    gems:5 },
+  { key:'plv5_5',    icon:'◇', name:'프리즘 강화 II',   desc:'프리즘 5개 Lv.5 달성',   cond:()=>_achPrismLv5Count()>=5,   prog:()=>Math.min(_achPrismLv5Count(),5)+'/5',    gems:10 },
+  { key:'plv5_10',   icon:'◇', name:'프리즘 강화 III',  desc:'프리즘 10개 Lv.5 달성',  cond:()=>_achPrismLv5Count()>=10,  prog:()=>Math.min(_achPrismLv5Count(),10)+'/10',  gems:20 },
+  { key:'plv5_15',   icon:'◇', name:'프리즘 강화 IV',   desc:'프리즘 15개 Lv.5 달성',  cond:()=>_achPrismLv5Count()>=15,  prog:()=>Math.min(_achPrismLv5Count(),15)+'/15',  gems:30 },
+  { key:'plv5_20',   icon:'◇', name:'프리즘 강화 V',    desc:'프리즘 20개 Lv.5 달성',  cond:()=>_achPrismLv5Count()>=20,  prog:()=>Math.min(_achPrismLv5Count(),20)+'/20',  gems:50 },
+
+  // ── 속성 스탯 마스터 ──
+  { key:'elem_lv10',   icon:'⚛', name:'속성 수련생',   desc:'한 속성 모든 스탯 Lv.10 달성',    cond:()=>_achBestElemMinLv()>=10,   prog:()=>_achBestElemMinLv()+'/10',    gems:5 },
+  { key:'elem_lv50',   icon:'⚛', name:'속성 전사',     desc:'한 속성 모든 스탯 Lv.50 달성',    cond:()=>_achBestElemMinLv()>=50,   prog:()=>_achBestElemMinLv()+'/50',    gems:15 },
+  { key:'elem_lv100',  icon:'⚛', name:'속성 달인',     desc:'한 속성 모든 스탯 Lv.100 달성',   cond:()=>_achBestElemMinLv()>=100,  prog:()=>_achBestElemMinLv()+'/100',   gems:30 },
+  { key:'elem_lv1000', icon:'⚛', name:'속성 초월자',   desc:'한 속성 모든 스탯 Lv.1000 달성',  cond:()=>_achBestElemMinLv()>=1000, prog:()=>_achBestElemMinLv()+'/1000',  gems:50 },
+
+  // ── 요일탐사 올클리어 ──
+  { key:'exp_allclear', icon:'★', name:'탐사 정복자', desc:'모든 속성 30스테이지 클리어', cond:()=>_achAllExpCleared30(), prog:()=>{var e=['fire','water','electric','earth','wind','dark'];var d=0;e.forEach(function(id){if(_achExpCleared(id)>=30)d++;});return d+'/6';}, gems:50 },
 ];
 
 function checkAchievements() {
@@ -4308,20 +4384,14 @@ function buildCards() {
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
         '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
       (function(_upg, _btn) {
-        var _lpt = null;
-        var _lpFired = false;
-        _btn.addEventListener('touchstart', function(ev) {
+        _btn.addEventListener('click', function(ev) {
           ev.preventDefault();
-          _lpFired = false;
-          _lpt = setTimeout(function() { _lpFired = true; _showUpgDetail(_upg); }, 400);
-        }, { passive: false });
+          _showUpgDetail(_upg);
+        });
         _btn.addEventListener('touchend', function(ev) {
           ev.preventDefault();
-          clearTimeout(_lpt);
-          if (!_lpFired) doUpgrade(_upg.key);
+          _showUpgDetail(_upg);
         }, { passive: false });
-        _btn.addEventListener('touchmove', function() { clearTimeout(_lpt); }, { passive: true });
-        _btn.addEventListener('click', function() { if (!_lpFired) doUpgrade(_upg.key); });
       })(upg, btn);
       pane.appendChild(btn);
     }
@@ -4334,6 +4404,9 @@ function _showUpgDetail(upg) {
   var lv = G ? (G.upgLvl[upg.key] || 0) : 0;
   var maxLv = upg.maxLv || upg.maxLvl || '∞';
   var statVal = G ? upg.stat() : '-';
+  var costVal = G ? (typeof upg.cost === 'function' ? upg.cost() : upg.cost) : '-';
+  var canBuy = G ? upg.canBuy() : false;
+  var isMax = (upg.maxLv && lv >= upg.maxLv);
   var descMap = {
     dmg:'레이저 기본 공격력을 증가시킵니다',spd:'레이저 발사 간격을 줄여 초당 공격 횟수를 증가시킵니다',
     rng:'레이저 사거리를 확장합니다',crit:'적 적중 시 치명타가 발생할 확률을 높입니다',
@@ -4346,6 +4419,12 @@ function _showUpgDetail(upg) {
     gemup:'보석 획득량을 증폭합니다',goldup:'골드 획득량을 증폭합니다'
   };
   var desc = descMap[upg.key] || upg.name + ' 능력을 강화합니다';
+  var upgBtnStyle = isMax
+    ? 'width:100%;background:#0a1520;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:8px;cursor:default;margin-bottom:6px;font-weight:bold;'
+    : canBuy
+      ? 'width:100%;background:#001a22;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:12px;padding:8px;cursor:pointer;margin-bottom:6px;font-weight:bold;'
+      : 'width:100%;background:#0a1520;border:1px solid #334455;color:#556677;font-family:monospace;font-size:12px;padding:8px;cursor:default;margin-bottom:6px;';
+  var upgBtnText = isMax ? 'MAX' : '⊕ ' + costVal + ' 업그레이드';
   var ov = document.createElement('div');
   ov.id = 'upg-detail-popup';
   ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;';
@@ -4358,9 +4437,18 @@ function _showUpgDetail(upg) {
         '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">최대 레벨</span><span style="color:#f59e0b;">' + maxLv + '</span></div>' +
         '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 능력치</span><span style="color:#00ff88;">' + statVal + '</span></div>' +
       '</div>' +
-      '<button id="upg-detail-close" style="width:100%;background:transparent;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">닫기</button>' +
+      '<button id="upg-detail-buy" style="' + upgBtnStyle + '">' + upgBtnText + '</button>' +
+      '<button id="upg-detail-close" style="width:100%;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">닫기</button>' +
     '</div>';
   document.body.appendChild(ov);
+  var buyBtn = document.getElementById('upg-detail-buy');
+  if (buyBtn && canBuy && !isMax) {
+    buyBtn.addEventListener('click', function() {
+      doUpgrade(upg.key);
+      ov.remove();
+      _showUpgDetail(upg);
+    });
+  }
   ov.addEventListener('click', function(e) { if (e.target === ov || e.target.id === 'upg-detail-close') ov.remove(); });
 }
 
@@ -13765,21 +13853,21 @@ window.showCoinBonusPopup = function () {
     popup = document.createElement('div');
     popup.id = 'coin-bonus-popup-new';
     popup.style.cssText =
-      'display:none;position:absolute;top:50%;left:50%;' +
-      'transform:translate(-50%,-50%);' +
-      'background:#0a1a2a;border:1px solid #1a3444;' +
-      'border-radius:12px;padding:16px;width:260px;' +
-      'font-family:\'Courier New\',monospace;z-index:200;';
+      'display:none;position:fixed;inset:0;' +
+      'background:rgba(3,11,16,0.88);z-index:9500;' +
+      'align-items:center;justify-content:center;';
     popup.innerHTML =
+      '<div style="background:#0a1a2a;border:1px solid #1a3444;border-radius:12px;padding:16px;width:280px;max-width:90%;font-family:\'Courier New\',monospace;">' +
       '<div style="text-align:center;font-size:13px;color:#ffc800;letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid #1a2a3a;padding-bottom:8px;">골드 보너스 내역</div>' +
       '<div id="coin-bonus-list-new"></div>' +
       '<div style="text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid #1a2a3a;font-size:12px;color:#ffc800;">총합: <span id="coin-bonus-total-new">x1.00</span></div>' +
-      '<button onclick="document.getElementById(\'coin-bonus-popup-new\').style.display=\'none\'" ' +
+      '<button id="coin-bonus-close-new" ' +
         'style="width:100%;margin-top:10px;background:#030b10;border:1px solid #00ffff;color:#00ffff;' +
-        'font-family:\'Courier New\',monospace;font-size:11px;padding:7px;border-radius:6px;cursor:pointer;">닫기</button>';
-    popup.addEventListener('click', function(e) { e.stopPropagation(); });
-    var homeEl = document.getElementById('screen-home');
-    if (homeEl) homeEl.appendChild(popup);
+        'font-family:\'Courier New\',monospace;font-size:11px;padding:7px;border-radius:6px;cursor:pointer;">닫기</button>' +
+      '</div>';
+    document.body.appendChild(popup);
+    popup.addEventListener('click', function(e) { if(e.target === popup) popup.style.display='none'; });
+    document.getElementById('coin-bonus-close-new').addEventListener('click', function(){ popup.style.display='none'; });
   }
 
   /* 항목 계산 */
@@ -13826,17 +13914,11 @@ window.showCoinBonusPopup = function () {
   var homeTot = document.getElementById('home-total-bonus');
   if (homeTot) homeTot.textContent = '◈ \xd7' + total.toFixed(2);
 
-  popup.style.display = 'block';
+  popup.style.display = 'flex';
 };
 
 /* 기존 onclick(_showCoinBonusPopup) → 새 함수로 연결 */
 window._showCoinBonusPopup = window.showCoinBonusPopup;
-
-/* 팝업 바깥 클릭 시 닫기 */
-(document.getElementById('screen-home') || document.body).addEventListener('click', function () {
-  var p = document.getElementById('coin-bonus-popup-new');
-  if (p && p.style.display !== 'none') p.style.display = 'none';
-});
 </script>
 
 <!-- ══════════════════════════════════════════════════════
@@ -15794,7 +15876,12 @@ function _doStart() {
   AUGMENTS.forEach(function(a){ if(_sel[a.id]){ total+=a.cost; _pendingAugs.push(a); } });
   var gems = (window.PERM && PERM.gems) || 0;
   if (total > 0 && gems < total) return;
-  if (total > 0) { PERM.gems -= total; try{ savePerm(); }catch(_){} }
+  if (total > 0) {
+    PERM.gems -= total;
+    try { savePerm(); } catch(_){}
+    // 전투 증강 사용 횟수 통계
+    try { var _ac=parseInt(localStorage.getItem('stat_augments')||'0',10); localStorage.setItem('stat_augments',_ac+_pendingAugs.length); } catch(_){}
+  }
   _close();
   window.startNewGame();
 }
