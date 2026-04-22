@@ -2323,12 +2323,6 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('hpRegen',8); },
     apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate+=0.5; },
   },
-  { key:'armor',   tab:'def', icon:'[]',  name:'방어구',   baseCost:6,  unlock:null,
-    cost()   { return upgCost('armor',6); },
-    stat()   { return G.armor+'중첩'; },
-    canBuy() { return coreChips>=upgCost('armor',6); },
-    apply()  { var c=upgCost('armor',6); coreChips-=c; G.upgLvl.armor=(G.upgLvl.armor||0)+1; G.armor++; },
-  },
   { key:'defRate', tab:'def', icon:'%',  name:'방어율',   baseCost:8,  unlock:null,
     cost()   { return upgCost('defRate',8); },
     stat()   { return (((G.tower&&G.tower.defense)||0)*100).toFixed(1)+'%'; },
@@ -4368,7 +4362,7 @@ function buildCards() {
   var _defUn = PERM.ws_def_unlocks || 0;
   var _utlTabOpen = !!(PERM.unlocks && PERM.unlocks.tab_utl_u);
   // 강화 탭 그룹과 전투 업그레이드 unlock 키 매핑
-  var _defKeyToGroup = { maxhp:0, hpRegen:0, armor:1, defRate:1, defAbs:1, vamp:3 };
+  var _defKeyToGroup = { maxhp:0, hpRegen:0, defRate:1, defAbs:1, vamp:3 };
   for (const tabKey of ['atk', 'def', 'utl']) {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
@@ -4597,6 +4591,8 @@ window.resumeGame = resumeGame;
 
 function restartGame() {
   isPaused = false;
+  // 현재 배속 저장
+  if (G && G.speed) { try { localStorage.setItem('neoncore_speed', G.speed); } catch(_){} }
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
   startNewGame();
@@ -4605,6 +4601,8 @@ window.restartGame = restartGame;
 
 function goHome() {
   isPaused = false;
+  // 현재 배속 저장
+  if (G && G.speed) { try { localStorage.setItem('neoncore_speed', G.speed); } catch(_){} }
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
   triggerGameOver();
@@ -4735,6 +4733,7 @@ function openShop() {
 
   syncShopUI();
   renderNavTabs('home');
+  if (window._startHomeBg) window._startHomeBg();
 }
 
 function syncShopUI() {
@@ -5601,8 +5600,39 @@ if (dailyPopup) {
     if (!locked && !maxed) {
       var btn = card.querySelector('button');
       (function(k, c) {
-        btn.addEventListener('click', function() { wsUpgrade(k, c); });
+        btn.addEventListener('click', function(e) { e.stopPropagation(); wsUpgrade(k, c); });
       }(key, card));
+    }
+    // 카드 터치 시 상세 정보 팝업
+    if (!locked) {
+      (function(_key, _cfg, _lv, _maxed) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() {
+          var old = document.getElementById('ws-detail-popup');
+          if (old) old.remove();
+          var ov = document.createElement('div');
+          ov.id = 'ws-detail-popup';
+          ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;';
+          var desc = _cfg.desc || _cfg.name + ' 능력을 강화합니다';
+          var curVal = _cfg.cur(_lv);
+          var nxtVal = _maxed ? '-' : _cfg.nxt(_lv);
+          var costVal = _maxed ? '-' : _cfg.cost(_lv);
+          ov.innerHTML =
+            '<div style="background:#0a1520;border:1px solid #00ffff;padding:18px;max-width:280px;width:90%;font-family:Courier New,monospace;">' +
+              '<div style="color:#00ffff;font-size:14px;font-weight:bold;margin-bottom:4px;">' + _cfg.name + '</div>' +
+              '<div style="color:#94a3b8;font-size:10px;margin-bottom:10px;line-height:1.6;">' + desc + '</div>' +
+              '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">' +
+                '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 레벨</span><span style="color:#00ffff;">' + _lv + '</span></div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">최대 레벨</span><span style="color:#f59e0b;">' + _cfg.maxLv + '</span></div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 수치</span><span style="color:#00ff88;">' + curVal + '</span></div>' +
+                (_maxed ? '' : '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">다음 수치</span><span style="color:#f59e0b;">' + nxtVal + '</span></div>') +
+              '</div>' +
+              '<button id="ws-detail-close" style="width:100%;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">닫기</button>' +
+            '</div>';
+          document.body.appendChild(ov);
+          ov.addEventListener('click', function(e) { if (e.target === ov || e.target.id === 'ws-detail-close') ov.remove(); });
+        });
+      })(key, cfg, lv, maxed);
     }
     container.appendChild(card);
   }
@@ -7736,10 +7766,10 @@ if (storeBtn) {
 <div id="screen-missions" style="display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:300;overflow:hidden;">
 
   <!-- 상단 헤더 -->
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;border-bottom:1px solid rgba(0,255,255,0.12);flex-shrink:0;background:#040c14;">
-    <button id="miss-back" style="background:none;border:none;color:#00ffff;font-size:13px;font-family:monospace;cursor:pointer;padding:6px 10px 6px 0;">← 뒤로</button>
-    <span style="color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:3px;">일일 임무</span>
-    <div style="display:flex;gap:8px;align-items:center;font-family:'Courier New',monospace;font-size:11px;">
+  <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;border-bottom:1px solid rgba(0,255,255,0.12);flex-shrink:0;background:#040c14;">
+    <button id="miss-back" style="background:none;border:none;color:#00ffff;font-size:13px;font-family:monospace;cursor:pointer;padding:6px 10px 6px 0;z-index:1;">← 뒤로</button>
+    <span style="position:absolute;left:0;right:0;text-align:center;color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:3px;pointer-events:none;">임무</span>
+    <div style="display:flex;gap:8px;align-items:center;font-family:'Courier New',monospace;font-size:11px;z-index:1;">
       <span style="color:#f59e0b;">◈ <span id="miss-gold-display">0</span></span>
       <span style="color:#00ffff;">❖ <span id="miss-gems-display">0</span></span>
     </div>
@@ -15841,6 +15871,7 @@ function _renderStagePopup() {
 
 // showScreen 확장
 var _origShowScreen = window.showScreen;
+var _LEFT_SCREENS = ['explore','signal-market','tournament','guild','achievements','mods'];
 window.showScreen = function(name) {
   _origShowScreen.apply(this, arguments);
   if (name === 'explore') {
@@ -15850,6 +15881,12 @@ window.showScreen = function(name) {
   if (name === 'mods') {
     var mc = document.getElementById('screen-mods');
     if (mc) mc.style.display = 'flex';
+  }
+  // 좌측 아이콘 화면 진입 시 하단탭 숨기기
+  var _bn = document.getElementById('bottom-nav');
+  if (_bn) {
+    if (_LEFT_SCREENS.indexOf(name) !== -1) { _bn.style.display = 'none'; }
+    else if (name === 'home') { _bn.style.display = 'flex'; }
   }
 };
 
