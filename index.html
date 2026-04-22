@@ -6081,10 +6081,6 @@ if (dailyPopup) {
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">코어랩</div>
-  <!-- 연구 선택 버튼 -->
-  <div style="padding:8px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14;">
-    <button id="lab-research-select-btn" style="width:100%; background:#0a1a2a; border:1px solid #0a3344; color:#00ffff; font-family:'Courier New',monospace; font-size:11px; padding:8px; cursor:pointer;">연구 선택</button>
-  </div>
   <!-- 슬롯 목록 -->
   <div id="lab-slots" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
 </div>
@@ -7099,9 +7095,8 @@ Object.keys(RESEARCH_LIST).forEach(function(cat) {
   RESEARCH_LIST[cat].forEach(function(r) { r.cat = cat; ALL_RESEARCH.push(r); });
 });
 
-var LAB_SLOT_COUNT = 10;
-var LAB_SLOT_UNLOCK = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 웨이브 조건 없음
-var LAB_SLOT_COST   = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800]; // 기본 1개 무료, 보석 200씩 증가
+var LAB_SLOT_COUNT = 6;
+var LAB_SLOT_COST   = [0, 100, 200, 400, 600, 1000]; // 기본 1개 무료, 보석 증가
 var _labSelectSlot  = null;
 var _labFilterCat   = 'all';
 var _labHideComplete = false;
@@ -7153,149 +7148,135 @@ function _buildLabSlots() {
   var container = document.getElementById('lab-slots'); if (!container) return;
   container.innerHTML = '';
   var lab = _loadLab();
-  var best = PERM.bestWave || 0;
+
+  // 슬롯 그리드 (프리즘 스타일)
+  var gridEl = document.createElement('div');
+  gridEl.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;';
 
   for (var i = 0; i < LAB_SLOT_COUNT; i++) {
-    var slotEl  = document.createElement('div');
     var slotKey = 'slot' + i;
     var slotData = lab[slotKey] || {};
-    var locked  = best < LAB_SLOT_UNLOCK[i];
-    var needBuy = i > 0 && !slotData.bought && !locked;
-    var style   = 'background:#0a1a2a;border:1px solid ' + (locked ? '#0a1520' : '#0a3344') + ';padding:12px;display:flex;flex-direction:column;gap:8px;';
-    slotEl.style.cssText = style;
+    var needBuy = i > 0 && !slotData.bought;
+    var now = Date.now();
+    var researchId = slotData.researchId;
+    var endTime = slotData.endTime || 0;
+    var done = researchId && now >= endTime;
+    var inProgress = researchId && !done;
+    var res = researchId ? ALL_RESEARCH.filter(function(r){return r.id===researchId;})[0] : null;
 
-    var title = '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-      '<span style="font-family:monospace;font-size:12px;color:' + (locked ? '#1a2a3a' : '#00ffff') + ';">Lab ' + (i+1) + '</span>';
+    var cell = document.createElement('div');
+    cell.style.cssText = 'background:#0a1a2a;border:1px solid ' + (needBuy ? '#1a2a3a' : inProgress ? '#0a3344' : done ? '#00ff88' : '#0a3344') + ';padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80px;gap:4px;cursor:pointer;';
 
-    if (locked) {
-      title += '<span style="font-size:10px;color:#1a2a3a;font-family:monospace;">웨이브 ' + LAB_SLOT_UNLOCK[i] + ' 달성 시 해금</span>';
-      slotEl.innerHTML = title + '</div>';
-    } else if (needBuy) {
-      title += '<button data-lab-buy="' + i + '" style="background:#030b10;border:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;font-weight:bold;letter-spacing:1px;">❖' + LAB_SLOT_COST[i] + ' 해금</button>';
-      slotEl.innerHTML = title + '</div><div style="text-align:center;color:#556677;font-family:monospace;font-size:11px;padding:6px 0;">연구 슬롯 ' + (i+1) + ' — 보석으로 해금</div>';
-      (function(idx, cost) {
-        var buyBtn = slotEl.querySelector('[data-lab-buy]');
-        buyBtn.addEventListener('click', function() {
-          var gems = (PERM.gems||0);
+    if (needBuy) {
+      // 잠긴 슬롯 - 구매 필요
+      cell.innerHTML =
+        '<div style="font-size:18px;color:#1a2a3a;">🔒</div>' +
+        '<div style="font-size:9px;color:#334455;font-family:monospace;">슬롯 ' + (i+1) + '</div>' +
+        '<div style="font-size:10px;color:#00ffff;font-family:monospace;font-weight:bold;">❖' + LAB_SLOT_COST[i] + '</div>';
+      (function(idx, cost, el) {
+        el.addEventListener('click', function() {
+          var gems = PERM.gems || 0;
           if (gems < cost) {
-            if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석이 부족합니다\n보유: ❖'+gems+' / 필요: ❖'+cost,null);
+            if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석이 부족합니다\n보유: ❖'+gems+' / 필요: ❖'+cost, null);
             return;
           }
-          if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?',function(){
+          if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?', function(){
             if((PERM.gems||0)<cost) return;
             PERM.gems -= cost;
             savePerm();
-            var labData = _loadLab();
-            if (!labData['slot' + idx]) labData['slot' + idx] = {};
-            labData['slot' + idx].bought = true;
-            _saveLab(labData);
+            var ld = _loadLab();
+            if(!ld['slot'+idx]) ld['slot'+idx] = {};
+            ld['slot'+idx].bought = true;
+            _saveLab(ld);
             _syncLabHUD();
             _buildLabSlots();
           });
         });
-      }(i, LAB_SLOT_COST[i]));
-    } else {
-      // Active slot
-      var now        = Date.now();
-      var researchId = slotData.researchId;
-      var endTime    = slotData.endTime || 0;
-      var done       = researchId && now >= endTime;
-
-      title += '</div>';
-      slotEl.innerHTML = title;
-
-      if (!researchId) {
-        var noRes = document.createElement('div');
-        noRes.style.cssText = 'text-align:center;padding:4px 0;';
-        noRes.innerHTML = '<button data-lab-select="' + i + '" style="width:100%;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:10px;cursor:pointer;font-weight:bold;letter-spacing:1px;">연구 선택</button>';
-        slotEl.appendChild(noRes);
-      } else {
-        var res  = ALL_RESEARCH.filter(function(r){return r.id===researchId;})[0];
-        var name = res ? res.name : researchId;
-        var remaining = done ? 0 : Math.ceil((endTime - now) / 1000);
-
-        var resDiv = document.createElement('div');
-        resDiv.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
-
-        var topRow = '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-          '<span style="color:#f1f5f9;font-family:monospace;font-size:11px;">' + name + '</span>';
-        if (done) {
-          topRow += '<span style="color:#00ff88;font-family:monospace;font-size:10px;">✓ 완료</span>';
-        } else {
-          var rushCost = Math.max(1, Math.ceil(remaining / 60));
-          topRow += '<button data-lab-rush="' + i + '" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:3px 7px;cursor:pointer;">Rush ❖' + rushCost + '</button>';
-        }
-        topRow += '</div>';
-
-        var prog = '';
-        if (!done) {
-          var labSpeedLv = ((_loadLab().research && _loadLab().research.lab_speed) || 0);
-          prog = '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-            '<div style="flex:1;height:4px;background:#0a1520;margin-right:8px;">' +
-            '<div style="height:4px;background:#00ffff;width:' + Math.round((1 - remaining / (res ? res.time : 1)) * 100) + '%;"></div></div>' +
-            '<span style="color:#94a3b8;font-family:monospace;font-size:10px;white-space:nowrap;">' + _fmtTime(remaining) + '</span></div>';
-        } else {
-          prog = '<button data-lab-complete="' + i + '" style="width:100%;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">◈ 연구 완료 수령</button>';
-        }
-
-        resDiv.innerHTML = topRow + prog;
-
-        (function(idx, slotD, isComplete) {
-          var rushBtn = resDiv.querySelector('[data-lab-rush]');
-          if (rushBtn) {
-            rushBtn.addEventListener('click', function() {
-              var rem2 = Math.max(0, Math.ceil((slotD.endTime - Date.now()) / 1000));
-              var rc   = Math.max(1, Math.ceil(rem2 / 60));
-              if (PERM.gems < rc) { rushBtn.style.borderColor='#ef4444'; setTimeout(function(){rushBtn.style.borderColor='#cc44ff';},300); return; }
-              PERM.gems -= rc;
-              savePerm();
-              var labData2 = _loadLab();
-              if (!labData2['slot' + idx]) labData2['slot' + idx] = {};
-              labData2['slot' + idx].endTime = Date.now() - 1;
-              _saveLab(labData2);
-              _syncLabHUD();
-              _buildLabSlots();
-            });
-          }
-          var complBtn = resDiv.querySelector('[data-lab-complete]');
-          if (complBtn) {
-            complBtn.addEventListener('click', function() {
-              var labData3 = _loadLab();
-              var sid      = slotD.researchId;
-              if (!labData3.research) labData3.research = {};
-              labData3.research[sid] = (labData3.research[sid] || 0) + 1;
-              if (!labData3['slot' + idx]) labData3['slot' + idx] = {};
-              labData3['slot' + idx].researchId = null;
-              labData3['slot' + idx].endTime    = null;
-              _saveLab(labData3);
-              _buildLabSlots();
-              try { showToast && showToast('◈ ' + sid + ' 연구 완료!'); } catch(_) {}
-            });
-          }
-        }(i, slotData, done));
-        slotEl.appendChild(resDiv);
-      }
-
-      // Select button
-      var selDiv = document.createElement('div');
-      selDiv.innerHTML = '<button data-lab-select="' + i + '" style="background:#030b10;border:1px solid #334455;color:#334455;font-family:monospace;font-size:9px;padding:3px 8px;cursor:pointer;">연구 변경</button>';
-      slotEl.appendChild(selDiv);
-    }
-
-    // Select button handler
-    (function(idx) {
-      var selBtns = slotEl.querySelectorAll('[data-lab-select]');
-      for (var bi2 = 0; bi2 < selBtns.length; bi2++) {
-        selBtns[bi2].addEventListener('click', function() {
+      })(i, LAB_SLOT_COST[i], cell);
+    } else if (!researchId) {
+      // 빈 슬롯 - 연구 선택
+      cell.innerHTML =
+        '<div style="font-size:18px;color:#0a3344;">+</div>' +
+        '<div style="font-size:9px;color:#556677;font-family:monospace;">슬롯 ' + (i+1) + '</div>' +
+        '<div style="font-size:9px;color:#00ffff;font-family:monospace;">연구 선택</div>';
+      (function(idx, el) {
+        el.addEventListener('click', function() {
           _labSelectSlot = idx;
-          document.getElementById('lab-popup-hint').textContent = 'Lab ' + (idx+1) + '에서 연구 시작';
-          _buildLabPopupList();
+          var hint = document.getElementById('lab-popup-hint');
+          if(hint) hint.textContent = '슬롯 ' + (idx+1) + '에서 연구 시작';
+          _renderLabPopup();
           document.getElementById('lab-popup').style.display = 'flex';
         });
-      }
-    }(i));
+      })(i, cell);
+    } else if (inProgress) {
+      // 연구 진행 중
+      var remaining = Math.ceil((endTime - now) / 1000);
+      var total = res ? res.time : 1;
+      var pct = Math.round((1 - remaining / total) * 100);
+      cell.style.borderColor = '#0a3344';
+      cell.innerHTML =
+        '<div style="font-size:9px;color:#00ffff;font-family:monospace;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">' + (res ? res.name : '?') + '</div>' +
+        '<div style="width:100%;height:3px;background:#0a1520;margin:3px 0;"><div style="height:3px;background:#00ffff;width:' + pct + '%;"></div></div>' +
+        '<div style="font-size:9px;color:#94a3b8;font-family:monospace;">' + _fmtTime(remaining) + '</div>';
+      var rushCost = Math.max(1, Math.ceil(remaining / 60));
+      cell.innerHTML += '<div style="font-size:8px;color:#cc44ff;font-family:monospace;margin-top:2px;">Rush ❖' + rushCost + '</div>';
+      (function(idx, slotD, rc) {
+        cell.addEventListener('click', function() {
+          var rem2 = Math.max(0, Math.ceil((slotD.endTime - Date.now()) / 1000));
+          var rc2 = Math.max(1, Math.ceil(rem2 / 60));
+          if(window._showSlotConfirm) _showSlotConfirm('즉시 완료','보석 ❖'+rc2+'을 사용하여\n연구를 즉시 완료하시겠습니까?', function(){
+            if(PERM.gems < rc2) return;
+            PERM.gems -= rc2;
+            savePerm();
+            var ld = _loadLab();
+            if(!ld['slot'+idx]) ld['slot'+idx] = {};
+            ld['slot'+idx].endTime = Date.now() - 1;
+            _saveLab(ld);
+            _syncLabHUD();
+            _buildLabSlots();
+          });
+        });
+      })(i, slotData, rushCost);
+    } else {
+      // 연구 완료 - 수령
+      cell.style.borderColor = '#00ff88';
+      cell.innerHTML =
+        '<div style="font-size:9px;color:#00ff88;font-family:monospace;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">' + (res ? res.name : '?') + '</div>' +
+        '<div style="font-size:14px;color:#00ff88;">✓</div>' +
+        '<div style="font-size:9px;color:#00ff88;font-family:monospace;">수령하기</div>';
+      (function(idx, slotD) {
+        cell.addEventListener('click', function() {
+          var ld = _loadLab();
+          var sid = slotD.researchId;
+          if(!ld.research) ld.research = {};
+          ld.research[sid] = (ld.research[sid]||0) + 1;
+          // localStorage에 개별 연구 레벨 저장
+          localStorage.setItem('res_'+sid, ld.research[sid]);
+          if(!ld['slot'+idx]) ld['slot'+idx] = {};
+          ld['slot'+idx].researchId = null;
+          ld['slot'+idx].endTime = null;
+          _saveLab(ld);
+          try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
+          _buildLabSlots();
+          var rName = (ALL_RESEARCH.filter(function(r){return r.id===sid;})[0]||{}).name || sid;
+          try { if(window.showAchievementToast) showAchievementToast('연구 완료: '+rName); } catch(_){}
+        });
+      })(i, slotData);
+    }
 
-    container.appendChild(slotEl);
+    gridEl.appendChild(cell);
+  }
+  container.appendChild(gridEl);
+
+  // 자동 갱신 (진행 중인 연구 있으면 1초마다)
+  clearTimeout(window._labRefreshTimer);
+  var hasProgress = false;
+  for (var j = 0; j < LAB_SLOT_COUNT; j++) {
+    var sd = lab['slot'+j] || {};
+    if (sd.researchId && Date.now() < (sd.endTime||0)) { hasProgress = true; break; }
+  }
+  if (hasProgress) {
+    window._labRefreshTimer = setTimeout(function() { _buildLabSlots(); }, 1000);
   }
 }
 
