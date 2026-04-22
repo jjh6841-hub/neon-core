@@ -323,7 +323,7 @@ canvas {
   border: none;
   border-right: 1px solid #0a2233;
   border-bottom: 1px solid transparent;
-  color: #334455;
+  color: #7aacac;
   font-size: 10px;
   font-weight: 700;
   height: 30px;
@@ -439,7 +439,7 @@ canvas {
 .card-name {
   font-size: 9px !important;
   font-weight: 400;
-  color: #0099bb;
+  color: #22bbdd;
   text-align: center;
   line-height: 1.1;
   width: 100%;
@@ -468,7 +468,7 @@ canvas {
 /* 비용 */
 .card-cost {
   font-size: 9px !important;
-  color: #f59e0b;
+  color: #f5b942;
   text-align: center;
   width: 100%;
   line-height: 1;
@@ -476,6 +476,8 @@ canvas {
   font-family: 'Courier New', monospace;
 }
 .upg-card.no-gold .card-cost { color: #ef4444; }
+.upg-card.no-gold .card-name { color: #5599aa; }
+.upg-card.no-gold .card-stat { color: #448899; }
 
 /* 호환 클래스 */
 .upgrade-btn {
@@ -1203,7 +1205,7 @@ canvas {
   <button id="btn-resume" style="width:240px;padding:14px;background:transparent;border:1px solid #00ffff;border-radius:8px;color:#00ffff;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">▶ 계속하기</button>
   <button id="btn-restart" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#7aacac;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">↺ 다시하기</button>
   <button id="btn-home" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#7aacac;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⌂ 홈화면으로</button>
-  <button id="btn-settings" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#445566;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⚙ 설정</button>
+  <button id="btn-settings" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#7aacac;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⚙ 설정</button>
 </div>
 
 <!-- ── 업적 화면 ── -->
@@ -1224,7 +1226,8 @@ canvas {
   <button id="btn-settings-back" style="position:absolute;top:14px;left:14px;background:none;border:none;color:#00ffff;font-family:'Courier New',monospace;font-size:12px;cursor:pointer;padding:4px;-webkit-appearance:none;">◀ 뒤로</button>
 
   <!-- 타이틀 -->
-  <div style="text-align:center;padding:28px 0 16px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
+  <div style="text-align:center;padding:28px 0 12px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
+  <div style="width:100%;max-width:340px;margin:0 auto 12px;height:1px;background:linear-gradient(90deg,transparent,#0a3344,#00ffff,#0a3344,transparent);"></div>
 
   <div style="padding:0 16px;display:flex;flex-direction:column;gap:0;width:100%;max-width:340px;">
 
@@ -1248,7 +1251,7 @@ canvas {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
       <button id="btn-account-link" onclick="if(typeof _openAccount==='function')_openAccount()" style="padding:15px 12px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;line-height:1.4;position:relative;display:flex;align-items:center;justify-content:center;"><span style="display:flex;flex-direction:column;align-items:center;gap:3px;"><span>계정</span><span id="account-status" style="font-size:9px;color:#ef4444;">미연동</span></span><span id="account-reward" style="position:absolute;right:10px;font-size:10px;color:#00ffff;font-weight:bold;">❖40</span></button>
       <button onclick="if(typeof _showStatsPopup==='function')_showStatsPopup()" style="padding:15px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;">통계</button>
-      <button onclick="if(typeof _showEncyclopedia==='function')_showEncyclopedia()" style="padding:20px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;">패치노트</button>
+      <button onclick="if(typeof _showPatchNotes==='function')_showPatchNotes()" style="padding:20px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;">패치노트</button>
       <button onclick="if(typeof _showContactPopup==='function')_showContactPopup()" style="padding:20px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;">문의하기</button>
       <button id="btn-coupon" onclick="if(typeof _openCoupon==='function')_openCoupon()" style="padding:20px 8px;background:#0c0c22;border:1px solid #f59e0b;border-radius:10px;color:#f59e0b;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;">쿠폰</button>
       <button onclick="if(typeof _showEncyclopedia==='function')_showEncyclopedia()" style="padding:20px 8px;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;text-align:center;-webkit-appearance:none;">백과사전</button>
@@ -1588,7 +1591,7 @@ canvas {
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="ws-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">강화</div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">강화소</div>
 
   <!-- 카테고리 탭 -->
   <div id="ws-tab-bar" style="display:flex; height:36px; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
@@ -1629,6 +1632,7 @@ canvas {
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="module-gold">0</span></span>
       <span style="color:#00ffff; font-family:monospace; font-size:13px;">❖ <span id="module-gem">0</span></span>
+      <span style="color:#cc44ff; font-family:monospace; font-size:13px;">⬡ <span id="module-frag">0</span></span>
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#cc44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0;">◇ 프리즘</div>
@@ -1667,7 +1671,10 @@ canvas {
 var AudioManager = {
   ctx: null, bgmGain: null, sfxGain: null, bgmOscs: [], bgmInterval: null,
   init: function() {
-    if (this.ctx) return;
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') { try { this.ctx.resume(); } catch(_){} }
+      return;
+    }
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       this.bgmGain = this.ctx.createGain();
@@ -1676,6 +1683,7 @@ var AudioManager = {
       this.sfxGain.connect(this.ctx.destination);
       this.bgmGain.gain.value = 0.3;
       this.sfxGain.gain.value = 0.5;
+      if (this.ctx.state === 'suspended') { this.ctx.resume(); }
     } catch(e) {}
   },
   playBGM: function() {
@@ -2215,7 +2223,17 @@ function getUpgradeCost(baseCost, currentLevel) {
 /* ── 인게임 업그레이드 정의 (임시) ── */
 function upgCost(key, base) {
   if (!G) return base;
-  return getUpgradeCost(base, G.upgLvl[key] || 0);
+  var raw = getUpgradeCost(base, G.upgLvl[key] || 0);
+  // 공격/방어 할인 적용
+  var upg = UPGRADES && UPGRADES.find(function(u){ return u.key === key; });
+  if (upg && upg.tab === 'atk') {
+    var atkDisc = parseInt(localStorage.getItem('res_atk_discount')||'0',10);
+    if (atkDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - atkDisc * 0.01)));
+  } else if (upg && upg.tab === 'def') {
+    var defDisc = parseInt(localStorage.getItem('res_def_discount')||'0',10);
+    if (defDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - defDisc * 0.01)));
+  }
+  return raw;
 }
 var UPGRADES = [
   // ─ 공격 탭 ─
@@ -2549,8 +2567,10 @@ function startGame() {
   if (_obEl) { _obEl.style.display = 'none'; _obEl.remove(); }
 
   G = createState();
+  G.introTimer = 0;
   G.gold  = PERM.gold;
   G.gems  = PERM.gems;
+  gameSpeed = parseFloat(localStorage.getItem('neoncore_speed') || '1') || 1;
   G.speed = gameSpeed;
   coreChips = baseStartChips;
   killCountForGold = 0;
@@ -2674,6 +2694,7 @@ function update(dt) {
   if (G.phase === 'gameover' || G.phase === 'paused') return;
   // 인트로 타워 배치 연출 (phase='intro' 동안 게임 로직 차단)
   if (G.introTimer >= 0 || G.phase === 'intro') {
+    if (G.introTimer < 0 && G.phase === 'intro') G.introTimer = 0;
     if (G.introTimer >= 0) G.introTimer += dt;
     if (G.introTimer >= 1500) {
       G.introTimer = -1;
@@ -3163,8 +3184,17 @@ function addFx(x, y, maxR, color) {
 /* ── 시각 피드백 시스템 ───────────────────────────────────── */
 var screenShake = { x: 0, y: 0, intensity: 0 };
 
+function triggerVibration(ms) {
+  try {
+    if (PERM && PERM.settings && PERM.settings.vibration && navigator.vibrate) {
+      navigator.vibrate(ms || 30);
+    }
+  } catch(_){}
+}
+
 function triggerShake(intensity) {
   if (intensity > screenShake.intensity) screenShake.intensity = intensity;
+  if (intensity >= 3) triggerVibration(Math.min(100, intensity * 8));
 }
 
 function updateShake() {
@@ -3834,8 +3864,16 @@ function render() {
     const TR = 20;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
-    const _voidSkin = !!(window._smOwnedItems && window._smOwnedItems.indexOf('void') !== -1);
-    const _towerAccent = _voidSkin ? '#aa44ff' : '#00ffff';
+    // 탐사선 스킨 색상 적용
+    var _skinColor = '#00ffff';
+    try {
+      var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
+      if (window.IRIS_SKINS) {
+        var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0];
+        if (_found) _skinColor = _found.color;
+      }
+    } catch(_){}
+    const _towerAccent = _skinColor;
     ctx.save();
     ctx.beginPath();
     for (let i = 0; i < 6; i++) {
@@ -3845,14 +3883,14 @@ function render() {
       if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
     }
     ctx.closePath();
-    ctx.fillStyle = _voidSkin ? '#160026' : '#001a22';
+    ctx.fillStyle = '#001a22';
     ctx.fill();
     ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
-    if (_voidSkin && !flashHit && !buffed) { ctx.shadowColor = '#aa44ff'; ctx.shadowBlur = 12; }
+    if (!flashHit && !buffed) { ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12; }
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = _voidSkin ? 'rgba(170,68,255,0.7)' : 'rgba(0,255,255,0.6)';
+    ctx.strokeStyle = _towerAccent + 'b3';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(G.cx, G.cy - 8); ctx.lineTo(G.cx, G.cy + 8);
@@ -4140,9 +4178,10 @@ function buildCards() {
     pane.innerHTML = '';
     // 유틸 탭 해금 안 되면 잠금 안내 표시
     if (tabKey === 'utl' && !_utlTabOpen) {
-      pane.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;flex:1;gap:6px;opacity:0.5;">' +
+      pane.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:100%;height:100%;gap:6px;opacity:0.5;position:absolute;left:0;right:0;top:0;bottom:0;">' +
         '<div style="color:#556677;font-family:monospace;font-size:11px;text-align:center;">유틸리티 잠금</div>' +
-        '<div style="color:#334455;font-family:monospace;font-size:9px;text-align:center;">강화 탭에서 해금할 수 있습니다</div></div>';
+        '<div style="color:#334455;font-family:monospace;font-size:9px;text-align:center;">강화소에서 해금할 수 있습니다</div></div>';
+      pane.style.position = 'relative';
       continue;
     }
     for (const upg of UPGRADES) {
@@ -4529,6 +4568,7 @@ bindOverlayBtn('btn-home', function() {
 });
 bindOverlayBtn('btn-settings', function() {
   syncSettingsUI();
+  window._settingsFromPause = !!(document.getElementById('screen-game') && document.getElementById('screen-game').style.display === 'flex');
   document.getElementById('settings-screen').classList.add('show');
   var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
 });
@@ -4542,7 +4582,12 @@ bindOverlayBtn('btn-achieve-back', function() {
 // Settings screen
 bindOverlayBtn('btn-settings-back', function() {
   document.getElementById('settings-screen').classList.remove('show');
-  var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
+  if (window._settingsFromPause) {
+    var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
+    window._settingsFromPause = false;
+  } else {
+    var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
+  }
 });
 (function() {
   for (const k of ['sound', 'music', 'vibration']) {
@@ -4758,7 +4803,7 @@ document.addEventListener('touchend', function(e) {
 // ── Tab navigation system ──
 var navTabs = [
   { id: 'battle',   label: '\uC804\uD22C',    icon: '\u2694', screen: 'home',     unlock: 0 },
-  { id: 'workshop', label: '\uAC15\uD654',    icon: 'svg_workshop', screen: 'workshop', unlock: 0 },
+  { id: 'workshop', label: '\uAC15\uD654\uC18C',    icon: 'svg_workshop', screen: 'workshop', unlock: 0 },
   { id: 'module',   label: '\uD504\uB9AC\uC998',    icon: 'svg_module', screen: 'module',   unlock: 10 },
   { id: 'research', label: '\uCF54\uC5B4\uB7A9',  icon: 'svg_research', screen: 'lab',      unlock: 10 },
   { id: 'corelab',  label: '\uD504\uB85C\uD1A0\uCF5C',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
@@ -5796,8 +5841,8 @@ if (dailyPopup) {
     <button id="lab-popup-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
   </div>
   <div id="lab-popup-filter" style="display:flex; gap:4px; padding:6px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14; overflow-x:auto;">
-    <button class="lab-filter" data-cat="all"      style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">전체</button>
-    <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">메타</button>
+    <button class="lab-filter" data-cat="all"      style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">전체</button>
+    <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">메타</button>
     <button class="lab-filter" data-cat="attack"  style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">공격</button>
     <button class="lab-filter" data-cat="defense" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">방어</button>
     <button class="lab-filter" data-cat="utility" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">유틸</button>
@@ -6759,11 +6804,9 @@ function _buildCrystalTab(container) {
 var RESEARCH_LIST = {
   main: [
     { id:'game_speed',   name:'게임 속도',   desc:'최대 배속 증가',           time:3600,  cost:500,   maxLv:10 },
-    { id:'start_cash',   name:'시작 골드',   desc:'게임 시작 시 +골드',        time:6300,  cost:2940,  maxLv:20 },
     { id:'atk_discount', name:'공격 할인',   desc:'공격 업그레이드 비용 -1%',  time:19800, cost:12390, maxLv:30 },
     { id:'def_discount', name:'방어 할인',   desc:'방어 업그레이드 비용 -1%',  time:28320, cost:18810, maxLv:30 },
     { id:'lab_speed',    name:'연구 속도',   desc:'연구 시간 단축',            time:7200,  cost:8000,  maxLv:30 },
-    { id:'buy_multi',    name:'구매 배수',   desc:'x5, x10 구매 해금',         time:13560, cost:9280,  maxLv:5  },
   ],
   attack: [
     { id:'r_damage',     name:'대미지 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:99 },
@@ -6773,6 +6816,7 @@ var RESEARCH_LIST = {
     { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:30 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
+    { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
   ],
   defense: [
     { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:99 },
@@ -6782,19 +6826,14 @@ var RESEARCH_LIST = {
     { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 향상',         time:14400, cost:12000, maxLv:30 },
     { id:'r_vamp',       name:'흡혈 연구',     desc:'흡혈 확률 향상',           time:18000, cost:15000, maxLv:30 },
     { id:'r_shield',     name:'쉴드 연구',     desc:'쉴드 HP 향상',             time:21600, cost:20000, maxLv:20 },
-    { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
   ],
   utility: [
-    { id:'r_cash',       name:'크레딧 연구',   desc:'크레딧 보너스 향상',       time:23940, cost:15390, maxLv:99 },
+    { id:'start_cash',   name:'시작 골드',   desc:'게임 시작 시 +골드',        time:6300,  cost:2940,  maxLv:20 },
     { id:'r_wave_cash',  name:'웨이브 연구',   desc:'웨이브 골드 향상',         time:15660, cost:9810,  maxLv:50 },
-    { id:'r_interest',   name:'이자율 연구',   desc:'이자율 향상',              time:32940, cost:252150,maxLv:30 },
     { id:'r_gem_gain',   name:'보석 획득 연구',desc:'보석 획득량 향상',         time:18000, cost:12000, maxLv:20 },
     { id:'r_gold_gain',  name:'골드 획득 연구',desc:'골드 획득량 향상',         time:14400, cost:8000,  maxLv:30 },
   ],
   ultimate: [
-    { id:'r_dw_dmg',     name:'데스웨이브 피해',desc:'피해량 향상',              time:61200, cost:461200,maxLv:10 },
-    { id:'r_cf_dur',     name:'크로노필드 지속',desc:'지속시간 향상',            time:35160, cost:73000, maxLv:10 },
-    { id:'r_cf_slow',    name:'크로노필드 감속',desc:'감속률 향상',              time:54600, cost:264480,maxLv:10 },
     { id:'r_elem_atk',   name:'속성 공격 연구',desc:'속성 공격력 배율 향상',     time:28800, cost:50000, maxLv:30 },
     { id:'r_elem_def',   name:'속성 방어 연구',desc:'속성 방어력 배율 향상',     time:28800, cost:50000, maxLv:30 },
     { id:'r_elem_hp',    name:'속성 체력 연구',desc:'속성 체력 배율 향상',       time:28800, cost:50000, maxLv:30 },
@@ -6810,7 +6849,7 @@ var LAB_SLOT_COUNT = 10;
 var LAB_SLOT_UNLOCK = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 웨이브 조건 없음
 var LAB_SLOT_COST   = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800]; // 기본 1개 무료, 보석 200씩 증가
 var _labSelectSlot  = null;
-var _labFilterCat   = 'main';
+var _labFilterCat   = 'all';
 var _labHideComplete = false;
 
 function _loadLab() {
@@ -10224,14 +10263,19 @@ function _showSlotConfirm(title, msg, onConfirm) {
   var ov = document.createElement('div');
   ov.id = 'slot-confirm-popup';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(3,11,16,0.92);z-index:20000;display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
-  var box = '<div style="background:#0d1520;border:1px solid #00ffff;padding:24px;max-width:300px;width:85%;text-align:center;">' +
-    '<div style="color:#00ffff;font-size:13px;font-weight:bold;letter-spacing:1px;margin-bottom:12px;">'+title+'</div>' +
-    '<div style="color:#94a3b8;font-size:11px;white-space:pre-line;margin-bottom:18px;line-height:1.6;">'+msg+'</div>' +
+  // 재화 부족 시 메시지 색상 처리
+  var isInsufficient = !onConfirm;
+  var styledMsg = msg.replace(/보석이 부족합니다/g, '<span style="color:#ef4444;font-weight:bold;">보석이 부족합니다</span>')
+                     .replace(/(❖\s*\d+)/g, '<span style="color:#00ffff;font-weight:bold;">$1</span>');
+  var titleColor = isInsufficient ? '#cc44ff' : '#00ffff';
+  var box = '<div style="background:#0d1520;border:1px solid '+(isInsufficient?'#cc44ff':'#00ffff')+';padding:24px;max-width:300px;width:85%;text-align:center;">' +
+    '<div style="color:'+titleColor+';font-size:13px;font-weight:bold;letter-spacing:1px;margin-bottom:12px;">'+title+'</div>' +
+    '<div style="color:#94a3b8;font-size:11px;white-space:pre-line;margin-bottom:18px;line-height:1.6;">'+styledMsg+'</div>' +
     '<div style="display:flex;gap:8px;">';
   if (onConfirm) {
     box += '<button id="slot-confirm-yes" style="flex:1;padding:10px;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">구매</button>';
   }
-  box += '<button id="slot-confirm-no" style="flex:1;padding:10px;background:#030b10;border:1px solid #334455;color:#556677;font-family:monospace;font-size:12px;cursor:pointer;">'+(!onConfirm?'확인':'취소')+'</button>';
+  box += '<button id="slot-confirm-no" style="flex:1;padding:10px;background:#030b10;border:1px solid '+(isInsufficient?'#00ffff':'#334455')+';color:'+(isInsufficient?'#00ffff':'#556677')+';font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">'+(!onConfirm?'확인':'취소')+'</button>';
   box += '</div></div>';
   ov.innerHTML = box;
   document.body.appendChild(ov);
@@ -10935,7 +10979,7 @@ function _closeRanking() {
    FEATURE 3: 우편함
 ════════════════════════════════════════════════════════ */
 var SYSTEM_MAILS = [
-  { id:'welcome',  title:'🎮 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
+  { id:'welcome',  title:'⚡ 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
   { id:'battle1',  title:'⚔ 첫 전투 응원',     body:'첫 전투를 완료하셨습니다. 앞으로도 파이팅!',                         gems:2,  gold:30  },
 ];
 var NEWS_ITEMS = [];
@@ -10957,8 +11001,8 @@ function _buildMailScreen() {
       '<div style="width:60px;"></div>'+
     '</div>'+
     '<div id="mail-tab-bar" style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
-      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">✉ 우편</button>'+
-      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">▣ 소식</button>'+
+      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;"><span style="font-size:15px;">✉</span> 우편</button>'+
+      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:12px;cursor:pointer;"><span style="font-size:15px;">📡</span> 소식</button>'+
     '</div>'+
     '<div id="mail-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>';
   document.body.appendChild(sc);
@@ -11181,7 +11225,7 @@ function _showEncyclopedia() {
       ['HP 재생','초당 회복되는 코어 체력'],
       ['실드','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용'],
       ['방어율','받는 데미지를 % 비율로 감소'],
-      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화 탭에서 기본 수치를 올리고, 프로토콜·코어랩·스토어에서 추가로 확장 가능. 최대 20%.'],
+      ['에너지 흡수','레이저가 적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복한다. 강화소에서 기본 수치를 올리고, 프로토콜·코어랩·스토어에서 추가로 확장 가능. 최대 20%.'],
     ]},
     utl:{ label:'유틸리티', items:[
       { id:'gold_bonus', name:'골드 보너스', desc:'적 처치 시 획득 골드 배율' },
@@ -11283,6 +11327,7 @@ function _showPatchNotes() {
     '</div>';
   document.body.appendChild(p);
   document.getElementById('pn-close').addEventListener('click',function(){ p.remove(); });
+  p.addEventListener('click',function(e){ if(e.target===p) p.remove(); });
 }
 
 function _showContactPopup() {
@@ -11529,12 +11574,12 @@ function _injectUtilTabInGame() {
   pane.id='pane-util';
   pane.className='tab-pane';
   // display handled by .tab-pane/.tab-pane.active CSS; override row→column and max-content→100%
-  pane.style.cssText='flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:16px;padding:20px;box-sizing:border-box;';
+  pane.style.cssText='flex-direction:column !important;align-items:center !important;justify-content:center !important;width:100% !important;height:100% !important;gap:16px;padding:20px;box-sizing:border-box;flex-wrap:nowrap !important;';
   pane.innerHTML=
     '<div style="font-size:40px;">🔨</div>'+
     '<div style="color:#334455;font-family:monospace;font-size:13px;font-weight:bold;text-align:center;letter-spacing:2px;">유틸리티 잠금</div>'+
     '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.8;max-width:220px;">'+
-      '유틸리티 업그레이드는<br>강화 탭에서 해금할 수 있습니다.</div>'+
+      '유틸리티 업그레이드는<br>강화소에서 해금할 수 있습니다.</div>'+
     '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어랩으로 이동</button>';
   tabContent.appendChild(pane);
 
@@ -12787,6 +12832,7 @@ window.showScreen = function (name) {
     try {
       var _mg=document.getElementById('module-gold'); if(_mg) _mg.textContent=(PERM&&PERM.gold)||0;
       var _mgm=document.getElementById('module-gem'); if(_mgm) _mgm.textContent=(PERM&&PERM.gems)||0;
+      var _mf=document.getElementById('module-frag'); if(_mf) _mf.textContent=(PERM&&PERM.prismFragments)||0;
       if(window._renderCardTab) window._renderCardTab();
     } catch(_) {}
   } else if (name === 'store') {
@@ -13640,6 +13686,15 @@ window.showCoinBonusPopup = function () {
   if (cashPerWave > 0) items.push({ label: '웨이브 보너스 강화', value: 1 + cashPerWave * 0.02 });
   if (goldBoost   > 0) items.push({ label: '골드 부스트',       value: 1 + goldBoost * 0.02 });
   if (tierMult > 1.0)  items.push({ label: '행성 보너스', value: tierMult });
+  // 코어랩 연구 골드 보너스
+  var resGoldLv = parseInt(localStorage.getItem('res_r_gold_gain')||'0',10);
+  if (resGoldLv > 0) items.push({ label: '코어랩 · 골드 획득 연구', value: 1 + resGoldLv * 0.02 });
+  // 스킨 보너스
+  if (window._getSkinMultipliers) {
+    var sm = window._getSkinMultipliers();
+    if (sm.shipMult > 1) items.push({ label: '탐사선 스킨 보너스', value: sm.shipMult });
+    if (sm.bgMult > 1) items.push({ label: '배경 스킨 보너스', value: sm.bgMult });
+  }
   if (adActive)        items.push({ label: '광고 골드 보너스',   value: 1.5 });
 
   var list = document.getElementById('coin-bonus-list-new');
@@ -14537,18 +14592,18 @@ var IRIS_SKINS = [
 
 /* ── 배경 스킨 ── */
 var BG_SKINS = [
-  { id:'bg_default',  name:'기본 공간',     color:'#030b10', desc:'기본 네온코어 배경' },
-  { id:'bg_nebula',   name:'네뷸러 필드',   color:'#0a0520', desc:'보라색 성운 지대' },
-  { id:'bg_crimson',  name:'크림슨 섹터',   color:'#120808', desc:'붉은 항성계' },
-  { id:'bg_deep',     name:'딥 블루',       color:'#020815', desc:'심해처럼 깊은 우주' },
-  { id:'bg_void',     name:'보이드 리프트',  color:'#050005', desc:'완전한 어둠' },
-  { id:'bg_aurora',   name:'오로라 벨트',    color:'#040e12', desc:'녹색 오로라 지대' },
-  { id:'bg_solar',    name:'솔라 플레어',    color:'#0f0a02', desc:'항성 근처 고열 지대' },
-  { id:'bg_ice',      name:'아이스 크래들',  color:'#030a10', desc:'얼음 행성 궤도' },
-  { id:'bg_storm',    name:'이온 스톰',     color:'#080812', desc:'전기 폭풍 지역' },
-  { id:'bg_rust',     name:'러스트 필드',    color:'#0e0805', desc:'폐기된 우주 정거장' },
-  { id:'bg_matrix',   name:'매트릭스 코어',  color:'#000a02', desc:'데이터 스트림 공간' },
-  { id:'bg_phantom',  name:'팬텀 존',       color:'#08050e', desc:'유령 신호 지역' },
+  { id:'bg_default',  name:'기본 공간',     color:'#030b10', desc:'기본 네온코어 배경',       gradient:'radial-gradient(ellipse at 50% 50%, #0a1520 0%, #030b10 100%)' },
+  { id:'bg_nebula',   name:'네뷸러 필드',   color:'#0a0520', desc:'보라색 성운이 피어나는 지대', gradient:'radial-gradient(ellipse at 30% 40%, #1a0840 0%, #0c0320 40%, #050010 100%)' },
+  { id:'bg_crimson',  name:'크림슨 섹터',   color:'#120808', desc:'핏빛 항성이 타오르는 구역',  gradient:'radial-gradient(ellipse at 60% 30%, #2a0808 0%, #150505 40%, #0a0202 100%)' },
+  { id:'bg_deep',     name:'딥 블루',       color:'#020815', desc:'심해처럼 깊고 푸른 심연',    gradient:'radial-gradient(ellipse at 50% 60%, #051530 0%, #030a1a 50%, #010510 100%)' },
+  { id:'bg_void',     name:'보이드 리프트',  color:'#050005', desc:'빛이 소멸하는 차원의 틈',    gradient:'radial-gradient(ellipse at 50% 50%, #0d0015 0%, #060008 40%, #020002 100%)' },
+  { id:'bg_aurora',   name:'오로라 벨트',    color:'#040e12', desc:'극광이 일렁이는 에너지 벨트', gradient:'radial-gradient(ellipse at 40% 30%, #082a20 0%, #051510 40%, #030a08 100%)' },
+  { id:'bg_solar',    name:'솔라 플레어',    color:'#0f0a02', desc:'항성 코로나에 휩싸인 구역',  gradient:'radial-gradient(ellipse at 70% 40%, #2a1a05 0%, #150d02 40%, #0a0600 100%)' },
+  { id:'bg_ice',      name:'아이스 크래들',  color:'#030a10', desc:'결정화된 얼음 행성 궤도',    gradient:'radial-gradient(ellipse at 50% 50%, #0a1825 0%, #051015 50%, #020810 100%)' },
+  { id:'bg_storm',    name:'이온 스톰',     color:'#080812', desc:'전기 폭풍이 휘몰아치는 구역', gradient:'radial-gradient(ellipse at 40% 60%, #10102a 0%, #080818 40%, #040408 100%)' },
+  { id:'bg_rust',     name:'러스트 필드',    color:'#0e0805', desc:'폐허가 된 고대 우주 정거장', gradient:'radial-gradient(ellipse at 60% 50%, #1a1008 0%, #0e0805 50%, #060402 100%)' },
+  { id:'bg_matrix',   name:'매트릭스 코어',  color:'#000a02', desc:'데이터 코드가 흐르는 공간',  gradient:'radial-gradient(ellipse at 50% 40%, #001a08 0%, #000d04 40%, #000602 100%)' },
+  { id:'bg_phantom',  name:'팬텀 존',       color:'#08050e', desc:'유령 에너지가 감도는 차원',  gradient:'radial-gradient(ellipse at 50% 50%, #140a20 0%, #0a0610 50%, #050308 100%)' },
 ];
 var currentBgSkin = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
 var _skinSubTab = 'ship';
@@ -14676,14 +14731,22 @@ function setSkin(skinId) {
 }
 
 function _getSkinCount() {
-  // 모든 스킨은 기본 보유 (현재 12개 전부 열림)
-  return IRIS_SKINS.length;
+  // 기본 스킨 제외한 보유 스킨 수
+  return IRIS_SKINS.filter(function(s){ return s.id !== 'iris0'; }).length;
+}
+
+function _getBgSkinCount() {
+  // 기본 배경 제외한 보유 배경 스킨 수
+  return BG_SKINS.filter(function(s){ return s.id !== 'bg_default'; }).length;
 }
 
 function _getSkinMultipliers() {
-  var count = _getSkinCount();
-  var mult = 1 + count * 0.10; // 스킨당 +10% 합산, 다른 시스템과 곱연산
-  return { atk: mult, def: mult, hp: mult };
+  var shipCount = _getSkinCount();
+  var shipMult = 1 + shipCount * 0.10; // 탐사선 스킨당 +10% 합산
+  var bgCount = _getBgSkinCount();
+  var bgMult = 1 + bgCount * 0.20; // 배경 스킨당 +20% 합산
+  var totalMult = shipMult * bgMult; // 곱연산
+  return { atk: totalMult, def: totalMult, hp: totalMult, shipMult: shipMult, bgMult: bgMult, shipCount: shipCount, bgCount: bgCount };
 }
 window._getSkinMultipliers = _getSkinMultipliers;
 
@@ -14704,14 +14767,11 @@ function renderSkinGrid() {
   var bonusEl = document.getElementById('skin-bonus');
 
   if (_skinSubTab === 'ship') {
-    // 탐사선 스킨 (기존)
+    // 탐사선 스킨 (기본 제외)
     if (bonusEl) {
-      var count = _getSkinCount();
       var m = _getSkinMultipliers();
-      bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + count + '/' + IRIS_SKINS.length + '</span>' +
-        '  |  공격력 <span style="color:#ef4444;">x' + m.atk.toFixed(2) + '</span>' +
-        '  방어력 <span style="color:#3b82f6;">x' + m.def.toFixed(2) + '</span>' +
-        '  체력 <span style="color:#10b981;">x' + m.hp.toFixed(2) + '</span>';
+      bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + m.shipCount + '/' + (IRIS_SKINS.length - 1) + '</span>' +
+        '  |  보너스 <span style="color:#f59e0b;">x' + m.shipMult.toFixed(2) + '</span>';
     }
     IRIS_SKINS.forEach(function(skin) {
       var isSelected = skin.id === currentSkin;
@@ -14724,20 +14784,26 @@ function renderSkinGrid() {
     });
   } else {
     // 배경 스킨
-    if (bonusEl) bonusEl.innerHTML = '홈 화면 배경을 변경합니다.';
+    if (bonusEl) {
+      var m = _getSkinMultipliers();
+      bonusEl.innerHTML = '보유 배경: <span style="color:#00ffff;">' + m.bgCount + '/' + (BG_SKINS.length - 1) + '</span>' +
+        '  |  보너스 <span style="color:#f59e0b;">x' + m.bgMult.toFixed(2) + '</span>';
+    }
     BG_SKINS.forEach(function(bg) {
       var isSelected = bg.id === currentBgSkin;
       var card = document.createElement('div');
       card.style.cssText = 'background:' + bg.color + ';border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;';
       var pcols = {bg_default:'#00ffff',bg_nebula:'#cc44ff',bg_crimson:'#ff4444',bg_deep:'#3388ff',bg_void:'#8844ff',bg_aurora:'#44ff88',bg_solar:'#ffaa22',bg_ice:'#88ddff',bg_storm:'#aaaaff',bg_rust:'#cc8844',bg_matrix:'#00ff44',bg_phantom:'#bb88ff'};
       var pc = pcols[bg.id] || '#00ffff';
-      var preview = '<div style="width:52px;height:52px;border-radius:6px;background:' + bg.color + ';border:1px solid ' + (isSelected ? pc+'66' : '#1a2a3a') + ';position:relative;overflow:hidden;">' +
-        '<div style="position:absolute;top:50%;left:50%;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,'+pc+'15,transparent 70%);"></div>' +
-        '<div style="position:absolute;top:15%;left:25%;width:2px;height:2px;border-radius:50%;background:'+pc+';opacity:0.6;box-shadow:0 0 4px '+pc+';"></div>' +
-        '<div style="position:absolute;top:60%;left:70%;width:1.5px;height:1.5px;border-radius:50%;background:'+pc+';opacity:0.4;box-shadow:0 0 3px '+pc+';"></div>' +
-        '<div style="position:absolute;top:35%;left:60%;width:1px;height:1px;border-radius:50%;background:'+pc+';opacity:0.5;"></div>' +
-        '<div style="position:absolute;top:75%;left:30%;width:1px;height:1px;border-radius:50%;background:'+pc+';opacity:0.3;"></div>' +
-        '<div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,'+pc+'22,transparent);"></div>' +
+      var bgStyle = bg.gradient || ('background:' + bg.color);
+      var preview = '<div style="width:52px;height:52px;border-radius:6px;background:' + (bg.gradient || bg.color) + ';border:1px solid ' + (isSelected ? pc+'66' : '#1a2a3a') + ';position:relative;overflow:hidden;">' +
+        '<div style="position:absolute;top:50%;left:50%;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,'+pc+'22,transparent 70%);"></div>' +
+        '<div style="position:absolute;top:10%;left:20%;width:2px;height:2px;border-radius:50%;background:'+pc+';opacity:0.7;box-shadow:0 0 6px '+pc+';"></div>' +
+        '<div style="position:absolute;top:55%;left:75%;width:2px;height:2px;border-radius:50%;background:'+pc+';opacity:0.5;box-shadow:0 0 5px '+pc+';"></div>' +
+        '<div style="position:absolute;top:30%;left:55%;width:1.5px;height:1.5px;border-radius:50%;background:'+pc+';opacity:0.6;box-shadow:0 0 4px '+pc+';"></div>' +
+        '<div style="position:absolute;top:70%;left:35%;width:1.5px;height:1.5px;border-radius:50%;background:'+pc+';opacity:0.4;box-shadow:0 0 3px '+pc+';"></div>' +
+        '<div style="position:absolute;top:80%;left:65%;width:1px;height:1px;border-radius:50%;background:'+pc+';opacity:0.5;box-shadow:0 0 3px '+pc+';"></div>' +
+        '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,'+pc+'33,transparent);"></div>' +
       '</div>';
       card.innerHTML = preview +
         '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';">' + bg.name + '</div>' +
@@ -14975,6 +15041,7 @@ window._openCoupon = function() {
   document.getElementById('coupon-close').addEventListener('click', function(){ p.remove(); });
   document.getElementById('coupon-submit').addEventListener('click', _submitCoupon);
   document.getElementById('coupon-input').addEventListener('keydown', function(e){ if(e.key==='Enter') _submitCoupon(); });
+  p.addEventListener('click', function(e){ if(e.target === p) p.remove(); });
 };
 
 function _submitCoupon() {
@@ -15069,11 +15136,11 @@ function _submitCoupon() {
       <div style="margin-bottom:8px;color:#778899;">
         월: <span style="color:#ef4444;">화염</span> · 화: <span style="color:#3b82f6;">심해</span> · 수: <span style="color:#f59e0b;">번개</span><br>
         목: <span style="color:#d4a04a;">대지</span> · 금: <span style="color:#10b981;">질풍</span> · 토: <span style="color:#6b21a8;">암흑</span><br>
-        일: 화염/심해/번개/대지/질풍 개방
+        일: <span style="color:#ef4444;">화염</span>/<span style="color:#3b82f6;">심해</span>/<span style="color:#f59e0b;">번개</span>/<span style="color:#d4a04a;">대지</span>/<span style="color:#10b981;">질풍</span> 개방
       </div>
       <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 적용 시스템</div>
       <div style="margin-bottom:8px;color:#778899;">
-        월: 강화 + 모듈 + 스토어 + 전투 증강<br>
+        월: 강화소 + 모듈 + 스토어 + 전투 증강<br>
         화: 코어랩 + 모듈 + 스토어 + 전투 증강<br>
         수: 프리즘 + 모듈 + 스토어 + 전투 증강<br>
         목: 스킨 + 모듈 + 스토어 + 전투 증강<br>
@@ -15131,6 +15198,13 @@ function _getElementMultipliers() {
       }
     });
   });
+  // 코어랩 속성 연구 보너스 (모든 속성에 곱적용, 레벨당 +2%)
+  var eAtkLv = parseInt(localStorage.getItem('res_r_elem_atk')||'0',10);
+  var eDefLv = parseInt(localStorage.getItem('res_r_elem_def')||'0',10);
+  var eHpLv  = parseInt(localStorage.getItem('res_r_elem_hp')||'0',10);
+  if (eAtkLv > 0) m.atk *= (1 + eAtkLv * 0.02);
+  if (eDefLv > 0) m.def *= (1 + eDefLv * 0.02);
+  if (eHpLv > 0)  m.hp  *= (1 + eHpLv * 0.02);
   return m;
 }
 
@@ -15238,7 +15312,7 @@ function _getTodayElements() {
 
 /* ── 요일별 적용 시스템 ── */
 var DAY_SYSTEMS = {
-  fire:    { label:'강화 + 모듈 + 스토어 + 전투 증강', systems:['workshop','module','store','augment'] },
+  fire:    { label:'강화소 + 모듈 + 스토어 + 전투 증강', systems:['workshop','module','store','augment'] },
   water:   { label:'코어랩 + 모듈 + 스토어 + 전투 증강', systems:['corelab','module','store','augment'] },
   electric:{ label:'프리즘 + 모듈 + 스토어 + 전투 증강', systems:['prism','module','store','augment'] },
   earth:   { label:'스킨 + 모듈 + 스토어 + 전투 증강', systems:['skin','module','store','augment'] },
