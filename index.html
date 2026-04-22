@@ -13979,76 +13979,47 @@ setTimeout(function () { try { renderLeftIcons(); } catch(e) {} }, 100);
 <script>
 /* ── 총 골드 보너스 팝업 ── */
 window.showCoinBonusPopup = function () {
-  var popup = document.getElementById('coin-bonus-popup-new');
-  if (!popup) {
-    popup = document.createElement('div');
-    popup.id = 'coin-bonus-popup-new';
-    popup.style.cssText =
-      'display:none;position:fixed;inset:0;' +
-      'background:rgba(3,11,16,0.88);z-index:9500;' +
-      'align-items:center;justify-content:center;';
-    popup.innerHTML =
-      '<div style="background:#0a1a2a;border:1px solid #1a3444;border-radius:12px;padding:16px;width:280px;max-width:90%;font-family:\'Courier New\',monospace;">' +
-      '<div style="text-align:center;font-size:13px;color:#ffc800;letter-spacing:2px;margin-bottom:12px;border-bottom:1px solid #1a2a3a;padding-bottom:8px;">골드 보너스 내역</div>' +
-      '<div id="coin-bonus-list-new"></div>' +
-      '<div style="text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid #1a2a3a;font-size:12px;color:#ffc800;">총합: <span id="coin-bonus-total-new">x1.00</span></div>' +
-      '<button id="coin-bonus-close-new" ' +
-        'style="width:100%;margin-top:10px;background:#030b10;border:1px solid #00ffff;color:#00ffff;' +
-        'font-family:\'Courier New\',monospace;font-size:11px;padding:7px;border-radius:6px;cursor:pointer;">닫기</button>' +
-      '</div>';
-    document.body.appendChild(popup);
-    popup.addEventListener('click', function(e) { if(e.target === popup) popup.style.display='none'; });
-    document.getElementById('coin-bonus-close-new').addEventListener('click', function(){ popup.style.display='none'; });
-  }
-
-  /* 항목 계산 */
+  var old = document.getElementById('coin-bonus-popup-new');
+  if (old) old.remove();
+  var popup = document.createElement('div');
+  popup.id = 'coin-bonus-popup-new';
+  popup.style.cssText = 'position:fixed;inset:0;background:rgba(3,11,16,0.88);z-index:9500;display:flex;align-items:center;justify-content:center;';
   var ws = (window.PERM && window.PERM.ws) ? window.PERM.ws : {};
   var adActive = Date.now() < (parseInt(localStorage.getItem('td_ad_bonus_expiry') || '0', 10));
-  var tierIdx  = parseInt(localStorage.getItem('td_tier') || '1', 10);
+  var tierIdx = parseInt(localStorage.getItem('td_tier') || '1', 10);
   var tierMults = [1.0, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
-  var tierMult  = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
-
-  var items = [{ label: '기본 골드 획득', value: 1.00 }];
-  var cashBonus   = ws.cashBonus   || 0;
-  var cashPerWave = ws.cashPerWave || 0;
-  var goldBoost   = ws.goldBoostPct || 0;
-  if (cashBonus   > 0) items.push({ label: '크레딧 보너스 강화', value: 1 + cashBonus * 0.05 });
-  if (cashPerWave > 0) items.push({ label: '웨이브 보너스 강화', value: 1 + cashPerWave * 0.02 });
-  if (goldBoost   > 0) items.push({ label: '골드 부스트',       value: 1 + goldBoost * 0.02 });
-  if (tierMult > 1.0)  items.push({ label: '행성 보너스', value: tierMult });
-  // 코어랩 연구 골드 보너스
-  var resGoldLv = parseInt(localStorage.getItem('res_r_gold_gain')||'0',10);
-  if (resGoldLv > 0) items.push({ label: '코어랩 · 골드 획득 연구', value: 1 + resGoldLv * 0.02 });
-  // 스킨 보너스
-  if (window._getSkinMultipliers) {
-    var sm = window._getSkinMultipliers();
-    if (sm.shipMult > 1) items.push({ label: '탐사선 스킨 보너스', value: sm.shipMult });
-    if (sm.bgMult > 1) items.push({ label: '배경 스킨 보너스', value: sm.bgMult });
-  }
-  if (adActive)        items.push({ label: '광고 골드 보너스',   value: 1.5 });
-
-  var list = document.getElementById('coin-bonus-list-new');
-  var total = 1.0;
-  if (list) {
-    list.innerHTML = '';
-    items.forEach(function(item) {
-      total *= item.value;
-      list.innerHTML +=
-        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#7aacac;padding:4px 0;border-bottom:1px solid #0a1a2a;">' +
-        '<span>' + item.label + '</span>' +
-        '<span style="color:#ffc800;">x' + item.value.toFixed(2) + '</span>' +
-        '</div>';
-    });
-  }
-  var totalEl = document.getElementById('coin-bonus-total-new');
-  if (totalEl) totalEl.textContent = 'x' + total.toFixed(2);
-  var homeTot = document.getElementById('home-total-bonus');
-  if (homeTot) homeTot.textContent = '◈ \xd7' + total.toFixed(2);
-
-  popup.style.display = 'flex';
+  var tierMult = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
+  var cb=ws.cashBonus||0, cpw=ws.cashPerWave||0, gb=ws.goldBoostPct||0, gg=ws.goldGain||0;
+  var wsVal=1;
+  if(cb>0)wsVal*=(1+cb*0.05); if(cpw>0)wsVal*=(1+cpw*0.02); if(gb>0)wsVal*=(1+gb*0.02); if(gg>0)wsVal*=(1+gg*0.1);
+  var wsOn=wsVal>1;
+  var rG=parseInt(localStorage.getItem('res_r_gold_gain')||'0',10);
+  var rW=parseInt(localStorage.getItem('res_r_wave_cash')||'0',10);
+  var labVal=1; if(rG>0)labVal*=(1+rG*0.02); if(rW>0)labVal*=(1+rW*0.02);
+  var labOn=labVal>1, tierOn=tierMult>1;
+  var items=[
+    {label:'\uAC15\uD654\uC18C \u00b7 \uACE8\uB4DC \uAC15\uD654',value:wsVal,active:wsOn},
+    {label:'\uCF54\uC5B4\uB7A9 \u00b7 \uACE8\uB4DC \uC5F0\uAD6C',value:labVal,active:labOn},
+    {label:'\uD589\uC131 \uBCF4\uB108\uC2A4',value:tierMult,active:tierOn},
+    {label:'\uAD11\uACE0 \uACE8\uB4DC \uBCF4\uB108\uC2A4',value:1.5,active:adActive}
+  ];
+  var total=1, rowsHtml='';
+  items.forEach(function(it){
+    if(it.active)total*=it.value;
+    var vt=it.active?'x'+it.value.toFixed(2):'\uBE44\uD65C\uC131';
+    var vc=it.active?'#00ffff':'#556677';
+    var lc=it.active?'#c0d8e8':'#445566';
+    rowsHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #0a1a2a;"><span style="font-size:12px;color:'+lc+';">'+it.label+'</span><span style="font-size:12px;font-weight:bold;color:'+vc+';">'+vt+'</span></div>';
+  });
+  popup.innerHTML='<div style="background:#0a1a2a;border:1px solid #0a3344;border-radius:12px;width:300px;max-width:92%;font-family:Courier New,monospace;overflow:hidden;">'+
+    '<div style="text-align:center;padding:16px 16px 12px;"><div style="font-size:24px;color:#ffc800;margin-bottom:6px;">\u25c8</div><div style="font-size:14px;color:#ffc800;letter-spacing:2px;font-weight:bold;">\ubaa8\ub4e0 \uace8\ub4dc \ubcf4\ub108\uc2a4</div></div>'+
+    '<div style="padding:0 20px;">'+rowsHtml+'</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-top:1px solid #1a2a3a;margin-top:4px;"><span style="font-size:13px;color:#c0d8e8;font-weight:bold;">\ucd1d \ubcf4\ub108\uc2a4</span><span style="font-size:15px;font-weight:bold;color:#ffc800;">x'+total.toFixed(2)+'</span></div></div>';
+  document.body.appendChild(popup);
+  popup.addEventListener('click',function(e){if(e.target===popup)popup.remove();});
+  var homeTot=document.getElementById('home-total-bonus');
+  if(homeTot)homeTot.textContent='\u25c8 \u00d7'+total.toFixed(2);
 };
-
-/* 기존 onclick(_showCoinBonusPopup) → 새 함수로 연결 */
 window._showCoinBonusPopup = window.showCoinBonusPopup;
 </script>
 
