@@ -1635,7 +1635,10 @@ canvas {
       <span style="color:#cc44ff; font-family:monospace; font-size:13px;">⬡ <span id="module-frag">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#cc44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:6px;"><svg width="12" height="12" viewBox="0 0 16 16" style="display:inline-block;vertical-align:middle;"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><circle cx="4.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="4.5" cy="11.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="11.5" r="1" fill="#cc44ff"/></svg> 프리즘</div>
+  <div id="module-sub-tabs" style="display:flex; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0;">
+    <button class="mod-sub-tab" data-mod-tab="prism" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;cursor:pointer;">◇ 프리즘</button>
+    <button class="mod-sub-tab" data-mod-tab="module" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#4a7a8a;font-family:monospace;font-size:10px;cursor:pointer;">⊞ 모듈</button>
+  </div>
   <div id="module-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 </div>
 
@@ -16090,5 +16093,402 @@ if (typeof _augSW === 'function') {
 }());
 </script>
 
+
+<!-- ══════════════════════════════════════════════════════
+     모듈 시스템
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── 모듈 정의 ── */
+var MODULE_TYPES = [
+  { id:'mod_atk',     name:'공격 증폭기',     desc:'공격력 +{v}%',       color:'#ef4444', perLv:3 },
+  { id:'mod_hp',      name:'체력 증폭기',     desc:'최대 체력 +{v}%',    color:'#10b981', perLv:3 },
+  { id:'mod_def',     name:'방어 증폭기',     desc:'방어율 +{v}%',       color:'#3b82f6', perLv:2 },
+  { id:'mod_spd',     name:'속도 증폭기',     desc:'공격속도 +{v}%',     color:'#f59e0b', perLv:2 },
+  { id:'mod_crit',    name:'치명타 증폭기',   desc:'치명타 확률 +{v}%',  color:'#cc44ff', perLv:1.5 },
+  { id:'mod_gold',    name:'골드 증폭기',     desc:'골드 획득 +{v}%',    color:'#ffc800', perLv:2 },
+  { id:'mod_regen',   name:'재생 증폭기',     desc:'체력 재생 +{v}%',    color:'#44ffaa', perLv:2 },
+  { id:'mod_range',   name:'사거리 증폭기',   desc:'공격 범위 +{v}%',    color:'#88aaff', perLv:2 },
+];
+
+var TIERS = [
+  { name:'일반',   color:'#94a3b8', border:'#4a5568' },
+  { name:'고급',   color:'#10b981', border:'#059669' },
+  { name:'희귀',   color:'#3b82f6', border:'#2563eb' },
+  { name:'영웅',   color:'#a855f7', border:'#9333ea' },
+  { name:'전설',   color:'#f59e0b', border:'#d97706' },
+];
+
+var MOD_SLOT_COUNT = 6;
+var MOD_SLOT_COST = [0, 50, 100, 200, 400, 800];
+var MOD_BUY_COST = 30; // 보석
+
+function _loadMods() { try { return JSON.parse(localStorage.getItem('td_modules')||'{}'); } catch(_) { return {}; } }
+function _saveMods(d) { try { localStorage.setItem('td_modules', JSON.stringify(d)); } catch(_) {} }
+
+function _getModInv() { var d=_loadMods(); return d.inventory || []; }
+function _getModSlots() { var d=_loadMods(); return d.slots || [null,null,null,null,null,null]; }
+function _getModSlotsBought() { var d=_loadMods(); return d.slotsBought || 1; }
+
+/* ── 모듈 생성 ── */
+function _createModule(forceTier) {
+  var type = MODULE_TYPES[Math.floor(Math.random()*MODULE_TYPES.length)];
+  var tier = forceTier !== undefined ? forceTier : 0;
+  if (tier === 0) {
+    var r = Math.random();
+    if (r < 0.01) tier = 4;      // 전설 1%
+    else if (r < 0.05) tier = 3; // 영웅 4%
+    else if (r < 0.15) tier = 2; // 희귀 10%
+    else if (r < 0.40) tier = 1; // 고급 25%
+    else tier = 0;               // 일반 60%
+  }
+  return { typeId: type.id, tier: tier, uid: Date.now() + '_' + Math.random().toString(36).substr(2,5) };
+}
+
+/* ── 모듈 효과 계산 ── */
+function _getModEffect(mod) {
+  var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
+  if (!type) return 0;
+  var base = type.perLv;
+  var mult = [1, 1.5, 2.5, 4, 7][mod.tier] || 1;
+  return Math.round(base * mult * 10) / 10;
+}
+
+/* ── 장착된 모듈 총 보너스 ── */
+window._getModuleBonuses = function() {
+  var b = { atk:0, hp:0, def:0, spd:0, crit:0, gold:0, regen:0, range:0 };
+  var slots = _getModSlots();
+  slots.forEach(function(uid) {
+    if (!uid) return;
+    var inv = _getModInv();
+    var mod = inv.filter(function(m){return m.uid===uid;})[0];
+    if (!mod) return;
+    var eff = _getModEffect(mod);
+    var key = mod.typeId.replace('mod_','');
+    if (b[key] !== undefined) b[key] += eff;
+  });
+  return b;
+};
+
+/* ── 서브탭 전환 ── */
+var _modSubTab = 'prism';
+var tabBtns = document.querySelectorAll('.mod-sub-tab');
+for (var ti=0;ti<tabBtns.length;ti++) {
+  (function(btn) {
+    btn.addEventListener('click', function() {
+      _modSubTab = btn.getAttribute('data-mod-tab');
+      tabBtns.forEach(function(b) {
+        var isAct = b.getAttribute('data-mod-tab') === _modSubTab;
+        b.style.borderBottom = isAct ? '2px solid #cc44ff' : '2px solid transparent';
+        b.style.color = isAct ? '#cc44ff' : '#4a7a8a';
+      });
+      _renderModuleContent();
+    });
+  })(tabBtns[ti]);
+}
+
+function _renderModuleContent() {
+  var cont = document.getElementById('module-content');
+  if (!cont) return;
+  if (_modSubTab === 'prism') {
+    // 기존 프리즘 렌더링
+    if (window._renderCardTab) window._renderCardTab();
+    return;
+  }
+  // 모듈 탭
+  cont.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'padding:12px;font-family:Courier New,monospace;';
+
+  // 장착 슬롯
+  var slotsBought = _getModSlotsBought();
+  var slots = _getModSlots();
+  var inv = _getModInv();
+
+  var slotTitle = document.createElement('div');
+  slotTitle.style.cssText = 'font-size:11px;color:#cc44ff;margin-bottom:8px;letter-spacing:1px;';
+  slotTitle.textContent = '장착 슬롯 (' + slots.filter(function(s){return s;}).length + '/' + slotsBought + ')';
+  wrap.appendChild(slotTitle);
+
+  var slotGrid = document.createElement('div');
+  slotGrid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;';
+
+  for (var si=0; si<MOD_SLOT_COUNT; si++) {
+    var cell = document.createElement('div');
+    var isLocked = si >= slotsBought;
+    var equippedUid = slots[si];
+    var equippedMod = equippedUid ? inv.filter(function(m){return m.uid===equippedUid;})[0] : null;
+
+    if (isLocked) {
+      cell.style.cssText = 'background:#0a1520;border:1px solid #1a2a3a;padding:12px 6px;text-align:center;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
+      cell.innerHTML = '<div style="font-size:16px;color:#1a2a3a;">\ud83d\udd12</div><div style="font-size:9px;color:#334455;">\u2756' + MOD_SLOT_COST[si] + '</div>';
+      (function(idx,cost) {
+        cell.addEventListener('click', function() {
+          if ((PERM.gems||0) < cost) {
+            if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc2ac\ub86f '+(idx+1)+'\ubc88 \ud574\uae08','\ubcf4\uc11d\uc774 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2756'+(PERM.gems||0)+' / \ud544\uc694: \u2756'+cost, null);
+            return;
+          }
+          if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc2ac\ub86f '+(idx+1)+'\ubc88 \ud574\uae08','\ubcf4\uc11d \u2756'+cost+'\uc744 \uc0ac\uc6a9\ud558\uc5ec\n\uc2ac\ub86f\uc744 \ud574\uae08\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
+            if((PERM.gems||0)<cost)return;
+            PERM.gems-=cost; savePerm();
+            var d=_loadMods(); d.slotsBought=(d.slotsBought||1)+1; _saveMods(d);
+            _renderModuleContent();
+          });
+        });
+      })(si, MOD_SLOT_COST[si]);
+    } else if (equippedMod) {
+      var type = MODULE_TYPES.filter(function(t){return t.id===equippedMod.typeId;})[0];
+      var tier = TIERS[equippedMod.tier]||TIERS[0];
+      var eff = _getModEffect(equippedMod);
+      cell.style.cssText = 'background:#0a1a2a;border:1px solid '+tier.border+';padding:8px 4px;text-align:center;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;';
+      cell.innerHTML =
+        '<div style="font-size:8px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
+        '<div style="width:28px;height:28px;border:2px solid '+type.color+';border-radius:4px;display:flex;align-items:center;justify-content:center;margin:2px 0;"><div style="width:12px;height:12px;background:'+type.color+';border-radius:2px;opacity:0.6;"></div></div>'+
+        '<div style="font-size:8px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name+'</div>'+
+        '<div style="font-size:8px;color:#94a3b8;">+'+eff+'%</div>';
+      (function(idx, mod) {
+        cell.addEventListener('click', function() {
+          // 해제
+          if(window._showSlotConfirm) _showSlotConfirm(mod.typeId.replace('mod_','').toUpperCase()+' \ubaa8\ub4c8','\uc7a5\ucc29\uc744 \ud574\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
+            var d=_loadMods(); var sl=d.slots||[]; sl[idx]=null; d.slots=sl; _saveMods(d);
+            _renderModuleContent();
+          });
+        });
+      })(si, equippedMod);
+    } else {
+      cell.style.cssText = 'background:#0a1520;border:1px dashed #0a3344;padding:12px 6px;text-align:center;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
+      cell.innerHTML = '<div style="font-size:18px;color:#0a3344;">+</div><div style="font-size:9px;color:#334455;">\ube48 \uc2ac\ub86f</div>';
+    }
+    slotGrid.appendChild(cell);
+  }
+  wrap.appendChild(slotGrid);
+
+  // 구매 버튼
+  var buyRow = document.createElement('div');
+  buyRow.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;';
+  buyRow.innerHTML =
+    '<button id="mod-buy-1" style="flex:1;background:#0a1a2a;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;"><div style="font-size:14px;margin-bottom:4px;">\u25c7</div>1\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+MOD_BUY_COST+'</span></button>'+
+    '<button id="mod-buy-10" style="flex:1;background:#0a1a2a;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;"><div style="font-size:14px;margin-bottom:4px;">\u25c7 x10</div>10\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+(MOD_BUY_COST*9)+'</span></button>';
+  wrap.appendChild(buyRow);
+
+  // 구매 이벤트
+  setTimeout(function() {
+    var b1 = document.getElementById('mod-buy-1');
+    var b10 = document.getElementById('mod-buy-10');
+    if(b1) b1.addEventListener('click', function() { _buyModule(1); });
+    if(b10) b10.addEventListener('click', function() { _buyModule(10); });
+  }, 0);
+
+  // 인벤토리
+  var invTitle = document.createElement('div');
+  invTitle.style.cssText = 'font-size:11px;color:#cc44ff;margin-bottom:8px;letter-spacing:1px;';
+  invTitle.textContent = '\uc778\ubca4\ud1a0\ub9ac (' + inv.length + ')';
+  wrap.appendChild(invTitle);
+
+  if (inv.length === 0) {
+    var empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;color:#334455;font-size:11px;padding:30px 0;';
+    empty.textContent = '\ubcf4\uc720\ud55c \ubaa8\ub4c8\uc774 \uc5c6\uc2b5\ub2c8\ub2e4';
+    wrap.appendChild(empty);
+  } else {
+    var invGrid = document.createElement('div');
+    invGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
+    inv.forEach(function(mod) {
+      var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
+      if(!type) return;
+      var tier = TIERS[mod.tier]||TIERS[0];
+      var eff = _getModEffect(mod);
+      var equipped = slots.indexOf(mod.uid) !== -1;
+      var mCard = document.createElement('div');
+      mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;';
+      mCard.innerHTML =
+        '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
+        '<div style="width:24px;height:24px;border:1.5px solid '+type.color+';border-radius:3px;display:flex;align-items:center;justify-content:center;margin:2px 0;"><div style="width:10px;height:10px;background:'+type.color+';border-radius:2px;opacity:0.6;"></div></div>'+
+        '<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
+        '<div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>'+
+        (equipped?'<div style="font-size:6px;color:#00ffff;">\uc7a5\ucc29</div>':'');
+      (function(m) {
+        mCard.addEventListener('click', function() { _showModuleDetail(m); });
+      })(mod);
+      invGrid.appendChild(mCard);
+    });
+    wrap.appendChild(invGrid);
+  }
+
+  cont.appendChild(wrap);
+}
+
+/* ── 모듈 구매 ── */
+function _buyModule(count) {
+  var cost = count === 1 ? MOD_BUY_COST : MOD_BUY_COST * 9;
+  if ((PERM.gems||0) < cost) {
+    if(window._showSlotConfirm) _showSlotConfirm('\ubcf4\uc11d \ubd80\uc871','\ubcf4\uc11d\uc774 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2756'+(PERM.gems||0)+' / \ud544\uc694: \u2756'+cost, null);
+    return;
+  }
+  PERM.gems -= cost; savePerm();
+  var d = _loadMods();
+  if (!d.inventory) d.inventory = [];
+  var newMods = [];
+  for (var i=0; i<count; i++) {
+    var m = _createModule();
+    d.inventory.push(m);
+    newMods.push(m);
+  }
+  _saveMods(d);
+  _renderModuleContent();
+  // 결과 토스트
+  var best = newMods.reduce(function(a,b){return b.tier>a.tier?b:a;}, newMods[0]);
+  var bType = MODULE_TYPES.filter(function(t){return t.id===best.typeId;})[0];
+  var bTier = TIERS[best.tier];
+  if(window.showAchievementToast) showAchievementToast(bTier.name+' '+bType.name+' \ud68d\ub4dd!');
+}
+
+/* ── 모듈 상세 팝업 ── */
+function _showModuleDetail(mod) {
+  var old = document.getElementById('mod-detail-popup');
+  if(old) old.remove();
+  var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
+  if(!type) return;
+  var tier = TIERS[mod.tier]||TIERS[0];
+  var eff = _getModEffect(mod);
+  var slots = _getModSlots();
+  var equipped = slots.indexOf(mod.uid) !== -1;
+  var inv = _getModInv();
+  // 합성 가능 여부: 같은 타입+같은 등급 3개 이상
+  var sameCount = inv.filter(function(m){return m.typeId===mod.typeId && m.tier===mod.tier;}).length;
+  var canMerge = sameCount >= 3 && mod.tier < 4;
+
+  var ov = document.createElement('div');
+  ov.id = 'mod-detail-popup';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;';
+
+  var btnsHtml = '';
+  if (!equipped) {
+    btnsHtml += '<button id="mod-equip" style="flex:1;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">\uc7a5\ucc29</button>';
+  } else {
+    btnsHtml += '<button id="mod-unequip" style="flex:1;background:#030b10;border:1px solid #556677;color:#556677;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">\ud574\uc81c</button>';
+  }
+  if (canMerge) {
+    btnsHtml += '<button id="mod-merge" style="flex:1;background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">\ud569\uc131 (3\u21921)</button>';
+  }
+  btnsHtml += '<button id="mod-shatter" style="flex:1;background:#030b10;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">\ubd84\ud574</button>';
+
+  ov.innerHTML =
+    '<div style="background:#0a1520;border:1px solid '+tier.border+';padding:18px;max-width:280px;width:90%;font-family:Courier New,monospace;">'+
+      '<div style="text-align:center;margin-bottom:12px;">'+
+        '<div style="font-size:10px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+tier.name+'</div>'+
+        '<div style="width:48px;height:48px;border:2px solid '+type.color+';border-radius:6px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;"><div style="width:20px;height:20px;background:'+type.color+';border-radius:3px;opacity:0.6;"></div></div>'+
+        '<div style="font-size:13px;color:'+type.color+';font-weight:bold;">'+type.name+'</div>'+
+        '<div style="font-size:11px;color:#94a3b8;margin-top:4px;">'+type.desc.replace('{v}',eff)+'</div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">\ub4f1\uae09</span><span style="color:'+tier.color+';">'+tier.name+' ('+['\u2605','\u2605\u2605','\u2605\u2605\u2605','\u2605\u2605\u2605\u2605','\u2605\u2605\u2605\u2605\u2605'][mod.tier]+')</span></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">\ud6a8\uacfc</span><span style="color:#00ff88;">+'+eff+'%</span></div>'+
+        (canMerge?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">\ud569\uc131 \uac00\ub2a5</span><span style="color:#cc44ff;">'+sameCount+'/3</span></div>':'')+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:8px;">'+btnsHtml+'</div>'+
+      '<button id="mod-detail-close" style="width:100%;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">\ub2eb\uae30</button>'+
+    '</div>';
+
+  document.body.appendChild(ov);
+  ov.addEventListener('click', function(e) { if(e.target===ov||e.target.id==='mod-detail-close') ov.remove(); });
+
+  // 장착
+  var eqBtn = document.getElementById('mod-equip');
+  if(eqBtn) eqBtn.addEventListener('click', function() {
+    var d=_loadMods(); var sl=d.slots||[null,null,null,null,null,null]; var sb=d.slotsBought||1;
+    var placed = false;
+    for(var si2=0;si2<sb;si2++){ if(!sl[si2]){sl[si2]=mod.uid;placed=true;break;} }
+    if(!placed) { sl[0]=mod.uid; } // 첫 슬롯 교체
+    d.slots=sl; _saveMods(d);
+    ov.remove(); _renderModuleContent();
+  });
+  // 해제
+  var ueqBtn = document.getElementById('mod-unequip');
+  if(ueqBtn) ueqBtn.addEventListener('click', function() {
+    var d=_loadMods(); var sl=d.slots||[];
+    for(var si3=0;si3<sl.length;si3++){ if(sl[si3]===mod.uid)sl[si3]=null; }
+    d.slots=sl; _saveMods(d);
+    ov.remove(); _renderModuleContent();
+  });
+  // 합성
+  var mergeBtn = document.getElementById('mod-merge');
+  if(mergeBtn) mergeBtn.addEventListener('click', function() {
+    var d=_loadMods(); var invArr=d.inventory||[];
+    var same=invArr.filter(function(m){return m.typeId===mod.typeId&&m.tier===mod.tier;});
+    if(same.length<3)return;
+    // 장착 해제
+    var sl=d.slots||[];
+    var toRemove=same.slice(0,3);
+    toRemove.forEach(function(rm){
+      for(var si4=0;si4<sl.length;si4++){if(sl[si4]===rm.uid)sl[si4]=null;}
+      var idx2=invArr.findIndex(function(m){return m.uid===rm.uid;});
+      if(idx2!==-1)invArr.splice(idx2,1);
+    });
+    // 상위 등급 생성
+    var newMod=_createModule(mod.tier+1);
+    newMod.typeId=mod.typeId;
+    invArr.push(newMod);
+    d.inventory=invArr; d.slots=sl; _saveMods(d);
+    ov.remove(); _renderModuleContent();
+    var nTier=TIERS[newMod.tier];
+    if(window.showAchievementToast) showAchievementToast(nTier.name+' \ud569\uc131 \uc131\uacf5!');
+  });
+  // 분해
+  var shatterBtn = document.getElementById('mod-shatter');
+  if(shatterBtn) shatterBtn.addEventListener('click', function() {
+    var frags = [5,15,50,150,500][mod.tier]||5;
+    if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \ubd84\ud574','\uc774 \ubaa8\ub4c8\uc744 \ubd84\ud574\ud558\uba74\n\u2b21 '+frags+' \ud30c\ud3b8\uc744 \ud68d\ub4dd\ud569\ub2c8\ub2e4.\n\ubd84\ud574\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
+      var d2=_loadMods(); var inv2=d2.inventory||[]; var sl2=d2.slots||[];
+      // 장착 해제
+      for(var si5=0;si5<sl2.length;si5++){if(sl2[si5]===mod.uid)sl2[si5]=null;}
+      var idx3=inv2.findIndex(function(m){return m.uid===mod.uid;});
+      if(idx3!==-1)inv2.splice(idx3,1);
+      d2.inventory=inv2; d2.slots=sl2;
+      if(!PERM.prismFragments)PERM.prismFragments=0;
+      PERM.prismFragments+=frags;
+      savePerm(); _saveMods(d2);
+      ov.remove(); _renderModuleContent();
+      if(window.showAchievementToast) showAchievementToast('\u2b21 '+frags+' \ud30c\ud3b8 \ud68d\ub4dd!');
+    });
+  });
+}
+
+/* ── applyPermStats 체이닝: 모듈 보너스 적용 ── */
+var _prevApplyMod = window.applyPermStats;
+if (typeof _prevApplyMod === 'function') {
+  window.applyPermStats = function() {
+    _prevApplyMod.apply(this, arguments);
+    if (!window.G || !G.tower) return;
+    var b = window._getModuleBonuses();
+    if (b.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + b.atk/100));
+    if (b.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + b.hp/100)); G.tower.hp = G.tower.maxHp; }
+    if (b.def > 0) G.tower.defense = Math.min(0.9, (G.tower.defense||0) + b.def/100);
+    if (b.spd > 0) G.tower.atkMs = Math.max(200, Math.round(G.tower.atkMs / (1 + b.spd/100)));
+    if (b.crit > 0) G.tower.critChance = Math.min(0.9, (G.tower.critChance||0) + b.crit/100);
+    if (b.regen > 0) G.tower.hpRegen = (G.tower.hpRegen||0) + b.regen/100;
+  };
+}
+
+/* ── 모듈 탭 진입 시 렌더링 ── */
+var _origShowMod = window.showScreen;
+if (typeof _origShowMod === 'function') {
+  window.showScreen = function(name) {
+    _origShowMod.apply(this, arguments);
+    if (name === 'module') {
+      try {
+        var mg=document.getElementById('module-gold'); if(mg) mg.textContent=(PERM&&PERM.gold)||0;
+        var mgm=document.getElementById('module-gem'); if(mgm) mgm.textContent=(PERM&&PERM.gems)||0;
+        var mf=document.getElementById('module-frag'); if(mf) mf.textContent=(PERM&&PERM.prismFragments)||0;
+      } catch(_){}
+      _renderModuleContent();
+    }
+  };
+}
+
+}());
+</script>
 </body>
 </html>
