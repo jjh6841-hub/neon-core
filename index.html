@@ -11440,11 +11440,11 @@ function _showStatsPopup() {
   var _fn=typeof window.formatNumber==='function'?window.formatNumber:function(n){return n;};
   var ws=(window.PERM&&PERM.ws)||{};
 
-  // ── 최종 스탯 계산 (applyPermStats 로직 재현) ──
-  var baseDmg=3+(PERM.dmgLv||0)+(ws.damage||0);
-  var baseHp=10+(PERM.hpLv||0)*2+(ws.maxHp||0)*5;
-  var baseDef=(ws.defense||0)*0.01;
-  var defAbs=ws.defenseAbsolute||0;
+  // ── 최종 스탯 계산 (v1 applyPermStats 공식) ──
+  var baseDmg=Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0)));
+  var baseHp=Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0)));
+  var baseDef=Math.min(0.50,(ws.defRate||0)*0.01);
+  var defAbs=ws.defAbs||0;
   // 코어랩 연구 보너스
   var rDmgLv=parseInt(localStorage.getItem('res_r_damage')||'0',10);
   var rHpLv=parseInt(localStorage.getItem('res_r_health')||'0',10);
@@ -11459,9 +11459,9 @@ function _showStatsPopup() {
   baseDef=baseDef*em.def;
   // 스킨 보너스
   var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
-  var finalDmg=Math.round(baseDmg*sm.atk);
-  var finalHp=Math.round(baseHp*sm.hp);
-  var finalDef=Math.round(baseDef*sm.def*10000)/100;
+  var finalDmg=Math.round(baseDmg*(sm.atk||1));
+  var finalHp=Math.round(baseHp*(sm.hp||1));
+  var finalDef=Math.round(baseDef*(sm.def||1)*10000)/100;
 
   function _row(label,val,color){ return '<div style="display:flex;justify-content:space-between;padding:5px 0;"><span style="color:#556677;font-size:10px;">'+label+'</span><span style="color:'+(color||'#00ffff')+';font-size:10px;font-weight:bold;">'+val+'</span></div>'; }
   function _section(title,color){ return '<div style="color:'+(color||'#00ffff')+';font-size:11px;font-weight:bold;margin-top:12px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #0a2233;">'+title+'</div>'; }
@@ -11474,9 +11474,10 @@ function _showStatsPopup() {
   h+=_row('방어율',finalDef.toFixed(2)+'%','#3b82f6');
   h+=_row('절대 방어',defAbs,'#3b82f6');
   h+=_row('공격 속도','x'+(1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05).toFixed(2),'#f59e0b');
-  h+=_row('치명타 확률',((ws.critChance||0)*5)+'%','#cc44ff');
-  h+=_row('치명타 배율','x'+(1.5+(ws.critMult||0)*0.25).toFixed(2),'#cc44ff');
+  h+=_row('치명타 확률',((ws.critChance||0)*0.5).toFixed(1)+'%','#cc44ff');
+  h+=_row('치명타 배율','x'+(1.5+(ws.critMult||0)*0.1).toFixed(2),'#cc44ff');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
+  h+=_row('흡혈',((ws.vampChance||0)*0.5).toFixed(1)+'%','#ef4444');
 
   // ── 강화소 ──
   h+=_section('🔧 강화소');
@@ -11485,8 +11486,8 @@ function _showStatsPopup() {
   h+=_row('최대 체력 Lv',(ws.maxHp||0));
   h+=_row('치명타 확률 Lv',(ws.critChance||0));
   h+=_row('치명타 배율 Lv',(ws.critMult||0));
-  h+=_row('방어율 Lv',(ws.defense||0));
-  h+=_row('절대 방어 Lv',(ws.defenseAbsolute||0));
+  h+=_row('회피율 Lv',(ws.defRate||0));
+  h+=_row('절대 방어 Lv',(ws.defAbs||0));
   h+=_row('체력 재생 Lv',(ws.hpRegen||0));
   h+=_row('넉백 확률 Lv',(ws.knockbackChance||0));
   h+=_row('반사 데미지 Lv',(ws.thornDamage||0));
@@ -11536,8 +11537,10 @@ function _showStatsPopup() {
 
   // ── 스킨 보너스 ──
   h+=_section('▲ 스킨 보너스');
-  if(sm.shipMult) h+=_row('탐사선 스킨 보너스','x'+sm.shipMult.toFixed(2));
-  if(sm.bgMult) h+=_row('배경 스킨 보너스','x'+sm.bgMult.toFixed(2));
+  if(sm.shipMult && sm.shipMult!==1) h+=_row('탐사선 스킨 보너스','x'+sm.shipMult.toFixed(2));
+  if(sm.bgMult && sm.bgMult!==1) h+=_row('배경 스킨 보너스','x'+sm.bgMult.toFixed(2));
+  h+=_row('공격 배율','x'+(sm.atk||1).toFixed(2));
+  h+=_row('체력 배율','x'+(sm.hp||1).toFixed(2));
 
   // ── 행성별 최고 웨이브 ──
   h+=_section('☆ 행성별 최고 웨이브');
