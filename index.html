@@ -15850,7 +15850,7 @@ function _renderStagePopup() {
 
 // showScreen 확장
 var _origShowScreen = window.showScreen;
-var _LEFT_SCREENS = ['explore','signal-market','tournament','guild','achievements','mods'];
+var _LEFT_SCREENS = ['explore','signal-market','tournament','guild','achievements'];
 window.showScreen = function(name) {
   _origShowScreen.apply(this, arguments);
   if (name === 'explore') {
