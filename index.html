@@ -16171,40 +16171,75 @@ function _renderModuleContent() {
   var cont = document.getElementById('mods-content');
   if (!cont) return;
   cont.innerHTML = '';
-  var wrap = document.createElement('div');
-  wrap.style.cssText = 'padding:12px;font-family:Courier New,monospace;';
 
-  // 장착 슬롯
   var slotsBought = _getModSlotsBought();
   var slots = _getModSlots();
   var inv = _getModInv();
 
-  var slotTitle = document.createElement('div');
-  slotTitle.style.cssText = 'font-size:11px;color:#cc44ff;margin-bottom:8px;letter-spacing:1px;';
-  slotTitle.textContent = '장착 슬롯 (' + slots.filter(function(s){return s;}).length + '/' + slotsBought + ')';
-  wrap.appendChild(slotTitle);
+  // HUD 갱신
+  try {
+    var mg=document.getElementById('mods-gold'); if(mg) mg.textContent=(PERM&&PERM.gold)||0;
+    var mgm=document.getElementById('mods-gem'); if(mgm) mgm.textContent=(PERM&&PERM.gems)||0;
+    var mf=document.getElementById('mods-frag'); if(mf) mf.textContent=(PERM&&PERM.prismFragments)||0;
+  } catch(_){}
 
-  var slotGrid = document.createElement('div');
-  slotGrid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;';
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'padding:12px;font-family:Courier New,monospace;';
 
-  for (var si=0; si<MOD_SLOT_COUNT; si++) {
-    var cell = document.createElement('div');
+  // ── 탐사선 시각화 + 슬롯 ──
+  var SLOT_PARTS = [
+    { id:0, name:'무기 코어',   pos:'top:8%;left:50%;transform:translateX(-50%)',  filter:'mod_atk',   partColor:'#ef4444' },
+    { id:1, name:'센서 코어',   pos:'top:22%;right:8%',                             filter:'mod_crit',  partColor:'#cc44ff' },
+    { id:2, name:'실드 코어',   pos:'top:22%;left:8%',                              filter:'mod_def',   partColor:'#3b82f6' },
+    { id:3, name:'리액터 코어', pos:'top:45%;left:50%;transform:translateX(-50%)',  filter:'mod_hp',    partColor:'#10b981' },
+    { id:4, name:'엔진 코어',   pos:'bottom:18%;left:50%;transform:translateX(-50%)',filter:'mod_spd',  partColor:'#f59e0b' },
+    { id:5, name:'화물 코어',   pos:'bottom:4%;left:50%;transform:translateX(-50%)', filter:'mod_gold',  partColor:'#ffc800' },
+  ];
+
+  // 탐사선 + 슬롯 영역
+  var shipArea = document.createElement('div');
+  shipArea.style.cssText = 'position:relative;width:100%;max-width:300px;margin:0 auto 16px;height:320px;';
+
+  // SVG 탐사선
+  var shipSvg = '<svg viewBox="0 0 200 280" width="140" height="200" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.25;">' +
+    '<path d="M100,15 L130,60 L140,120 L135,180 L150,220 L140,260 L100,270 L60,260 L50,220 L65,180 L60,120 L70,60 Z" fill="none" stroke="#00ffff" stroke-width="1.5"/>' +
+    '<path d="M100,35 L118,65 L125,120 L120,170 L100,180 L80,170 L75,120 L82,65 Z" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>' +
+    '<circle cx="100" cy="110" r="15" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.3"/>' +
+    '<line x1="100" y1="15" x2="100" y2="35" stroke="#00ffff" stroke-width="0.6" opacity="0.3"/>' +
+    '<line x1="60" y1="120" x2="40" y2="140" stroke="#00ffff" stroke-width="0.8" opacity="0.3"/>' +
+    '<line x1="140" y1="120" x2="160" y2="140" stroke="#00ffff" stroke-width="0.8" opacity="0.3"/>' +
+    '<polygon points="40,140 25,170 45,165" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.25"/>' +
+    '<polygon points="160,140 175,170 155,165" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.25"/>' +
+    '<path d="M80,240 L70,265 L90,255 Z" fill="none" stroke="#00ffff" stroke-width="0.6" opacity="0.3"/>' +
+    '<path d="M120,240 L130,265 L110,255 Z" fill="none" stroke="#00ffff" stroke-width="0.6" opacity="0.3"/>' +
+  '</svg>';
+  shipArea.innerHTML = shipSvg;
+
+  // 각 슬롯 배치
+  SLOT_PARTS.forEach(function(part) {
+    var si = part.id;
     var isLocked = si >= slotsBought;
     var equippedUid = slots[si];
     var equippedMod = equippedUid ? inv.filter(function(m){return m.uid===equippedUid;})[0] : null;
 
+    var slot = document.createElement('div');
+    slot.style.cssText = 'position:absolute;' + part.pos + ';width:64px;height:64px;cursor:pointer;';
+
     if (isLocked) {
-      cell.style.cssText = 'background:#0a1520;border:1px solid #1a2a3a;padding:12px 6px;text-align:center;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
-      cell.innerHTML = '<div style="font-size:16px;color:#1a2a3a;">\ud83d\udd12</div><div style="font-size:9px;color:#334455;">\u2756' + MOD_SLOT_COST[si] + '</div>';
-      (function(idx,cost) {
-        cell.addEventListener('click', function() {
+      slot.innerHTML =
+        '<div style="width:100%;height:100%;background:#0a1520;border:1px solid #1a2a3a;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">' +
+          '<div style="font-size:14px;color:#1a2a3a;">\ud83d\udd12</div>' +
+          '<div style="font-size:7px;color:#334455;">\u2756' + MOD_SLOT_COST[si] + '</div>' +
+        '</div>';
+      (function(idx, cost) {
+        slot.addEventListener('click', function() {
           if ((PERM.gems||0) < cost) {
-            if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc2ac\ub86f '+(idx+1)+'\ubc88 \ud574\uae08','\ubcf4\uc11d\uc774 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2756'+(PERM.gems||0)+' / \ud544\uc694: \u2756'+cost, null);
+            if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc2ac\ub86f \ud574\uae08','\ubcf4\uc11d\uc774 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2756'+(PERM.gems||0)+' / \ud544\uc694: \u2756'+cost, null);
             return;
           }
-          if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc2ac\ub86f '+(idx+1)+'\ubc88 \ud574\uae08','\ubcf4\uc11d \u2756'+cost+'\uc744 \uc0ac\uc6a9\ud558\uc5ec\n\uc2ac\ub86f\uc744 \ud574\uae08\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
-            if((PERM.gems||0)<cost)return;
-            PERM.gems-=cost; savePerm();
+          if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc2ac\ub86f \ud574\uae08','\ubcf4\uc11d \u2756'+cost+'\uc744 \uc0ac\uc6a9\ud558\uc5ec\n\uc2ac\ub86f\uc744 \ud574\uae08\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
+            if((PERM.gems||0)<cost) return;
+            PERM.gems -= cost; savePerm();
             var d=_loadMods(); d.slotsBought=(d.slotsBought||1)+1; _saveMods(d);
             _renderModuleContent();
           });
@@ -16214,38 +16249,39 @@ function _renderModuleContent() {
       var type = MODULE_TYPES.filter(function(t){return t.id===equippedMod.typeId;})[0];
       var tier = TIERS[equippedMod.tier]||TIERS[0];
       var eff = _getModEffect(equippedMod);
-      cell.style.cssText = 'background:#0a1a2a;border:1px solid '+tier.border+';padding:8px 4px;text-align:center;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;';
-      cell.innerHTML =
-        '<div style="font-size:8px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
-        '<div style="width:28px;height:28px;border:2px solid '+type.color+';border-radius:4px;display:flex;align-items:center;justify-content:center;margin:2px 0;"><div style="width:12px;height:12px;background:'+type.color+';border-radius:2px;opacity:0.6;"></div></div>'+
-        '<div style="font-size:8px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name+'</div>'+
-        '<div style="font-size:8px;color:#94a3b8;">+'+eff+'%</div>';
+      slot.innerHTML =
+        '<div style="width:100%;height:100%;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 8px '+tier.color+'44;">' +
+          '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>' +
+          '<div style="width:24px;height:24px;border:2px solid '+type.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 6px '+type.color+'33;"><div style="width:10px;height:10px;background:'+type.color+';border-radius:50%;opacity:0.7;box-shadow:0 0 4px '+type.color+';"></div></div>' +
+          '<div style="font-size:6px;color:'+type.color+';white-space:nowrap;">'+part.name+'</div>' +
+          '<div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>' +
+        '</div>';
       (function(idx, mod) {
-        cell.addEventListener('click', function() {
-          // 해제
-          if(window._showSlotConfirm) _showSlotConfirm(mod.typeId.replace('mod_','').toUpperCase()+' \ubaa8\ub4c8','\uc7a5\ucc29\uc744 \ud574\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
-            var d=_loadMods(); var sl=d.slots||[]; sl[idx]=null; d.slots=sl; _saveMods(d);
-            _renderModuleContent();
-          });
-        });
+        slot.addEventListener('click', function() { _showModuleDetail(mod); });
       })(si, equippedMod);
     } else {
-      cell.style.cssText = 'background:#0a1520;border:1px dashed #0a3344;padding:12px 6px;text-align:center;min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;';
-      cell.innerHTML = '<div style="font-size:18px;color:#0a3344;">+</div><div style="font-size:9px;color:#334455;">\ube48 \uc2ac\ub86f</div>';
+      slot.innerHTML =
+        '<div style="width:100%;height:100%;background:#0a1520;border:1px dashed '+part.partColor+'55;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">' +
+          '<div style="width:20px;height:20px;border:1.5px solid '+part.partColor+'44;border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:'+part.partColor+'66;font-size:14px;">+</span></div>' +
+          '<div style="font-size:7px;color:'+part.partColor+'88;">'+part.name+'</div>' +
+        '</div>';
+      (function(idx) {
+        slot.addEventListener('click', function() { _showSlotEquipPopup(idx); });
+      })(si);
     }
-    slotGrid.appendChild(cell);
-  }
-  wrap.appendChild(slotGrid);
+    shipArea.appendChild(slot);
+  });
 
-  // 구매 버튼
+  wrap.appendChild(shipArea);
+
+  // ── 구매 버튼 ──
   var buyRow = document.createElement('div');
   buyRow.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;';
   buyRow.innerHTML =
-    '<button id="mod-buy-1" style="flex:1;background:#0a1a2a;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;"><div style="font-size:14px;margin-bottom:4px;">\u25c7</div>1\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+MOD_BUY_COST+'</span></button>'+
-    '<button id="mod-buy-10" style="flex:1;background:#0a1a2a;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;"><div style="font-size:14px;margin-bottom:4px;">\u25c7 x10</div>10\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+(MOD_BUY_COST*9)+'</span></button>';
+    '<button id="mod-buy-1" style="flex:1;background:#0a1a2a;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="font-size:14px;margin-bottom:4px;">\u25c7</div>1\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+MOD_BUY_COST+'</span></button>'+
+    '<button id="mod-buy-10" style="flex:1;background:#0a1a2a;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="font-size:14px;margin-bottom:4px;">\u25c7 x10</div>10\ud68c \uad6c\ub9e4<br><span style="font-size:10px;">\u2756 '+(MOD_BUY_COST*9)+'</span></button>';
   wrap.appendChild(buyRow);
 
-  // 구매 이벤트
   setTimeout(function() {
     var b1 = document.getElementById('mod-buy-1');
     var b10 = document.getElementById('mod-buy-10');
@@ -16253,7 +16289,7 @@ function _renderModuleContent() {
     if(b10) b10.addEventListener('click', function() { _buyModule(10); });
   }, 0);
 
-  // 인벤토리
+  // ── 인벤토리 ──
   var invTitle = document.createElement('div');
   invTitle.style.cssText = 'font-size:11px;color:#cc44ff;margin-bottom:8px;letter-spacing:1px;';
   invTitle.textContent = '\uc778\ubca4\ud1a0\ub9ac (' + inv.length + ')';
@@ -16274,10 +16310,10 @@ function _renderModuleContent() {
       var eff = _getModEffect(mod);
       var equipped = slots.indexOf(mod.uid) !== -1;
       var mCard = document.createElement('div');
-      mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;';
+      mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;';
       mCard.innerHTML =
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
-        '<div style="width:24px;height:24px;border:1.5px solid '+type.color+';border-radius:3px;display:flex;align-items:center;justify-content:center;margin:2px 0;"><div style="width:10px;height:10px;background:'+type.color+';border-radius:2px;opacity:0.6;"></div></div>'+
+        '<div style="width:22px;height:22px;border:1.5px solid '+type.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:'+type.color+';border-radius:50%;opacity:0.6;"></div></div>'+
         '<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
         '<div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>'+
         (equipped?'<div style="font-size:6px;color:#00ffff;">\uc7a5\ucc29</div>':'');
@@ -16290,6 +16326,60 @@ function _renderModuleContent() {
   }
 
   cont.appendChild(wrap);
+}
+
+/* ── 빈 슬롯 터치 → 장착 가능 모듈 선택 팝업 ── */
+function _showSlotEquipPopup(slotIdx) {
+  var inv = _getModInv();
+  var slots = _getModSlots();
+  // 장착되지 않은 모듈만
+  var available = inv.filter(function(m) { return slots.indexOf(m.uid) === -1; });
+  if (available.length === 0) {
+    if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc5c6\uc74c','\uc7a5\ucc29\ud560 \uc218 \uc788\ub294 \ubaa8\ub4c8\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.\n\ubaa8\ub4c8\uc744 \uad6c\ub9e4\ud574\uc8fc\uc138\uc694.', null);
+    return;
+  }
+  var old = document.getElementById('mod-equip-popup');
+  if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'mod-equip-popup';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.95);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:60px;';
+  var title = document.createElement('div');
+  title.style.cssText = 'color:#00ffff;font-family:monospace;font-size:13px;margin-bottom:16px;letter-spacing:2px;';
+  title.textContent = '\ubaa8\ub4c8 \uc120\ud0dd';
+  ov.appendChild(title);
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px;max-width:340px;width:100%;max-height:60vh;overflow-y:auto;';
+  available.forEach(function(mod) {
+    var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
+    if(!type) return;
+    var tier = TIERS[mod.tier]||TIERS[0];
+    var eff = _getModEffect(mod);
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#0a1520;border:1px solid '+tier.border+';padding:8px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;';
+    card.innerHTML =
+      '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
+      '<div style="width:22px;height:22px;border:1.5px solid '+type.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:'+type.color+';border-radius:50%;opacity:0.6;"></div></div>'+
+      '<div style="font-size:7px;color:'+type.color+';">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
+      '<div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>';
+    (function(m) {
+      card.addEventListener('click', function() {
+        var d=_loadMods(); var sl=d.slots||[null,null,null,null,null,null];
+        sl[slotIdx] = m.uid;
+        d.slots = sl; _saveMods(d);
+        ov.remove();
+        _renderModuleContent();
+      });
+    })(mod);
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+  var closeBtn = document.createElement('button');
+  closeBtn.style.cssText = 'margin-top:16px;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:8px 24px;cursor:pointer;';
+  closeBtn.textContent = '\ub2eb\uae30';
+  closeBtn.addEventListener('click', function() { ov.remove(); });
+  ov.appendChild(closeBtn);
+  ov.addEventListener('click', function(e) { if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
 }
 
 /* ── 모듈 구매 ── */
