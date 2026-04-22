@@ -2230,7 +2230,11 @@ window.syncFromFirebase = syncFromFirebase;
 
 /* ── 업그레이드 비용 함수 ── */
 function getUpgradeCost(baseCost, currentLevel) {
-  return Math.floor(baseCost * Math.pow(1.4, currentLevel));
+  var lv = currentLevel;
+  if (lv <= 10) return Math.floor(baseCost * Math.pow(1.28, lv));
+  if (lv <= 30) return Math.floor(baseCost * Math.pow(1.28, 10) * Math.pow(1.20, lv - 10));
+  if (lv <= 60) return Math.floor(baseCost * Math.pow(1.28, 10) * Math.pow(1.20, 20) * Math.pow(1.13, lv - 30));
+  return Math.floor(baseCost * Math.pow(1.28, 10) * Math.pow(1.20, 20) * Math.pow(1.13, 30) * Math.pow(1.08, lv - 60));
 }
 
 /* ── 인게임 업그레이드 정의 (임시) ── */
@@ -2254,7 +2258,7 @@ var UPGRADES = [
     cost()   { return upgCost('dmg',5); },
     stat()   { return G.tower.dmg; },
     canBuy() { return coreChips>=upgCost('dmg',5); },
-    apply()  { var c=upgCost('dmg',5); coreChips-=c; G.upgLvl.dmg=(G.upgLvl.dmg||0)+1; G.tower.dmg++; },
+    apply()  { var c=upgCost('dmg',5); coreChips-=c; G.upgLvl.dmg=(G.upgLvl.dmg||0)+1; G.tower.dmg=Math.round(G.tower.dmg*1.20); },
   },
   { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null, maxLv:30,
     cost()   { return upgCost('spd',7); },
@@ -2315,17 +2319,17 @@ var UPGRADES = [
     cost()   { return upgCost('maxhp',7); },
     stat()   { return G.tower.maxHp; },
     canBuy() { return coreChips>=upgCost('maxhp',7); },
-    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; G.tower.maxHp+=3; G.tower.hp+=3; },
+    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; var inc=Math.round(G.tower.maxHp*0.20); G.tower.maxHp+=inc; G.tower.hp+=inc; },
   },
   { key:'hpRegen', tab:'def', icon:'♥',  name:'체력회복',  baseCost:8,  unlock:null,
     cost()   { return upgCost('hpRegen',8); },
     stat()   { return G.regenRate.toFixed(2)+'/s'; },
     canBuy() { return coreChips>=upgCost('hpRegen',8); },
-    apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate+=0.5; },
+    apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate=Math.max(1,Math.round((G.regenRate||1)*1.20)); },
   },
   { key:'defRate', tab:'def', icon:'%',  name:'방어율',   baseCost:8,  unlock:null,
     cost()   { return upgCost('defRate',8); },
-    stat()   { return (((G.tower&&G.tower.defense)||0)*100).toFixed(1)+'%'; },
+    stat()   { return (((G.tower&&G.tower.defense)||0)*100).toFixed(1)+'% 회피'; },
     canBuy() { return coreChips>=upgCost('defRate',8); },
     apply()  { var c=upgCost('defRate',8); coreChips-=c; G.upgLvl.defRate=(G.upgLvl.defRate||0)+1; G.tower.defense=Math.min(0.9,(G.tower.defense||0)+0.005); },
   },
@@ -2333,13 +2337,13 @@ var UPGRADES = [
     cost()   { return upgCost('defAbs',10); },
     stat()   { return (G.defenseAbs||0); },
     canBuy() { return coreChips>=upgCost('defAbs',10); },
-    apply()  { var c=upgCost('defAbs',10); coreChips-=c; G.upgLvl.defAbs=(G.upgLvl.defAbs||0)+1; G.defenseAbs=(G.defenseAbs||0)+1; },
+    apply()  { var c=upgCost('defAbs',10); coreChips-=c; G.upgLvl.defAbs=(G.upgLvl.defAbs||0)+1; G.defenseAbs=Math.max(1,Math.round((G.defenseAbs||1)*1.20)); },
   },
-  { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp',
+  { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp', maxLv:30,
     cost()   { return upgCost('vamp',9); },
-    stat()   { return G.lifeSteal+'/킬'; },
+    stat()   { return (G.lifeSteal||0).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('vamp',9); },
-    apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal++; },
+    apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal=Math.min(15,(G.upgLvl.vamp||0)*0.5); },
   },
   // ─ 특수 탭 ─
   { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
@@ -2650,10 +2654,10 @@ function createState() {
     upgLvl:       {},  // in-game upgrade purchase counts
 
     tower: {
-      hp:      10,
-      maxHp:   10,
-      dmg:     3,
-      atkMs:   1000,  // ms between shots
+      hp:      25,
+      maxHp:   25,
+      dmg:     5,
+      atkMs:   1000,  // ms between shots (base)
       range:   0,
       lastAtk: 0,
       buffMs:  0,     // ms remaining for 2× damage buff
@@ -2727,10 +2731,10 @@ function getTargetZoom() {
 function applyPermStats() {
   const t  = G.tower;
   const ws = PERM.ws || {};
-  t.dmg        = 3 + PERM.dmgLv + (ws.damage    || 0);
+  t.dmg        = 5 * Math.pow(1.20, (PERM.dmgLv||0) + (ws.damage||0));
   var _spdMult = 1 + (PERM.spdLv || 0) * 0.05 + (ws.atkspd || 0) * 0.05;
-  t.atkMs      = Math.max(200, Math.round((window.BASE_ATKMS || 1200) / _spdMult));
-  t.maxHp      = 10 + PERM.hpLv * 2 + (ws.maxHp || 0) * 5;
+  t.atkMs      = Math.max(200, Math.round((window.BASE_ATKMS || 1000) / _spdMult));
+  t.maxHp      = 25 * Math.pow(1.20, (PERM.hpLv||0) + (ws.maxHp||0));
   t.hp         = t.maxHp;
   t.range      = Math.min(CW, CH) * 0.45 + PERM.rngLv * 30;
   t.critChance = (ws.critChance || 0) * 0.05;
@@ -2811,25 +2815,46 @@ function startGame() {
 
 function getWaveEnemies(wave) {
   var list = [];
-  var basicCount = 3 + wave * 2;
+  var totalCount = Math.min(150, Math.floor(4 + wave * 1.5));
+  var basicCount = totalCount;
+
+  // 적 타입별 등장 비율
+  var tankPct = 0, rusherPct = 0, sniperPct = 0;
+  if (wave >= 5)   tankPct = Math.min(0.20, (wave - 5) * 0.005);
+  if (wave >= 10)  rusherPct = Math.min(0.20, (wave - 10) * 0.005);
+  if (wave >= 20)  sniperPct = Math.min(0.15, (wave - 20) * 0.003);
+
+  var tankCount = Math.floor(totalCount * tankPct);
+  var rusherCount = Math.floor(totalCount * rusherPct);
+  var sniperCount = Math.floor(totalCount * sniperPct);
+  basicCount = totalCount - tankCount - rusherCount - sniperCount;
+
   for (var i = 0; i < basicCount; i++) list.push('basic');
-  if (wave >= 3) {
-    var tankCount = Math.floor(wave / 3);
-    for (var i = 0; i < tankCount; i++) list.push('tank');
+  for (var i = 0; i < tankCount; i++) list.push('tank');
+  for (var i = 0; i < rusherCount; i++) list.push('rusher');
+  for (var i = 0; i < sniperCount; i++) list.push('sniper');
+
+  // 100+ 특수 적 (행성 3+ 에서도 등장)
+  var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
+  if (wave >= 100 || _tier >= 3) {
+    var specCount = Math.min(10, Math.floor((wave - 80) * 0.05));
+    if (specCount > 0) {
+      for (var si = 0; si < specCount; si++) {
+        var r = Math.random();
+        if (r < 0.33) list.push('shield');
+        else if (r < 0.66) list.push('split');
+        else list.push('regen');
+      }
+    }
   }
-  if (wave >= 5) {
-    var rusherCount = Math.floor(wave / 2);
-    for (var i = 0; i < rusherCount; i++) list.push('rusher');
-  }
-  if (wave >= 8) {
-    var sniperCount = Math.floor(wave / 4);
-    for (var i = 0; i < sniperCount; i++) list.push('sniper');
-  }
-  // Shuffle non-boss
+
+  // Shuffle
   for (var j = list.length - 1; j > 0; j--) {
     var k = Math.floor(Math.random() * (j + 1));
     var tmp = list[j]; list[j] = list[k]; list[k] = tmp;
   }
+
+  // 보스
   if (wave % 100 === 0) list.push('boss_hyper');
   else if (wave % 50 === 0) list.push('boss_elite');
   else if (wave % 10 === 0) list.push('boss');
@@ -2843,7 +2868,7 @@ function startWave() {
   G.bossSpawned = false;
   G.spawnQ      = getWaveEnemies(w);
   G.spawnIdx    = 0;
-  G.spawnIntvl  = 800;  // fixed 0.8s between spawns
+  G.spawnIntvl  = G.wave <= 50 ? 800 : G.wave <= 100 ? 600 : G.wave <= 200 ? 500 : 400;
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
   // Wave start core chip bonus (2웨이브부터, 고정 2)
@@ -3057,21 +3082,18 @@ function update(dt) {
           G.killCount++;
           PERM.totalKills++;
           _infKill(e.type);
+          var _eGold = e.gold || 1;
+          var _tierGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
+          _eGold = Math.round(_eGold * _tierGM * (G.goldBonus||1));
+          if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; PERM.gold += _eGold; G.floatTexts.push({x:e.x,y:e.y+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
           if (e.boss) {
             PERM.bossKills++;
-            G.gold += 5; G.goldEarned += 5; PERM.gold += 5;
-            G.floatTexts.push({ x: e.x, y: e.y + 12, text: '+5 \u25C8', color: '#f59e0b', timer: 0 });
-            // ev_range_boss: 보스가 사거리 밖에서 처치됐는지 확인
             var _rbDx = e.x - G.cx, _rbDy = e.y - G.cy;
             if (Math.sqrt(_rbDx * _rbDx + _rbDy * _rbDy) > G.tower.range) {
               try { document.dispatchEvent(new CustomEvent('ev_range_boss', { detail: { x: e.x, y: e.y } })); } catch(_) {}
             }
           } else {
-            killCountForGold++;
-            if (killCountForGold >= 10) {
-              killCountForGold -= 10;
-              G.gold += 1; G.goldEarned += 1; PERM.gold += 1;
-              G.floatTexts.push({ x: e.x, y: e.y + 12, text: '+1 \u25C8', color: '#f59e0b', timer: 0 });
+            // 골드 이미 위에서 지급됨
             }
           }
           // Float text & death particles
@@ -3152,11 +3174,12 @@ function update(dt) {
       var atkInterval = e.boss ? 800 : 500;
       if (e._atkTimer >= atkInterval) {
         e._atkTimer -= atkInterval;
-        // 방어 % + 절대 방어 적용 (최소 0 이상)
+        // 회피 확률 + 절대 방어 적용
         var _rawDmg = e.atk || 1;
-        var _defPct = (G.tower && G.tower.defense) || 0;
+        var _evadeChance = (G.tower && G.tower.defense) || 0;
+        if (Math.random() < _evadeChance) { G.floatTexts.push({x:G.cx,y:G.cy-30,text:'MISS',color:'#3b82f6',timer:0}); continue; }
         var _defAbs = G.defenseAbs || 0;
-        const dmgTaken = Math.max(0, Math.round(_rawDmg * (1 - _defPct) - _defAbs));
+        const dmgTaken = Math.max(1, Math.round(_rawDmg - _defAbs));
         if (dmgTaken <= 0) { continue; }
         // 실드 흡수 처리
         var _rem = dmgTaken;
@@ -3221,7 +3244,7 @@ function update(dt) {
     var sbdx = sb.x - G.cx, sbdy = sb.y - G.cy;
     if (sbdx * sbdx + sbdy * sbdy < 18 * 18) {
       // 방어 % + 절대 방어 적용
-      var _sDefPct = (G.tower && G.tower.defense) || 0;
+      var _sEvadeChance = (G.tower && G.tower.defense) || 0;
       var _sDefAbs = G.defenseAbs || 0;
       var _sbDmg = Math.max(0, sb.dmg * (1 - _sDefPct) - _sDefAbs);
       if (_sbDmg <= 0) { G.sniperBullets.splice(sbi, 1); continue; }
@@ -3282,10 +3305,16 @@ function mkEnemy(etype) {
   }
 
   var w = G.wave;
-  var baseHp  = 2 * Math.pow(1.15, w - 1);
-  var baseSpd = 0.81 * Math.pow(1.03, w - 1);
+    var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
+  var _planetHpMult = [1, 1, 2, 4, 8, 16][_tier] || 1;
+  var _planetAtkMult = [1, 1, 1.5, 2.5, 4, 7][_tier] || 1;
+  var _planetSpdMult = [1, 1, 1.2, 1.2, 1.2, 1.2][_tier] || 1; // 스펙트라+ 속도 20%
+  var w = G ? G.wave : 1;
+  var baseHp  = 4 * Math.pow(1.12, w - 1) * _planetHpMult;
+  var baseSpd = Math.min(3.0, 0.8 * (1 + Math.log(Math.max(1,w)) * 0.15) * _planetSpdMult);
   var baseR   = 9;
-  var baseGold = Math.floor(1 * (1 + w * 0.1));
+  var baseGold = ({basic:1,tank:3,rusher:2,sniper:2,boss:15,boss_elite:50,boss_hyper:150}[etype]) || 1;
+  var baseAtk = Math.max(1, Math.round(1 * Math.pow(1.06, w - 1) * _planetAtkMult));
 
   var hp, spd, r, gold, gem = 0;
 
@@ -3326,7 +3355,7 @@ function mkEnemy(etype) {
     type:      etype,
     boss:      etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper',
     bossGrade: etype === 'boss_hyper' ? 'hyper' : etype === 'boss_elite' ? 'elite' : (etype === 'boss' ? 'normal' : null),
-    atk:       (etype === 'boss_hyper') ? 10 : (etype === 'boss_elite') ? 5 : (etype === 'boss') ? 2 : 1,
+    atk:       Math.round(((etype === 'boss_hyper') ? 10 : (etype === 'boss_elite') ? 5 : (etype === 'boss') ? 2 : 1) * baseAtk),
     hp:        hp,
     maxHp:     hp,
     r:         r,
@@ -3447,6 +3476,12 @@ function drawShootFlash(ctx) {
 }
 
 function onWaveComplete() {
+  // 웨이브 클리어 골드 보상
+  var _wcTier = parseInt(localStorage.getItem('td_tier')||'1',10);
+  var _wcTierGM = [1,1,1.8,2.7,3.6,4.5][_wcTier] || 1;
+  var _wcBaseGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
+  var _wcGold = Math.round(_wcBaseGold * _wcTierGM * (G.goldBonus||1));
+  G.gold += _wcGold; G.goldEarned += _wcGold; PERM.gold += _wcGold;
   AudioManager.playSfx('wave_clear');
   triggerShake(3);
   G.borderFlash = 0.6;
@@ -5437,11 +5472,11 @@ if (dailyPopup) {
     // 공격 탭: 단계별 잠금 해제 시스템
     var ATK_UNLOCK_GROUPS = [
       { group:0, name:null, cost:0 },       // 대미지, 공격속도 — 기본 해금
-      { group:1, name:'치명타', cost:100 },   // 치명타 확률, 치명타 계수
-      { group:2, name:'범위', cost:300 },     // 공격 범위, 거리 피해
-      { group:3, name:'멀티샷', cost:500 },   // 분열탄 확률, 분열탄 수
-      { group:4, name:'고속발사', cost:1500 }, // 연사 확률, 연사 지속
-      { group:5, name:'바운스샷', cost:3000 }, // 도약탄 확률, 도약탄 수, 도약탄 범위
+      { group:1, name:'치명타', cost:150 },   // 치명타 확률, 치명타 계수
+      { group:2, name:'범위', cost:500 },     // 공격 범위, 거리 피해
+      { group:3, name:'멀티샷', cost:1200 },   // 분열탄 확률, 분열탄 수
+      { group:4, name:'고속발사', cost:3000 }, // 연사 확률, 연사 지속
+      { group:5, name:'바운스샷', cost:6000 }, // 도약탄 확률, 도약탄 수, 도약탄 범위
     ];
 
     if (tab === 'atk') {
@@ -5490,7 +5525,7 @@ if (dailyPopup) {
       var DEF_UNLOCK_GROUPS = [
         { group:0, name:null, cost:0 },       // 최대 체력 — 기본
         { group:1, name:'방어', cost:200 },    // 방어율, 절대 방어
-        { group:2, name:'반사', cost:500 },    // 반사 데미지
+        { group:2, name:'반사', cost:800 },    // 반사 데미지
         { group:3, name:'흡혈', cost:1500 },   // 흡혈 확률
         { group:4, name:'넉백', cost:3000 },   // 넉백 확률
         { group:5, name:'쉴드', cost:10000 },  // 쉴드 HP
@@ -8705,15 +8740,7 @@ setTimeout(_updateBadge, 500);
 'use strict';
 
 
-/* ── getUpgradeCost 비용 함수 확장 (레벨 20+ 추가 스케일링) ── */
-var _origGetCost = window.getUpgradeCost;
-if (typeof _origGetCost === 'function') {
-  window.getUpgradeCost = function(baseCost, currentLevel) {
-    if (currentLevel < 20) return _origGetCost(baseCost, currentLevel);
-    var base20 = _origGetCost(baseCost, 20);
-    return Math.floor(base20 * Math.pow(1.6, currentLevel - 20));
-  };
-}
+/* ── getUpgradeCost: 구간별 체감 비용 구조 사용 (1.28→1.20→1.13→1.08) ── */
 
 
 }());
