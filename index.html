@@ -15188,7 +15188,7 @@ function renderSkinGrid() {
         // 상단 수면 광선
         for(var ri=0;ri<3;ri++){ctx.globalAlpha=0.03+Math.sin(t*0.4+ri)*0.02;ctx.beginPath();ctx.moveTo(W*(0.1+ri*0.3),0);ctx.lineTo(W*(0.15+ri*0.3)+Math.sin(t*0.2)*20,H);ctx.lineTo(W*(0.2+ri*0.3)+Math.sin(t*0.2)*20,H);ctx.lineTo(W*(0.15+ri*0.3),0);ctx.closePath();ctx.fillStyle='#4488ff';ctx.fill();}
       } else if (motionType === 'vortex') {
-        var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.008;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.5){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.35;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=6;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+        var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.003;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.5){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.35;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=6;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
       } else if (motionType === 'wave') {
         // 오로라: 더 밝고 선명한 웨이브 밴드
         for(var b=0;b<8;b++){
