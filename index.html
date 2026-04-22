@@ -1179,13 +1179,8 @@ canvas {
       </div>
     </div>
     <div id="screen-shop">
-      <div id="gem-ad-bar" style="display:none;padding:4px 8px;background:#06061a;border-bottom:1px solid #0a3344;">
-        <button id="gem-ad-btn" style="display:flex;align-items:center;gap:6px;width:100%;background:#0a1520;border:1px solid #cc44ff;padding:6px 10px;cursor:pointer;-webkit-appearance:none;">
-          <span style="font-size:14px;">▶</span>
-          <span style="font-family:'Courier New',monospace;font-size:11px;color:#cc44ff;font-weight:bold;">❖ 광고 시청 → 보석 +5</span>
-        </button>
-      </div>
-      <div id="tab-bar">
+      <div id="tab-bar" style="position:relative;">
+        <button id="gem-ad-btn" style="display:none;background:#0a1520;border:1px solid #cc44ff;padding:2px 5px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;font-family:'Courier New',monospace;font-size:8px;color:#cc44ff;font-weight:bold;line-height:1.2;">❖+5</button>
         <div id="speed-ctrl" style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
           <button id="speed-minus" style="width:24px;height:24px;background:#030b10;border:1px solid #0a3344;color:#00ffff;font-size:15px;cursor:pointer;-webkit-appearance:none;line-height:1;font-family:monospace;padding:0;">−</button>
           <span id="speed-display" style="color:#00ffff;font-family:monospace;font-size:10px;min-width:28px;text-align:center;font-weight:bold;">×1</span>
@@ -16793,14 +16788,14 @@ function _setLastGemAd() {
   try { localStorage.setItem('td_gem_ad_ts', String(Date.now())); } catch(_) {}
 }
 
-var _gemAdBar = document.getElementById('gem-ad-bar');
+var _gemAdBar = document.getElementById('gem-ad-btn');
 var _gemAdBtn = document.getElementById('gem-ad-btn');
 
 function _updateGemAdBtn() {
   if (!_gemAdBar) return;
   var elapsed = Date.now() - _getLastGemAd();
   if (elapsed >= GEM_AD_INTERVAL) {
-    _gemAdBar.style.display = '';
+    _gemAdBar.style.display = 'inline-block';
   } else {
     _gemAdBar.style.display = 'none';
   }
