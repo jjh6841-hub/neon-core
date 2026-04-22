@@ -2332,7 +2332,7 @@ var UPGRADES = [
   },
   { key:'defRate', tab:'def', icon:'%',  name:'방어율',   baseCost:8,  unlock:null,
     cost()   { return upgCost('defRate',8); },
-    stat()   { return (((G.tower&&G.tower.defense)||0)*100).toFixed(1)+'% 회피'; },
+    stat()   { return (((G.tower&&G.tower.defense)||0)*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('defRate',8); },
     apply()  { var c=upgCost('defRate',8); coreChips-=c; G.upgLvl.defRate=(G.upgLvl.defRate||0)+1; G.tower.defense=Math.min(0.9,(G.tower.defense||0)+0.005); },
   },
