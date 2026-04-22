@@ -16657,35 +16657,29 @@ if (typeof _origShowMod === 'function') {
 /* ════════════════════════════════════════════════════════
    §1 — 떠다니는 보석 이벤트 (15분마다, +2 보석)
 ════════════════════════════════════════════════════════ */
-var GEM_EVENT_INTERVAL = 15 * 60 * 1000; // 15분
+var GEM_EVENT_INTERVAL = 15 * 60 * 1000; // 플레이 시작 후 15분
 var GEM_EVENT_REWARD   = 2;
 var _gemEventActive    = false;
-var _gemX = 0, _gemY = 0, _gemAngle = 0, _gemAlpha = 1;
+var _gemEventUsed      = false; // 이번 전투에서 이미 출현했는지
+var _gemPlayStart      = 0;    // 현재 전투 시작 시각
+var _gemX = 0, _gemY = 0, _gemAlpha = 0;
 var _gemBaseX = 0, _gemBaseY = 0;
 
-function _getLastGemEvent() {
-  try { return parseInt(localStorage.getItem('td_gem_event_ts') || '0', 10); } catch(_) { return 0; }
-}
-function _setLastGemEvent() {
-  try { localStorage.setItem('td_gem_event_ts', String(Date.now())); } catch(_) {}
-}
-
 function _spawnGemEvent() {
-  if (_gemEventActive) return;
+  if (_gemEventActive || _gemEventUsed) return;
   var cw = window.CW || 360, ch = window.CH || 640;
   _gemBaseX = 60 + Math.random() * (cw - 120);
-  _gemBaseY = 80 + Math.random() * (ch * 0.4);
+  _gemBaseY = 60 + Math.random() * (ch * 0.35);
   _gemX = _gemBaseX;
   _gemY = _gemBaseY;
-  _gemAngle = Math.random() * Math.PI * 2;
   _gemAlpha = 0;
   _gemEventActive = true;
+  _gemEventUsed = true; // 한 전투당 1번
 }
 
 function _collectGem() {
   if (!_gemEventActive) return;
   _gemEventActive = false;
-  _setLastGemEvent();
   if (window.G) {
     G.gems += GEM_EVENT_REWARD;
     if (window.PERM) { PERM.gems += GEM_EVENT_REWARD; if (window.savePerm) savePerm(); }
@@ -16694,30 +16688,41 @@ function _collectGem() {
   }
 }
 
-// 캔버스 클릭/터치로 보석 수집
-function _checkGemClick(px, py) {
-  if (!_gemEventActive) return false;
-  var dx = px - _gemX, dy = py - _gemY;
-  if (dx * dx + dy * dy < 35 * 35) {
-    _collectGem();
-    return true;
-  }
-  return false;
+// startGame 래핑: 전투 시작 시 초기화
+var _origStartGem = window.startGame;
+if (typeof _origStartGem === 'function' && !_origStartGem._fGemEvt) {
+  window.startGame = function() {
+    _origStartGem.apply(this, arguments);
+    _gemEventActive = false;
+    _gemEventUsed = false;
+    _gemPlayStart = Date.now();
+  };
+  window.startGame._fGemEvt = true;
 }
 
-// gameCanvas에 클릭 이벤트 연결
+// 캔버스 터치/클릭으로 보석 수집 (화면 좌표 → 캔버스 좌표 변환)
 var _gc = document.getElementById('gameCanvas');
+function _gemHitTest(e) {
+  if (!_gemEventActive || !_gc) return;
+  var touch = e.touches ? e.touches[0] : e;
+  var r = _gc.getBoundingClientRect();
+  var scaleX = _gc.width / r.width;
+  var scaleY = _gc.height / r.height;
+  var px = (touch.clientX - r.left) * scaleX;
+  var py = (touch.clientY - r.top) * scaleY;
+  var dx = px - _gemX, dy = py - _gemY;
+  if (dx * dx + dy * dy < 40 * 40) {
+    _collectGem();
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}
 if (_gc) {
-  _gc.addEventListener('click', function(e) {
-    var r = _gc.getBoundingClientRect();
-    var z = (window.G && G.zoom) || 1;
-    var px = (e.clientX - r.left) * (_gc.width / r.width);
-    var py = (e.clientY - r.top) * (_gc.height / r.height);
-    _checkGemClick(px, py);
-  });
+  _gc.addEventListener('touchstart', _gemHitTest, { passive: false, capture: true });
+  _gc.addEventListener('click', _gemHitTest, { capture: true });
 }
 
-// render에 체이닝: 보석 아이콘 그리기
+// render 체이닝: 보석 아이콘 그리기
 var _prevRenderGem = window.render;
 if (typeof _prevRenderGem === 'function' && !_prevRenderGem._fGemEvt) {
   window.render = function() {
@@ -16726,19 +16731,16 @@ if (typeof _prevRenderGem === 'function' && !_prevRenderGem._fGemEvt) {
     var c = window.ctx;
     if (!c) return;
     var t = Date.now() * 0.001;
-    // 부드러운 떠다니기
     _gemX = _gemBaseX + Math.sin(t * 0.8) * 20;
     _gemY = _gemBaseY + Math.cos(t * 0.6) * 12;
     _gemAlpha = Math.min(1, _gemAlpha + 0.02);
 
     c.save();
     c.globalAlpha = _gemAlpha * (0.8 + Math.sin(t * 3) * 0.2);
-
-    // 글로우 효과
     c.shadowColor = '#cc44ff';
     c.shadowBlur = 12 + Math.sin(t * 4) * 4;
 
-    // 보석 다이아몬드 모양
+    // 보석 다이아몬드
     c.beginPath();
     c.moveTo(_gemX, _gemY - 14);
     c.lineTo(_gemX + 10, _gemY);
@@ -16751,7 +16753,6 @@ if (typeof _prevRenderGem === 'function' && !_prevRenderGem._fGemEvt) {
     c.lineWidth = 1.5;
     c.stroke();
 
-    // 내부 하이라이트
     c.beginPath();
     c.moveTo(_gemX, _gemY - 7);
     c.lineTo(_gemX + 5, _gemY);
@@ -16760,30 +16761,26 @@ if (typeof _prevRenderGem === 'function' && !_prevRenderGem._fGemEvt) {
     c.closePath();
     c.fillStyle = 'rgba(255,200,255,0.4)';
     c.fill();
-
     c.shadowBlur = 0;
 
-    // "TAP!" 텍스트
     c.font = 'bold 9px "Courier New", monospace';
     c.fillStyle = '#ff88ff';
     c.textAlign = 'center';
     c.globalAlpha = _gemAlpha * (0.6 + Math.sin(t * 5) * 0.4);
     c.fillText('TAP!', _gemX, _gemY + 28);
-
     c.restore();
   };
   window.render._fGemEvt = true;
 }
 
-// update에 체이닝: 15분 타이머 체크
+// update 체이닝: 플레이 시작 후 15분 경과 체크
 var _prevUpdateGem = window.update;
 if (typeof _prevUpdateGem === 'function' && !_prevUpdateGem._fGemEvt) {
   window.update = function(dt) {
     _prevUpdateGem.apply(this, arguments);
     if (!window.G || G.phase !== 'playing') return;
-    if (!_gemEventActive) {
-      var elapsed = Date.now() - _getLastGemEvent();
-      if (elapsed >= GEM_EVENT_INTERVAL) {
+    if (!_gemEventActive && !_gemEventUsed && _gemPlayStart > 0) {
+      if (Date.now() - _gemPlayStart >= GEM_EVENT_INTERVAL) {
         _spawnGemEvent();
       }
     }
