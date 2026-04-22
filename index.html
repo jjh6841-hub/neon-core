@@ -5417,7 +5417,7 @@ if (dailyPopup) {
     var tabs = document.querySelectorAll('.ws-tab');
     for (var i = 0; i < tabs.length; i++) {
       var isAct = tabs[i].dataset.tab === tab;
-      var inactiveColor = tabs[i].disabled ? '#1a2a3a' : '#4a7a8a';
+      var inactiveColor = tabs[i].disabled ? '#3a5566' : '#4a7a8a';
       tabs[i].style.color        = isAct ? '#00ffff' : inactiveColor;
       tabs[i].style.borderBottom = isAct ? '2px solid #00ffff' : '2px solid transparent';
       if (!isAct && !tabs[i].disabled) {
@@ -5668,7 +5668,12 @@ if (dailyPopup) {
       var btn = e.target.closest
         ? e.target.closest('.ws-tab')
         : (e.target.classList.contains('ws-tab') ? e.target : null);
-      if (!btn || btn.disabled) return;
+      if (!btn) return;
+      if (btn.disabled) {
+        var tabName = btn.textContent.trim();
+        if (window.showNavToast) showNavToast(tabName + ' — 이전 단계 해금 시 활성화', 'ws_'+btn.dataset.tab);
+        return;
+      }
       buildWorkshopContent(btn.dataset.tab);
     });
   }
@@ -10578,6 +10583,15 @@ function _drawOnePrism() {
   return PRISMS[Math.floor(Math.random() * PRISMS.length)];
 }
 
+function _syncPrismHUD() {
+  try {
+    var g=document.getElementById('module-gold'); if(g) g.textContent=(PERM&&PERM.gold)||0;
+    var gm=document.getElementById('module-gem'); if(gm) gm.textContent=(PERM&&PERM.gems)||0;
+    var f=document.getElementById('module-frag'); if(f) f.textContent=(PERM&&PERM.prismFragments)||0;
+  } catch(_){}
+}
+window._syncPrismHUD = _syncPrismHUD;
+
 function _doDraw(n) {
   var cost = PRISM_SINGLE * n;
   if (!window.PERM || (window.PERM.gems || 0) < cost) return null;
@@ -10585,6 +10599,7 @@ function _doDraw(n) {
   var drawn = [];
   for (var i = 0; i < n; i++) { var p = _drawOnePrism(); drawn.push(p); _addPrismDrop(p.id); }
   window.savePerm && window.savePerm();
+  _syncPrismHUD();
   return drawn;
 }
 
@@ -10971,6 +10986,7 @@ function _renderCardTab() {
         window.PERM.gems-=cost;
         _setSlots(idx+1);
         window.savePerm&&window.savePerm();
+        _syncPrismHUD();
         if(window.showAchievementToast) showAchievementToast('슬롯 '+(idx+1)+'번 해금!');
         _renderCardTab();
       });
@@ -11216,7 +11232,7 @@ function _closeRanking() {
    FEATURE 3: 우편함
 ════════════════════════════════════════════════════════ */
 var SYSTEM_MAILS = [
-  { id:'welcome',  title:'⚡ 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
+  { id:'welcome',  title:'▶ 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
   { id:'battle1',  title:'⚔ 첫 전투 응원',     body:'첫 전투를 완료하셨습니다. 앞으로도 파이팅!',                         gems:2,  gold:30  },
 ];
 var NEWS_ITEMS = [];
@@ -11238,8 +11254,8 @@ function _buildMailScreen() {
       '<div style="width:60px;"></div>'+
     '</div>'+
     '<div id="mail-tab-bar" style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
-      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;"><span style="font-size:15px;">✉</span> 우편</button>'+
-      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:12px;cursor:pointer;"><span style="font-size:15px;">📡</span> 소식</button>'+
+      '<button class="mail-tab-btn" data-mtab="mail" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;cursor:pointer;">▣ 수신함</button>'+
+      '<button class="mail-tab-btn" data-mtab="news" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:11px;cursor:pointer;">◈ 소식</button>'+
     '</div>'+
     '<div id="mail-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 12px;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>';
   document.body.appendChild(sc);
