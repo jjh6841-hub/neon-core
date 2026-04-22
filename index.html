@@ -3359,11 +3359,11 @@ function mkEnemy(etype) {
     boss:      etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper',
     bossGrade: etype === 'boss_hyper' ? 'hyper' : etype === 'boss_elite' ? 'elite' : (etype === 'boss' ? 'normal' : null),
     atk:       Math.round(((etype === 'boss_hyper') ? 10 : (etype === 'boss_elite') ? 5 : (etype === 'boss') ? 2 : 1) * baseAtk),
-    hp:        hp,
-    maxHp:     hp,
+    hp:        Math.ceil(hp),
+    maxHp:     Math.ceil(hp),
     r:         r,
     spd:       spd,
-    gold:      gold,
+    gold:      Math.ceil(gold),
     gem:       gem,
     slowTimer: 0,
     atkTimer:  0,   // for sniper attacks
@@ -4261,7 +4261,7 @@ function render() {
     ctx.fillText(_bn, CW / 2, 28);
     ctx.fillStyle = '#ffffff';
     ctx.font = '10px "Courier New", monospace';
-    ctx.fillText(Math.ceil(_boss.hp) + ' / ' + _boss.maxHp, CW / 2, 42);
+    ctx.fillText(Math.ceil(_boss.hp) + ' / ' + Math.ceil(_boss.maxHp), CW / 2, 42);
     var barW = CW * 0.6, barX = (CW - barW) / 2;
     ctx.fillStyle = '#1a0000';
     ctx.fillRect(barX, 46, barW, 8);
