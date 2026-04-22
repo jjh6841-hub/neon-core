@@ -9921,50 +9921,51 @@ function _applyWsCostPatches() {
     items[k].cost = function(lv) { return Math.floor(base * Math.pow(1.35, lv)); };
   });
 
-  // §7 표시 함수: 레벨당 효과 표시 (전투와 동일한 단위)
+  // §7 표시 함수: applyPermStats 중간 계산값 표시
+  var _p = function() { return window.PERM || {}; };
   if (items.damage) {
-    items.damage.cur = function(lv) { return 'Lv.' + lv; };
-    items.damage.nxt = function(lv) { return 'Lv.' + (lv+1) + ' (+20%)'; };
+    items.damage.cur = function(lv) { return Math.round(5 * Math.pow(1.20, (_p().dmgLv||0) + lv)); };
+    items.damage.nxt = function(lv) { return Math.round(5 * Math.pow(1.20, (_p().dmgLv||0) + lv + 1)); };
   }
   if (items.atkspd) {
-    items.atkspd.cur = function(lv) { return '+' + (lv*5) + '%'; };
-    items.atkspd.nxt = function(lv) { return '+' + ((lv+1)*5) + '%'; };
+    items.atkspd.cur = function(lv) { return 'x' + (1 + (_p().spdLv||0)*0.05 + lv*0.05).toFixed(2); };
+    items.atkspd.nxt = function(lv) { return 'x' + (1 + (_p().spdLv||0)*0.05 + (lv+1)*0.05).toFixed(2); };
   }
   if (items.critChance) {
-    items.critChance.cur = function(lv) { return (lv*5) + '%'; };
-    items.critChance.nxt = function(lv) { return ((lv+1)*5) + '%'; };
+    items.critChance.cur = function(lv) { return (lv * 5) + '%'; };
+    items.critChance.nxt = function(lv) { return ((lv + 1) * 5) + '%'; };
   }
   if (items.critMult) {
-    items.critMult.cur = function(lv) { return 'x' + (1.5 + lv*0.25).toFixed(2); };
-    items.critMult.nxt = function(lv) { return 'x' + (1.5 + (lv+1)*0.25).toFixed(2); };
+    items.critMult.cur = function(lv) { return 'x' + (1.5 + lv * 0.25).toFixed(2); };
+    items.critMult.nxt = function(lv) { return 'x' + (1.5 + (lv + 1) * 0.25).toFixed(2); };
   }
   if (items.maxHp) {
-    items.maxHp.cur = function(lv) { return 'Lv.' + lv; };
-    items.maxHp.nxt = function(lv) { return 'Lv.' + (lv+1) + ' (+20%)'; };
+    items.maxHp.cur = function(lv) { return Math.round(25 * Math.pow(1.20, (_p().hpLv||0) + lv)); };
+    items.maxHp.nxt = function(lv) { return Math.round(25 * Math.pow(1.20, (_p().hpLv||0) + lv + 1)); };
   }
   if (items.defRate) {
     items.defRate.cur = function(lv) { return lv + '% 회피'; };
-    items.defRate.nxt = function(lv) { return (lv+1) + '% 회피'; };
+    items.defRate.nxt = function(lv) { return (lv + 1) + '% 회피'; };
   }
   if (items.defAbs) {
     items.defAbs.cur = function(lv) { return '' + lv; };
-    items.defAbs.nxt = function(lv) { return '' + (lv+1); };
+    items.defAbs.nxt = function(lv) { return '' + (lv + 1); };
   }
   if (items.hpRegen) {
-    items.hpRegen.cur = function(lv) { return (lv*0.05).toFixed(2) + '/s'; };
-    items.hpRegen.nxt = function(lv) { return ((lv+1)*0.05).toFixed(2) + '/s'; };
+    items.hpRegen.cur = function(lv) { return (lv * 0.05).toFixed(2) + '/s'; };
+    items.hpRegen.nxt = function(lv) { return ((lv + 1) * 0.05).toFixed(2) + '/s'; };
   }
   if (items.vampChance) {
-    items.vampChance.cur = function(lv) { return (lv*0.5).toFixed(1) + '%'; };
-    items.vampChance.nxt = function(lv) { return ((lv+1)*0.5).toFixed(1) + '%'; };
+    items.vampChance.cur = function(lv) { return (lv * 0.5).toFixed(1) + '%'; };
+    items.vampChance.nxt = function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; };
   }
   if (items.goldGain) {
-    items.goldGain.cur = function(lv) { return 'x' + (1 + lv*0.1).toFixed(1); };
-    items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv+1)*0.1).toFixed(1); };
+    items.goldGain.cur = function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); };
+    items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); };
   }
   if (items.gemGain) {
-    items.gemGain.cur = function(lv) { return 'x' + (1 + lv*0.1).toFixed(1); };
-    items.gemGain.nxt = function(lv) { return 'x' + (1 + (lv+1)*0.1).toFixed(1); };
+    items.gemGain.cur = function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); };
+    items.gemGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); };
   }
 }
 
