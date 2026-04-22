@@ -4460,7 +4460,7 @@ function setActiveTab(tabKey) {
     const pn = document.getElementById('pane-' + k);
     if (tb) {
       tb.classList.toggle('active', k === tabKey);
-      if (k === 'utl') { tb.style.display = ''; tb.style.opacity = _utlOpen ? '1' : '0.4'; }
+      if (k === 'utl') { tb.style.display = ''; tb.style.opacity = '1'; if (!_utlOpen && k !== tabKey) tb.style.color = '#4a6a7a'; }
     }
     if (pn) pn.classList.toggle('active', k === tabKey);
   }
