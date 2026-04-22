@@ -15232,7 +15232,7 @@ function renderSkinGrid() {
         ctx.globalAlpha=0.03;var dg=ctx.createRadialGradient(W*0.6,H*0.5,0,W*0.6,H*0.5,W*0.5);dg.addColorStop(0,cols[0]);dg.addColorStop(1,'transparent');ctx.fillStyle=dg;ctx.fillRect(0,0,W,H);
       } else if (motionType === 'rain') {
         // 매트릭스: 더 밝은 코드 비 + 글로우
-        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.y+=0.8+pp.r*0.4;if(pp.y>H+10){pp.y=-10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=4;ctx.fillStyle=pp.col;ctx.font='bold '+(8+pp.r*2)+'px monospace';ctx.fillText(String.fromCharCode(0x30A0+Math.floor(Math.random()*96)),pp.x,pp.y);ctx.shadowBlur=0;}
+        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.y+=0.35+pp.r*0.15;if(pp.y>H+10){pp.y=-10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=4;ctx.fillStyle=pp.col;ctx.font='bold '+(8+pp.r*2)+'px monospace';ctx.fillText(String.fromCharCode(0x30A0+Math.floor(Math.random()*96)),pp.x,pp.y);ctx.shadowBlur=0;}
         // 세로 트레일
         for(var ri=0;ri<8;ri++){var rx=W*(ri+0.5)/8;ctx.globalAlpha=0.02;ctx.fillStyle=cols[0];ctx.fillRect(rx-1,0,2,H);}
       } else if (motionType === 'ghost') {
