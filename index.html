@@ -1635,10 +1635,7 @@ canvas {
       <span style="color:#cc44ff; font-family:monospace; font-size:13px;">⬡ <span id="module-frag">0</span></span>
     </div>
   </div>
-  <div id="module-sub-tabs" style="display:flex; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0;">
-    <button class="mod-sub-tab" data-mod-tab="prism" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:10px;cursor:pointer;">◇ 프리즘</button>
-    <button class="mod-sub-tab" data-mod-tab="module" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#4a7a8a;font-family:monospace;font-size:10px;cursor:pointer;">⊞ 모듈</button>
-  </div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#cc44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(204,68,255,0.10); flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:6px;"><svg width="12" height="12" viewBox="0 0 16 16" style="display:inline-block;vertical-align:middle;"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="#cc44ff" stroke-width="1.1"/><circle cx="4.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="4.5" r="1" fill="#cc44ff"/><circle cx="4.5" cy="11.5" r="1" fill="#cc44ff"/><circle cx="11.5" cy="11.5" r="1" fill="#cc44ff"/></svg> 프리즘</div>
   <div id="module-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 </div>
 
@@ -15428,18 +15425,16 @@ function _submitCoupon() {
 <!-- ══════════════════════════════════════════════════════
      모듈 화면 (비행선 모듈 관리)
 ══════════════════════════════════════════════════════ -->
-<div id="screen-mods" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow-y:auto; -webkit-overflow-scrolling:touch;">
-  <div style="display:flex; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
-    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
-    <span style="margin:0 auto; font-size:13px; letter-spacing:2px; color:#00ffff; font-family:'Courier New',monospace;">모듈</span>
-    <span style="width:40px;"></span>
-  </div>
-  <div style="padding:20px; text-align:center;">
-    <div style="font-size:10px; color:#334455; font-family:'Courier New',monospace; line-height:1.8;">
-      비행선 모듈을 장착하여 탐사 능력을 강화합니다.<br>
-      모듈 시스템 준비 중입니다.
+<div id="screen-mods" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+      <span style="color:#f59e0b; font-family:monospace; font-size:13px;">◈ <span id="mods-gold">0</span></span>
+      <span style="color:#00ffff; font-family:monospace; font-size:13px;">❖ <span id="mods-gem">0</span></span>
+      <span style="color:#cc44ff; font-family:monospace; font-size:13px;">⬡ <span id="mods-frag">0</span></span>
     </div>
   </div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">⊞ 모듈</div>
+  <div id="mods-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -16172,32 +16167,9 @@ window._getModuleBonuses = function() {
   return b;
 };
 
-/* ── 서브탭 전환 ── */
-var _modSubTab = 'prism';
-var tabBtns = document.querySelectorAll('.mod-sub-tab');
-for (var ti=0;ti<tabBtns.length;ti++) {
-  (function(btn) {
-    btn.addEventListener('click', function() {
-      _modSubTab = btn.getAttribute('data-mod-tab');
-      tabBtns.forEach(function(b) {
-        var isAct = b.getAttribute('data-mod-tab') === _modSubTab;
-        b.style.borderBottom = isAct ? '2px solid #cc44ff' : '2px solid transparent';
-        b.style.color = isAct ? '#cc44ff' : '#4a7a8a';
-      });
-      _renderModuleContent();
-    });
-  })(tabBtns[ti]);
-}
-
 function _renderModuleContent() {
-  var cont = document.getElementById('module-content');
+  var cont = document.getElementById('mods-content');
   if (!cont) return;
-  if (_modSubTab === 'prism') {
-    // 기존 프리즘 렌더링
-    if (window._renderCardTab) window._renderCardTab();
-    return;
-  }
-  // 모듈 탭
   cont.innerHTML = '';
   var wrap = document.createElement('div');
   wrap.style.cssText = 'padding:12px;font-family:Courier New,monospace;';
@@ -16477,11 +16449,11 @@ var _origShowMod = window.showScreen;
 if (typeof _origShowMod === 'function') {
   window.showScreen = function(name) {
     _origShowMod.apply(this, arguments);
-    if (name === 'module') {
+    if (name === 'mods') {
       try {
-        var mg=document.getElementById('module-gold'); if(mg) mg.textContent=(PERM&&PERM.gold)||0;
-        var mgm=document.getElementById('module-gem'); if(mgm) mgm.textContent=(PERM&&PERM.gems)||0;
-        var mf=document.getElementById('module-frag'); if(mf) mf.textContent=(PERM&&PERM.prismFragments)||0;
+        var mg2=document.getElementById('mods-gold'); if(mg2) mg2.textContent=(PERM&&PERM.gold)||0;
+        var mgm2=document.getElementById('mods-gem'); if(mgm2) mgm2.textContent=(PERM&&PERM.gems)||0;
+        var mf2=document.getElementById('mods-frag'); if(mf2) mf2.textContent=(PERM&&PERM.prismFragments)||0;
       } catch(_){}
       _renderModuleContent();
     }
