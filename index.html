@@ -4363,10 +4363,19 @@ function buildCards() {
     pane.innerHTML = '';
     // 유틸 탭 해금 안 되면 잠금 안내 표시
     if (tabKey === 'utl' && !_utlTabOpen) {
-      pane.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:100%;height:100%;gap:6px;opacity:0.5;position:absolute;left:0;right:0;top:0;bottom:0;">' +
-        '<div style="color:#556677;font-family:monospace;font-size:11px;text-align:center;">유틸리티 잠금</div>' +
-        '<div style="color:#334455;font-family:monospace;font-size:9px;text-align:center;">강화소에서 해금할 수 있습니다</div></div>';
-      pane.style.position = 'relative';
+      pane.innerHTML = '';
+      // #tab-content 기준으로 중앙 배치되는 오버레이
+      var _utlLock = document.getElementById('utl-lock-overlay');
+      if (!_utlLock) {
+        _utlLock = document.createElement('div');
+        _utlLock.id = 'utl-lock-overlay';
+        _utlLock.style.cssText = 'display:none;position:absolute;left:0;right:0;top:0;bottom:0;z-index:2;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none;';
+        _utlLock.innerHTML =
+          '<div style="color:#556677;font-family:monospace;font-size:11px;text-align:center;">유틸리티 잠금</div>' +
+          '<div style="color:#445566;font-family:monospace;font-size:9px;text-align:center;">강화소에서 해금할 수 있습니다</div>';
+        var _tc = document.getElementById('tab-content');
+        if (_tc) { _tc.style.position = 'relative'; _tc.appendChild(_utlLock); }
+      }
       continue;
     }
     for (const upg of UPGRADES) {
@@ -4463,6 +4472,11 @@ function setActiveTab(tabKey) {
       if (k === 'utl') { tb.style.display = ''; tb.style.opacity = '1'; if (!_utlOpen && k !== tabKey) tb.style.color = '#4a6a7a'; }
     }
     if (pn) pn.classList.toggle('active', k === tabKey);
+  }
+  // 유틸 잠금 오버레이 표시/숨김
+  var _utlLock = document.getElementById('utl-lock-overlay');
+  if (_utlLock) {
+    _utlLock.style.display = (tabKey === 'utl' && !_utlOpen) ? 'flex' : 'none';
   }
 }
 
@@ -11773,15 +11787,18 @@ function _injectUtilTabInGame() {
   var pane=document.createElement('div');
   pane.id='pane-util';
   pane.className='tab-pane';
-  // display handled by .tab-pane/.tab-pane.active CSS; override row→column and max-content→100%
-  pane.style.cssText='flex-direction:column !important;align-items:center !important;justify-content:center !important;width:100% !important;height:100% !important;gap:16px;padding:20px;box-sizing:border-box;flex-wrap:nowrap !important;';
-  pane.innerHTML=
-    '<div style="font-size:40px;">🔨</div>'+
-    '<div style="color:#334455;font-family:monospace;font-size:13px;font-weight:bold;text-align:center;letter-spacing:2px;">유틸리티 잠금</div>'+
-    '<div style="color:#556677;font-family:monospace;font-size:10px;text-align:center;line-height:1.8;max-width:220px;">'+
-      '유틸리티 업그레이드는<br>강화소에서 해금할 수 있습니다.</div>'+
-    '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어랩으로 이동</button>';
   tabContent.appendChild(pane);
+
+  // 유틸 잠금 오버레이 (tab-content 기준 중앙)
+  var utilLock2=document.createElement('div');
+  utilLock2.id='util-lock-overlay2';
+  utilLock2.style.cssText='display:none;position:absolute;left:0;right:0;top:0;bottom:0;z-index:2;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:auto;';
+  utilLock2.innerHTML=
+    '<div style="color:#556677;font-family:monospace;font-size:13px;font-weight:bold;text-align:center;letter-spacing:2px;">유틸리티 잠금</div>'+
+    '<div style="color:#445566;font-family:monospace;font-size:10px;text-align:center;line-height:1.8;">유틸리티 업그레이드는<br>강화소에서 해금할 수 있습니다.</div>'+
+    '<button id="util-go-lab" style="background:#030b10;border:1px solid #a78bfa;color:#a78bfa;font-family:monospace;font-size:11px;padding:10px 24px;cursor:pointer;">코어랩으로 이동</button>';
+  tabContent.style.position='relative';
+  tabContent.appendChild(utilLock2);
 
   btn.addEventListener('click',function(){
     // 탭 버튼 상태 업데이트
@@ -11792,9 +11809,21 @@ function _injectUtilTabInGame() {
     var allPanes=tabContent.querySelectorAll('.tab-pane');
     for(var j=0;j<allPanes.length;j++){ allPanes[j].classList.remove('active'); }
     pane.classList.add('active');
+    // 유틸 잠금 오버레이 표시
+    var _ul2=document.getElementById('util-lock-overlay2');
+    if(_ul2) _ul2.style.display='flex';
   });
 
-  var goLabBtn=pane.querySelector('#util-go-lab');
+  // 다른 탭 클릭 시 유틸 잠금 오버레이 숨김
+  var otherBtns=tabBar.querySelectorAll('.tab-btn:not(#tab-util)');
+  for(var obi=0;obi<otherBtns.length;obi++){
+    otherBtns[obi].addEventListener('click',function(){
+      var _ul2=document.getElementById('util-lock-overlay2');
+      if(_ul2) _ul2.style.display='none';
+    });
+  }
+
+  var goLabBtn=utilLock2.querySelector('#util-go-lab');
   if(goLabBtn) {
     goLabBtn.addEventListener('click',function(){
       // 인게임 → 홈 → 랩으로 이동
