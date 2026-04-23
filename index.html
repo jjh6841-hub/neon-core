@@ -2015,15 +2015,20 @@ function _openAttendPopup(justClaimed) {
 }
 
 // ── Achievement Toast ──
-function showAchievementToast(name) {
+// 범용 토스트 (업적 아닌 일반 알림)
+function showToastMsg(msg, color) {
   var existing = document.querySelector('.ach-toast');
   if (existing) existing.remove();
   var toast = document.createElement('div');
   toast.className = 'ach-toast';
-  toast.textContent = '▣ 업적 달성: ' + name;
-  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid #00ffff;color:#00ffff;font-family:"Courier New",monospace;font-size:12px;padding:8px 16px;z-index:9999;white-space:nowrap;pointer-events:none;animation:fadeInOut 2s ease forwards;';
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid '+(color||'#00ffff')+';color:'+(color||'#00ffff')+';font-family:"Courier New",monospace;font-size:12px;padding:8px 16px;z-index:9999;white-space:nowrap;pointer-events:none;animation:fadeInOut 2s ease forwards;';
   document.body.appendChild(toast);
   setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2000);
+}
+// 업적 전용 토스트
+function showAchievementToast(name) {
+  showToastMsg('업적 달성: ' + name, '#a78bfa');
 }
 
 // ── 보상 수령 팝업 ──
@@ -7598,7 +7603,7 @@ function _buildLabSlots() {
           try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
           _buildLabSlots();
           var rName = (ALL_RESEARCH.filter(function(r){return r.id===sid;})[0]||{}).name || sid;
-          try { if(window.showAchievementToast) showAchievementToast('연구 완료: '+rName); } catch(_){}
+          try { if(window.showToastMsg) showToastMsg('연구 완료: '+rName); } catch(_){}
         });
       })(i, slotData);
     }
@@ -7748,7 +7753,7 @@ setInterval(function() {
         _labNotified[nk] = true;
         var rObj = ALL_RESEARCH.filter(function(r) { return r.id === sd.researchId; })[0];
         var rName = rObj ? rObj.name : sd.researchId;
-        if (window.showAchievementToast) showAchievementToast('연구 완료: ' + rName);
+        if (window.showToastMsg) showToastMsg('연구 완료: ' + rName);
         if (window.showRewardPopup) showRewardPopup([{icon:'◈', label:rName, amount:1, color:'#00ff88'}], '연구 완료');
         _buildLabSlots();
       }
@@ -8660,7 +8665,7 @@ window._closeAccountPopup = function(giveReward) {
   if (giveReward) {
     if (window.PERM) { window.PERM.gems = (window.PERM.gems || 0) + 20; }
     if (window.savePerm) window.savePerm();
-    if (window.showAchievementToast) window.showAchievementToast('❖ +20 보석 지급!');
+    if (window.showToastMsg) showToastMsg('❖ +20 보석 지급!');
   }
 };
 
@@ -9359,7 +9364,7 @@ setTimeout(_updateBadge, 500);
             if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
             localStorage.setItem(mission.id+'_claimed', st.claimed+st.claimable);
             if(window.savePerm) savePerm();
-            if(window.showAchievementToast) showAchievementToast('◈+'+gGold+(gGems>0?' ❖+'+gGems:'')+' 획득!');
+            if(window.showToastMsg) showToastMsg('◈+'+gGold+(gGems>0?' ❖+'+gGems:'')+' 획득!');
             var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
             var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
             _renderInf();
@@ -9443,7 +9448,7 @@ setTimeout(_updateBadge, 500);
         localStorage.setItem('weekly_challenge_claimed_'+cp,'true');
         if(window.PERM){ PERM.gems=(PERM.gems||0)+rw; }
         if(window.savePerm) savePerm();
-        if(window.showAchievementToast) showAchievementToast('❖+'+rw+' 획득!');
+        if(window.showToastMsg) showToastMsg('❖+'+rw+' 획득!');
         var gm2=document.getElementById('miss-gems-display'); if(gm2&&window.PERM) gm2.textContent=PERM.gems||0;
         _renderWGauge();
       });
@@ -9949,7 +9954,7 @@ function _doUnlock(tab) {
   window.savePerm && savePerm();
   if (_popup) _popup.style.display = 'none';
   _applyTabStyles();
-  if (window.showAchievementToast) showAchievementToast(cfg.label + ' 탭 해금!');
+  if (window.showToastMsg) showToastMsg(cfg.label + ' 탭 해금!', '#00ff88');
 }
 
 function _flash(msg) {
@@ -11321,7 +11326,7 @@ function _showPrismDetailPopup(pid) {
   var eqBtn=document.getElementById('pd-equip');
   if(eqBtn) eqBtn.addEventListener('click',function(){
     if(!_toggleEquip(pid)){
-      if(window.showAchievementToast) showAchievementToast('슬롯이 가득 찼습니다');
+      if(window.showToastMsg) showToastMsg('슬롯이 가득 찼습니다', '#ef4444');
       return;
     }
     window.savePerm&&window.savePerm();
@@ -11473,7 +11478,7 @@ function _renderCardTab() {
         _setSlots(idx+1);
         window.savePerm&&window.savePerm();
         _syncPrismHUD();
-        if(window.showAchievementToast) showAchievementToast('슬롯 '+(idx+1)+'번 해금!');
+        if(window.showToastMsg) showToastMsg('슬롯 '+(idx+1)+'번 해금!', '#00ff88');
         _renderCardTab();
       });
     });
@@ -11509,7 +11514,7 @@ function _renderCardTab() {
     if(total>0){
       _setFragments(_getFragments()+total*5);
       window.savePerm&&window.savePerm();
-      if(window.showAchievementToast) showAchievementToast('프리즘 '+total+'개 분해 → 파편 '+(total*5)+'개 획득!');
+      if(window.showToastMsg) showToastMsg('프리즘 '+total+'개 분해 → 파편 '+(total*5)+'개 획득!');
       _renderCardTab();
     }
   });
@@ -11549,7 +11554,7 @@ function _renderCardTab() {
             _setFragments(_getFragments()-30);
             _addPrismDrop(pid);
             window.savePerm&&window.savePerm();
-            if(window.showAchievementToast) showAchievementToast('◈ '+pName+' 획득!');
+            if(window.showToastMsg) showToastMsg('◈ '+pName+' 획득!', '#cc44ff');
             pop.remove();
             _renderCardTab();
           });
@@ -14858,7 +14863,7 @@ function renderLab(){
         localStorage.setItem('accessCodes',cur-w.unlockCost);
         var s=window._loadUW(); if(!s[id])s[id]={}; s[id].unlocked=true; window._saveUW(s);
         renderLab();
-        if(window.showAchievementToast) showAchievementToast(w.name+' 해금!');
+        if(window.showToastMsg) showToastMsg(w.name+' 해금!', '#00ff88');
       });
     })(wep.id);
 
@@ -15015,7 +15020,7 @@ function renderResearch() {
         localStorage.setItem('res_'+rid, curLv+1);
         localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1);
         renderResearch();
-        if(window.showAchievementToast) showAchievementToast(it.name+' Lv.'+(curLv+1)+'!');
+        if(window.showToastMsg) showToastMsg(it.name+' Lv.'+(curLv+1)+'!');
       });
     })(item.id);
     list.appendChild(card);
@@ -15256,7 +15261,7 @@ function _injectAbsorbPack() {
       if (localStorage.getItem('shop_absorb_bonus')) return;
       // 실제 결제 연동 전 테스트: 즉시 적용
       localStorage.setItem('shop_absorb_bonus', '0.05');
-      if (window.showAchievementToast) showAchievementToast('흡혈 코어 팩 구매 완료! +5%');
+      if (window.showToastMsg) showToastMsg('흡혈 코어 팩 구매 완료! +5%');
       // 리렌더
       var old = document.getElementById('absorb-pack-card');
       if (old) old.remove();
@@ -16431,7 +16436,7 @@ function _renderStagePopup() {
     _setCore(eId, _getCore(eId) + rw);
     _setCleared(eId, Math.max(_getCleared(eId), stg));
     _setStage(eId, stg + 1);
-    if (window.showAchievementToast) showAchievementToast(el.icon + ' ' + stg + '단계 클리어! ' + el.core + ' +' + rw);
+    if (window.showToastMsg) showToastMsg(el.icon + ' ' + stg + '단계 클리어! ' + el.core + ' +' + rw);
     _viewStage = Math.min(stg + 1, MAX_STAGE);
     _renderStagePopup();
     renderExplore();
@@ -16447,7 +16452,7 @@ function _renderStagePopup() {
     var total = 0;
     for (var hh = 1; hh <= clr; hh++) total += _stageReward(hh);
     _setCore(eId, _getCore(eId) + total);
-    if (window.showAchievementToast) showAchievementToast(el.icon + ' 즉시 수확! ' + el.core + ' +' + total);
+    if (window.showToastMsg) showToastMsg(el.icon + ' 즉시 수확! ' + el.core + ' +' + total);
     _renderStagePopup();
     renderExplore();
   };
@@ -17271,7 +17276,7 @@ function _showModuleDetail(mod) {
     d.inventory=invArr; d.slots=sl; _saveMods(d);
     ov.remove(); _renderModuleContent();
     var nTier=TIERS[newMod.tier];
-    if(window.showAchievementToast) showAchievementToast(nTier.name+' \ud569\uc131 \uc131\uacf5!');
+    if(window.showToastMsg) showToastMsg(nTier.name+' 합성 성공!', '#f59e0b');
   });
   // 분해
   var shatterBtn = document.getElementById('mod-shatter');
@@ -17287,7 +17292,7 @@ function _showModuleDetail(mod) {
       d2.moduleFragments=(d2.moduleFragments||0)+frags;
       _saveMods(d2);
       ov.remove(); _renderModuleContent();
-      if(window.showAchievementToast) showAchievementToast('\u29bf '+frags+' \ubaa8\ub4c8 \ud30c\ud3b8 \ud68d\ub4dd!');
+      if(window.showToastMsg) showToastMsg('모듈 파편 '+frags+'개 획득!');
     });
   });
 }
