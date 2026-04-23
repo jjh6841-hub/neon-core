@@ -2374,11 +2374,11 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('defAbs',10); },
     apply()  { var c=upgCost('defAbs',10); coreChips-=c; G.upgLvl.defAbs=(G.upgLvl.defAbs||0)+1; G.defenseAbs=Math.max(1,Math.round((G.defenseAbs||1)*1.20)); },
   },
-  { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp', maxLv:30,
+  { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp', maxLv:150,
     cost()   { return upgCost('vamp',9); },
-    stat()   { return (G.lifeSteal||0).toFixed(1)+'%'; },
-    canBuy() { return coreChips>=upgCost('vamp',9); },
-    apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal=Math.min(15,(G.upgLvl.vamp||0)*0.5); },
+    stat()   { return ((G.upgLvl.vamp||0)*0.1).toFixed(1)+'%'; },
+    canBuy() { return coreChips>=upgCost('vamp',9) && (G.upgLvl.vamp||0)<150; },
+    apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; },
   },
   { key:'reflect', tab:'def', icon:'↩',  name:'반사',     baseCost:10, unlock:null, maxLv:30,
     cost()   { return upgCost('reflect',10); },
@@ -2783,7 +2783,7 @@ function applyPermStats() {
   t.defense    = Math.min(0.50, (ws.defRate || 0) * 0.01);  // 회피율 1%/lv, 50% 캡
   t.hpRegen    = (ws.hpRegen    || 0) * 0.05;
   G.defenseAbs = ws.defAbs || 0;                             // 절대 방어
-  G.lifeSteal  = (ws.vampChance || 0) * 0.5;                 // 흡혈 0.5%/lv
+  G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
   G.gemMult    = 1 + (ws.gemGain  || 0) * 0.1;
   G.rangeLevel = 5 + PERM.rngLv;
@@ -3144,6 +3144,11 @@ function update(dt) {
             e.hitFlash = 3;
           }
         }
+        // 흡혈: 적 적중 시 공격력의 X% 회복
+        if (G.lifeSteal > 0) {
+          var _healAmt = dmg * G.lifeSteal / 100;
+          if (_healAmt > 0) G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _healAmt);
+        }
         // Slow on hit
         if (G.slowPct > 0) e.slowTimer = 1500;
         e.hp -= dmg;
@@ -3177,10 +3182,6 @@ function update(dt) {
           // Colored particles by enemy type
           var _pColors = { basic:'#ef4444', tank:'#ff6600', rusher:'#ff0055', sniper:'#aa00ff', boss:'#ffcc00' };
           spawnDeathParticles(e.x, e.y, _pColors[e.type] || '#ef4444', e.boss ? 16 : 8);
-          // Life steal
-          if (G.lifeSteal > 0) {
-            G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + G.lifeSteal);
-          }
           // Explosion AOE
           if (G.explodeR > 0) {
             const ex = e.x, ey = e.y;
@@ -10281,8 +10282,8 @@ function _applyWsCostPatches() {
     items.hpRegen.nxt = function(lv) { return ((lv + 1) * 0.05).toFixed(2) + '/s'; };
   }
   if (items.vampChance) {
-    items.vampChance.cur = function(lv) { return (lv * 0.5).toFixed(1) + '%'; };
-    items.vampChance.nxt = function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; };
+    items.vampChance.cur = function(lv) { return (lv * 0.1).toFixed(1) + '%'; };
+    items.vampChance.nxt = function(lv) { return ((lv + 1) * 0.1).toFixed(1) + '%'; };
   }
   if (items.goldGain) {
     items.goldGain.cur = function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); };
@@ -10851,6 +10852,12 @@ function _prismIcon(id,c){
     p_crit_rate2:'<circle cx="H" cy="H" r="16" fill="none" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="8" fill="none" stroke="C" stroke-width="1"/><line x1="H" y1="6" x2="H" y2="42" stroke="C" stroke-width="2"/><line x1="6" y1="H" x2="42" y2="H" stroke="C" stroke-width="2"/><circle cx="H" cy="H" r="3" fill="C"/>',
     p_crit_dmg2:'<polygon points="H,4 28,16 38,16 30,26 33,38 H,32 15,38 18,26 10,16 20,16" fill="C" opacity="0.2" stroke="C" stroke-width="1.5"/><polygon points="H,10 26,18 33,18 28,25 30,33 H,29 18,33 20,25 15,18 22,18" fill="C" opacity="0.3"/>',
     p_splash:'<circle cx="H" cy="H" r="8" fill="C" opacity="0.3"/><circle cx="H" cy="H" r="14" fill="none" stroke="C" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="H" cy="H" r="20" fill="none" stroke="C" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/><line x1="H" y1="4" x2="H" y2="12" stroke="C" stroke-width="1.5"/><line x1="H" y1="36" x2="H" y2="44" stroke="C" stroke-width="1.5"/><line x1="4" y1="H" x2="12" y2="H" stroke="C" stroke-width="1.5"/><line x1="36" y1="H" x2="44" y2="H" stroke="C" stroke-width="1.5"/>',
+    p_overload:'<polygon points="H,6 36,16 36,36 H,44 12,36 12,16" fill="C" opacity="0.15" stroke="C" stroke-width="1.5"/><line x1="16" y1="36" x2="32" y2="12" stroke="C" stroke-width="2.5"/><line x1="18" y1="12" x2="30" y2="36" stroke="C" stroke-width="2.5"/>',
+    p_vuln:'<circle cx="H" cy="H" r="16" fill="none" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="10" fill="none" stroke="C" stroke-width="1" stroke-dasharray="3 2"/><line x1="H" y1="8" x2="H" y2="18" stroke="C" stroke-width="2"/><circle cx="H" cy="H" r="3" fill="C"/><line x1="H" y1="28" x2="H" y2="40" stroke="C" stroke-width="1.5" opacity="0.5"/>',
+    p_last_stand:'<path d="M24,5 L42,14 L42,28 Q42,42 24,46 Q6,42 6,28 L6,14Z" fill="C" opacity="0.1" stroke="C" stroke-width="1.5"/><line x1="14" y1="32" x2="34" y2="32" stroke="C" stroke-width="1.5"/><rect x="14" y="32" width="20" height="8" fill="C" opacity="0.3"/><text x="H" y="22" text-anchor="middle" fill="C" font-size="14" font-weight="bold" font-family="monospace">!</text>',
+    p_emergency:'<path d="M24,12 Q18,4 11,12 Q4,20 24,40 Q44,20 37,12 Q30,4 24,12Z" fill="C" opacity="0.15" stroke="C" stroke-width="1.5"/><line x1="H" y1="16" x2="H" y2="28" stroke="C" stroke-width="3"/><line x1="18" y1="22" x2="30" y2="22" stroke="C" stroke-width="3"/><circle cx="H" cy="34" r="2" fill="C"/>',
+    p_absorb:'<path d="M24,12 Q18,4 11,12 Q4,20 24,40 Q44,20 37,12 Q30,4 24,12Z" fill="C" opacity="0.2" stroke="C" stroke-width="1.5"/><circle cx="H" cy="22" r="6" fill="C" opacity="0.3"/><line x1="18" y1="28" x2="30" y2="16" stroke="C" stroke-width="1.5"/>',
+    p_jam:'<rect x="8" y="12" width="32" height="24" rx="3" fill="C" opacity="0.1" stroke="C" stroke-width="1.5"/><line x1="12" y1="20" x2="36" y2="20" stroke="C" stroke-width="1"/><line x1="12" y1="26" x2="36" y2="26" stroke="C" stroke-width="1"/><line x1="12" y1="32" x2="24" y2="32" stroke="C" stroke-width="1"/><line x1="10" y1="16" x2="38" y2="32" stroke="C" stroke-width="2.5" opacity="0.6"/>',
     p_cash:'<circle cx="H" cy="H" r="16" fill="C" opacity="0.12" stroke="C" stroke-width="1.8"/><circle cx="H" cy="H" r="10" fill="none" stroke="C" stroke-width="1" opacity="0.3"/><text x="H" y="30" text-anchor="middle" fill="C" font-size="22" font-weight="bold" font-family="monospace">$</text>',
     p_aura:'<circle cx="H" cy="H" r="7" fill="C" opacity="0.35"/><circle cx="H" cy="H" r="12" fill="none" stroke="C" stroke-width="1.5" opacity="0.6"/><circle cx="H" cy="H" r="17" fill="none" stroke="C" stroke-width="1" opacity="0.35"/><circle cx="H" cy="H" r="21" fill="none" stroke="C" stroke-width="0.8" opacity="0.15"/>',
     p_crit_rate:'<circle cx="H" cy="H" r="16" fill="none" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="8" fill="none" stroke="C" stroke-width="1"/><line x1="H" y1="6" x2="H" y2="42" stroke="C" stroke-width="1.5"/><line x1="6" y1="H" x2="42" y2="H" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="3" fill="C" opacity="0.6"/>',
@@ -10881,12 +10888,17 @@ var PRISMS = [
   {id:'p_crit_rate2', cat:'atk',    name:'강화 치명타 확률', desc:'치명타 확률 추가 증가', lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[1.5,1.75,2.0,2.25,2.5], unit:'x'},
   {id:'p_splash',     cat:'atk',    name:'연쇄 타격',       desc:'적 처치 시 주변 스플래시', lvEff:[10,20,30,40,50], unit:'%'},
-  /* 방어 (5종) */
+  {id:'p_overload',   cat:'atk',    name:'과부하 코어',     desc:'HP가 낮을수록 공격력 증가', lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_vuln',       cat:'atk',    name:'취약점 노출',     desc:'피해 누적 시 추가 피해',   lvEff:[2,4,6,8,10], unit:'%'},
+  /* 방어 (8종) */
   {id:'p_max_hp',     cat:'def',    name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[20,40,60,80,100], unit:'%'},
   {id:'p_hp_regen',   cat:'def',    name:'자가 수복',       desc:'체력 재생 증가',       lvEff:[20,40,60,80,100], unit:'%'},
   {id:'p_def',        cat:'def',    name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[20,40,60,80,100], unit:'%'},
   {id:'p_shield_cd',  cat:'def',    name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
   {id:'p_fort',       cat:'def',    name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_last_stand', cat:'def',    name:'최후의 저항',     desc:'HP 20% 이하 시 피해 감소', lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_emergency',  cat:'def',    name:'긴급 수리',       desc:'30초마다 최대 HP% 즉시 회복', lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_absorb',     cat:'def',    name:'에너지 흡수',     desc:'흡혈 비율 증가',        lvEff:[1,2,3,4,5], unit:'%'},
   /* 경제 (3종) */
   {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',           lvEff:[20,40,60,80,100], unit:'%'},
   {id:'p_cash',       cat:'eco',    name:'코어 수확',       desc:'웨이브 클리어 코어칩 추가 보상', lvEff:[20,40,60,80,100], unit:'%'},
@@ -10896,6 +10908,7 @@ var PRISMS = [
   {id:'p_aura',       cat:'spc',    name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
   {id:'p_wave_skip',  cat:'spc',    name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[1,2,3,4,5], unit:'%'},
   {id:'p_intro_sprint',cat:'spc',   name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_jam',        cat:'spc',    name:'전파 방해',       desc:'스나이퍼 공격력 감소',  lvEff:[10,20,30,40,50], unit:'%'},
 ];
 var PRISM_CAT_LABEL = {atk:'공격',def:'방어',eco:'경제',spc:'특수'};
 var PRISM_CAT_COLOR = {atk:'#ef4444',def:'#3b82f6',eco:'#f59e0b',spc:'#cc44ff'};
@@ -11043,7 +11056,13 @@ function _applyPrismEffects() {
       case 'p_shield_cd':  break; // 아래에서 maxHp 확정 후 처리
       case 'p_free_upg':   G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
       case 'p_aura':       G.auraSlowPct = (G.auraSlowPct||0) + val/100; break;
-      case 'p_fort':       G.knockbackChance = (G.knockbackChance||0) + val/100; break;   // #20 넉백 확률
+      case 'p_fort':       G.knockbackChance = (G.knockbackChance||0) + val/100; break;
+      case 'p_last_stand': G.lastStandPct = (G.lastStandPct||0) + val/100; break;
+      case 'p_emergency':  G.emergencyHealPct = (G.emergencyHealPct||0) + val/100; break;
+      case 'p_absorb':     G.lifeSteal = (G.lifeSteal||0) + val; break;  // 흡혈에 합연산 (+1~5%)
+      case 'p_overload':   G.overloadPct = (G.overloadPct||0) + val/100; break;
+      case 'p_vuln':       G.vulnPct = (G.vulnPct||0) + val/100; break;
+      case 'p_jam':        G.jamPct = (G.jamPct||0) + val/100; break;
       case 'p_wave_skip':  G.waveSkipChance = (G.waveSkipChance||0) + val/100; break;
       case 'p_intro_sprint':G.introBonus = (G.introBonus||0) + val/100; break;
     }
@@ -11997,7 +12016,7 @@ function _showStatsPopup() {
   h+=_row('치명타 확률',((ws.critChance||0)*0.5).toFixed(1)+'%','#cc44ff');
   h+=_row('치명타 배율','x'+(1.5+(ws.critMult||0)*0.1).toFixed(2),'#cc44ff');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
-  h+=_row('흡혈',((ws.vampChance||0)*0.5).toFixed(1)+'%','#ef4444');
+  h+=_row('흡혈',((ws.vampChance||0)*0.1).toFixed(1)+'%','#ef4444');
 
   // ── 강화소 ── (강화소 화면 표시 공식과 동일)
   h+=_section('강화소');
@@ -12011,7 +12030,7 @@ function _showStatsPopup() {
   var _hrl=ws.hpRegen||0;  h+=_row('체력 재생 Lv.'+_hrl, (_hrl*0.05).toFixed(2)+'/s');
   var _kbl=ws.knockbackChance||0; h+=_row('넉백 확률 Lv.'+_kbl, (_kbl*0.5).toFixed(1)+'%');
   var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5).toFixed(1)+'%');
-  var _vcl=ws.vampChance||0; h+=_row('흡혈 확률 Lv.'+_vcl, (_vcl*0.5).toFixed(1)+'%');
+  var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1).toFixed(1)+'%');
   var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, (_shl*10));
   var _ggl=ws.goldGain||0;  h+=_row('골드 획득 Lv.'+_ggl, 'x'+(1+_ggl*0.1).toFixed(1));
   var _gel=ws.gemGain||0;   h+=_row('보석 획득 Lv.'+_gel, 'x'+(1+_gel*0.1).toFixed(1));
