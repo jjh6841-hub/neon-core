@@ -3137,6 +3137,11 @@ function update(dt) {
         let dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
         if (G.goldDmgPct) dmg += Math.floor(G.gold / 100 * G.goldDmgPct);
         if (b.crit) dmg *= 2;
+        // 강화 치명타 (일반 치명타와 독립적으로 추가 곱연산)
+        if (G.enhCritChance && G.enhCritMult && Math.random() < G.enhCritChance) {
+          dmg = Math.round(dmg * G.enhCritMult);
+          e.hitFlash = 3;
+        }
         // Slow on hit
         if (G.slowPct > 0) e.slowTimer = 1500;
         e.hp -= dmg;
@@ -11023,8 +11028,8 @@ function _applyPrismEffects() {
       case 'p_max_hp':     t.maxHp = Math.round(t.maxHp * (1 + val/100)); t.hp = t.maxHp; break; // #5 곱연산 20%씩
       case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
       case 'p_range':      t.range = t.range + val * 3; break;
-      case 'p_crit_rate2': t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
-      case 'p_crit_dmg2':  G.critMult = (G.critMult||1.5) + val; break;
+      case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break;
+      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||1) + val; break;
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100) || val * 0.01; break; // #6 곱연산 20%씩
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
