@@ -11765,31 +11765,38 @@ function _showStatsPopup() {
 
   // ── 코어랩 연구 ──
   h+=_section('코어랩 연구');
-  var labItems=[
-    ['게임 속도','game_speed'],['공격 할인','atk_discount'],['방어 할인','def_discount'],
-    ['연구 속도','lab_speed'],['공격력','r_damage'],['속도','r_spd'],['치명타','r_crit'],
-    ['분열탄','r_multishot'],['치명타 계수','r_crit_mult'],['사거리','r_range'],['관통','r_pierce'],
-    ['넉백','r_knockback'],['체력','r_health'],['재생','r_regen'],['방어','r_defense'],
-    ['지뢰','r_mine'],['반사','r_reflect'],['흡혈','r_vamp'],['쉴드','r_shield'],
-    ['시작 골드','start_cash'],['웨이브 골드','r_wave_cash'],['보석 획득','r_gem_gain'],['골드 획득','r_gold_gain'],
-    ['속성 공격','r_elem_atk'],['속성 방어','r_elem_def'],['속성 체력','r_elem_hp']
+  var _labData=[
+    ['게임 속도','game_speed',function(l){return '+'+l+'단계';}],
+    ['공격 할인','atk_discount',function(l){return '-'+l+'%';}],
+    ['방어 할인','def_discount',function(l){return '-'+l+'%';}],
+    ['연구 속도','lab_speed',function(l){return '-'+(l*2)+'%';}],
+    ['공격력','r_damage',function(l){return '+'+(l*2)+'%';}],
+    ['속도','r_spd',function(l){return '+'+(l*2)+'%';}],
+    ['치명타','r_crit',function(l){return '+'+(l*0.5).toFixed(1)+'%';}],
+    ['분열탄','r_multishot',function(l){return '+'+l;}],
+    ['치명타 계수','r_crit_mult',function(l){return '+'+(l*5)+'%';}],
+    ['사거리','r_range',function(l){return '+'+(l*2)+'%';}],
+    ['관통','r_pierce',function(l){return '+'+l;}],
+    ['넉백','r_knockback',function(l){return '+'+(l*0.5).toFixed(1)+'%';}],
+    ['체력','r_health',function(l){return '+'+(l*3)+'%';}],
+    ['재생','r_regen',function(l){return '+'+(l*0.1).toFixed(1)+'/s';}],
+    ['방어','r_defense',function(l){return '+'+(l*2)+'%';}],
+    ['지뢰','r_mine',function(l){return '+'+(l*5)+'%';}],
+    ['반사','r_reflect',function(l){return '+'+(l*2)+'%';}],
+    ['흡혈','r_vamp',function(l){return '+'+(l*0.5).toFixed(1)+'%';}],
+    ['쉴드','r_shield',function(l){return '+'+(l*5)+'%';}],
+    ['시작 골드','start_cash',function(l){return '+'+(l*50);}],
+    ['웨이브 골드','r_wave_cash',function(l){return '+'+(l*2)+'%';}],
+    ['보석 획득','r_gem_gain',function(l){return '+'+(l*2)+'%';}],
+    ['골드 획득','r_gold_gain',function(l){return '+'+(l*2)+'%';}],
+    ['속성 공격','r_elem_atk',function(l){return '+'+(l*2)+'%';}],
+    ['속성 방어','r_elem_def',function(l){return '+'+(l*2)+'%';}],
+    ['속성 체력','r_elem_hp',function(l){return '+'+(l*2)+'%';}]
   ];
-  labItems.forEach(function(li){
+  _labData.forEach(function(li){
     var lv=parseInt(localStorage.getItem('res_'+li[1])||'0',10);
-    if(lv>0) h+=_row(li[0]+' 연구','Lv.'+lv);
+    if(lv>0) h+=_row(li[0]+' Lv.'+lv, li[2](lv));
   });
-  var labDone=parseInt(localStorage.getItem('stat_research_done')||'0',10);
-  h+=_row('총 연구 완료',labDone+'회','#556677');
-
-  // ── 프리즘 ──
-  h+=_section('프리즘');
-  var prisms=PERM.prisms||{};
-  var pCount=0,pLv5=0;
-  for(var pk in prisms){if(prisms[pk]&&prisms[pk].lv>0){pCount++;if(prisms[pk].lv>=5)pLv5++;}}
-  h+=_row('보유 프리즘',pCount+'개');
-  h+=_row('Lv.5 프리즘',pLv5+'개');
-  h+=_row('장착 슬롯',(PERM.prismSlotCount||1)+'개');
-  h+=_row('프리즘 파편',(PERM.prismFragments||0)+'개');
 
   // ── 속성 ──
   h+=_section('속성');
