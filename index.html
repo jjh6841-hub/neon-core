@@ -3125,7 +3125,7 @@ function update(dt) {
       if (ddx * ddx + ddy * ddy < (e.r + 5) * (e.r + 5)) {
         if (b.hitSet) b.hitSet.add(e);
         let dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
-        if (G.goldDmgPct) dmg += Math.floor(G.gold * G.goldDmgPct);
+        if (G.goldDmgPct) dmg += Math.floor(G.gold / 100 * G.goldDmgPct);
         if (b.crit) dmg *= 2;
         // Slow on hit
         if (G.slowPct > 0) e.slowTimer = 1500;
@@ -8285,12 +8285,11 @@ setInterval(function() {
   var g = window.G;
   if (!g || g === _lastG) return;
   _lastG = g;
-  // 새 게임 시작 시 인덱스 리셋 (×1)
-  _sIdx = 0; _updateDisplay(); _syncBtnColors();
-  var m = document.getElementById('speed-minus');
-  if (m) m.style.color = '#334455';
-  var p = document.getElementById('speed-plus');
-  if (p) p.style.color = '#00ffff';
+  // 새 게임 시작 시 저장된 배속 복원
+  var _sv = parseFloat(localStorage.getItem('neoncore_speed') || '1') || 1;
+  var _si2 = SPEED_STEPS.indexOf(_sv);
+  _sIdx = _si2 !== -1 ? _si2 : 0;
+  _updateDisplay(); _syncBtnColors();
 }, 500);
 
 }());
@@ -10841,34 +10840,27 @@ function _prismIcon(id,c){
 
 var PRISMS = [
   /* 활성화 (6종) */
-  {id:'p_kill_cash',  cat:'active', name:'전리품 수집',     desc:'적 처치 시 자원 보상', lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_plasma_rep', cat:'active', name:'플라즈마 과부하', desc:'플라즈마 공격 위력',   lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_kill_cash',  cat:'active', name:'전리품 수집',     desc:'전투 골드 추가 획득',   lvEff:[20,40,60,80,100], unit:'%'},
   {id:'p_shield_cd',  cat:'active', name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
   {id:'p_free_upg',   cat:'active', name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_max_hp',     cat:'active', name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_death_ray',  cat:'active', name:'소멸 광선',       desc:'광선 공격 데미지',     lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_max_hp',     cat:'active', name:'코어 생명력',     desc:'최대 체력 증가 (곱연산)',lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_wave_skip',  cat:'active', name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_intro_sprint',cat:'active',name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
   /* 인벤토리 (12종) */
-  {id:'p_damage',     cat:'inven',  name:'화력 증폭',       desc:'기본 공격력 증가',     lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_atk_spd',    cat:'inven',  name:'속사 모듈',       desc:'발사 속도 증가',       lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_hp_regen',   cat:'inven',  name:'자가 수복',       desc:'초당 체력 재생',       lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_range',      cat:'inven',  name:'탐지 확장',       desc:'공격 사거리 확장',     lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_damage',     cat:'inven',  name:'화력 증폭',       desc:'공격력 증가 (곱연산)',  lvEff:[50,100,150,200,250], unit:'%'},
+  {id:'p_atk_spd',    cat:'inven',  name:'속사 모듈',       desc:'발사 속도 증가 (합연산)',lvEff:[0.2,0.4,0.6,0.8,1.0], unit:''},
+  {id:'p_hp_regen',   cat:'inven',  name:'자가 수복',       desc:'체력 재생 증가 (곱연산)',lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_range',      cat:'inven',  name:'탐지 확장',       desc:'사거리 확장 (합연산)',  lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_cash',       cat:'inven',  name:'자원 증폭',       desc:'웨이브 골드 보너스',   lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_coin',       cat:'inven',  name:'추가 보급',       desc:'코인 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_coin',       cat:'inven',  name:'추가 보급',       desc:'보석 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
   {id:'p_aura',       cat:'inven',  name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
   {id:'p_crit_rate',  cat:'inven',  name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
-  {id:'p_enemy_stat', cat:'inven',  name:'자원 약탈',       desc:'적 드롭 자원 증가',    lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_def',        cat:'inven',  name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_fort',       cat:'inven',  name:'방벽 프로토콜',   desc:'방어 시설 강화',       lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_enemy_stat', cat:'inven',  name:'자원 약탈',       desc:'코어랩 연구 비용 할인',lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_def',        cat:'inven',  name:'장갑 코팅',       desc:'방어력 강화 (곱연산)',  lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_fort',       cat:'inven',  name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_crit_dmg',   cat:'inven',  name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
-  /* 기타 (8종) */
-  {id:'p_free_upg2',  cat:'etc',    name:'행운의 강화+',    desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_inner_orb',  cat:'etc',    name:'내핵 방출',       desc:'오브 공격 데미지',     lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_plasma_rep2',cat:'etc',    name:'플라즈마 과부하+',desc:'플라즈마 추가 위력',   lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_crit_coin',  cat:'etc',    name:'황금 일격',       desc:'보유 골드 비례 추가 대미지',lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_wave_skip',  cat:'etc',    name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_intro_sprint',cat:'etc',   name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_inner_orb2', cat:'etc',    name:'내핵 방출+',      desc:'오브 추가 데미지',     lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_boss_dmg',   cat:'etc',    name:'거대 처치',       desc:'보스 추가 데미지',     lvEff:[5,10,15,20,25], unit:'%'},
+  /* 기타 (8종) — 제거된 7개 대신 새 패시브 추천 필요 */
+  {id:'p_crit_coin',  cat:'etc',    name:'황금 일격',       desc:'골드 1/100 추가 공격력',lvEff:[20,40,60,80,100], unit:'%'},
 ];
 var PRISM_CAT_LABEL = {active:'활성화',inven:'인벤토리',etc:'기타'};
 var PRISM_CAT_COLOR = {active:'#00ffff',inven:'#f59e0b',etc:'#cc44ff'};
@@ -10994,34 +10986,36 @@ function _applyPrismEffects() {
     if (p.lv <= 0) return;
     var val = pr.lvEff[p.lv - 1];
     switch(pr.id) {
-      case 'p_damage':     t.dmg = Math.round(t.dmg * (1 + val/100)); break;
-      case 'p_max_hp':     t.maxHp = Math.round(t.maxHp * (1 + val/100)); t.hp = t.maxHp; break;
-      case 'p_atk_spd':    t.atkMs = Math.max(200, Math.round(t.atkMs / (1 + val/100))); break;
-      case 'p_range':      t.range = Math.round(t.range * (1 + val/100)); break;
-      case 'p_hp_regen':   G.regenRate = (G.regenRate||0) + val * 0.1; break;
-      case 'p_crit_rate':  t.critChance = Math.min(0.9, (t.critChance||0) + val/100); break;
+      case 'p_damage':     t.dmg = Math.round(t.dmg * (1 + val/100)); break;              // #4 곱연산 50%씩
+      case 'p_max_hp':     t.maxHp = Math.round(t.maxHp * (1 + val/100)); t.hp = t.maxHp; break; // #5 곱연산 20%씩
+      case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
+      case 'p_range':      t.range = t.range + val * 3; break;                              // #7 합연산 (레벨당 +6~30)
+      case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100) || val * 0.01; break; // #6 곱연산 20%씩
+      case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
       case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
-      case 'p_def':        t.defense = (t.defense||0) + val/100; break;
+      case 'p_def':        t.defense = (t.defense||0) * (1 + val/100); break;              // #3 곱연산 20%씩
       case 'p_cash':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
-      case 'p_coin':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
-      case 'p_boss_dmg':   G.bossDmgMult = (G.bossDmgMult||1) * (1 + val/100); break;
-      case 'p_inner_orb':  G.orbDmgMult = (G.orbDmgMult||1) * (1 + val/100); break;
-      case 'p_inner_orb2': G.orbDmgMult = (G.orbDmgMult||1) * (1 + val/100); break;
-      case 'p_death_ray':  G.dwDmgBonus = (G.dwDmgBonus||0) + val/100; break;
-      case 'p_kill_cash':  G.killCashMult = (G.killCashMult||1) * (1 + val/100); break;
-      case 'p_enemy_stat': G.killCashMult = (G.killCashMult||1) * (1 + val/100); break;
+      case 'p_coin':       G.gemMult = (G.gemMult||1) * (1 + val/100); break;              // 보석 획득량
+      case 'p_kill_cash':  G.goldMult = (G.goldMult||1) * (1 + val/100); break;            // #14 전투 골드 추가
+      case 'p_enemy_stat': G._prismLabDiscount = (G._prismLabDiscount||0) + val/100; break; // #15 코어랩 할인
       case 'p_shield_cd':  break; // 아래에서 maxHp 확정 후 처리
       case 'p_free_upg':   G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
-      case 'p_free_upg2':  G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
       case 'p_aura':       G.auraSlowPct = (G.auraSlowPct||0) + val/100; break;
-      case 'p_fort':       G.fortMult = (G.fortMult||1) * (1 + val/100); break;
-      case 'p_plasma_rep': G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
-      case 'p_plasma_rep2':G.plasmaMult = (G.plasmaMult||1) * (1 + val/100); break;
-      case 'p_crit_coin':  G.goldDmgPct = (G.goldDmgPct||0) + val/100; break;
+      case 'p_fort':       G.knockbackChance = (G.knockbackChance||0) + val/100; break;   // #20 넉백 확률
+      case 'p_crit_coin':  G.goldDmgPct = (G.goldDmgPct||0) + val/100; break;            // #11 골드 1/100 합연산
       case 'p_wave_skip':  G.waveSkipChance = (G.waveSkipChance||0) + val/100; break;
       case 'p_intro_sprint':G.introBonus = (G.introBonus||0) + val/100; break;
     }
   });
+  // #8 속도 합연산: 프리즘 속도 보너스 적용
+  if (G._prismSpdBonus) {
+    var _totalSpd = 1 + (PERM.spdLv||0)*0.05 + ((PERM.ws&&PERM.ws.atkspd)||0)*0.05 + G._prismSpdBonus;
+    t.atkMs = Math.max(200, Math.round((window.BASE_ATKMS||1000) / _totalSpd));
+  }
+  // #11 황금 일격: 골드의 1/100 추가 공격력 (합연산)
+  if (G.goldDmgPct) {
+    G._goldDmgFlat = true; // 플래그: 데미지 계산에서 G.gold/100 * goldDmgPct 추가
+  }
   // 보호막 가속: maxHp 확정 후 보호막 계산
   var _shPr = PRISMS.filter(function(x){return x.id==='p_shield_cd';})[0];
   if (_shPr && equipped.indexOf(_shPr.id) !== -1) {
