@@ -16574,6 +16574,7 @@ var TIERS = [
   { name:'희귀',   color:'#3b82f6', border:'#2563eb' },
   { name:'영웅',   color:'#a855f7', border:'#9333ea' },
   { name:'전설',   color:'#f59e0b', border:'#d97706' },
+  { name:'고대',   color:'#ef4444', border:'#dc2626' },
 ];
 
 var MOD_SLOT_COUNT = 6;
@@ -16621,53 +16622,89 @@ function _getModInv() { var d=_loadMods(); return d.inventory || []; }
 function _getModSlots() { var d=_loadMods(); return d.slots || [null,null,null,null,null,null]; }
 function _getModSlotsBought() { var d=_loadMods(); return d.slotsBought || 1; }
 
+/* ── 모듈 제조 확률표 [일반, 고급, 희귀, 영웅, 전설, 고대] (합계 10000 = 100.00%) ── */
+var MOD_RATES = {
+  1: [8500,1500,0,0,0,0],       2: [8000,2000,0,0,0,0],
+  3: [7500,2500,0,0,0,0],       4: [7000,3000,0,0,0,0],
+  5: [6500,2500,1000,0,0,0],    6: [5800,2700,1500,0,0,0],
+  7: [5100,2800,2100,0,0,0],    8: [4400,2800,2800,0,0,0],
+  9: [3700,2800,3500,0,0,0],    10:[3000,2700,3300,1000,0,0],
+  11:[2400,2600,3400,1600,0,0], 12:[1800,2400,3400,2400,0,0],
+  13:[1200,2200,3200,3400,0,0], 14:[600,2000,3000,4400,0,0],
+  15:[0,1800,2800,5300,100,0],  16:[0,1400,2600,5600,400,0],
+  17:[0,1000,2400,5600,1000,0], 18:[0,700,2100,5500,1700,0],
+  19:[0,400,1800,5300,2500,0],  20:[0,200,1500,5000,3299,1]
+};
+
 /* ── 모듈 제조 ── */
 function _createModule(forceTier) {
   var type = MODULE_TYPES[Math.floor(Math.random()*MODULE_TYPES.length)];
-  var tier = (forceTier !== undefined) ? forceTier : 0; // 제조 시 무조건 일반(Lv.1)
+  if (forceTier !== undefined) return { typeId: type.id, tier: forceTier, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
+  var lv = _getModLevel();
+  var rates = MOD_RATES[lv] || MOD_RATES[1];
+  var total = 0; for(var i=0;i<rates.length;i++) total+=rates[i];
+  var r = Math.random() * total;
+  var tier = 0, acc = 0;
+  for (var ti = 0; ti < rates.length; ti++) { acc += rates[ti]; if (r < acc) { tier = ti; break; } }
   return { typeId: type.id, tier: tier, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
 }
 
-/* ── 제조 레벨 정보 팝업 ── */
+/* ── 제조 레벨 정보 팝업 (페이지형) ── */
 function _showModLevelPopup() {
   var old=document.getElementById('mod-level-popup'); if(old) old.remove();
   var curLv=_getModLevel();
+  var viewLv=curLv;
+  var tierNames=['일반','고급','희귀','영웅','전설','고대'];
+  var tierColors=['#94a3b8','#10b981','#3b82f6','#a855f7','#f59e0b','#ef4444'];
+
   var p=document.createElement('div');
   p.id='mod-level-popup';
   p.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9600;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
-  var ALL_RATES = {
-    1:[90,10,0,0,0], 2:[82,15,3,0,0], 3:[75,18,7,0,0], 4:[68,20,12,0,0],
-    5:[58,22,15,5,0], 6:[50,24,17,9,0], 7:[44,25,19,12,0], 8:[38,26,21,15,0],
-    9:[33,26,23,18,0], 10:[28,25,24,20,3], 11:[24,24,24,22,6], 12:[20,23,24,23,10],
-    13:[17,22,24,24,13], 14:[14,21,23,25,17], 15:[11,19,22,25,20],
-    16:[9,17,21,25,22], 17:[7,15,20,25,24], 18:[5,13,19,25,25], 19:[4,11,17,24,27], 20:[3,9,15,23,28]
-  };
-  var tierNames=['일반','고급','희귀','영웅','전설'];
-  var tierColors=['#94a3b8','#10b981','#3b82f6','#a855f7','#f59e0b'];
-  var h='<div style="background:#0a1a2a;border:1px solid #0a3344;width:100%;max-width:320px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;">';
-  h+='<div style="color:#ff8822;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;padding:14px 16px 10px;flex-shrink:0;border-bottom:1px solid #0a3344;">제조 레벨 정보</div>';
-  h+='<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 16px;">';
-  for(var lv=1;lv<=20;lv++){
-    var isCur=lv===curLv;
-    var need=MOD_LEVEL_THRESHOLDS[lv-1];
-    var rates=ALL_RATES[lv];
-    h+='<div style="padding:6px 0;border-bottom:1px solid #0a1a2a;'+(isCur?'background:#0a1520;margin:0 -8px;padding:6px 8px;border-radius:4px;':'')+'">';
-    h+='<div style="display:flex;justify-content:space-between;margin-bottom:3px;">';
-    h+='<span style="font-size:11px;color:'+(isCur?'#ff8822':'#556677')+';font-weight:bold;">Lv.'+lv+(isCur?' (현재)':'')+'</span>';
-    h+='<span style="font-size:9px;color:#445566;">'+need+'회 제조 필요</span></div>';
-    h+='<div style="display:flex;gap:4px;flex-wrap:wrap;">';
-    for(var ti=0;ti<5;ti++){
-      if(rates[ti]>0) h+='<span style="font-size:8px;color:'+tierColors[ti]+';background:'+tierColors[ti]+'15;padding:1px 4px;border-radius:2px;">'+tierNames[ti]+' '+rates[ti]+'%</span>';
-    }
-    h+='</div></div>';
-  }
-  h+='</div>';
-  h+='<button id="mod-lv-close" style="margin:10px 16px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;flex-shrink:0;">닫기</button>';
-  h+='</div>';
-  p.innerHTML=h;
-  p.addEventListener('click',function(e){if(e.target===p)p.remove();});
   document.body.appendChild(p);
-  document.getElementById('mod-lv-close').addEventListener('click',function(){p.remove();});
+  p.addEventListener('click',function(e){if(e.target===p)p.remove();});
+
+  function _renderPage(){
+    var rates=MOD_RATES[viewLv]||MOD_RATES[1];
+    var need=MOD_LEVEL_THRESHOLDS[viewLv-1]||0;
+    var isCur=viewLv===curLv;
+    var h='<div style="background:#0a1a2a;border:1px solid #0a3344;width:100%;max-width:300px;display:flex;flex-direction:column;overflow:hidden;">';
+    // 헤더
+    h+='<div style="color:#ff8822;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;padding:14px 16px 8px;flex-shrink:0;">제조 확률표</div>';
+    // 페이지 네비게이션
+    h+='<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:4px 16px 12px;border-bottom:1px solid #0a3344;">';
+    h+='<button id="mlp-prev" style="background:none;border:none;color:'+(viewLv>1?'#00ffff':'#1a2a3a')+';font-size:18px;cursor:pointer;padding:4px 8px;font-family:monospace;">◀</button>';
+    h+='<div style="text-align:center;min-width:120px;"><span style="font-size:16px;color:'+(isCur?'#ff8822':'#00ffff')+';font-weight:bold;">Lv.'+viewLv+'</span>';
+    if(isCur) h+='<div style="font-size:8px;color:#ff8822;">현재 레벨</div>';
+    h+='</div>';
+    h+='<button id="mlp-next" style="background:none;border:none;color:'+(viewLv<20?'#00ffff':'#1a2a3a')+';font-size:18px;cursor:pointer;padding:4px 8px;font-family:monospace;">▶</button>';
+    h+='</div>';
+    // 필요 제조 횟수
+    h+='<div style="text-align:center;padding:8px 16px;font-size:10px;color:#556677;font-family:monospace;">해금 조건: '+need+'회 제조</div>';
+    // 확률 바 그래프
+    h+='<div style="padding:8px 16px 16px;">';
+    var total=0; for(var i=0;i<rates.length;i++) total+=rates[i];
+    for(var ti=0;ti<6;ti++){
+      var pct=rates[ti]/100;
+      if(rates[ti]>0 || ti<2){
+        var barW=Math.max(0,rates[ti]/total*100);
+        h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+        h+='<span style="font-size:10px;color:'+tierColors[ti]+';font-family:monospace;min-width:28px;text-align:right;">'+tierNames[ti]+'</span>';
+        h+='<div style="flex:1;height:16px;background:#060e18;border-radius:3px;overflow:hidden;position:relative;">';
+        h+='<div style="height:100%;background:'+tierColors[ti]+';width:'+barW+'%;border-radius:3px;opacity:0.7;"></div>';
+        h+='<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#f1f5f9;font-family:monospace;font-weight:bold;">'+pct.toFixed(2)+'%</span>';
+        h+='</div></div>';
+      }
+    }
+    h+='</div>';
+    // 닫기
+    h+='<button id="mlp-close" style="margin:0 16px 12px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;flex-shrink:0;">닫기</button>';
+    h+='</div>';
+    p.innerHTML=h;
+    document.getElementById('mlp-close').addEventListener('click',function(){p.remove();});
+    document.getElementById('mlp-prev').addEventListener('click',function(){if(viewLv>1){viewLv--;_renderPage();}});
+    document.getElementById('mlp-next').addEventListener('click',function(){if(viewLv<20){viewLv++;_renderPage();}});
+  }
+  _renderPage();
 }
 
 /* ── 모듈 효과 계산 ── */
