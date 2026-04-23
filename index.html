@@ -1447,10 +1447,6 @@ canvas {
         <span style="color:#00ffff; font-family:monospace; font-size:11px;">❖ 보석</span>
         <span id="panel-gem" style="color:#00ffff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
-      <div class="currency-row">
-        <span style="color:#00ff88; font-family:monospace; font-size:11px;">▲ 코어 크리스탈</span>
-        <span id="panel-crystal" style="color:#00ff88; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
-      </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
       <!-- 프리즘 -->
       <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">프리즘</div>
@@ -1507,6 +1503,10 @@ canvas {
       <div class="currency-row">
         <span style="color:#ff8822; font-family:monospace; font-size:11px;">⊕ 파워 코어</span>
         <span id="panel-pcore" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div class="currency-row">
+        <span style="color:#00ff88; font-family:monospace; font-size:11px;">▣ 데이터 셀</span>
+        <span id="panel-datacell" style="color:#00ff88; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
       <!-- 기록 -->
@@ -8023,7 +8023,6 @@ function openPanel() {
   var streak = parseInt(localStorage.getItem('td_daily_streak') || '0');
   document.getElementById('panel-streak').textContent = streak + '일';
   // 기본 재화
-  try { document.getElementById('panel-crystal').textContent = (PERM.crystals||0).toLocaleString(); } catch(_) {}
   // 프리즘
   try { document.getElementById('panel-prism-frag').textContent = PERM.prismFragments || 0; } catch(_) {}
   try { document.getElementById('panel-prism-slot').textContent = (PERM.prismSlotCount||1) + ' / 10'; } catch(_) {}
@@ -8037,6 +8036,7 @@ function openPanel() {
   try { document.getElementById('panel-pulse').textContent = window.pulseFragments || 0; } catch(_) {}
   try { document.getElementById('panel-access').textContent = parseInt(localStorage.getItem('accessCodes')||'0',10); } catch(_) {}
   try { document.getElementById('panel-pcore').textContent = parseInt(localStorage.getItem('powerCores')||'0',10); } catch(_) {}
+  try { document.getElementById('panel-datacell').textContent = parseInt(localStorage.getItem('dataCells')||'0',10); } catch(_) {}
   panel.style.display = 'block';
   toggleBtn.textContent = '▲';
   toggleBtn.style.color = '#00ffff';
