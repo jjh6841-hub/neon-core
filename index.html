@@ -2832,6 +2832,17 @@ function startGame() {
     if (skipTo > 1) G._introSkipTarget = skipTo;
   }
 
+  // 배경 스킨 색상 캐시
+  try {
+    var _bgId = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
+    var _bgMap = {bg_default:'#030b10',bg_nebula:'#0a0520',bg_crimson:'#120808',bg_deep:'#031020',bg_void:'#050005',bg_aurora:'#051812',bg_solar:'#0f0a02',bg_ice:'#030a10',bg_storm:'#080812',bg_rust:'#0e0805',bg_matrix:'#000a02',bg_phantom:'#08050e'};
+    window._cachedBgColor = _bgMap[_bgId] || '#030b10';
+    if (window.BG_SKINS) {
+      var _bgs = window.BG_SKINS.filter(function(s){return s.id===_bgId;})[0];
+      if (_bgs) window._cachedBgColor = _bgs.color;
+    }
+  } catch(_){}
+
   // 탐사선 스킨 이미지 사전 로드
   try {
     var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
@@ -3787,15 +3798,7 @@ function triggerGameOver() {
 ═══════════════════════════════════════════════════════════════ */
 function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
-  var _bgColor = '#030b10';
-  try {
-    var _bgId = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
-    if (window.BG_SKINS) {
-      var _bgSkin = window.BG_SKINS.filter(function(s){return s.id===_bgId;})[0];
-      if (_bgSkin) _bgColor = _bgSkin.color;
-    }
-  } catch(_){}
-  ctx.fillStyle = _bgColor;
+  ctx.fillStyle = window._cachedBgColor || '#030b10';
   ctx.fillRect(0, 0, CW, CH);
 
   // ── Screen shake wrapper ──────────────────────────────────────
@@ -11249,6 +11252,91 @@ function _showDrawResult(drawn) {
 }
 
 // 프리즘 탭 렌더링
+function _showPrismDetailPopup(pid) {
+  var old=document.getElementById('prism-detail-popup'); if(old) old.remove();
+  var pr=PRISMS.filter(function(x){return x.id===pid;})[0]; if(!pr) return;
+  var pData=_getPrism(pid);
+  var owned=pData.lv>0;
+  var equipped=_getEquipped();
+  var isEq=equipped.indexOf(pid)!==-1;
+  var catCol=PRISM_CAT_COLOR[pr.cat]||'#cc44ff';
+  var catLabel=PRISM_CAT_LABEL[pr.cat]||'';
+
+  var ov=document.createElement('div');
+  ov.id='prism-detail-popup';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9800;display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Courier New",monospace;';
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+
+  // 레벨 별
+  var stars='';
+  for(var i=0;i<5;i++) stars+='<span style="color:'+(i<pData.lv?catCol:'#1a2a3a')+';font-size:14px;">★</span>';
+
+  // 효과 텍스트
+  var effRows='';
+  for(var lv=1;lv<=5;lv++){
+    var val=pr.lvEff[lv-1];
+    var isCur=lv===pData.lv;
+    var valStr=pr.unit==='x'?'+'+val+'x':pr.unit==='%'?'+'+val+'%':'+'+val;
+    effRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;'+(isCur?'color:'+catCol+';font-weight:bold;':'color:#556677;')+'">' +
+      '<span>Lv.'+lv+'</span><span>'+valStr+'</span></div>';
+  }
+
+  var box='<div style="background:#0d1520;border:2px solid '+catCol+'44;border-radius:8px;width:280px;max-width:90%;padding:20px;text-align:center;">';
+  // 카테고리
+  box+='<div style="font-size:9px;color:'+catCol+';letter-spacing:2px;margin-bottom:6px;">'+catLabel+'</div>';
+  // 아이콘
+  box+='<div style="margin:8px auto;">'+_prismIcon(pid, owned?catCol:'#445566')+'</div>';
+  // 이름
+  box+='<div style="font-size:15px;color:#f1f5f9;font-weight:bold;margin-bottom:4px;">'+pr.name+'</div>';
+  // 별
+  box+='<div style="margin-bottom:8px;">'+stars+'</div>';
+  // 설명
+  box+='<div style="font-size:10px;color:#7aacac;margin-bottom:12px;line-height:1.6;">'+pr.desc+'</div>';
+  // 효과표
+  box+='<div style="background:#0a1520;border:1px solid #0a2233;border-radius:4px;padding:8px 12px;margin-bottom:14px;text-align:left;font-size:10px;">'+effRows+'</div>';
+
+  if(owned){
+    // 중복/분해 정보
+    var maxed=pData.lv>=5;
+    if(!maxed){
+      var dupNeeded=PRISM_DUP_NEEDED[pData.lv]||3;
+      box+='<div style="font-size:9px;color:#556677;margin-bottom:10px;">중복: '+pData.dup+'/'+dupNeeded+'</div>';
+    }
+    // 장착/해제 버튼
+    if(isEq){
+      box+='<button id="pd-unequip" style="width:100%;padding:10px;background:#030b10;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;border-radius:4px;">장착 해제</button>';
+    } else {
+      box+='<button id="pd-equip" style="width:100%;padding:10px;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;border-radius:4px;">장착</button>';
+    }
+  } else {
+    box+='<div style="font-size:10px;color:#334455;padding:8px 0;">미보유</div>';
+  }
+
+  box+='<button id="pd-close" style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid #334455;color:#556677;font-family:monospace;font-size:11px;cursor:pointer;border-radius:4px;">닫기</button>';
+  box+='</div>';
+  ov.innerHTML=box;
+  document.body.appendChild(ov);
+
+  document.getElementById('pd-close').addEventListener('click',function(){ov.remove();});
+  var eqBtn=document.getElementById('pd-equip');
+  if(eqBtn) eqBtn.addEventListener('click',function(){
+    if(!_toggleEquip(pid)){
+      if(window.showAchievementToast) showAchievementToast('슬롯이 가득 찼습니다');
+      return;
+    }
+    window.savePerm&&window.savePerm();
+    ov.remove();
+    _renderCardTab();
+  });
+  var ueqBtn=document.getElementById('pd-unequip');
+  if(ueqBtn) ueqBtn.addEventListener('click',function(){
+    _toggleEquip(pid);
+    window.savePerm&&window.savePerm();
+    ov.remove();
+    _renderCardTab();
+  });
+}
+
 function _renderCardTab() {
   // 상단 HUD 동기화
   _syncPrismHUD();
@@ -11332,14 +11420,14 @@ function _renderCardTab() {
       var effText=owned?(pr.unit==='x'?'+'+pr.lvEff[p.lv-1]+'x':'+'+pr.lvEff[p.lv-1]+pr.unit):'미보유';
       var eqBorder=isEq?'#00ff88':owned?catCol+'44':'#0a1a2a';
 
-      var _iconCol=owned?catCol:'#334455';
+      var _iconCol=owned?catCol:'#445566';
       // 레벨 별 표시
       var _stars='';
       for(var _si=0;_si<5;_si++) _stars+='<span style="color:'+(_si<p.lv?catCol:'#1a2a3a')+';font-size:8px;">★</span>';
 
-      html+='<div data-prism-toggle="'+pr.id+'" style="background:'+(owned?'#0a1020':'#060810')+';border:2px solid '+eqBorder+';padding:5px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;opacity:'+(owned?1:0.35)+';cursor:'+(owned?'pointer':'default')+';position:relative;border-radius:4px;">'+
+      html+='<div data-prism-toggle="'+pr.id+'" style="background:'+(owned?'#0a1020':'#0a0e18')+';border:2px solid '+eqBorder+';padding:5px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;opacity:'+(owned?1:0.55)+';cursor:pointer;position:relative;border-radius:4px;">'+
         // 이름
-        '<div style="font-size:8px;color:'+(owned?'#94a3b8':'#334455')+';font-family:monospace;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;line-height:1.2;">'+pr.name+'</div>'+
+        '<div style="font-size:8px;color:'+(owned?'#94a3b8':'#556677')+';font-family:monospace;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;line-height:1.2;">'+pr.name+'</div>'+
         // 메인 아이콘
         '<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:'+(owned?catCol+'08':'transparent')+';border-radius:4px;">'+_prismIcon(pr.id,_iconCol)+'</div>'+
         // 별 (레벨)
@@ -11390,17 +11478,11 @@ function _renderCardTab() {
       });
     });
   });
-  // 프리즘 장착/해제 토글
+  // 프리즘 클릭 → 상세 팝업
   content.querySelectorAll('[data-prism-toggle]').forEach(function(el){
     el.addEventListener('click',function(){
       var pid=el.dataset.prismToggle;
-      if(_getPrism(pid).lv<=0) return;
-      if(!_toggleEquip(pid)){
-        if(window.showAchievementToast) showAchievementToast('슬롯이 가득 찼습니다');
-        return;
-      }
-      window.savePerm&&window.savePerm();
-      _renderCardTab();
+      _showPrismDetailPopup(pid);
     });
   });
   // 뽑기
