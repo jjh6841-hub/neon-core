@@ -11716,15 +11716,48 @@ function _closeRanking() {
    FEATURE 3: 우편함
 ════════════════════════════════════════════════════════ */
 var SYSTEM_MAILS = [
-  { id:'welcome',  title:'▶ 환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
-  { id:'battle1',  title:'⚔ 첫 전투 응원',     body:'첫 전투를 완료하셨습니다. 앞으로도 파이팅!',                         gems:2,  gold:30  },
+  { id:'welcome',  title:'환영 선물',      body:'NEON CORE에 오신 것을 환영합니다! 게임을 즐겨주셔서 감사드립니다.',  gems:5,  gold:100 },
+  { id:'battle1',  title:'첫 전투 응원',     body:'첫 전투를 완료하셨습니다. 앞으로도 파이팅!',                         gems:2,  gold:30  },
 ];
+var _serverMails = []; // Firestore에서 로드된 우편
 var NEWS_ITEMS = [];
 
 var _newsExpanded = {};
 
 function _mailClaimed(id) { return !!(window.PERM&&window.PERM.mailClaimed&&window.PERM.mailClaimed[id]); }
-function _unclaimedCount() { return SYSTEM_MAILS.filter(function(m){ return !_mailClaimed(m.id); }).length; }
+function _getAllMails() { return SYSTEM_MAILS.concat(_serverMails); }
+function _unclaimedCount() { return _getAllMails().filter(function(m){ return !_mailClaimed(m.id); }).length; }
+
+// Firestore 우편 로드
+function _loadServerMails() {
+  if (!window._fbDb) return;
+  var uid = window._fbUid || localStorage.getItem('td_uid') || '';
+  _fbDb.collection('mails').orderBy('createdAt','desc').limit(50).get().then(function(snap){
+    _serverMails = [];
+    snap.forEach(function(doc){
+      var d = doc.data();
+      // 전체 발송이거나, 본인 대상 개인 발송만
+      if (d.type === 'all' || (d.type === 'personal' && d.targetUid === uid)) {
+        var mail = { id:'sv_'+doc.id, title:d.title||'우편', body:d.body||'' };
+        var rw = d.rewards || {};
+        if (rw.gold) mail.gold = rw.gold;
+        if (rw.gems) mail.gems = rw.gems;
+        if (rw.powerCores) mail.powerCores = rw.powerCores;
+        if (rw.accessCodes) mail.accessCodes = rw.accessCodes;
+        if (rw.dataCells) mail.dataCells = rw.dataCells;
+        if (rw.prismFragments) mail.prismFragments = rw.prismFragments;
+        if (rw.pulseFragments) mail.pulseFragments = rw.pulseFragments;
+        _serverMails.push(mail);
+      }
+    });
+    try { _updateMailBadge(); } catch(_){}
+  }).catch(function(){});
+}
+// 초기 로드 (Firebase 준비 후)
+setTimeout(function _tryLoadMails(){
+  if(window._fbDb) _loadServerMails();
+  else setTimeout(_tryLoadMails, 1000);
+}, 2000);
 
 function _buildMailScreen() {
   if(document.getElementById('screen-mail')) return;
@@ -11761,19 +11794,30 @@ function _buildMailScreen() {
 function _renderMailTab() {
   var cont=document.getElementById('mail-content');
   if(!cont) return;
+  var allMails=_getAllMails();
   var html='';
-  SYSTEM_MAILS.forEach(function(mail){
+  if(allMails.length===0){
+    html='<div style="text-align:center;color:#334455;font-family:monospace;font-size:12px;margin-top:60px;">수신된 우편이 없습니다.</div>';
+  }
+  allMails.forEach(function(mail){
     var claimed=_mailClaimed(mail.id);
+    // 보상 텍스트
+    var rwParts=[];
+    if(mail.gold) rwParts.push('<span style="color:#f59e0b;">◈ '+mail.gold+'</span>');
+    if(mail.gems) rwParts.push('<span style="color:#00ffff;">❖ '+mail.gems+'</span>');
+    if(mail.powerCores) rwParts.push('<span style="color:#ff8822;">파워코어 '+mail.powerCores+'</span>');
+    if(mail.accessCodes) rwParts.push('<span style="color:#bb44ff;">접근코드 '+mail.accessCodes+'</span>');
+    if(mail.dataCells) rwParts.push('<span style="color:#00ff88;">데이터셀 '+mail.dataCells+'</span>');
+    if(mail.prismFragments) rwParts.push('<span style="color:#cc44ff;">파편 '+mail.prismFragments+'</span>');
+    if(mail.pulseFragments) rwParts.push('<span style="color:#cc44ff;">펄스 '+mail.pulseFragments+'</span>');
     html+='<div style="background:#0a1a2a;border:1px solid '+(claimed?'#0a2233':'#0a3344')+';padding:12px;display:flex;flex-direction:column;gap:6px;opacity:'+(claimed?0.5:1)+';">'+
       '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':'#f1f5f9')+';font-weight:bold;">'+mail.title+'</div>'+
-      '<div style="font-family:monospace;font-size:10px;color:#556677;line-height:1.6;">'+mail.body+'</div>'+
+      (mail.body?'<div style="font-family:monospace;font-size:10px;color:#556677;line-height:1.6;">'+mail.body+'</div>':'')+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'+
-        '<span style="font-family:monospace;font-size:12px;">'+
-          (mail.gems?'<span style="color:#00ffff;font-weight:bold;">❖ '+mail.gems+'</span>  ':'')+
-          (mail.gold?'<span style="color:#f59e0b;font-weight:bold;">◈ '+mail.gold+'</span>':'')+'</span>'+
+        '<span style="font-family:monospace;font-size:10px;">'+rwParts.join('  ')+'</span>'+
         (claimed
           ? '<span style="font-family:monospace;font-size:10px;color:#334455;">수령완료</span>'
-          : '<button data-mail-claim="'+mail.id+'" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer;">수령</button>')+
+          : (rwParts.length?'<button data-mail-claim="'+mail.id+'" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer;flex-shrink:0;">수령</button>':''))+
       '</div>'+
     '</div>';
   });
@@ -11783,14 +11827,30 @@ function _renderMailTab() {
   for(var i=0;i<claimBtns.length;i++){
     (function(btn){ btn.addEventListener('click',function(){
       var id=btn.getAttribute('data-mail-claim');
-      var mail=SYSTEM_MAILS.filter(function(m){ return m.id===id; })[0];
+      var mail=_getAllMails().filter(function(m){ return m.id===id; })[0];
       if(!mail||_mailClaimed(id)) return;
       if(!window.PERM) return;
       if(!window.PERM.mailClaimed) window.PERM.mailClaimed={};
       window.PERM.mailClaimed[id]=1;
-      window.PERM.gems=(window.PERM.gems||0)+(mail.gems||0);
-      window.PERM.gold=(window.PERM.gold||0)+(mail.gold||0);
+      // 재화 지급
+      PERM.gold=(PERM.gold||0)+(mail.gold||0);
+      PERM.gems=(PERM.gems||0)+(mail.gems||0);
+      if(mail.prismFragments) PERM.prismFragments=(PERM.prismFragments||0)+mail.prismFragments;
       window.savePerm&&window.savePerm();
+      // localStorage 재화
+      if(mail.powerCores){ var pc=parseInt(localStorage.getItem('powerCores')||'0',10); localStorage.setItem('powerCores',pc+mail.powerCores); }
+      if(mail.accessCodes){ var ac=parseInt(localStorage.getItem('accessCodes')||'0',10); localStorage.setItem('accessCodes',ac+mail.accessCodes); }
+      if(mail.dataCells){ var dc=parseInt(localStorage.getItem('dataCells')||'0',10); localStorage.setItem('dataCells',dc+mail.dataCells); }
+      if(mail.pulseFragments){ window.pulseFragments=(window.pulseFragments||0)+mail.pulseFragments; }
+      // 보상 팝업
+      var rwItems=[];
+      if(mail.gold) rwItems.push({icon:'◈',label:'',amount:mail.gold,color:'#f59e0b'});
+      if(mail.gems) rwItems.push({icon:'❖',label:'',amount:mail.gems,color:'#00ffff'});
+      if(mail.powerCores) rwItems.push({icon:'⊕',label:'파워코어',amount:mail.powerCores,color:'#ff8822'});
+      if(mail.accessCodes) rwItems.push({icon:'⌘',label:'접근코드',amount:mail.accessCodes,color:'#bb44ff'});
+      if(mail.dataCells) rwItems.push({icon:'▣',label:'데이터셀',amount:mail.dataCells,color:'#00ff88'});
+      if(mail.prismFragments) rwItems.push({icon:'◆',label:'파편',amount:mail.prismFragments,color:'#cc44ff'});
+      if(rwItems.length&&window.showRewardPopup) showRewardPopup(rwItems,'우편 보상');
       _renderMailTab();
       _updateMailBadge();
     }); })(claimBtns[i]);
