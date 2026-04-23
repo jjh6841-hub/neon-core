@@ -2749,7 +2749,7 @@ function createState() {
     waveBonusTimer: -1,
     introTimer:     -1,
 
-    speed:          1,
+    speed:          parseFloat(localStorage.getItem('neoncore_speed')||'1')||1,
     showTowerStats: false,
 
     cx: CW / 2,
@@ -3789,7 +3789,13 @@ function triggerGameOver() {
 function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
   var _bgColor = '#030b10';
-  if (window._smOwnedItems && window._smOwnedItems.indexOf('abyss') !== -1) _bgColor = '#000e1a';
+  try {
+    var _bgId = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
+    if (window.BG_SKINS) {
+      var _bgSkin = window.BG_SKINS.filter(function(s){return s.id===_bgId;})[0];
+      if (_bgSkin) _bgColor = _bgSkin.color;
+    }
+  } catch(_){}
   ctx.fillStyle = _bgColor;
   ctx.fillRect(0, 0, CW, CH);
 
