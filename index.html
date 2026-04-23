@@ -13741,6 +13741,12 @@ window.showScreen = function (name) {
   // 프리즘 파편 선택 팝업 제거
   var _prismPop = document.getElementById('prism-select-popup');
   if (_prismPop) _prismPop.remove();
+  // 모듈 확률표 팝업 제거
+  var _modLvPop = document.getElementById('mod-level-popup');
+  if (_modLvPop) _modLvPop.remove();
+  // 프리즘 상세 팝업 제거
+  var _prismDetail = document.getElementById('prism-detail-popup');
+  if (_prismDetail) _prismDetail.remove();
 
   // 업적 화면은 별도 ID 사용
   if (name === 'achievements') {
