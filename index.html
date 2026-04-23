@@ -3136,11 +3136,13 @@ function update(dt) {
         if (b.hitSet) b.hitSet.add(e);
         let dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
         if (G.goldDmgPct) dmg += Math.floor(G.gold / 100 * G.goldDmgPct);
-        if (b.crit) dmg *= 2;
-        // 강화 치명타 (일반 치명타와 독립적으로 추가 곱연산)
-        if (G.enhCritChance && G.enhCritMult && Math.random() < G.enhCritChance) {
-          dmg = Math.round(dmg * G.enhCritMult);
-          e.hitFlash = 3;
+        if (b.crit) {
+          dmg *= 2;
+          // 강화 치명타 (치명타 발동 시에만 추가 확률 판정)
+          if (G.enhCritChance && G.enhCritMult && Math.random() < G.enhCritChance) {
+            dmg = Math.round(dmg * G.enhCritMult);
+            e.hitFlash = 3;
+          }
         }
         // Slow on hit
         if (G.slowPct > 0) e.slowTimer = 1500;
@@ -10877,7 +10879,7 @@ var PRISMS = [
   {id:'p_crit_dmg',   cat:'atk',    name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
   {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장',          lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_crit_rate2', cat:'atk',    name:'강화 치명타 확률', desc:'치명타 확률 추가 증가', lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'치명타 배율 추가 증가', lvEff:[0.5,1.0,1.5,2.0,2.5], unit:'x'},
+  {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[1.5,1.75,2.0,2.25,2.5], unit:'x'},
   {id:'p_splash',     cat:'atk',    name:'연쇄 타격',       desc:'적 처치 시 주변 스플래시', lvEff:[10,20,30,40,50], unit:'%'},
   /* 방어 (5종) */
   {id:'p_max_hp',     cat:'def',    name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[20,40,60,80,100], unit:'%'},
@@ -11029,7 +11031,7 @@ function _applyPrismEffects() {
       case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
       case 'p_range':      t.range = t.range + val * 3; break;
       case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break;
-      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||1) + val; break;
+      case 'p_crit_dmg2':  G.enhCritMult = val; break; // 배율 자체 (1.5/1.75/2.0/2.25/2.5)
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100) || val * 0.01; break; // #6 곱연산 20%씩
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
