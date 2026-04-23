@@ -11735,7 +11735,7 @@ function _showStatsPopup() {
 
   var h='';
   // ── 최종 스탯 ──
-  h+=_section('⚡ 최종 전투 능력치','#f59e0b');
+  h+=_section('최종 전투 능력치','#f59e0b');
   h+=_row('공격력',finalDmg,'#ef4444');
   h+=_row('체력',finalHp,'#10b981');
   h+=_row('방어율',finalDef.toFixed(2)+'%','#3b82f6');
@@ -11747,7 +11747,7 @@ function _showStatsPopup() {
   h+=_row('흡혈',((ws.vampChance||0)*0.5).toFixed(1)+'%','#ef4444');
 
   // ── 강화소 ──
-  h+=_section('🔧 강화소');
+  h+=_section('강화소');
   h+=_row('공격력 Lv',(ws.damage||0));
   h+=_row('공격속도 Lv',(ws.atkspd||0));
   h+=_row('최대 체력 Lv',(ws.maxHp||0));
@@ -11764,7 +11764,7 @@ function _showStatsPopup() {
   h+=_row('보석 획득 Lv',(ws.gemGain||0));
 
   // ── 코어랩 연구 ──
-  h+=_section('🔬 코어랩 연구');
+  h+=_section('코어랩 연구');
   var labItems=[
     ['게임 속도','game_speed'],['공격 할인','atk_discount'],['방어 할인','def_discount'],
     ['연구 속도','lab_speed'],['공격력','r_damage'],['속도','r_spd'],['치명타','r_crit'],
@@ -11782,7 +11782,7 @@ function _showStatsPopup() {
   h+=_row('총 연구 완료',labDone+'회','#556677');
 
   // ── 프리즘 ──
-  h+=_section('◇ 프리즘');
+  h+=_section('프리즘');
   var prisms=PERM.prisms||{};
   var pCount=0,pLv5=0;
   for(var pk in prisms){if(prisms[pk]&&prisms[pk].lv>0){pCount++;if(prisms[pk].lv>=5)pLv5++;}}
@@ -11792,7 +11792,7 @@ function _showStatsPopup() {
   h+=_row('프리즘 파편',(PERM.prismFragments||0)+'개');
 
   // ── 속성 ──
-  h+=_section('⚛ 속성');
+  h+=_section('속성');
   var elemIds=['fire','water','electric','earth','wind','dark'];
   var elemNames=['화염','심해','번개','대지','질풍','암흑'];
   var statKeys=['atk','def','hp','critDmg','critRate'];
@@ -11803,7 +11803,7 @@ function _showStatsPopup() {
   });
 
   // ── 스킨 보너스 ──
-  h+=_section('▲ 스킨 보너스');
+  h+=_section('스킨 보너스');
   h+=_row('탐사선 공격력','x'+(sm.shipAtk||1).toFixed(2));
   h+=_row('탐사선 방어력','x'+(sm.shipDef||1).toFixed(2));
   h+=_row('탐사선 체력','x'+(sm.shipHp||1).toFixed(2));
@@ -11812,7 +11812,7 @@ function _showStatsPopup() {
   h+=_row('배경 체력','x'+(sm.bgHp||1).toFixed(2));
 
   // ── 행성별 최고 웨이브 ──
-  h+=_section('☆ 행성별 최고 웨이브');
+  h+=_section('행성별 최고 웨이브');
   var pNames=['에이온','스펙트라','넥사르','피라온','오메가'];
   for(var ti=1;ti<=5;ti++){
     var tb=parseInt(localStorage.getItem('tier'+ti+'_best')||'0',10);
@@ -11820,8 +11820,8 @@ function _showStatsPopup() {
   }
 
   // ── 일반 통계 ──
-  h+=_section('📊 플레이 통계');
-  h+=_row('총 골드 획득','◈ '+_fn(parseInt(localStorage.getItem('stat_gold')||'0',10)));
+  h+=_section('플레이 통계');
+  h+=_row('총 골드 획득',_fn(parseInt(localStorage.getItem('stat_gold')||'0',10)));
   h+=_row('총 적 처치',_fn((PERM.totalKills||0)));
   h+=_row('총 보스 처치',(PERM.bossKills||0)+'');
   h+=_row('총 게임 플레이',parseInt(localStorage.getItem('stat_games')||'0',10)+'회');
