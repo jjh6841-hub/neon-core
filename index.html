@@ -3141,8 +3141,7 @@ function update(dt) {
           PERM.totalKills++;
           _infKill(e.type);
           var _eGold = e.gold || 1;
-          var _tierGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-          _eGold = Math.round(_eGold * _tierGM * (G.goldBonus||1) * (G.goldMult||1));
+          _eGold = Math.round(_eGold * (G.goldBonus||1) * (G.goldMult||1));
           if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; PERM.gold += _eGold; G.floatTexts.push({x:e.x,y:e.y+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
           if (e.boss) {
             PERM.bossKills++;
@@ -3182,8 +3181,8 @@ function update(dt) {
                   G.killCount++;
                   PERM.totalKills++;
                   _infKill(ek.type);
-                  var _ekG = ek.gold || 1; var _ekTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-                  _ekG = Math.round(_ekG * _ekTGM * (G.goldBonus||1) * (G.goldMult||1));
+                  var _ekG = ek.gold || 1;
+                  _ekG = Math.round(_ekG * (G.goldBonus||1) * (G.goldMult||1));
                   if (_ekG > 0) { G.gold += _ekG; G.goldEarned += _ekG; PERM.gold += _ekG; }
                   if (ek.boss) { PERM.bossKills++; }
                   if (ekChip > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekChip + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
@@ -3537,9 +3536,9 @@ function drawShootFlash(ctx) {
 function onWaveComplete() {
   // 웨이브 클리어 골드 보상
   var _wcTier = parseInt(localStorage.getItem('td_tier')||'1',10);
-  var _wcTierGM = [1,1,1.8,2.7,3.6,4.5][_wcTier] || 1;
+  // 웨이브 클리어 골드 (행성 배율은 적 생성 시 이미 적용됨, 클리어 보상에는 별도 적용 안 함)
   var _wcBaseGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
-  var _wcGold = Math.round(_wcBaseGold * _wcTierGM * (G.goldBonus||1) * (G.goldMult||1));
+  var _wcGold = Math.round(_wcBaseGold * (G.goldBonus||1) * (G.goldMult||1));
   G.gold += _wcGold; G.goldEarned += _wcGold; PERM.gold += _wcGold;
   AudioManager.playSfx('wave_clear');
   triggerShake(3);
@@ -6782,8 +6781,7 @@ function _updateOrbs(dt) {
           var _oc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _oc;
           G.killCount++; PERM.totalKills++; _infKill(e.type);
           var _eG = e.gold || 1;
-          var _tGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-          _eG = Math.round(_eG * _tGM * (G.goldBonus||1) * (G.goldMult||1));
+          _eG = Math.round(_eG * (G.goldBonus||1) * (G.goldMult||1));
           if (_eG > 0) { G.gold += _eG; G.goldEarned += _eG; PERM.gold += _eG; }
           if (e.boss) { PERM.bossKills++; }
           try { spawnDeathParticles(e.x, e.y, '#00ffff', 5); } catch(_) {}
@@ -6851,8 +6849,8 @@ function _updateThorn(dt) {
       if (te.hp <= 0) {
         var _tc = te.boss ? 0 : Math.ceil((te.gold||1)*0.1); coreChips += _tc;
         G.killCount++; PERM.totalKills++; _infKill(te.type);
-        var _teG = te.gold || 1; var _teTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-        _teG = Math.round(_teG * _teTGM * (G.goldBonus||1) * (G.goldMult||1));
+        var _teG = te.gold || 1;
+        _teG = Math.round(_teG * (G.goldBonus||1) * (G.goldMult||1));
         if (_teG > 0) { G.gold += _teG; G.goldEarned += _teG; PERM.gold += _teG; }
         if (te.boss) { PERM.bossKills++; }
         try { spawnDeathParticles(te.x, te.y, '#ff8888', 4); } catch(_) {}
@@ -6900,8 +6898,8 @@ function _triggerDeathWave() {
     if (G.enemies[i].hp <= 0) {
       var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1); coreChips += _dwc;
       G.killCount++; PERM.totalKills++; _infKill(G.enemies[i].type);
-      var _dwG = G.enemies[i].gold || 1; var _dwTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-      _dwG = Math.round(_dwG * _dwTGM * (G.goldBonus||1) * (G.goldMult||1));
+      var _dwG = G.enemies[i].gold || 1;
+      _dwG = Math.round(_dwG * (G.goldBonus||1) * (G.goldMult||1));
       if (_dwG > 0) { G.gold += _dwG; G.goldEarned += _dwG; PERM.gold += _dwG; }
       if (G.enemies[i].boss) { PERM.bossKills++; }
       try { spawnDeathParticles(G.enemies[i].x, G.enemies[i].y, '#ef4444', 8); } catch(_) {}
@@ -6924,8 +6922,8 @@ function _triggerPlasma() {
       if (e.hp <= 0) {
         var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _psc;
         G.killCount++; PERM.totalKills++; _infKill(e.type);
-        var _psG = e.gold || 1; var _psTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-        _psG = Math.round(_psG * _psTGM * (G.goldBonus||1) * (G.goldMult||1));
+        var _psG = e.gold || 1;
+        _psG = Math.round(_psG * (G.goldBonus||1) * (G.goldMult||1));
         if (_psG > 0) { G.gold += _psG; G.goldEarned += _psG; PERM.gold += _psG; }
         if (e.boss) { PERM.bossKills++; }
         try { spawnDeathParticles(e.x, e.y, '#f59e0b', 8); } catch(_) {}
@@ -10862,7 +10860,7 @@ var PRISMS = [
   {id:'p_fort',       cat:'def',    name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
   /* 경제 (4종) */
   {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',   lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_cash',       cat:'eco',    name:'자원 증폭',       desc:'웨이브 골드 보너스',   lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_cash',       cat:'eco',    name:'골드 보호',       desc:'사망 시 골드 보존 비율',lvEff:[10,20,30,40,50], unit:'%'},
   {id:'p_coin',       cat:'eco',    name:'추가 보급',       desc:'보석 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
   {id:'p_enemy_stat', cat:'eco',    name:'자원 약탈',       desc:'코어랩 연구 비용 할인',lvEff:[20,40,60,80,100], unit:'%'},
   /* 특수 (4종) */
@@ -11003,7 +11001,7 @@ function _applyPrismEffects() {
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
       case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
       case 'p_def':        t.defense = (t.defense||0) * (1 + val/100); break;              // #3 곱연산 20%씩
-      case 'p_cash':       G.goldMult = (G.goldMult||1) * (1 + val/100); break;
+      case 'p_cash':       G.goldProtectPct = (G.goldProtectPct||0) + val/100; break; // 사망 시 골드 보존
       case 'p_coin':       G.gemMult = (G.gemMult||1) * (1 + val/100); break;              // 보석 획득량
       case 'p_kill_cash':  G.goldMult = (G.goldMult||1) * (1 + val/100); break;            // #14 전투 골드 추가
       case 'p_enemy_stat': G._prismLabDiscount = (G._prismLabDiscount||0) + val/100; break; // #15 코어랩 할인
