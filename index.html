@@ -16825,36 +16825,36 @@ function _showModLevelPopup() {
     var rates=MOD_RATES[viewLv]||MOD_RATES[1];
     var need=MOD_LEVEL_THRESHOLDS[viewLv-1]||0;
     var isCur=viewLv===curLv;
-    var h='<div style="background:#0a1a2a;border:1px solid #0a3344;width:100%;max-width:300px;height:360px;display:flex;flex-direction:column;overflow:hidden;">';
-    // 헤더
-    h+='<div style="color:#ff8822;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;padding:14px 16px 8px;flex-shrink:0;">제조 확률표</div>';
-    // 페이지 네비게이션
-    h+='<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:4px 16px 12px;border-bottom:1px solid #0a3344;flex-shrink:0;">';
+    var h='<div style="background:#0a1a2a;border:1px solid #0a3344;width:100%;max-width:300px;display:flex;flex-direction:column;">';
+    // 헤더 (고정)
+    h+='<div style="color:#ff8822;font-family:monospace;font-size:13px;letter-spacing:2px;text-align:center;padding:14px 16px 8px;">제조 확률표</div>';
+    // 네비게이션 (고정)
+    h+='<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:4px 16px 12px;border-bottom:1px solid #0a3344;">';
     h+='<button id="mlp-prev" style="background:none;border:none;color:'+(viewLv>1?'#00ffff':'#1a2a3a')+';font-size:18px;cursor:pointer;padding:4px 8px;font-family:monospace;">◀</button>';
     h+='<div style="text-align:center;min-width:120px;"><span style="font-size:16px;color:'+(isCur?'#ff8822':'#00ffff')+';font-weight:bold;">Lv.'+viewLv+'</span>';
-    h+='<div style="font-size:8px;color:'+(isCur?'#ff8822':'#334455')+';">'+(isCur?'현재 레벨':'')+'&nbsp;</div>';
+    if(isCur) h+='<div style="font-size:8px;color:#ff8822;">현재 레벨</div>';
     h+='</div>';
     h+='<button id="mlp-next" style="background:none;border:none;color:'+(viewLv<20?'#00ffff':'#1a2a3a')+';font-size:18px;cursor:pointer;padding:4px 8px;font-family:monospace;">▶</button>';
     h+='</div>';
-    // 필요 제조 횟수
-    h+='<div style="text-align:center;padding:8px 16px;font-size:10px;color:#556677;font-family:monospace;flex-shrink:0;">해금 조건: '+need+'회 제조</div>';
-    // 확률 바 그래프 (6개 항목 항상 표시)
-    h+='<div style="padding:8px 16px;flex:1;">';
+    // 필요 제조 횟수 (고정)
+    h+='<div style="text-align:center;padding:8px 16px;font-size:10px;color:#556677;font-family:monospace;">해금 조건: '+need+'회 제조</div>';
+    // 확률 바 (등장하는 등급만 표시)
+    h+='<div style="padding:8px 16px 4px;">';
     var total=0; for(var i=0;i<rates.length;i++) total+=rates[i];
     for(var ti=0;ti<6;ti++){
+      if(rates[ti]<=0) continue;
       var pct=rates[ti]/100;
       var barW=total>0?Math.max(0,rates[ti]/total*100):0;
-      var dimmed=rates[ti]===0;
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-      h+='<span style="font-size:10px;color:'+(dimmed?'#1a2a3a':tierColors[ti])+';font-family:monospace;min-width:28px;text-align:right;">'+tierNames[ti]+'</span>';
+      h+='<span style="font-size:10px;color:'+tierColors[ti]+';font-family:monospace;min-width:28px;text-align:right;">'+tierNames[ti]+'</span>';
       h+='<div style="flex:1;height:16px;background:#060e18;border-radius:3px;overflow:hidden;position:relative;">';
-      if(!dimmed) h+='<div style="height:100%;background:'+tierColors[ti]+';width:'+barW+'%;border-radius:3px;opacity:0.7;"></div>';
-      h+='<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:'+(dimmed?'#1a2a3a':'#f1f5f9')+';font-family:monospace;font-weight:bold;">'+pct.toFixed(2)+'%</span>';
+      h+='<div style="height:100%;background:'+tierColors[ti]+';width:'+barW+'%;border-radius:3px;opacity:0.7;"></div>';
+      h+='<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#f1f5f9;font-family:monospace;font-weight:bold;">'+pct.toFixed(2)+'%</span>';
       h+='</div></div>';
     }
     h+='</div>';
     // 닫기
-    h+='<button id="mlp-close" style="margin:0 16px 12px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;flex-shrink:0;">닫기</button>';
+    h+='<button id="mlp-close" style="margin:0 16px 12px;background:#030b10;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">닫기</button>';
     h+='</div>';
     p.innerHTML=h;
     document.getElementById('mlp-close').addEventListener('click',function(){p.remove();});
