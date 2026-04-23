@@ -2946,9 +2946,9 @@ function startWave() {
   G.spawnIntvl  = G.wave <= 50 ? 800 : G.wave <= 100 ? 600 : G.wave <= 200 ? 500 : 400;
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
-  // Wave start core chip bonus (2웨이브부터, 고정 2)
+  // Wave start core chip bonus (2웨이브부터, 고정 2 + 프리즘 코어 수확 보너스)
   if (w >= 2) {
-    var bonus = 2;
+    var bonus = Math.ceil(2 * (1 + (G._prismChipWaveBonus||0)));
     coreChips += bonus;
     G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
     G.waveBonusTimer = 0;
@@ -3149,7 +3149,7 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1);
+          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           // 전투 중 보석 드랍 비활성화 (이벤트/광고로만 획득)
@@ -3803,7 +3803,14 @@ function triggerGameOver() {
 ═══════════════════════════════════════════════════════════════ */
 function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
-  ctx.fillStyle = window._cachedBgColor || '#030b10';
+  if (!window._cachedBgColor) {
+    try {
+      var _bid = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
+      var _bm = {bg_default:'#030b10',bg_nebula:'#0a0520',bg_crimson:'#120808',bg_deep:'#031020',bg_void:'#050005',bg_aurora:'#051812',bg_solar:'#0f0a02',bg_ice:'#030a10',bg_storm:'#080812',bg_rust:'#0e0805',bg_matrix:'#000a02',bg_phantom:'#08050e'};
+      window._cachedBgColor = _bm[_bid] || '#030b10';
+    } catch(_){ window._cachedBgColor = '#030b10'; }
+  }
+  ctx.fillStyle = window._cachedBgColor;
   ctx.fillRect(0, 0, CW, CH);
 
   // ── Screen shake wrapper ──────────────────────────────────────
@@ -10836,7 +10843,6 @@ function _prismIcon(id,c){
     p_hp_regen:'<path d="M24,12 Q18,4 11,12 Q4,20 24,40 Q44,20 37,12 Q30,4 24,12Z" fill="none" stroke="C" stroke-width="1.8"/><line x1="H" y1="17" x2="H" y2="33" stroke="C" stroke-width="2.5"/><line x1="16" y1="H" x2="32" y2="H" stroke="C" stroke-width="2.5"/>',
     p_range:'<circle cx="H" cy="H" r="18" fill="none" stroke="C" stroke-width="1" stroke-dasharray="4 3"/><circle cx="H" cy="H" r="12" fill="none" stroke="C" stroke-width="1.2"/><circle cx="H" cy="H" r="6" fill="none" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="2.5" fill="C"/>',
     p_cash:'<circle cx="H" cy="H" r="16" fill="C" opacity="0.12" stroke="C" stroke-width="1.8"/><circle cx="H" cy="H" r="10" fill="none" stroke="C" stroke-width="1" opacity="0.3"/><text x="H" y="30" text-anchor="middle" fill="C" font-size="22" font-weight="bold" font-family="monospace">$</text>',
-    p_coin:'<rect x="8" y="10" width="32" height="28" rx="4" fill="C" opacity="0.1" stroke="C" stroke-width="1.5"/><line x1="14" y1="18" x2="34" y2="18" stroke="C" stroke-width="1.5"/><line x1="14" y1="25" x2="34" y2="25" stroke="C" stroke-width="1" opacity="0.5"/><line x1="14" y1="32" x2="26" y2="32" stroke="C" stroke-width="1" opacity="0.5"/>',
     p_aura:'<circle cx="H" cy="H" r="7" fill="C" opacity="0.35"/><circle cx="H" cy="H" r="12" fill="none" stroke="C" stroke-width="1.5" opacity="0.6"/><circle cx="H" cy="H" r="17" fill="none" stroke="C" stroke-width="1" opacity="0.35"/><circle cx="H" cy="H" r="21" fill="none" stroke="C" stroke-width="0.8" opacity="0.15"/>',
     p_crit_rate:'<circle cx="H" cy="H" r="16" fill="none" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="8" fill="none" stroke="C" stroke-width="1"/><line x1="H" y1="6" x2="H" y2="42" stroke="C" stroke-width="1.5"/><line x1="6" y1="H" x2="42" y2="H" stroke="C" stroke-width="1.5"/><circle cx="H" cy="H" r="3" fill="C" opacity="0.6"/>',
     p_enemy_stat:'<rect x="8" y="8" width="32" height="32" rx="2" fill="none" stroke="C" stroke-width="1.5"/><polyline points="10,34 16,22 22,28 28,14 34,18 40,10" fill="none" stroke="C" stroke-width="2"/><circle cx="28" cy="14" r="2.5" fill="C"/>',
@@ -10869,11 +10875,10 @@ var PRISMS = [
   {id:'p_def',        cat:'def',    name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[20,40,60,80,100], unit:'%'},
   {id:'p_shield_cd',  cat:'def',    name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
   {id:'p_fort',       cat:'def',    name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
-  /* 경제 (4종) */
-  {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',   lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_cash',       cat:'eco',    name:'골드 보호',       desc:'사망 시 골드 보존 비율',lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_coin',       cat:'eco',    name:'추가 보급',       desc:'보석 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_enemy_stat', cat:'eco',    name:'자원 약탈',       desc:'코어랩 연구 비용 할인',lvEff:[20,40,60,80,100], unit:'%'},
+  /* 경제 (3종) */
+  {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',           lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_cash',       cat:'eco',    name:'코어 수확',       desc:'웨이브 클리어 코어칩 추가 보상', lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_enemy_stat', cat:'eco',    name:'자원 약탈',       desc:'적 처치 코어칩 추가 획득',      lvEff:[20,40,60,80,100], unit:'%'},
   /* 특수 (4종) */
   {id:'p_free_upg',   cat:'spc',    name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
   {id:'p_aura',       cat:'spc',    name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
@@ -11017,10 +11022,9 @@ function _applyPrismEffects() {
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
       case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
       case 'p_def':        t.defense = (t.defense||0) * (1 + val/100); break;              // #3 곱연산 20%씩
-      case 'p_cash':       G.goldProtectPct = (G.goldProtectPct||0) + val/100; break; // 사망 시 골드 보존
-      case 'p_coin':       G.gemMult = (G.gemMult||1) * (1 + val/100); break;              // 보석 획득량
-      case 'p_kill_cash':  G.goldMult = (G.goldMult||1) * (1 + val/100); break;            // #14 전투 골드 추가
-      case 'p_enemy_stat': G._prismLabDiscount = (G._prismLabDiscount||0) + val/100; break; // #15 코어랩 할인
+      case 'p_cash':       G._prismChipWaveBonus = (G._prismChipWaveBonus||0) + val/100; break; // 웨이브 클리어 코어칩 보너스
+      case 'p_kill_cash':  G.goldMult = (G.goldMult||1) * (1 + val/100); break;            // 전투 골드 추가
+      case 'p_enemy_stat': G._prismChipKillBonus = (G._prismChipKillBonus||0) + val/100; break; // 적 처치 코어칩 보너스
       case 'p_shield_cd':  break; // 아래에서 maxHp 확정 후 처리
       case 'p_free_upg':   G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
       case 'p_aura':       G.auraSlowPct = (G.auraSlowPct||0) + val/100; break;
@@ -11395,9 +11399,9 @@ function _renderCardTab() {
 
   // 뽑기 버튼
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
-    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:8px 6px;cursor:pointer;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;">'+
+    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:16px 6px;cursor:pointer;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;">'+
       '<svg width="14" height="14" viewBox="0 0 16 16" style="flex-shrink:0;"><polygon points="8,1 14,8 8,15 2,8" fill="none" stroke="#cc44ff" stroke-width="1.3"/><polygon points="8,4 11,8 8,12 5,8" fill="#cc44ff" opacity="0.4"/></svg><span>1회 뽑기</span><span style="color:#00ffff;font-size:11px;">❖ '+PRISM_SINGLE+'</span></button>'+
-    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:12px;padding:8px 6px;cursor:pointer;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;">'+
+    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:12px;padding:16px 6px;cursor:pointer;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;">'+
       '<svg width="14" height="14" viewBox="0 0 16 16" style="flex-shrink:0;"><polygon points="8,1 14,8 8,15 2,8" fill="none" stroke="#f59e0b" stroke-width="1.3"/><polygon points="8,4 11,8 8,12 5,8" fill="#f59e0b" opacity="0.4"/></svg><span>10연 뽑기</span><span style="color:#00ffff;font-size:11px;">❖ '+(PRISM_SINGLE*10)+'</span></button>'+
   '</div>';
 
