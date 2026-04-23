@@ -2802,9 +2802,24 @@ function startGame() {
     if (skipTo > 1) G._introSkipTarget = skipTo;
   }
 
+  // 탐사선 스킨 이미지 사전 로드
+  try {
+    var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
+    if ((!window._towerSkinImg || window._towerSkinId !== _sid) && window.getNeonCoreIcon) {
+      var _svgStr = window.getNeonCoreIcon(80, _sid);
+      if (_svgStr) {
+        var _img = new Image();
+        _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
+        window._towerSkinImg = _img;
+        window._towerSkinId = _sid;
+      }
+    }
+  } catch(_){}
+
   activeTab = 'atk';
   buildCards();
   setActiveTab('atk');
+  syncUI();
   applyPendingHighlight();
 
   // Daily gem
@@ -4040,9 +4055,20 @@ function render() {
   if (G.introTimer >= 0) {
   (function(){
     var t = G.introTimer;
-    var _vs = !!(window._smOwnedItems && window._smOwnedItems.indexOf('void') !== -1);
-    var _ac = _vs ? '#aa44ff' : '#00ffff';
-    var _fl = _vs ? '#160026' : '#001a22';
+    // 장착 스킨 색상 적용
+    var _ac = '#00ffff';
+    var _fl = '#001a22';
+    try {
+      var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
+      if (window.IRIS_SKINS) {
+        var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0];
+        if (_found) _ac = _found.color;
+      }
+    } catch(_){}
+    if (_ac === '#aa44ff' || _ac === '#cc44ff') _fl = '#160026';
+    else if (_ac === '#ff4444' || _ac === '#ef4444') _fl = '#1a0005';
+    else if (_ac === '#10b981' || _ac === '#00ff88') _fl = '#001a10';
+    else if (_ac === '#f59e0b') _fl = '#1a1400';
     var TR = 20;
     ctx.save();
 
@@ -4097,22 +4123,27 @@ function render() {
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      // 헥사곤 확장
+      // 타워 물질화 (스킨 이미지 or 기본 헥사곤)
       ctx.globalAlpha = ease;
-      ctx.beginPath();
-      for (var hi = 0; hi < 6; hi++) {
-        var ha = Math.PI/3*hi - Math.PI/6;
-        var hx = G.cx + TR*ease*Math.cos(ha);
-        var hy = G.cy + TR*ease*Math.sin(ha);
-        if (hi===0) ctx.moveTo(hx,hy); else ctx.lineTo(hx,hy);
+      if (window._towerSkinImg && window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0) {
+        var _isz = TR * 2.4 * ease;
+        ctx.drawImage(window._towerSkinImg, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
+      } else {
+        ctx.beginPath();
+        for (var hi = 0; hi < 6; hi++) {
+          var ha = Math.PI/3*hi - Math.PI/6;
+          var hx = G.cx + TR*ease*Math.cos(ha);
+          var hy = G.cy + TR*ease*Math.sin(ha);
+          if (hi===0) ctx.moveTo(hx,hy); else ctx.lineTo(hx,hy);
+        }
+        ctx.closePath();
+        ctx.fillStyle = _fl;
+        ctx.fill();
+        ctx.shadowColor = _ac; ctx.shadowBlur = 18*ease;
+        ctx.strokeStyle = _ac; ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
-      ctx.closePath();
-      ctx.fillStyle = _fl;
-      ctx.fill();
-      ctx.shadowColor = _ac; ctx.shadowBlur = 18*ease;
-      ctx.strokeStyle = _ac; ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
       // 크로스헤어
       if (ease > 0.5) {
         var ca = (ease-0.5)/0.5;
