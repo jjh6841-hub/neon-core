@@ -11746,15 +11746,15 @@ function _showStatsPopup() {
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.5).toFixed(1)+'%','#ef4444');
 
-  // ── 강화소 ──
+  // ── 강화소 ── (강화소 화면 표시 공식과 동일)
   h+=_section('강화소');
-  var _dl=ws.damage||0;   h+=_row('공격력 Lv.'+_dl, '+'+_dl);
-  var _sl=ws.atkspd||0;   h+=_row('공격속도 Lv.'+_sl, 'x'+(1+_sl*0.05).toFixed(2));
-  var _hl=ws.maxHp||0;    h+=_row('최대 체력 Lv.'+_hl, '+'+(_hl*5));
-  var _ccl=ws.critChance||0; h+=_row('치명타 확률 Lv.'+_ccl, (_ccl*5)+'%');
-  var _cml=ws.critMult||0;  h+=_row('치명타 배율 Lv.'+_cml, 'x'+(1.5+_cml*0.25).toFixed(2));
-  var _drl=ws.defRate||0;  h+=_row('방어율 Lv.'+_drl, (_drl*0.5).toFixed(1)+'%');
-  var _dal=ws.defAbs||0;   h+=_row('절대 방어 Lv.'+_dal, Math.floor(Math.pow(1.25,_dal)));
+  var _dl=ws.damage||0;   h+=_row('공격력 Lv.'+_dl, Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+_dl)));
+  var _sl=ws.atkspd||0;   h+=_row('공격속도 Lv.'+_sl, 'x'+(1+(PERM.spdLv||0)*0.05+_sl*0.05).toFixed(2));
+  var _hl=ws.maxHp||0;    h+=_row('최대 체력 Lv.'+_hl, Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+_hl)));
+  var _ccl=ws.critChance||0; h+=_row('치명타 확률 Lv.'+_ccl, (_ccl*0.5).toFixed(1)+'%');
+  var _cml=ws.critMult||0;  h+=_row('치명타 배율 Lv.'+_cml, 'x'+(1.5+_cml*0.1).toFixed(2));
+  var _drl=ws.defRate||0;  h+=_row('방어율 Lv.'+_drl, _drl+'%');
+  var _dal=ws.defAbs||0;   h+=_row('절대 방어 Lv.'+_dal, _dal);
   var _hrl=ws.hpRegen||0;  h+=_row('체력 재생 Lv.'+_hrl, (_hrl*0.05).toFixed(2)+'/s');
   var _kbl=ws.knockbackChance||0; h+=_row('넉백 확률 Lv.'+_kbl, (_kbl*0.5).toFixed(1)+'%');
   var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5).toFixed(1)+'%');
