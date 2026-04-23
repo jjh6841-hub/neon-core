@@ -5445,10 +5445,10 @@ if (dailyPopup) {
   /* ── 행성 설정 ── */
   var TIERS = [
   { name:'에이온',   color:'#94a3b8', border:'#4a5568', mult:1.0 },
-  { name:'스펙트라', color:'#10b981', border:'#059669', mult:1.3 },
-  { name:'넥사르',   color:'#3b82f6', border:'#2563eb', mult:1.6 },
-  { name:'피라온',   color:'#a855f7', border:'#9333ea', mult:2.0 },
-  { name:'오메가',   color:'#f59e0b', border:'#d97706', mult:2.5 },
+  { name:'스펙트라', color:'#10b981', border:'#059669', mult:1.8 },
+  { name:'넥사르',   color:'#3b82f6', border:'#2563eb', mult:2.7 },
+  { name:'피라온',   color:'#a855f7', border:'#9333ea', mult:3.6 },
+  { name:'오메가',   color:'#f59e0b', border:'#d97706', mult:4.5 },
 ]
   // 티어 N (idx N-1, N>=2) 해금 조건: 티어 N-1 에서 웨이브 100 클리어
   function isTierUnlocked(idx) {
@@ -10076,10 +10076,10 @@ var TYPE_BASE = {
 /* §11 — 행성 설정 */
 var TIER_CFG = [
   { name:'에이온',   goldMult:1.0, enemyMult:1.0, unlockWave:0   },
-  { name:'스펙트라', goldMult:1.3, enemyMult:1.3, unlockWave:100 },
-  { name:'넥사르',   goldMult:1.6, enemyMult:1.7, unlockWave:100 },
-  { name:'피라온',   goldMult:2.0, enemyMult:2.2, unlockWave:100 },
-  { name:'오메가',   goldMult:2.5, enemyMult:3.0, unlockWave:100 },
+  { name:'스펙트라', goldMult:1.8, enemyMult:1.3, unlockWave:100 },
+  { name:'넥사르',   goldMult:2.7, enemyMult:1.7, unlockWave:100 },
+  { name:'피라온',   goldMult:3.6, enemyMult:2.2, unlockWave:100 },
+  { name:'오메가',   goldMult:4.5, enemyMult:3.0, unlockWave:100 },
 ];
 var _curTierIdx = 0;
 function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
