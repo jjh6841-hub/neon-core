@@ -2405,12 +2405,6 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('slow',12); },
     apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
   },
-  { key:'gemup',   tab:'utl', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:null,
-    cost()   { return upgCost('gemup',12); },
-    stat()   { return 'x'+G.gemBonus.toFixed(1); },
-    canBuy() { return coreChips>=upgCost('gemup',12); },
-    apply()  { var c=upgCost('gemup',12); coreChips-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
-  },
   { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:null,
     cost()   { return upgCost('goldup',11); },
     stat()   { return 'x'+G.goldBonus.toFixed(1); },
@@ -5593,10 +5587,6 @@ if (dailyPopup) {
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
       nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
-    gemGain:    { tab:'utl', name:'보석 획득량', maxLv:5,
-      cost: function(lv) { return 10 + lv * 10; },
-      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
-      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
   };
 
   var wsActiveTab = 'atk';
@@ -7112,7 +7102,6 @@ var NEW_ITEMS = {
   coinsPerKill:    { tab:'utl', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
   coinsPerWave:    { tab:'utl', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
   // 특수 탭 4단계
-  interest:        { tab:'utl', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 };
 
 // WS에 주입
