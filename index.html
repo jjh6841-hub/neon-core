@@ -9993,7 +9993,9 @@ function _attachInterceptor() {
     var tab = btn.getAttribute('data-tab');
     if (TAB_LOCKS[tab] && !_isUnlocked(tab)) {
       e.stopImmediatePropagation();
-      _showPopup(tab);
+      var cfg = TAB_LOCKS[tab];
+      var costStr = cfg.goldCost > 0 ? '골드 '+cfg.goldCost : '보석 '+cfg.gemCost;
+      if (window.showNavToast) showNavToast(cfg.label + ' — ' + costStr + '으로 해금 가능', 'ws_lock_'+tab);
     }
   }, true); // capture 단계 — 기존 리스너보다 먼저 실행
 }
@@ -16921,12 +16923,64 @@ function _showSlotEquipPopup(slotIdx) {
   document.body.appendChild(ov);
 }
 
+/* ── 모듈 제조 연출 ── */
+function _showModCraftAnim(mods, onDone) {
+  var old=document.getElementById('mod-craft-anim'); if(old)old.remove();
+  var ov=document.createElement('div');
+  ov.id='mod-craft-anim';
+  ov.style.cssText='position:fixed;inset:0;z-index:20000;background:rgba(3,8,16,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+
+  // 1단계: 제조 중 애니메이션
+  var spinner=document.createElement('div');
+  spinner.style.cssText='width:60px;height:60px;border:3px solid #0a3344;border-top:3px solid #00ffff;border-radius:50%;animation:mod-spin 0.6s linear infinite;';
+  var style=document.createElement('style');
+  style.textContent='@keyframes mod-spin{to{transform:rotate(360deg)}} @keyframes mod-pop{0%{transform:scale(0.3);opacity:0}50%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}';
+  ov.appendChild(style);
+  ov.appendChild(spinner);
+  var label=document.createElement('div');
+  label.style.cssText='color:#00ffff;font-size:13px;margin-top:16px;letter-spacing:2px;';
+  label.textContent='제조 중...';
+  ov.appendChild(label);
+  document.body.appendChild(ov);
+
+  // 2단계: 결과 표시 (0.8초 후)
+  setTimeout(function(){
+    spinner.remove(); label.remove();
+    var title=document.createElement('div');
+    title.style.cssText='color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;animation:mod-pop 0.3s ease-out;';
+    title.textContent='제조 완료!';
+    ov.appendChild(title);
+
+    var grid=document.createElement('div');
+    grid.style.cssText='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:300px;padding:0 16px;';
+    mods.forEach(function(mod,idx){
+      var type=MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
+      var tier=TIERS[mod.tier]||TIERS[0];
+      if(!type)return;
+      var card=document.createElement('div');
+      card.style.cssText='width:64px;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;padding:8px 4px;text-align:center;animation:mod-pop 0.3s ease-out;animation-delay:'+idx*0.08+'s;animation-fill-mode:backwards;';
+      card.innerHTML=
+        '<div style="font-size:8px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+tier.name+'</div>'+
+        '<div style="width:28px;height:28px;border:2px solid '+type.color+';border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px '+type.color+'33;"><div style="width:10px;height:10px;background:'+type.color+';border-radius:50%;opacity:0.7;"></div></div>'+
+        '<div style="font-size:7px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+type.name+'</div>';
+      grid.appendChild(card);
+    });
+    ov.appendChild(grid);
+
+    var closeBtn=document.createElement('button');
+    closeBtn.style.cssText='margin-top:20px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:10px 32px;cursor:pointer;letter-spacing:1px;';
+    closeBtn.textContent='확인';
+    closeBtn.addEventListener('click',function(){ ov.remove(); if(onDone)onDone(); });
+    ov.appendChild(closeBtn);
+  },800);
+}
+
 /* ── 모듈 구매 ── */
 function _buyModule(count) {
   var cost = count === 1 ? MOD_BUY_COST : MOD_BUY_COST * count;
   var pc = parseInt(localStorage.getItem('powerCores')||'0',10);
   if (pc < cost) {
-    if(window._showSlotConfirm) _showSlotConfirm('\ud30c\uc6cc \ucf54\uc5b4 \ubd80\uc871','\ud30c\uc6cc \ucf54\uc5b4\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4\n\ubcf4\uc720: \u2295'+pc+' / \ud544\uc694: \u2295'+cost, null);
+    if(window._showSlotConfirm) _showSlotConfirm('파워 코어 부족','파워 코어가 부족합니다\n보유: '+pc+' / 필요: '+cost, null);
     return;
   }
   localStorage.setItem('powerCores', pc - cost);
@@ -16940,11 +16994,10 @@ function _buyModule(count) {
     newMods.push(m);
   }
   _saveMods(d);
-  _renderModuleContent();
-  var best = newMods.reduce(function(a,b){return b.tier>a.tier?b:a;}, newMods[0]);
-  var bType = MODULE_TYPES.filter(function(t){return t.id===best.typeId;})[0];
-  var bTier = TIERS[best.tier];
-  if(window.showAchievementToast) showAchievementToast(bTier.name+' '+bType.name+' \ud68d\ub4dd!');
+  // 제조 연출 표시
+  _showModCraftAnim(newMods, function(){
+    _renderModuleContent();
+  });
 }
 
 /* ── 모듈 상세 팝업 ── */
