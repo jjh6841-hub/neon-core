@@ -11804,10 +11804,12 @@ function _showStatsPopup() {
 
   // ── 스킨 보너스 ──
   h+=_section('▲ 스킨 보너스');
-  if(sm.shipMult && sm.shipMult!==1) h+=_row('탐사선 스킨 보너스','x'+sm.shipMult.toFixed(2));
-  if(sm.bgMult && sm.bgMult!==1) h+=_row('배경 스킨 보너스','x'+sm.bgMult.toFixed(2));
-  h+=_row('공격 배율','x'+(sm.atk||1).toFixed(2));
-  h+=_row('체력 배율','x'+(sm.hp||1).toFixed(2));
+  h+=_row('탐사선 공격력','x'+(sm.shipAtk||1).toFixed(2));
+  h+=_row('탐사선 방어력','x'+(sm.shipDef||1).toFixed(2));
+  h+=_row('탐사선 체력','x'+(sm.shipHp||1).toFixed(2));
+  h+=_row('배경 공격력','x'+(sm.bgAtk||1).toFixed(2));
+  h+=_row('배경 방어력','x'+(sm.bgDef||1).toFixed(2));
+  h+=_row('배경 체력','x'+(sm.bgHp||1).toFixed(2));
 
   // ── 행성별 최고 웨이브 ──
   h+=_section('☆ 행성별 최고 웨이브');
@@ -15412,8 +15414,15 @@ function _getSkinMultipliers() {
   var shipMult = 1 + shipCount * 0.10; // 탐사선 스킨당 +10% 합산
   var bgCount = _getBgSkinCount();
   var bgMult = 1 + bgCount * 0.20; // 배경 스킨당 +20% 합산
-  var totalMult = shipMult * bgMult; // 곱연산
-  return { atk: totalMult, def: totalMult, hp: totalMult, shipMult: shipMult, bgMult: bgMult, shipCount: shipCount, bgCount: bgCount };
+  // 개별 배율: 탐사선(공/방/체) * 배경(공/방/체)
+  var shipAtk = shipMult, shipDef = shipMult, shipHp = shipMult;
+  var bgAtk = bgMult, bgDef = bgMult, bgHp = bgMult;
+  return {
+    atk: shipAtk * bgAtk, def: shipDef * bgDef, hp: shipHp * bgHp,
+    shipAtk: shipAtk, shipDef: shipDef, shipHp: shipHp,
+    bgAtk: bgAtk, bgDef: bgDef, bgHp: bgHp,
+    shipMult: shipMult, bgMult: bgMult, shipCount: shipCount, bgCount: bgCount
+  };
 }
 window._getSkinMultipliers = _getSkinMultipliers;
 
@@ -15438,7 +15447,7 @@ function renderSkinGrid() {
     if (bonusEl) {
       var m = _getSkinMultipliers();
       bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + m.shipCount + '/' + (IRIS_SKINS.length - 1) + '</span>' +
-        '  |  보너스 <span style="color:#f59e0b;">x' + m.shipMult.toFixed(2) + '</span>';
+        '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.shipAtk.toFixed(2) + '</span>  방어력 <span style="color:#3b82f6;">x' + m.shipDef.toFixed(2) + '</span>  체력 <span style="color:#10b981;">x' + m.shipHp.toFixed(2) + '</span></span>';
     }
     IRIS_SKINS.forEach(function(skin) {
       var isSelected = skin.id === currentSkin;
@@ -15454,7 +15463,7 @@ function renderSkinGrid() {
     if (bonusEl) {
       var m = _getSkinMultipliers();
       bonusEl.innerHTML = '보유 배경: <span style="color:#00ffff;">' + m.bgCount + '/' + (BG_SKINS.length - 1) + '</span>' +
-        '  |  보너스 <span style="color:#f59e0b;">x' + m.bgMult.toFixed(2) + '</span>';
+        '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.bgAtk.toFixed(2) + '</span>  방어력 <span style="color:#3b82f6;">x' + m.bgDef.toFixed(2) + '</span>  체력 <span style="color:#10b981;">x' + m.bgHp.toFixed(2) + '</span></span>';
     }
     BG_SKINS.forEach(function(bg) {
       var isSelected = bg.id === currentBgSkin;
