@@ -10839,31 +10839,32 @@ function _prismIcon(id,c){
 }
 
 var PRISMS = [
-  /* 활성화 (6종) */
-  {id:'p_kill_cash',  cat:'active', name:'전리품 수집',     desc:'전투 골드 추가 획득',   lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_shield_cd',  cat:'active', name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
-  {id:'p_free_upg',   cat:'active', name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_max_hp',     cat:'active', name:'코어 생명력',     desc:'최대 체력 증가 (곱연산)',lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_wave_skip',  cat:'active', name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_intro_sprint',cat:'active',name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
-  /* 인벤토리 (12종) */
-  {id:'p_damage',     cat:'inven',  name:'화력 증폭',       desc:'공격력 증가 (곱연산)',  lvEff:[50,100,150,200,250], unit:'%'},
-  {id:'p_atk_spd',    cat:'inven',  name:'속사 모듈',       desc:'발사 속도 증가 (합연산)',lvEff:[0.2,0.4,0.6,0.8,1.0], unit:''},
-  {id:'p_hp_regen',   cat:'inven',  name:'자가 수복',       desc:'체력 재생 증가 (곱연산)',lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_range',      cat:'inven',  name:'탐지 확장',       desc:'사거리 확장 (합연산)',  lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_cash',       cat:'inven',  name:'자원 증폭',       desc:'웨이브 골드 보너스',   lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_coin',       cat:'inven',  name:'추가 보급',       desc:'보석 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_aura',       cat:'inven',  name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_crit_rate',  cat:'inven',  name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
-  {id:'p_enemy_stat', cat:'inven',  name:'자원 약탈',       desc:'코어랩 연구 비용 할인',lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_def',        cat:'inven',  name:'장갑 코팅',       desc:'방어력 강화 (곱연산)',  lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_fort',       cat:'inven',  name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_crit_dmg',   cat:'inven',  name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
-  /* 기타 (8종) — 제거된 7개 대신 새 패시브 추천 필요 */
-  {id:'p_crit_coin',  cat:'etc',    name:'황금 일격',       desc:'골드 1/100 추가 공격력',lvEff:[20,40,60,80,100], unit:'%'},
+  /* 공격 (6종) */
+  {id:'p_damage',     cat:'atk',    name:'화력 증폭',       desc:'공격력 증가 (곱연산)',  lvEff:[50,100,150,200,250], unit:'%'},
+  {id:'p_atk_spd',    cat:'atk',    name:'속사 모듈',       desc:'발사 속도 증가 (합연산)',lvEff:[0.2,0.4,0.6,0.8,1.0], unit:''},
+  {id:'p_crit_rate',  cat:'atk',    name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
+  {id:'p_crit_dmg',   cat:'atk',    name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
+  {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장 (합연산)',  lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_crit_coin',  cat:'atk',    name:'황금 일격',       desc:'골드 1/100 추가 공격력',lvEff:[20,40,60,80,100], unit:'%'},
+  /* 방어 (5종) */
+  {id:'p_max_hp',     cat:'def',    name:'코어 생명력',     desc:'최대 체력 증가 (곱연산)',lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_hp_regen',   cat:'def',    name:'자가 수복',       desc:'체력 재생 증가 (곱연산)',lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_def',        cat:'def',    name:'장갑 코팅',       desc:'방어력 강화 (곱연산)',  lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_shield_cd',  cat:'def',    name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
+  {id:'p_fort',       cat:'def',    name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
+  /* 경제 (4종) */
+  {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',   lvEff:[20,40,60,80,100], unit:'%'},
+  {id:'p_cash',       cat:'eco',    name:'자원 증폭',       desc:'웨이브 골드 보너스',   lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_coin',       cat:'eco',    name:'추가 보급',       desc:'보석 획득량 증가',     lvEff:[5,10,15,20,25], unit:'%'},
+  {id:'p_enemy_stat', cat:'eco',    name:'자원 약탈',       desc:'코어랩 연구 비용 할인',lvEff:[20,40,60,80,100], unit:'%'},
+  /* 특수 (4종) */
+  {id:'p_free_upg',   cat:'spc',    name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_aura',       cat:'spc',    name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_wave_skip',  cat:'spc',    name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_intro_sprint',cat:'spc',   name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
 ];
-var PRISM_CAT_LABEL = {active:'활성화',inven:'인벤토리',etc:'기타'};
-var PRISM_CAT_COLOR = {active:'#00ffff',inven:'#f59e0b',etc:'#cc44ff'};
+var PRISM_CAT_LABEL = {atk:'공격',def:'방어',eco:'경제',spc:'특수'};
+var PRISM_CAT_COLOR = {atk:'#ef4444',def:'#3b82f6',eco:'#f59e0b',spc:'#cc44ff'};
 var PRISM_SINGLE = 20;
 /* 레벨업 필요 중복 수: Lv1→2:3, 2→3:3, 3→4:3, 4→5:5 */
 var PRISM_DUP_NEEDED = [0,3,3,3,5]; /* index = target level -1 */
@@ -11305,11 +11306,11 @@ function _renderCardTab() {
   }
 
   // 프리즘 목록
-  ['active','inven','etc'].forEach(function(cat){
+  ['atk','def','eco','spc'].forEach(function(cat){
     var catPrisms=PRISMS.filter(function(pr){return pr.cat===cat;});
     var catCol=PRISM_CAT_COLOR[cat];
     html+='<div style="color:'+catCol+';font-family:monospace;font-size:10px;border-bottom:1px solid '+catCol+'22;padding:4px 0;">'+PRISM_CAT_LABEL[cat]+' ('+catPrisms.length+'종)</div>';
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">';
     catPrisms.forEach(function(pr){
       var p=_getPrism(pr.id);
       var owned=p.lv>0;
@@ -11325,11 +11326,11 @@ function _renderCardTab() {
       var _stars='';
       for(var _si=0;_si<5;_si++) _stars+='<span style="color:'+(_si<p.lv?catCol:'#1a2a3a')+';font-size:8px;">★</span>';
 
-      html+='<div data-prism-toggle="'+pr.id+'" style="background:'+(owned?'#0a1020':'#060810')+';border:2px solid '+eqBorder+';padding:6px;display:flex;flex-direction:column;align-items:center;gap:2px;opacity:'+(owned?1:0.35)+';cursor:'+(owned?'pointer':'default')+';position:relative;">'+
+      html+='<div data-prism-toggle="'+pr.id+'" style="background:'+(owned?'#0a1020':'#060810')+';border:2px solid '+eqBorder+';padding:5px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;opacity:'+(owned?1:0.35)+';cursor:'+(owned?'pointer':'default')+';position:relative;border-radius:4px;">'+
         // 이름
-        '<div style="font-size:8px;color:'+(owned?'#94a3b8':'#334455')+';font-family:monospace;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">'+pr.name+'</div>'+
+        '<div style="font-size:8px;color:'+(owned?'#94a3b8':'#334455')+';font-family:monospace;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;line-height:1.2;">'+pr.name+'</div>'+
         // 메인 아이콘
-        '<div style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:'+(owned?catCol+'08':'transparent')+';border-radius:6px;">'+_prismIcon(pr.id,_iconCol)+'</div>'+
+        '<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:'+(owned?catCol+'08':'transparent')+';border-radius:4px;">'+_prismIcon(pr.id,_iconCol)+'</div>'+
         // 별 (레벨)
         '<div style="display:flex;gap:1px;">'+_stars+'</div>'+
         // 효과 텍스트
@@ -11430,7 +11431,7 @@ function _renderCardTab() {
     pop.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
     var inner='<div style="background:#0a1020;border:1px solid #10b981;max-width:320px;width:100%;max-height:80vh;overflow-y:auto;padding:14px;">'+
       '<div style="color:#10b981;font-family:monospace;font-size:12px;font-weight:bold;margin-bottom:10px;text-align:center;">프리즘 선택 (파편 30 소모)</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">';
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">';
     PRISMS.forEach(function(pr){
       var p=_getPrism(pr.id);
       inner+='<button data-select-prism="'+pr.id+'" style="background:#060810;border:1px solid #10b98133;color:#f1f5f9;font-family:monospace;font-size:9px;padding:8px;cursor:pointer;text-align:left;">'+
