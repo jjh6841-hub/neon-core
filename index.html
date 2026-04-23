@@ -2392,6 +2392,31 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('knockback',10); },
     apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.5,(G.knockbackChance||0)+0.02); },
   },
+  // ─ 특수 탭 ─
+  { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
+    cost()   { return upgCost('explode',15); },
+    stat()   { return 'r='+G.explodeR; },
+    canBuy() { return coreChips>=upgCost('explode',15); },
+    apply()  { var c=upgCost('explode',15); coreChips-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
+  },
+  { key:'slow',    tab:'utl', icon:'#',  name:'감속',     baseCost:12, unlock:null,
+    cost()   { return upgCost('slow',12); },
+    stat()   { return Math.round(G.slowPct*100)+'%'; },
+    canBuy() { return coreChips>=upgCost('slow',12); },
+    apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
+  },
+  { key:'gemup',   tab:'utl', icon:'❖',  name:'젬증폭',   baseCost:12, unlock:null,
+    cost()   { return upgCost('gemup',12); },
+    stat()   { return 'x'+G.gemBonus.toFixed(1); },
+    canBuy() { return coreChips>=upgCost('gemup',12); },
+    apply()  { var c=upgCost('gemup',12); coreChips-=c; G.upgLvl.gemup=(G.upgLvl.gemup||0)+1; G.gemBonus=parseFloat((G.gemBonus+0.5).toFixed(1)); },
+  },
+  { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:null,
+    cost()   { return upgCost('goldup',11); },
+    stat()   { return 'x'+G.goldBonus.toFixed(1); },
+    canBuy() { return coreChips>=upgCost('goldup',11); },
+    apply()  { var c=upgCost('goldup',11); coreChips-=c; G.upgLvl.goldup=(G.upgLvl.goldup||0)+1; G.goldBonus=parseFloat((G.goldBonus+0.5).toFixed(1)); },
+  },
 ];
 
 
@@ -5564,6 +5589,14 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 10); },
       nxt:  function(lv) { return '' + ((lv + 1) * 10); } },
+    goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
+      cost: function(lv) { return 5 + lv * 4; },
+      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
+    gemGain:    { tab:'utl', name:'보석 획득량', maxLv:5,
+      cost: function(lv) { return 10 + lv * 10; },
+      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
   };
 
   var wsActiveTab = 'atk';
@@ -7072,6 +7105,14 @@ var NEW_ITEMS = {
   mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (0.5+lv*0.02).toFixed(2);},nxt:function(lv){return (0.5+(lv+1)*0.02).toFixed(2);} },
   deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},     nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 
+  // 특수 탭 1단계 확장
+  cashBonus:       { tab:'utl', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
+  cashPerWave:     { tab:'utl', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
+  // 특수 탭 2단계
+  coinsPerKill:    { tab:'utl', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
+  coinsPerWave:    { tab:'utl', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
+  // 특수 탭 4단계
+  interest:        { tab:'utl', name:'이자율',          tier:4, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},       nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
 };
 
 // WS에 주입
@@ -12817,16 +12858,31 @@ window.update = function(dt) {
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     (유틸 시스템 제거됨 - 추후 재구현 예정)
+     스크립트: 무료 업그레이드 시스템
+     (freeAtkUpgrade / freeDefUpgrade / freeUtlUpgrade)
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
 'use strict';
 
-/* ── (유틸 아이템 제거됨) ── */
-var FREE_UPG_ITEMS = {};
-var _freeKeys = {};
+/* ── 아이템 정의 ── */
+var FREE_UPG_ITEMS = {
+  freeAtkUpgrade: { tab:'utl', name:'무료 공격 업글', tier:3, maxLv:99,
+    cost:function(lv){return 20+Math.floor(lv*3.5);},
+    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
+    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  freeDefUpgrade: { tab:'utl', name:'무료 방어 업글', tier:3, maxLv:99,
+    cost:function(lv){return 20+Math.floor(lv*3.5);},
+    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
+    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+  freeUtlUpgrade: { tab:'utl', name:'무료 유틸 업글', tier:3, maxLv:99,
+    cost:function(lv){return 20+Math.floor(lv*3.5);},
+    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
+    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+};
 
+// 자기 자신은 무료 업그레이드 대상에서 제외
+var _freeKeys = { freeAtkUpgrade:true, freeDefUpgrade:true, freeUtlUpgrade:true };
 
 /* ── _wsExt.items에 등록 ── */
 (function _reg() {
