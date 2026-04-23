@@ -11479,7 +11479,7 @@ function _renderCardTab() {
         // 별 (레벨)
         '<div style="display:flex;gap:1px;">'+_stars+'</div>'+
         // 효과 텍스트
-        '<div style="font-size:7px;color:'+catCol+';font-family:monospace;text-align:center;">'+effText+'</div>'+
+        '<div style="font-size:9px;color:'+catCol+';font-family:monospace;text-align:center;">'+effText+'</div>'+
         // 진행 바
         (owned&&!maxed?'<div style="width:100%;display:flex;align-items:center;gap:2px;">'+
           '<div style="flex:1;background:#030b10;height:2px;overflow:hidden;"><div style="background:'+catCol+';height:2px;width:'+Math.round(p.dup/dupNeeded*100)+'%;"></div></div>'+
@@ -16761,9 +16761,55 @@ var MODULE_TYPES = [
   { id:'mod_spd',     name:'속도 증폭기',     desc:'공격속도 +{v}%',     color:'#f59e0b', perLv:2 },
   { id:'mod_crit',    name:'치명타 증폭기',   desc:'치명타 확률 +{v}%',  color:'#cc44ff', perLv:1.5 },
   { id:'mod_gold',    name:'골드 증폭기',     desc:'골드 획득 +{v}%',    color:'#ffc800', perLv:2 },
-  { id:'mod_regen',   name:'재생 증폭기',     desc:'체력 재생 +{v}%',    color:'#44ffaa', perLv:2 },
-  { id:'mod_range',   name:'사거리 증폭기',   desc:'공격 범위 +{v}%',    color:'#88aaff', perLv:2 },
 ];
+/* 슬롯 → 모듈 타입 매핑 (각 슬롯은 특정 타입만 장착 가능) */
+var MOD_SLOT_FILTER = ['mod_atk','mod_crit','mod_def','mod_hp','mod_spd','mod_gold'];
+
+/* ── 모듈 파츠 아이콘 (6종 고유 디자인, 등급 색만 변경) ── */
+function _modIcon(typeId, color, size) {
+  size = size || 32;
+  var icons = {
+    mod_atk:
+      '<rect x="3" y="12" width="17" height="8" rx="2" fill="C" opacity="0.15" stroke="C" stroke-width="1.2"/>'+
+      '<rect x="20" y="13.5" width="9" height="5" rx="1" fill="C" opacity="0.3" stroke="C" stroke-width="0.8"/>'+
+      '<circle cx="11" cy="16" r="3" fill="none" stroke="C" stroke-width="0.8" opacity="0.5"/>'+
+      '<circle cx="11" cy="16" r="1.2" fill="C" opacity="0.5"/>'+
+      '<line x1="22" y1="16" x2="29" y2="16" stroke="C" stroke-width="1.5" opacity="0.6"/>'+
+      '<line x1="29" y1="13" x2="29" y2="19" stroke="C" stroke-width="0.8" opacity="0.4"/>',
+    mod_crit:
+      '<circle cx="16" cy="16" r="11" fill="none" stroke="C" stroke-width="1.2"/>'+
+      '<circle cx="16" cy="16" r="6" fill="none" stroke="C" stroke-width="0.8" opacity="0.4"/>'+
+      '<line x1="16" y1="3" x2="16" y2="29" stroke="C" stroke-width="0.8" opacity="0.5"/>'+
+      '<line x1="3" y1="16" x2="29" y2="16" stroke="C" stroke-width="0.8" opacity="0.5"/>'+
+      '<circle cx="16" cy="16" r="2" fill="C" opacity="0.6"/>',
+    mod_def:
+      '<path d="M16,3 L28,9 L28,18 Q28,27 16,30 Q4,27 4,18 L4,9Z" fill="C" opacity="0.12" stroke="C" stroke-width="1.3"/>'+
+      '<path d="M16,8 L24,12 L24,18 Q24,24 16,26 Q8,24 8,18 L8,12Z" fill="C" opacity="0.08" stroke="C" stroke-width="0.8"/>'+
+      '<line x1="16" y1="10" x2="16" y2="24" stroke="C" stroke-width="1.2" opacity="0.3"/>'+
+      '<line x1="10" y1="16" x2="22" y2="16" stroke="C" stroke-width="1.2" opacity="0.3"/>',
+    mod_hp:
+      '<polygon points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5" fill="C" opacity="0.1" stroke="C" stroke-width="1.2"/>'+
+      '<circle cx="16" cy="16" r="6" fill="C" opacity="0.15" stroke="C" stroke-width="1"/>'+
+      '<circle cx="16" cy="16" r="2.5" fill="C" opacity="0.5"/>'+
+      '<line x1="16" y1="3" x2="16" y2="10" stroke="C" stroke-width="0.8" opacity="0.3"/>'+
+      '<line x1="16" y1="22" x2="16" y2="29" stroke="C" stroke-width="0.8" opacity="0.3"/>'+
+      '<line x1="5" y1="9.5" x2="10" y2="12" stroke="C" stroke-width="0.8" opacity="0.3"/>'+
+      '<line x1="27" y1="9.5" x2="22" y2="12" stroke="C" stroke-width="0.8" opacity="0.3"/>',
+    mod_spd:
+      '<polygon points="8,4 24,16 8,28" fill="C" opacity="0.12" stroke="C" stroke-width="1.2"/>'+
+      '<polygon points="14,8 26,16 14,24" fill="C" opacity="0.08" stroke="C" stroke-width="0.8"/>'+
+      '<line x1="4" y1="8" x2="4" y2="24" stroke="C" stroke-width="2.5" opacity="0.4"/>'+
+      '<line x1="7" y1="6" x2="7" y2="26" stroke="C" stroke-width="1" opacity="0.25"/>',
+    mod_gold:
+      '<rect x="5" y="7" width="22" height="18" rx="2" fill="C" opacity="0.1" stroke="C" stroke-width="1.2"/>'+
+      '<line x1="5" y1="13" x2="27" y2="13" stroke="C" stroke-width="0.8" opacity="0.4"/>'+
+      '<line x1="16" y1="13" x2="16" y2="25" stroke="C" stroke-width="0.8" opacity="0.4"/>'+
+      '<rect x="12" y="8" width="8" height="5" rx="1.5" fill="C" opacity="0.2" stroke="C" stroke-width="0.8"/>'
+  };
+  var svg = icons[typeId] || '<circle cx="16" cy="16" r="10" fill="none" stroke="C" stroke-width="1.5"/>';
+  svg = svg.replace(/C/g, color);
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 32 32" style="display:block;margin:0 auto;">'+svg+'</svg>';
+}
 
 var TIERS = [
   { name:'일반',   color:'#94a3b8', border:'#4a5568' },
@@ -16836,17 +16882,38 @@ var MOD_RATES = {
 };
 
 /* ── 모듈 제조 ── */
-function _createModule(forceTier) {
+function _createModule(forceTier, forceSub) {
   var type = MODULE_TYPES[Math.floor(Math.random()*MODULE_TYPES.length)];
-  if (forceTier !== undefined) return { typeId: type.id, tier: forceTier, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
+  var _uid = Date.now()+'_'+Math.random().toString(36).substr(2,5);
+  if (forceTier !== undefined) return { typeId: type.id, tier: forceTier, sub: forceSub||0, level:1, uid: _uid };
   var lv = _getModLevel();
   var rates = MOD_RATES[lv] || MOD_RATES[1];
   var total = 0; for(var i=0;i<rates.length;i++) total+=rates[i];
   var r = Math.random() * total;
   var tier = 0, acc = 0;
   for (var ti = 0; ti < rates.length; ti++) { acc += rates[ti]; if (r < acc) { tier = ti; break; } }
-  return { typeId: type.id, tier: tier, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
+  return { typeId: type.id, tier: tier, sub: 0, level:1, uid: _uid };
 }
+
+/* ── 서브 등급 포함 효과 배율표 (tier*3 + sub) ── */
+var MOD_MULTS = [
+  1,    1.17, 1.33,   // 일반, +1, +2
+  1.5,  1.83, 2.17,   // 고급, +1, +2
+  2.5,  3.0,  3.5,    // 희귀, +1, +2
+  4,    5,    6,      // 영웅, +1, +2
+  7,    8.67, 10.33,  // 전설, +1, +2
+  12,   14,   16      // 고대, +1, +2
+];
+
+/* 서브 등급 표시 텍스트 */
+function _subLabel(sub) { return sub > 0 ? '+'+sub : ''; }
+/* 전체 등급 표시 */
+function _fullTierName(tier, sub) {
+  var name = (TIERS[tier]||TIERS[0]).name;
+  return sub > 0 ? name+'+'+sub : name;
+}
+/* 합성 가능 최대 확인 */
+function _isMaxSynth(tier, sub) { return tier >= 5 && (sub||0) >= 2; }
 
 /* ── 제조 레벨 정보 팝업 (페이지형) ── */
 function _showModLevelPopup() {
@@ -16910,13 +16977,14 @@ function _getModEffect(mod) {
   var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
   if (!type) return 0;
   var base = type.perLv;
-  var mult = [1, 1.5, 2.5, 4, 7, 12][mod.tier] || 1;
+  var idx = mod.tier * 3 + (mod.sub||0);
+  var mult = MOD_MULTS[idx] || 1;
   return Math.round(base * mult * 10) / 10;
 }
 
 /* ── 장착된 모듈 총 보너스 ── */
 window._getModuleBonuses = function() {
-  var b = { atk:0, hp:0, def:0, spd:0, crit:0, gold:0, regen:0, range:0 };
+  var b = { atk:0, hp:0, def:0, spd:0, crit:0, gold:0 };
   var slots = _getModSlots();
   slots.forEach(function(uid) {
     if (!uid) return;
@@ -17029,11 +17097,13 @@ function _renderModuleContent() {
       var type = MODULE_TYPES.filter(function(t){return t.id===equippedMod.typeId;})[0];
       var tier = TIERS[equippedMod.tier]||TIERS[0];
       var eff = _getModEffect(equippedMod);
+      var _eqSub = equippedMod.sub||0;
       slot.innerHTML =
-        '<div style="width:100%;height:100%;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 8px '+tier.color+'44;">' +
+        '<div style="width:100%;height:100%;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 8px '+tier.color+'44;position:relative;">' +
+          (_eqSub>0?'<div style="position:absolute;top:1px;right:3px;font-size:6px;color:'+tier.color+';font-weight:bold;">+'+_eqSub+'</div>':'')+
+          '<div style="position:absolute;bottom:1px;right:3px;font-size:5px;color:#556677;">Lv.'+(equippedMod.level||1)+'</div>'+
           '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>' +
-          '<div style="width:22px;height:22px;border:2px solid '+type.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 6px '+type.color+'33;"><div style="width:8px;height:8px;background:'+type.color+';border-radius:50%;opacity:0.7;box-shadow:0 0 4px '+type.color+';"></div></div>' +
-          '<div style="font-size:6px;color:'+part.partColor+';">'+part.name+'</div>' +
+          _modIcon(equippedMod.typeId, tier.color, 26) +
           '<div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>' +
         '</div>';
       (function(mod) {
@@ -17041,8 +17111,8 @@ function _renderModuleContent() {
       })(equippedMod);
     } else {
       slot.innerHTML =
-        '<div style="width:100%;height:100%;background:#060e18;border:1px dashed '+part.partColor+'44;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">' +
-          '<div style="width:18px;height:18px;border:1.5px solid '+part.partColor+'44;border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="color:'+part.partColor+'55;font-size:12px;">+</span></div>' +
+        '<div style="width:100%;height:100%;background:#060e18;border:1px dashed '+part.partColor+'44;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;opacity:0.35;">' +
+          _modIcon(part.filter, part.partColor+'88', 24) +
           '<div style="font-size:7px;color:'+part.partColor+'88;">'+part.name+'</div>' +
         '</div>';
       (function(idx) {
@@ -17105,10 +17175,13 @@ function _renderModuleContent() {
       var eff = _getModEffect(mod);
       var equipped = slots.indexOf(mod.uid) !== -1;
       var mCard = document.createElement('div');
-      mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;';
+      var _mSub = mod.sub||0;
+      mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;';
       mCard.innerHTML =
+        (_mSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;font-family:monospace;">+'+_mSub+'</div>':'')+
+        '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||1)+'</div>'+
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
-        '<div style="width:22px;height:22px;border:1.5px solid '+type.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:'+type.color+';border-radius:50%;opacity:0.6;"></div></div>'+
+        _modIcon(mod.typeId, tier.color, 28)+
         '<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
         '<div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>'+
         (equipped?'<div style="font-size:6px;color:#00ffff;">\uc7a5\ucc29</div>':'');
@@ -17123,9 +17196,11 @@ function _renderModuleContent() {
 function _showSlotEquipPopup(slotIdx) {
   var inv = _getModInv();
   var slots = _getModSlots();
-  var available = inv.filter(function(m){ return slots.indexOf(m.uid)===-1; });
+  var allowedType = MOD_SLOT_FILTER[slotIdx];
+  var available = inv.filter(function(m){ return slots.indexOf(m.uid)===-1 && m.typeId===allowedType; });
   if (available.length===0) {
-    if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \uc5c6\uc74c','\uc7a5\ucc29\ud560 \uc218 \uc788\ub294 \ubaa8\ub4c8\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.\n\ubaa8\ub4c8\uc744 \uad6c\ub9e4\ud574\uc8fc\uc138\uc694.', null);
+    var slotName = ['무기','센서','실드','리액터','엔진','화물'][slotIdx]||'';
+    if(window._showSlotConfirm) _showSlotConfirm(slotName+' 모듈 없음','장착할 수 있는 '+slotName+' 모듈이 없습니다.\n모듈을 제조해주세요.', null);
     return;
   }
   var old=document.getElementById('mod-equip-popup'); if(old)old.remove();
@@ -17143,8 +17218,10 @@ function _showSlotEquipPopup(slotIdx) {
     var tier=TIERS[mod.tier]||TIERS[0];
     var eff=_getModEffect(mod);
     var card=document.createElement('div');
-    card.style.cssText='background:#0a1520;border:1px solid '+tier.border+';padding:8px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;';
-    card.innerHTML='<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div><div style="width:22px;height:22px;border:1.5px solid '+type.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:8px;height:8px;background:'+type.color+';border-radius:50%;opacity:0.6;"></div></div><div style="font-size:7px;color:'+type.color+';">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div><div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>';
+    var _eSub=mod.sub||0;
+    card.style.cssText='background:#0a1520;border:1px solid '+tier.border+';padding:8px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;';
+    card.innerHTML=(_eSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;">+'+_eSub+'</div>':'')+
+      '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+_modIcon(mod.typeId, tier.color, 28)+'<div style="font-size:7px;color:'+type.color+';">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div><div style="font-size:7px;color:#94a3b8;">+'+eff+'%</div>';
     (function(m){ card.addEventListener('click',function(){ var d=_loadMods();var sl=d.slots||[null,null,null,null,null,null];sl[slotIdx]=m.uid;d.slots=sl;_saveMods(d);ov.remove();_renderModuleContent(); }); })(mod);
     grid.appendChild(card);
   });
@@ -17196,8 +17273,8 @@ function _showModCraftAnim(mods, onDone) {
       card.style.cssText='width:64px;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;padding:8px 4px;text-align:center;animation:mod-pop 0.3s ease-out;animation-delay:'+idx*0.08+'s;animation-fill-mode:backwards;';
       card.innerHTML=
         '<div style="font-size:8px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+tier.name+'</div>'+
-        '<div style="width:28px;height:28px;border:2px solid '+type.color+';border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px '+type.color+'33;"><div style="width:10px;height:10px;background:'+type.color+';border-radius:50%;opacity:0.7;"></div></div>'+
-        '<div style="font-size:7px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+type.name+'</div>';
+        _modIcon(mod.typeId, tier.color, 32)+
+        '<div style="font-size:7px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">'+type.name+'</div>';
       grid.appendChild(card);
     });
     ov.appendChild(grid);
@@ -17246,9 +17323,14 @@ function _showModuleDetail(mod) {
   var slots = _getModSlots();
   var equipped = slots.indexOf(mod.uid) !== -1;
   var inv = _getModInv();
-  // 합성 가능 여부: 같은 타입+같은 등급 3개 이상
-  var sameCount = inv.filter(function(m){return m.typeId===mod.typeId && m.tier===mod.tier;}).length;
-  var canMerge = sameCount >= 3 && mod.tier < 5;
+  // 합성 가능 여부: 같은 타입+같은 등급+같은 서브 등급 3개 이상
+  var modSub = mod.sub||0;
+  var sameCount = inv.filter(function(m){return m.typeId===mod.typeId && m.tier===mod.tier && (m.sub||0)===modSub;}).length;
+  var canMerge = sameCount >= 3 && !_isMaxSynth(mod.tier, modSub);
+  // 합성 결과 미리보기
+  var nextTier = modSub < 2 ? mod.tier : mod.tier+1;
+  var nextSub = modSub < 2 ? modSub+1 : 0;
+  var nextTierName = canMerge ? _fullTierName(nextTier, nextSub) : '';
 
   var ov = document.createElement('div');
   ov.id = 'mod-detail-popup';
@@ -17265,33 +17347,45 @@ function _showModuleDetail(mod) {
   }
   btnsHtml += '<button id="mod-shatter" style="flex:1;background:#030b10;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">\ubd84\ud574</button>';
 
+  var fullName = _fullTierName(mod.tier, modSub);
+  var stars = '';
+  for(var _si=0;_si<5;_si++) stars += '<span style="color:'+(_si<=mod.tier?tier.color:'#1a2a3a')+';font-size:10px;">\u2605</span>';
+
   ov.innerHTML =
     '<div style="background:#0a1520;border:1px solid '+tier.border+';padding:18px;max-width:280px;width:90%;font-family:Courier New,monospace;">'+
       '<div style="text-align:center;margin-bottom:12px;">'+
-        '<div style="font-size:10px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+tier.name+'</div>'+
-        '<div style="width:48px;height:48px;border:2px solid '+type.color+';border-radius:6px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;"><div style="width:20px;height:20px;background:'+type.color+';border-radius:3px;opacity:0.6;"></div></div>'+
+        '<div style="font-size:10px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+fullName+'</div>'+
+        _modIcon(mod.typeId, tier.color, 52)+
         '<div style="font-size:13px;color:'+type.color+';font-weight:bold;">'+type.name+'</div>'+
         '<div style="font-size:11px;color:#94a3b8;margin-top:4px;">'+type.desc.replace('{v}',eff)+'</div>'+
       '</div>'+
       '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">'+
-        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">\ub4f1\uae09</span><span style="color:'+tier.color+';">'+tier.name+' ('+['\u2605','\u2605\u2605','\u2605\u2605\u2605','\u2605\u2605\u2605\u2605','\u2605\u2605\u2605\u2605\u2605'][mod.tier]+')</span></div>'+
-        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">\ud6a8\uacfc</span><span style="color:#00ff88;">+'+eff+'%</span></div>'+
-        (canMerge?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">\ud569\uc131 \uac00\ub2a5</span><span style="color:#cc44ff;">'+sameCount+'/3</span></div>':'')+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">등급</span><span style="color:'+tier.color+';">'+fullName+' '+stars+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">효과</span><span style="color:#00ff88;">+'+eff+'%</span></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">강화</span><span style="color:#00ffff;">Lv.'+(mod.level||1)+'</span></div>'+
+        (canMerge?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">합성</span><span style="color:#cc44ff;">'+sameCount+'/3 → '+nextTierName+'</span></div>':
+         (!_isMaxSynth(mod.tier,modSub)?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">합성</span><span style="color:#334455;">'+sameCount+'/3</span></div>':''))+
       '</div>'+
       '<div style="display:flex;gap:6px;margin-bottom:8px;">'+btnsHtml+'</div>'+
-      '<button id="mod-detail-close" style="width:100%;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">\ub2eb\uae30</button>'+
+      '<button id="mod-detail-close" style="width:100%;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">닫기</button>'+
     '</div>';
 
   document.body.appendChild(ov);
   ov.addEventListener('click', function(e) { if(e.target===ov||e.target.id==='mod-detail-close') ov.remove(); });
 
-  // 장착
+  // 장착 (타입에 맞는 전용 슬롯에만 장착)
   var eqBtn = document.getElementById('mod-equip');
   if(eqBtn) eqBtn.addEventListener('click', function() {
     var d=_loadMods(); var sl=d.slots||[null,null,null,null,null,null]; var sb=d.slotsBought||1;
-    var placed = false;
-    for(var si2=0;si2<sb;si2++){ if(!sl[si2]){sl[si2]=mod.uid;placed=true;break;} }
-    if(!placed) { sl[0]=mod.uid; } // 첫 슬롯 교체
+    var targetSlot = -1;
+    for(var si2=0;si2<MOD_SLOT_FILTER.length;si2++){
+      if(MOD_SLOT_FILTER[si2]===mod.typeId && si2<sb){ targetSlot=si2; break; }
+    }
+    if(targetSlot===-1){
+      if(window.showToastMsg) showToastMsg('해당 슬롯이 잠겨 있습니다','#ef4444');
+      return;
+    }
+    sl[targetSlot]=mod.uid;
     d.slots=sl; _saveMods(d);
     ov.remove(); _renderModuleContent();
   });
@@ -17303,11 +17397,12 @@ function _showModuleDetail(mod) {
     d.slots=sl; _saveMods(d);
     ov.remove(); _renderModuleContent();
   });
-  // 합성
+  // 합성 (서브 등급 시스템)
   var mergeBtn = document.getElementById('mod-merge');
   if(mergeBtn) mergeBtn.addEventListener('click', function() {
     var d=_loadMods(); var invArr=d.inventory||[];
-    var same=invArr.filter(function(m){return m.typeId===mod.typeId&&m.tier===mod.tier;});
+    var _ms = mod.sub||0;
+    var same=invArr.filter(function(m){return m.typeId===mod.typeId&&m.tier===mod.tier&&(m.sub||0)===_ms;});
     if(same.length<3)return;
     // 장착 해제
     var sl=d.slots||[];
@@ -17317,19 +17412,22 @@ function _showModuleDetail(mod) {
       var idx2=invArr.findIndex(function(m){return m.uid===rm.uid;});
       if(idx2!==-1)invArr.splice(idx2,1);
     });
-    // 상위 등급 생성
-    var newMod=_createModule(mod.tier+1);
-    newMod.typeId=mod.typeId;
+    // 서브 등급 진행: sub<2 → sub+1, sub==2 → 다음 메인 등급
+    var resTier = _ms < 2 ? mod.tier : mod.tier+1;
+    var resSub = _ms < 2 ? _ms+1 : 0;
+    var newMod = { typeId: mod.typeId, tier: resTier, sub: resSub, level:1, uid: Date.now()+'_'+Math.random().toString(36).substr(2,5) };
     invArr.push(newMod);
     d.inventory=invArr; d.slots=sl; _saveMods(d);
     ov.remove(); _renderModuleContent();
-    var nTier=TIERS[newMod.tier];
-    if(window.showToastMsg) showToastMsg(nTier.name+' 합성 성공!', '#f59e0b');
+    var resultName = _fullTierName(resTier, resSub);
+    if(window.showToastMsg) showToastMsg(resultName+' 합성 성공!', (TIERS[resTier]||TIERS[0]).color);
   });
   // 분해
   var shatterBtn = document.getElementById('mod-shatter');
   if(shatterBtn) shatterBtn.addEventListener('click', function() {
-    var frags = [5,15,50,150,500,1500][mod.tier]||5;
+    var _baseFrags = [5,15,50,150,500,1500][mod.tier]||5;
+    var _subMult = [1,2,4][mod.sub||0];
+    var frags = _baseFrags * _subMult;
     if(window._showSlotConfirm) _showSlotConfirm('\ubaa8\ub4c8 \ubd84\ud574','\uc774 \ubaa8\ub4c8\uc744 \ubd84\ud574\ud558\uba74\n\u29bf '+frags+' \ubaa8\ub4c8 \ud30c\ud3b8\uc744 \ud68d\ub4dd\ud569\ub2c8\ub2e4.\n\ubd84\ud574\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?', function(){
       var d2=_loadMods(); var inv2=d2.inventory||[]; var sl2=d2.slots||[];
       // 장착 해제
@@ -17357,7 +17455,6 @@ if (typeof _prevApplyMod === 'function') {
     if (b.def > 0) G.tower.defense = Math.min(0.9, (G.tower.defense||0) + b.def/100);
     if (b.spd > 0) G.tower.atkMs = Math.max(200, Math.round(G.tower.atkMs / (1 + b.spd/100)));
     if (b.crit > 0) G.tower.critChance = Math.min(0.9, (G.tower.critChance||0) + b.crit/100);
-    if (b.regen > 0) G.tower.hpRegen = (G.tower.hpRegen||0) + b.regen/100;
   };
 }
 
