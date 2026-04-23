@@ -2357,6 +2357,18 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('vamp',9); },
     apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; G.lifeSteal=Math.min(15,(G.upgLvl.vamp||0)*0.5); },
   },
+  { key:'reflect', tab:'def', icon:'↩',  name:'반사',     baseCost:10, unlock:null, maxLv:30,
+    cost()   { return upgCost('reflect',10); },
+    stat()   { return ((G.reflectPct||0)*100).toFixed(1)+'%'; },
+    canBuy() { return coreChips>=upgCost('reflect',10); },
+    apply()  { var c=upgCost('reflect',10); coreChips-=c; G.upgLvl.reflect=(G.upgLvl.reflect||0)+1; G.reflectPct=Math.min(0.5,(G.upgLvl.reflect||0)*0.005); },
+  },
+  { key:'knockback', tab:'def', icon:'⇤', name:'넉백',     baseCost:10, unlock:null, maxLv:30,
+    cost()   { return upgCost('knockback',10); },
+    stat()   { return ((G.knockbackChance||0)*100).toFixed(1)+'%'; },
+    canBuy() { return coreChips>=upgCost('knockback',10); },
+    apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.5,(G.knockbackChance||0)+0.02); },
+  },
   // ─ 특수 탭 ─
   { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
     cost()   { return upgCost('explode',15); },
@@ -4528,7 +4540,7 @@ function buildCards() {
   var _defUn = PERM.ws_def_unlocks || 0;
   var _utlTabOpen = !!(PERM.unlocks && PERM.unlocks.tab_utl_u);
   // 강화 탭 그룹과 전투 업그레이드 unlock 키 매핑
-  var _defKeyToGroup = { maxhp:0, hpRegen:0, defRate:1, defAbs:1, vamp:3 };
+  var _defKeyToGroup = { maxhp:0, hpRegen:0, defRate:1, defAbs:1, reflect:2, vamp:3, knockback:4 };
   for (const tabKey of ['atk', 'def', 'utl']) {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
