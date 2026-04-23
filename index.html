@@ -10966,14 +10966,16 @@ function _getEquipped() { return (window.PERM && window.PERM.prismEquipped) || [
 function _setEquipped(arr) { if(window.PERM) window.PERM.prismEquipped = arr; }
 function _isEquipped(id) { return _getEquipped().indexOf(id) !== -1; }
 function _toggleEquip(id) {
-  var eq = _getEquipped().filter(function(x){ return !!x; }); // null/빈값 제거
+  // 유효한 장착만 유지 (null, 빈값, 존재하지 않는 프리즘 ID 제거)
+  var validPrismIds = PRISMS.map(function(p){return p.id;});
+  var eq = _getEquipped().filter(function(x){
+    return !!x && validPrismIds.indexOf(x) !== -1 && _getPrism(x).lv > 0;
+  });
   var idx = eq.indexOf(id);
   if (idx !== -1) {
     eq.splice(idx, 1);
   } else {
-    // 실제 유효한 장착 수 vs 해금 슬롯 수
-    var validCount = eq.filter(function(eid){ return _getPrism(eid).lv > 0; }).length;
-    if (validCount < _getSlots()) { eq.push(id); }
+    if (eq.length < _getSlots()) { eq.push(id); }
     else { return false; }
   }
   _setEquipped(eq);
