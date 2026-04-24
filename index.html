@@ -1460,16 +1460,12 @@ canvas {
         <span style="color:#cc44ff; font-family:monospace; font-size:11px;">◆ 프리즘 파편</span>
         <span id="panel-prism-frag" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
-      <div class="currency-row">
-        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">⬡ 프리즘 슬롯</span>
-        <span id="panel-prism-slot" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
-      </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
       <!-- 탐사 -->
       <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">요일탐사</div>
       <div class="currency-row">
-        <span style="color:#ff8822; font-family:monospace; font-size:11px;">🎫 탐사 티켓</span>
-        <span id="panel-ticket" style="color:#ff8822; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+        <span style="color:#5bc0de; font-family:monospace; font-size:11px;">🎫 탐사 티켓</span>
+        <span id="panel-ticket" style="color:#5bc0de; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
         <span style="color:#ef4444; font-family:monospace; font-size:11px;">✹ 화염 코어</span>
@@ -1499,12 +1495,12 @@ canvas {
       <!-- 기타 -->
       <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">기타</div>
       <div class="currency-row">
-        <span style="color:#cc44ff; font-family:monospace; font-size:11px;">✦ 펄스 조각</span>
-        <span id="panel-pulse" style="color:#cc44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+        <span style="color:#ffc800; font-family:monospace; font-size:11px;">✦ 펄스 조각</span>
+        <span id="panel-pulse" style="color:#ffc800; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#bb44ff; font-family:monospace; font-size:11px;">⌘ 접근 코드</span>
-        <span id="panel-access" style="color:#bb44ff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+        <span style="color:#e05577; font-family:monospace; font-size:11px;">⌘ 접근 코드</span>
+        <span id="panel-access" style="color:#e05577; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
         <span style="color:#ff8822; font-family:monospace; font-size:11px;">⊕ 파워 코어</span>
@@ -1518,7 +1514,7 @@ canvas {
       <!-- 모듈 -->
       <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">모듈</div>
       <div class="currency-row">
-        <span style="color:#88aaff; font-family:monospace; font-size:11px;">⊿ 모듈 조각</span>
+        <span style="color:#88aaff; font-family:monospace; font-size:11px;">⊿ 모듈 파편</span>
         <span id="panel-mod-frag" style="color:#88aaff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
@@ -8180,7 +8176,6 @@ function openPanel() {
   // 기본 재화
   // 프리즘
   try { document.getElementById('panel-prism-frag').textContent = PERM.prismFragments || 0; } catch(_) {}
-  try { document.getElementById('panel-prism-slot').textContent = (PERM.prismSlotCount||1) + ' / 10'; } catch(_) {}
   // 탐사
   try { document.getElementById('panel-ticket').textContent = parseInt(localStorage.getItem('explore_tickets')||'3',10); } catch(_) {}
   var _coreIds = ['fire','water','electric','earth','wind','dark'];
@@ -14831,9 +14826,8 @@ window.toggleCurrencyDropdown = function () {
       _r('❖','보석','#00ffff','dd-gem')+
       _sep+_cat('프리즘')+
       _r('◆','프리즘 파편','#cc44ff','dd-prism-frag')+
-      _r('⬡','프리즘 슬롯','#cc44ff','dd-prism-slot')+
       _sep+_cat('요일탐사')+
-      _r('🎫','탐사 티켓','#ff8822','dd-ticket')+
+      _r('🎫','탐사 티켓','#5bc0de','dd-ticket')+
       _r('✹','화염 코어','#ef4444','dd-core-fire')+
       _r('⎈','심해 코어','#3b82f6','dd-core-water')+
       _r('⚛','번개 코어','#f59e0b','dd-core-electric')+
@@ -14841,12 +14835,12 @@ window.toggleCurrencyDropdown = function () {
       _r('❊','질풍 코어','#10b981','dd-core-wind')+
       _r('☽','암흑 코어','#6b21a8','dd-core-dark')+
       _sep+_cat('기타')+
-      _r('✦','펄스 조각','#cc44ff','dd-pulse')+
-      _r('⌘','접근 코드','#bb44ff','dd-ac')+
+      _r('✦','펄스 조각','#ffc800','dd-pulse')+
+      _r('⌘','접근 코드','#e05577','dd-ac')+
       _r('⊕','파워 코어','#ff8822','dd-pc')+
       _r('▣','데이터 셀','#00ff88','dd-dc')+
       _sep+_cat('모듈')+
-      _r('⊿','모듈 조각','#88aaff','dd-mod-frag');
+      _r('⊿','모듈 파편','#88aaff','dd-mod-frag');
     var hud = document.getElementById('screen-home');
     if (hud) hud.appendChild(el);
   }
@@ -14858,7 +14852,6 @@ window.toggleCurrencyDropdown = function () {
     _v('dd-gold',(_p.gold||0).toLocaleString());
     _v('dd-gem',(_p.gems||0).toLocaleString());
     _v('dd-prism-frag',_p.prismFragments||0);
-    _v('dd-prism-slot',(_p.prismSlotCount||1)+' / 10');
     _v('dd-ticket',parseInt(localStorage.getItem('explore_tickets')||'3',10));
     ['fire','water','electric','earth','wind','dark'].forEach(function(eid){
       _v('dd-core-'+eid,parseInt(localStorage.getItem('core_'+eid)||'0',10));
