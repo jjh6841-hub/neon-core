@@ -302,7 +302,7 @@ canvas {
 /* ─── IN-GAME UPGRADE PANEL ─────────────────────────────────── */
 #screen-shop {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  bottom: var(--sab); left: 0; right: 0;
   background: #030b10;
   border-top: 1px solid rgba(0,255,255,0.20);
   z-index: 5;
@@ -15655,7 +15655,7 @@ var lastTab = 'atk';
 /* ═══ §3 CSS ═══ */
 var _css = document.createElement('style');
 _css.textContent =
-  '#screen-shop { position:absolute !important; bottom:0; left:0; right:0;' +
+  '#screen-shop { position:absolute !important; bottom:var(--sab); left:0; right:0;' +
   '  background:#06061a; border-top:1px solid #1a3344;' +
   '  display:flex !important; flex-direction:column !important;' +
   '  overflow:visible; z-index:5; }' +
