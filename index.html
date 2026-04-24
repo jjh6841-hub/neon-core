@@ -1148,7 +1148,7 @@ canvas {
     <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
 
     <!-- ═══ HUD 좌측 영역 ═══ -->
-    <div id="hud-left" style="position:absolute;top:8px;left:8px;z-index:52;pointer-events:none;font-family:'Courier New',monospace;display:flex;flex-direction:column;gap:4px;">
+    <div id="hud-left" style="position:absolute;top:calc(8px + var(--sat));left:8px;z-index:52;pointer-events:none;font-family:'Courier New',monospace;display:flex;flex-direction:column;gap:4px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span id="hud-wave" style="font-size:12px;color:#00ffff;letter-spacing:2px;font-weight:bold;">WAVE 01</span>
         <div style="width:80px;height:5px;background:#1a2a3a;border-radius:3px;overflow:hidden;">
@@ -1168,7 +1168,7 @@ canvas {
     </div>
 
     <!-- ═══ HUD 우측 영역 ═══ -->
-    <div id="hud-right" style="position:absolute;top:8px;right:8px;z-index:52;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:auto;">
+    <div id="hud-right" style="position:absolute;top:calc(8px + var(--sat));right:8px;z-index:52;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:auto;">
       <button id="ingame-menu" title="메뉴" style="width:36px;height:36px;background:#0a1a2a;border:1px solid #1a3444;border-radius:6px;color:#00ffff;font-size:16px;cursor:pointer;-webkit-appearance:none;">☰</button>
       <div style="position:relative;">
         <button id="ingame-mission" title="임무" style="background:#0a1a2a;border:1px solid #0a3344;border-radius:6px;padding:4px 8px;color:#00ffff;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;-webkit-appearance:none;">임무</button>
@@ -3806,16 +3806,9 @@ function triggerGameOver() {
     gemRow.style.display = 'none';
   }
 
-  // Achievement rewards
+  // Achievement rewards — 결과 화면에서는 표시하지 않음
   var achRow = document.getElementById('r-ach-row');
-  if (newAchs.length > 0) {
-    achRow.innerHTML = newAchs.map(function(a) {
-      return '★ ' + a.name + ' (+' + a.gems + '❖)';
-    }).join('<br>');
-    achRow.style.display = '';
-  } else {
-    achRow.style.display = 'none';
-  }
+  achRow.style.display = 'none';
 
   // Nav unlock notification
   renderNavTabs('home');
