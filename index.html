@@ -12087,7 +12087,8 @@ function _showStatsPopup() {
   h+=_row('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff');
   h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult.toFixed(2):'미장착','#a855f7');
   h+=_row('③ 모듈 치명타',modCritChance>0?modCritChance.toFixed(1)+'% / ×'+(modCritMult||0).toFixed(2):'미장착','#22ddaa');
-  h+=_row('④ 모듈Lv 치명타',modLvCritChance>0?modLvCritChance.toFixed(1)+'% / ×'+(modLvCritMult||0).toFixed(2):'Lv.0','#00ccaa');
+  h+=_row('④ 모듈Lv 치명타 확률',modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'-','#00ccaa');
+  h+=_row('④ 모듈Lv 치명타 계수',modLvCritMult>0?'×'+modLvCritMult.toFixed(2):'-','#00ccaa');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1).toFixed(1)+'%','#ef4444');
 
@@ -12237,7 +12238,7 @@ function _showStatsPopup() {
         ['배경 스킨', '×'+(sm.bgAtk||1).toFixed(2)],
         ['프리즘 화력증폭', _prismB.atk>0?'×'+(1+_prismB.atk/100).toFixed(2):'-'],
         ['모듈 등급 효과', _modB.atk>0?'×'+(1+_modB.atk/100).toFixed(2):'-'],
-        ['모듈 레벨 효과', _modLv.atk>0?'×'+(1+_modLv.atk/100).toFixed(2):'-'],
+        ['모듈 Lv 공격력', _modLv.atk>0?'×'+(1+_modLv.atk/100).toFixed(2):'-'],
         ['─────────',''],
         ['최종 공격력', _fn(allDmg)]
       ]
@@ -12252,7 +12253,7 @@ function _showStatsPopup() {
         ['배경 스킨', '×'+(sm.bgHp||1).toFixed(2)],
         ['프리즘 코어생명력', _prismB.hp>0?'×'+(1+_prismB.hp/100).toFixed(2):'-'],
         ['모듈 등급 효과', _modB.hp>0?'×'+(1+_modB.hp/100).toFixed(2):'-'],
-        ['모듈 레벨 효과', _modLv.hp>0?'×'+(1+_modLv.hp/100).toFixed(2):'-'],
+        ['모듈 Lv 체력', _modLv.hp>0?'×'+(1+_modLv.hp/100).toFixed(2):'-'],
         ['─────────',''],
         ['최종 체력', _fn(allHp)]
       ]
@@ -12267,7 +12268,7 @@ function _showStatsPopup() {
         ['배경 스킨', '×'+(sm.bgDef||1).toFixed(2)],
         ['프리즘 장갑코팅', _prismB.def>0?'×'+(1+_prismB.def/100).toFixed(2):'-'],
         ['모듈 등급 효과', _modB.def>0?'×'+(1+_modB.def/100).toFixed(2):'-'],
-        ['모듈 레벨 효과', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
+        ['모듈 Lv 방어율', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
         ['─────────',''],
         ['최종 방어율', allDef.toFixed(2)+'% (최대 90%)']
       ]
@@ -12291,8 +12292,9 @@ function _showStatsPopup() {
         ['  모듈 등급 배율', modCritMult>0?'×'+modCritMult.toFixed(2):'-'],
         ['  ※ 독립 판정 (일반/강화와 별개)',''],
         ['',''],
-        ['④ 모듈Lv 치명타','── 확률: '+(modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'Lv.0')],
-        ['  슬롯 레벨 배율', modLvCritMult>0?'×'+modLvCritMult.toFixed(2):'-'],
+        ['④ 모듈Lv 치명타','── 독립 판정'],
+        ['  모듈 Lv 치명타 확률', modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'-'],
+        ['  모듈 Lv 치명타 계수', modLvCritMult>0?'×'+modLvCritMult.toFixed(2):'-'],
         ['  ※ 독립 판정 (①②③과 모두 별개)',''],
         ['─────────',''],
         ['전부 발동 시 최대 피해', _fn(maxCritDmg)],
