@@ -4828,6 +4828,39 @@ function togglePause() {
 }
 window.togglePause = togglePause;
 
+/* ── 백그라운드 전환 시 자동 일시정지 + BGM 정지 ── */
+(function() {
+  var _bgmWasPlaying = false;
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      // 백그라운드로 갈 때: 전투 중이면 일시정지
+      if (G && G.phase !== 'gameover' && !isPaused) {
+        isPaused = true;
+        var ov = document.getElementById('pause-overlay');
+        if (ov) ov.style.display = 'flex';
+      }
+      // BGM 정지
+      _bgmWasPlaying = !!(AudioManager && AudioManager.bgmInterval);
+      if (AudioManager && AudioManager.bgmInterval) {
+        AudioManager.stopBGM();
+      }
+      // AudioContext suspend
+      if (AudioManager && AudioManager.ctx && AudioManager.ctx.state === 'running') {
+        try { AudioManager.ctx.suspend(); } catch(_){}
+      }
+    } else {
+      // 포그라운드 복귀: AudioContext resume
+      if (AudioManager && AudioManager.ctx && AudioManager.ctx.state === 'suspended') {
+        try { AudioManager.ctx.resume(); } catch(_){}
+      }
+      // BGM 복구
+      if (_bgmWasPlaying && PERM && PERM.settings && PERM.settings.music) {
+        AudioManager.playBGM();
+      }
+    }
+  });
+})();
+
 function resumeGame() {
   isPaused = false;
   var overlay = document.getElementById('pause-overlay');

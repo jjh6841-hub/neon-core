@@ -19,8 +19,8 @@
   },
   "homepage": "https://github.com/jjh6841-hub/neon-core#readme",
   "dependencies": {
-    "@capacitor/android": "^8.3.0",
-    "@capacitor/cli": "^8.3.0",
-    "@capacitor/core": "^8.3.0"
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1"
   }
 }
