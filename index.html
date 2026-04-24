@@ -17057,6 +17057,7 @@ var _modMode = null;
 var _modSelected = [];
 var _modSynthFilter = { type:null, tier:null, sub:null };
 var _modScrollTop = 0;
+var _modSort = 'tier'; // 'tier' 또는 'type'
 
 function _renderModuleContent() {
   var cont = document.getElementById('mods-content');
@@ -17316,6 +17317,8 @@ function _renderModuleContent() {
     var b1=document.getElementById('mod-buy-1'), b10=document.getElementById('mod-buy-10');
     if(b1) b1.addEventListener('click', function(){ _buyModule(1); });
     if(b10) b10.addEventListener('click', function(){ _buyModule(10); });
+    var sortBtn=document.getElementById('mod-sort-btn');
+    if(sortBtn) sortBtn.addEventListener('click',function(){ _modSort=_modSort==='tier'?'type':'tier'; _renderModuleContent(); });
     var sb=document.getElementById('mod-synth-btn');
     if(sb) sb.addEventListener('click',function(){ _modMode='synth'; _modSelected=[]; _modSynthFilter={type:null,tier:null,sub:null}; _renderModuleContent(); });
     var db=document.getElementById('mod-decomp-btn');
@@ -17334,13 +17337,19 @@ function _renderModuleContent() {
         var m=invArr.filter(function(x){return x.uid===uid;})[0];
         if(m) srcMods.push({typeId:m.typeId,tier:m.tier,sub:m.sub||0});
       });
+      // 장착된 소재가 있으면 해당 슬롯 인덱스 기억
+      var _equippedSlotIdx = -1;
       _modSelected.forEach(function(uid){
-        for(var si=0;si<sl.length;si++){if(sl[si]===uid)sl[si]=null;}
+        for(var si=0;si<sl.length;si++){
+          if(sl[si]===uid){ _equippedSlotIdx=si; sl[si]=null; }
+        }
         var idx=invArr.findIndex(function(m){return m.uid===uid;}); if(idx!==-1)invArr.splice(idx,1);
       });
       var fs=_modSynthFilter; var resTier=fs.sub<2?fs.tier:fs.tier+1; var resSub=fs.sub<2?fs.sub+1:0;
       var newMod={typeId:fs.type,tier:resTier,sub:resSub,level:0,uid:Date.now()+'_'+Math.random().toString(36).substr(2,5)};
       invArr.push(newMod);
+      // 장착 상태 유지: 결과 모듈을 원래 슬롯에 자동 장착
+      if(_equippedSlotIdx>=0) sl[_equippedSlotIdx]=newMod.uid;
       d.inventory=invArr;d.slots=sl;_saveMods(d);
       _modMode=null;_modSelected=[];
       _showSynthAnim(srcMods, newMod, function(){ _renderModuleContent(); });
@@ -17375,8 +17384,9 @@ function _renderModuleContent() {
   invHeader.appendChild(invTitle);
   if (!_modMode) {
     var invBtns = document.createElement('div');
-    invBtns.style.cssText = 'display:flex;gap:4px;';
+    invBtns.style.cssText = 'display:flex;gap:3px;align-items:center;';
     invBtns.innerHTML =
+      '<button id="mod-sort-btn" style="background:#060e18;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:7px;padding:2px 6px;cursor:pointer;border-radius:3px;">'+(_modSort==='tier'?'등급순':'타입순')+'</button>'+
       '<button id="mod-synth-btn" style="background:#081a18;border:1px solid #22ddaa44;color:#22ddaa;font-family:monospace;font-size:8px;padding:3px 8px;cursor:pointer;border-radius:3px;">합성</button>'+
       '<button id="mod-decomp-btn" style="background:#0a0808;border:1px solid #ef444444;color:#ef4444;font-family:monospace;font-size:8px;padding:3px 8px;cursor:pointer;border-radius:3px;">분해</button>';
     invHeader.appendChild(invBtns);
@@ -17393,11 +17403,23 @@ function _renderModuleContent() {
     invScroll.style.cssText = 'flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;';
     var invGrid = document.createElement('div');
     invGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
-    // 장착 모듈 최상단 정렬
+    // 정렬: 장착 최상단 → 정렬 기준
+    var _typeOrder = {};
+    MOD_SLOT_FILTER.forEach(function(t,i){ _typeOrder[t]=i; });
     var sortedInv = inv.slice().sort(function(a,b){
       var aEq = slots.indexOf(a.uid)!==-1 ? 0 : 1;
       var bEq = slots.indexOf(b.uid)!==-1 ? 0 : 1;
-      return aEq - bEq;
+      if (aEq !== bEq) return aEq - bEq;
+      if (_modSort === 'type') {
+        var ta = _typeOrder[a.typeId]||0, tb = _typeOrder[b.typeId]||0;
+        if (ta !== tb) return ta - tb;
+        var ga = a.tier*3+(a.sub||0), gb = b.tier*3+(b.sub||0);
+        return gb - ga;
+      }
+      // 등급순 (높은 등급 먼저)
+      var ga2 = a.tier*3+(a.sub||0), gb2 = b.tier*3+(b.sub||0);
+      if (ga2 !== gb2) return gb2 - ga2;
+      return (_typeOrder[a.typeId]||0) - (_typeOrder[b.typeId]||0);
     });
     sortedInv.forEach(function(mod) {
       var type = MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
