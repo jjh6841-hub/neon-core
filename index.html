@@ -10625,14 +10625,14 @@ function _initTierSystem() {
 ════════════════════════════════════════════════════════ */
 var _SP_TIERS = [];
 (function() {
-  // 포인트 기반 달성 조건: 5, 11, 18, 26, 35, 45, 56, 68, 81, 95
-  var targets = [5, 11, 18, 26, 35, 45, 56, 68, 81, 95];
-  for (var i = 0; i < 10; i++) {
+  // 포인트 기반 달성 조건: +6,+7,+8...+24 누적
+  var targets = [5,11,18,26,35,45,56,68,81,95,110,126,143,161,180,200,221,243,266,290];
+  for (var i = 0; i < 20; i++) {
     _SP_TIERS.push({
       tier: i + 1,
       target: targets[i],
-      freeReward:    (i % 2 === 0) ? { gold: 2000, gem: 0 } : { gold: 0, gem: 50 },
-      premiumReward: (i % 2 === 0) ? { gold: 5000, gem: 0 } : { gold: 0, gem: 100 }
+      freeReward:    (i % 2 === 0) ? { gold: 500, gem: 0 } : { gold: 0, gem: 20 },
+      premiumReward: (i % 2 === 0) ? { gold: 2000, gem: 0 } : { gold: 0, gem: 50 }
     });
   }
 })();
