@@ -50,6 +50,17 @@ tr { cursor:pointer; }
 .btn-save { border-color:#00ff88 !important; color:#00ff88; }
 .btn-cancel { border-color:#334455 !important; color:#556677; }
 .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#0a1a2a; border:1px solid #00ff88; color:#00ff88; font-family:'Courier New',monospace; font-size:11px; padding:8px 20px; z-index:200; display:none; }
+.log-table { width:100%; border-collapse:collapse; font-size:10px; margin-top:4px; }
+.log-table th { color:#556677; font-size:9px; text-align:left; padding:4px; border-bottom:1px solid #0a3344; }
+.log-table td { padding:4px; border-bottom:1px solid #0a1520; }
+.log-table tr:hover td { background:#0a1520; }
+.log-gold { color:#f59e0b; }
+.log-gems { color:#00ffff; }
+.log-plus { color:#00ff88; }
+.log-minus { color:#ef4444; }
+.log-filter { display:flex; gap:4px; margin:6px 0; }
+.log-filter button { background:#030b10; border:1px solid #0a3344; color:#556677; font-family:monospace; font-size:9px; padding:4px 8px; cursor:pointer; }
+.log-filter button.active { border-color:#00ffff; color:#00ffff; }
 </style>
 </head>
 <body>
@@ -366,8 +377,45 @@ function renderModal() {
     html += '<div class="modal-row"><label>'+w.label+'</label><input type="number" data-ws="'+w.key+'" value="'+w.val+'"></div>';
   });
 
+  // 재화 변동 로그
+  var logs = p.currencyLog || [];
+  html += '<div class="modal-section" style="color:#f59e0b;">재화 변동 로그 (' + logs.length + '건)</div>';
+  if (logs.length > 0) {
+    html += '<div class="log-filter">' +
+      '<button class="log-f-btn active" data-logf="all">전체</button>' +
+      '<button class="log-f-btn" data-logf="gold">골드</button>' +
+      '<button class="log-f-btn" data-logf="gems">보석</button>' +
+      '</div>';
+    html += '<table class="log-table"><thead><tr><th>시간</th><th>유형</th><th>변동</th><th>잔액</th><th>사유</th></tr></thead>';
+    html += '<tbody id="log-tbody">';
+    for (var li = logs.length - 1; li >= 0; li--) {
+      var log = logs[li];
+      var logTime = new Date(log.ts);
+      var timeStr = (logTime.getMonth()+1)+'/'+logTime.getDate()+' '+logTime.getHours().toString().padStart(2,'0')+':'+logTime.getMinutes().toString().padStart(2,'0');
+      var typeClass = log.t === 'gold' ? 'log-gold' : 'log-gems';
+      var amtClass = log.a > 0 ? 'log-plus' : 'log-minus';
+      var amtStr = log.a > 0 ? '+' + log.a.toLocaleString() : log.a.toLocaleString();
+      html += '<tr data-logtype="'+log.t+'"><td class="time">'+timeStr+'</td><td class="'+typeClass+'">'+(log.t==='gold'?'◈골드':'❖보석')+'</td><td class="'+amtClass+'">'+amtStr+'</td><td style="color:#94a3b8;">'+(log.b||0).toLocaleString()+'</td><td style="color:#94a3b8;">'+log.r+'</td></tr>';
+    }
+    html += '</tbody></table>';
+  } else {
+    html += '<div style="color:#334455;font-size:10px;padding:8px 0;">로그 없음 (클라이언트 업데이트 후 기록됨)</div>';
+  }
+
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('user-modal').classList.add('show');
+
+  // 로그 필터 이벤트
+  document.querySelectorAll('.log-f-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.log-f-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var filter = btn.dataset.logf;
+      document.querySelectorAll('#log-tbody tr').forEach(function(tr){
+        tr.style.display = (filter === 'all' || tr.dataset.logtype === filter) ? '' : 'none';
+      });
+    });
+  });
 }
 
 document.getElementById('modal-close').addEventListener('click', closeModal);

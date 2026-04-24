@@ -1941,6 +1941,8 @@ function checkDailyReward() {
   var reward = DailyRewards[cycleDay];
   PERM.gold += reward.gold;
   PERM.gems += reward.gem;
+  if (reward.gold) logCurrency('gold', reward.gold, '출석 ' + newStreak + '일');
+  if (reward.gem) logCurrency('gems', reward.gem, '출석 ' + newStreak + '일');
   savePerm();
   _openAttendPopup(true);
 }
@@ -2161,6 +2163,25 @@ function loadPerm() {
   } catch (_) {}
 }
 var _prevPermGems = 0;
+
+/* ── 재화 변동 로그 시스템 ── */
+function logCurrency(type, amount, reason) {
+  if (!amount || amount === 0) return;
+  if (!PERM.currencyLog) PERM.currencyLog = [];
+  PERM.currencyLog.push({
+    t: type,
+    a: amount,
+    r: reason,
+    ts: Date.now(),
+    b: type === 'gold' ? (PERM.gold||0) : (PERM.gems||0)
+  });
+  // 최근 200건만 유지
+  if (PERM.currencyLog.length > 200) {
+    PERM.currencyLog = PERM.currencyLog.slice(-200);
+  }
+}
+window.logCurrency = logCurrency;
+
 function savePerm() {
   // 보석 획득 통계 추적
   try {
@@ -2633,6 +2654,7 @@ function claimAchievement(key) {
   if (!ach || PERM.achievements[key] !== 'ready') return;
   PERM.achievements[key] = 'claimed';
   PERM.gems += ach.gems;
+  logCurrency('gems', ach.gems, '업적: ' + ach.name);
   if (window.G) G.gems = PERM.gems;
   savePerm();
   try { buildAchieveUI(); } catch(_) {}
@@ -2887,6 +2909,7 @@ function startGame() {
     if (localStorage.getItem('td_day') !== today) {
       G.gems += 1;
       PERM.gems += 1;
+      logCurrency('gems', 1, '일일 보석');
       localStorage.setItem('td_day', today);
       savePerm();
     }
@@ -3779,8 +3802,12 @@ function triggerGameOver() {
   // Update & save persistent data (bestWave = 마지막으로 클리어한 웨이브)
   var clearedWave = Math.max(0, G.wave - 1);
   if (clearedWave > PERM.bestWave) PERM.bestWave = clearedWave;
+  var _battleGoldEarned = (G.goldEarned||0);
+  var _battleGemsEarned = G.gems - (G.initialGems||0);
   PERM.gold = G.gold;
   PERM.gems = G.gems;
+  if (_battleGoldEarned > 0) logCurrency('gold', _battleGoldEarned, '전투 (W' + G.wave + ')');
+  if (_battleGemsEarned > 0) logCurrency('gems', _battleGemsEarned, '전투 보석 (W' + G.wave + ')');
   savePerm();
 
   // Detect newly earned achievements (before claiming)
@@ -5927,6 +5954,7 @@ if (dailyPopup) {
     var cost  = cfg.cost(lv);
     if (PERM.gold < cost) { flashCard(card, '#ef4444'); return; }
     PERM.gold -= cost;
+    logCurrency('gold', -cost, '강화: ' + cfg.name + ' Lv' + (lv+1));
     ws[key]    = lv + 1;
     PERM.ws    = ws;
     savePerm();
@@ -6165,6 +6193,7 @@ if (dailyPopup) {
       if(window._showSlotConfirm) _showSlotConfirm('광고 영구제거','₩5,500을 결제하시겠습니까?\n\n* 테스트 모드: 무료 활성화', function(){
         localStorage.setItem('pkg_ad_remove','1');
         PERM.gems = (PERM.gems||0) + 100;
+        logCurrency('gems', 100, '패키지: 광고제거');
         savePerm();
         if(window.showRewardPopup) showRewardPopup([{icon:'❖',label:'',amount:100,color:'#00ffff'}],'광고 제거 완료');
         renderStoreTab('package');
@@ -6174,6 +6203,8 @@ if (dailyPopup) {
         localStorage.setItem('pkg_starter','1');
         PERM.gold = (PERM.gold||0) + 1000;
         PERM.gems = (PERM.gems||0) + 100;
+        logCurrency('gold', 1000, '패키지: 스타터');
+        logCurrency('gems', 100, '패키지: 스타터');
         savePerm();
         if(window.showRewardPopup) showRewardPopup([{icon:'◈',label:'',amount:1000,color:'#f59e0b'},{icon:'❖',label:'',amount:100,color:'#00ffff'}],'스타터 팩');
         renderStoreTab('package');
@@ -6183,6 +6214,8 @@ if (dailyPopup) {
         localStorage.setItem('pkg_growth','1');
         PERM.gold = (PERM.gold||0) + 3000;
         PERM.gems = (PERM.gems||0) + 300;
+        logCurrency('gold', 3000, '패키지: 성장');
+        logCurrency('gems', 300, '패키지: 성장');
         savePerm();
         if(window.showRewardPopup) showRewardPopup([{icon:'◈',label:'',amount:3000,color:'#f59e0b'},{icon:'❖',label:'',amount:300,color:'#00ffff'}],'성장 팩');
         renderStoreTab('package');
@@ -6196,6 +6229,8 @@ if (dailyPopup) {
         // 즉시 오늘치 지급
         PERM.gold = (PERM.gold||0) + 300;
         PERM.gems = (PERM.gems||0) + 30;
+        logCurrency('gold', 300, '패키지: 월간');
+        logCurrency('gems', 30, '패키지: 월간');
         localStorage.setItem('pkg_monthly_last', new Date().toDateString());
         savePerm();
         if(window.showRewardPopup) showRewardPopup([{icon:'◈',label:'',amount:300,color:'#f59e0b'},{icon:'❖',label:'',amount:30,color:'#00ffff'}],'월간 팩 활성화');
@@ -8711,7 +8746,7 @@ if (watchBtn) {
     _adDoubleUsed = true;
     var extraGold = _lastBaseGold;
     // 광고 mock → 골드 지급
-    if (window.PERM) { window.PERM.gold += extraGold; if (window.savePerm) window.savePerm(); }
+    if (window.PERM) { window.PERM.gold += extraGold; logCurrency('gold', extraGold, '광고 골드 2배'); if (window.savePerm) window.savePerm(); }
     // 결과 화면 광고 골드 표시
     var adEl = document.getElementById('r-ad-gold');
     if (adEl) adEl.textContent = extraGold;
@@ -10641,8 +10676,8 @@ function _spClaimTier(tierNum) {
   if (kills < t.target || claimed.indexOf(tierNum) !== -1) return;
   claimed.push(tierNum);
   _spSetClaimed(claimed);
-  if (t.freeReward.gold > 0) { PERM.gold += t.freeReward.gold; }
-  if (t.freeReward.gem > 0) { PERM.gems += t.freeReward.gem; }
+  if (t.freeReward.gold > 0) { PERM.gold += t.freeReward.gold; logCurrency('gold', t.freeReward.gold, '시즌패스 무료'); }
+  if (t.freeReward.gem > 0) { PERM.gems += t.freeReward.gem; logCurrency('gems', t.freeReward.gem, '시즌패스 무료'); }
   savePerm();
   _spRenderPopup();
   syncShopUI();
@@ -10660,8 +10695,8 @@ function _spClaimPremiumTier(tierNum) {
   if (kills < t.target || claimed.indexOf(tierNum) !== -1) return;
   claimed.push(tierNum);
   _spSetPremiumClaimed(claimed);
-  if (t.premiumReward.gold > 0) { PERM.gold += t.premiumReward.gold; }
-  if (t.premiumReward.gem > 0) { PERM.gems += t.premiumReward.gem; }
+  if (t.premiumReward.gold > 0) { PERM.gold += t.premiumReward.gold; logCurrency('gold', t.premiumReward.gold, '시즌패스 프리미엄'); }
+  if (t.premiumReward.gem > 0) { PERM.gems += t.premiumReward.gem; logCurrency('gems', t.premiumReward.gem, '시즌패스 프리미엄'); }
   savePerm();
   _spRenderPopup();
   syncShopUI();
@@ -16320,8 +16355,8 @@ function _submitCoupon() {
 
     // 보상 지급
     if (window.PERM) {
-      if (data.gold) { PERM.gold = (PERM.gold||0) + data.gold; if(window.G) G.gold = PERM.gold; }
-      if (data.gems) { PERM.gems = (PERM.gems||0) + data.gems; if(window.G) G.gems = PERM.gems; }
+      if (data.gold) { PERM.gold = (PERM.gold||0) + data.gold; if(window.G) G.gold = PERM.gold; logCurrency('gold', data.gold, '쿠폰: ' + code); }
+      if (data.gems) { PERM.gems = (PERM.gems||0) + data.gems; if(window.G) G.gems = PERM.gems; logCurrency('gems', data.gems, '쿠폰: ' + code); }
       savePerm();
     }
 
@@ -18224,7 +18259,7 @@ function _collectGem() {
   _gemEventActive = false;
   if (window.G) {
     G.gems += GEM_EVENT_REWARD;
-    if (window.PERM) { PERM.gems += GEM_EVENT_REWARD; if (window.savePerm) savePerm(); }
+    if (window.PERM) { PERM.gems += GEM_EVENT_REWARD; logCurrency('gems', GEM_EVENT_REWARD, '보석 이벤트'); if (window.savePerm) savePerm(); }
     G.floatTexts.push({ x: _gemX, y: _gemY - 20, text: '+' + GEM_EVENT_REWARD + ' ❖', color: '#cc44ff', timer: 0 });
     try { AudioManager.playSfx('upgrade'); } catch(_) {}
   }
@@ -18399,7 +18434,7 @@ if (_gemAdBtn) {
         clearInterval(iv);
         // 보석 지급
         if (window.G) { G.gems += GEM_AD_REWARD; }
-        if (window.PERM) { PERM.gems += GEM_AD_REWARD; if (window.savePerm) savePerm(); }
+        if (window.PERM) { PERM.gems += GEM_AD_REWARD; logCurrency('gems', GEM_AD_REWARD, '광고 보석'); if (window.savePerm) savePerm(); }
         _setLastGemAd();
         _gemAdBar.style.display = 'none';
 
