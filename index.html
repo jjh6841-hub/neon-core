@@ -2349,7 +2349,7 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('bounceRange',12); },
     apply()  { var c=upgCost('bounceRange',12); coreChips-=c; G.upgLvl.bounceRange=(G.upgLvl.bounceRange||0)+1; G.bounceRange=1+(G.upgLvl.bounceRange||0)*0.1; },
   },
-  { key:'enemyDefReduce', tab:'atk', icon:'▼', name:'적 방어력<br>감소', baseCost:15, unlock:null, maxLv:99,
+  { key:'enemyDefReduce', tab:'atk', icon:'▼', name:'적 방어력<br>감소', baseCost:15, unlock:'enemyDefReduce', maxLv:99,
     cost()   { return upgCost('enemyDefReduce',15); },
     stat()   { return (G.upgLvl.enemyDefReduce||0)+'%'; },
     canBuy() { return coreChips>=upgCost('enemyDefReduce',15); },
@@ -2386,13 +2386,13 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('vamp',9) && (G.upgLvl.vamp||0)<150; },
     apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; },
   },
-  { key:'reflect', tab:'def', icon:'↩',  name:'반사',     baseCost:10, unlock:null, maxLv:30,
+  { key:'reflect', tab:'def', icon:'↩',  name:'반사',     baseCost:10, unlock:'reflect', maxLv:30,
     cost()   { return upgCost('reflect',10); },
     stat()   { return ((G.reflectPct||0)*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('reflect',10); },
     apply()  { var c=upgCost('reflect',10); coreChips-=c; G.upgLvl.reflect=(G.upgLvl.reflect||0)+1; G.reflectPct=Math.min(0.5,(G.upgLvl.reflect||0)*0.005); },
   },
-  { key:'knockback', tab:'def', icon:'⇤', name:'넉백',     baseCost:10, unlock:null, maxLv:30,
+  { key:'knockback', tab:'def', icon:'⇤', name:'넉백',     baseCost:10, unlock:'knockback', maxLv:30,
     cost()   { return upgCost('knockback',10); },
     stat()   { return ((G.knockbackChance||0)*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('knockback',10); },
@@ -2789,6 +2789,7 @@ function applyPermStats() {
   t.defense    = Math.min(0.50, (ws.defRate || 0) * 0.01);  // 회피율 1%/lv, 50% 캡
   t.hpRegen    = (ws.hpRegen    || 0) * 0.05;
   G.defenseAbs = ws.defAbs || 0;                             // 절대 방어
+  G.enemyDefReduce = (ws.enemyDefReduce || 0);               // 적 방어력 감소 (강화소 기본값)
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
   G.gemMult    = 1 + (ws.gemGain  || 0) * 0.1;
@@ -5611,6 +5612,10 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 10); },
       nxt:  function(lv) { return '' + ((lv + 1) * 10); } },
+    enemyDefReduce: { tab:'atk', name:'적 방어력 감소', maxLv:99, atkGroup:6,
+      cost: function(lv) { return 10 + lv * 6; },
+      cur:  function(lv) { return lv + '%'; },
+      nxt:  function(lv) { return (lv + 1) + '%'; } },
     goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
@@ -5678,6 +5683,7 @@ if (dailyPopup) {
       { group:3, name:'멀티샷', cost:1200 },   // 분열탄 확률, 분열탄 수
       { group:4, name:'고속발사', cost:3000 }, // 연사 확률, 연사 지속
       { group:5, name:'바운스샷', cost:6000 }, // 도약탄 확률, 도약탄 수, 도약탄 범위
+      { group:6, name:'적 방어 감소', cost:10000 }, // 적 방어력 감소
     ];
 
     if (tab === 'atk') {
@@ -5711,7 +5717,7 @@ if (dailyPopup) {
             PERM.ws_atk_unlocks = grp;
             // 전투 화면 인게임 업그레이드 잠금 해제 연동
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi','pierce'], 4:['rapidChance'], 5:['bounceChance']};
+            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi','pierce'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce']};
             var keys = unlockMap[grp];
             if (keys) keys.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
@@ -5756,7 +5762,7 @@ if (dailyPopup) {
             PERM.gold -= cost;
             PERM.ws_def_unlocks = grp;
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {3:['vamp']};
+            var unlockMap = {2:['reflect'], 3:['vamp'], 4:['knockback']};
             var ulks = unlockMap[grp];
             if (ulks) ulks.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
