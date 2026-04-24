@@ -2349,6 +2349,12 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('bounceRange',12); },
     apply()  { var c=upgCost('bounceRange',12); coreChips-=c; G.upgLvl.bounceRange=(G.upgLvl.bounceRange||0)+1; G.bounceRange=1+(G.upgLvl.bounceRange||0)*0.1; },
   },
+  { key:'enemyDefReduce', tab:'atk', icon:'▼', name:'적 방어력<br>감소', baseCost:15, unlock:null, maxLv:99,
+    cost()   { return upgCost('enemyDefReduce',15); },
+    stat()   { return (G.upgLvl.enemyDefReduce||0)+'%'; },
+    canBuy() { return coreChips>=upgCost('enemyDefReduce',15); },
+    apply()  { var c=upgCost('enemyDefReduce',15); coreChips-=c; G.upgLvl.enemyDefReduce=(G.upgLvl.enemyDefReduce||0)+1; G.enemyDefReduce=Math.min(99,(G.upgLvl.enemyDefReduce||0)); },
+  },
   // ─ 방어 탭 ─
   { key:'maxhp',   tab:'def', icon:'+',  name:'최대체력',  baseCost:7,  unlock:null,
     cost()   { return upgCost('maxhp',7); },
@@ -3153,6 +3159,10 @@ function update(dt) {
         if (G.modLvCritChance && G.modLvCritMult && Math.random() < G.modLvCritChance) {
           dmg = Math.round(dmg * G.modLvCritMult);
           e.hitFlash = 2;
+        }
+        // 적 방어력 감소 (적 방어력이 있을 때만 %만큼 차감)
+        if (G.enemyDefReduce > 0 && e.defense && e.defense > 0) {
+          e.defense = Math.max(0, Math.round(e.defense * (1 - G.enemyDefReduce / 100)));
         }
         // 흡혈: 적 적중 시 공격력의 X% 회복
         if (G.lifeSteal > 0) {
@@ -11545,15 +11555,20 @@ function _renderCardTab() {
   // 뽑기
   var d1=document.getElementById('prism-draw-1');
   if(d1) d1.addEventListener('click',function(){
+    var _gems=(window.PERM&&PERM.gems)||0;
+    if(_gems<PRISM_SINGLE){ if(window._showSlotConfirm)_showSlotConfirm('보석 부족','보석이 부족합니다\n보유: ❖'+_gems+' / 필요: ❖'+PRISM_SINGLE,null); return; }
     var res=_doDraw(1);
-    if(res===null){ d1.style.borderColor='#ef4444'; setTimeout(function(){d1.style.borderColor='#cc44ff';},400); }
-    else _showGachaAnim(res);
+    if(res===null) return;
+    _showGachaAnim(res);
   });
   var d10=document.getElementById('prism-draw-10');
   if(d10) d10.addEventListener('click',function(){
+    var _gems=(window.PERM&&PERM.gems)||0;
+    var _cost10=PRISM_SINGLE*10;
+    if(_gems<_cost10){ if(window._showSlotConfirm)_showSlotConfirm('보석 부족','보석이 부족합니다\n보유: ❖'+_gems+' / 필요: ❖'+_cost10,null); return; }
     var res=_doDraw(10);
-    if(res===null){ d10.style.borderColor='#ef4444'; setTimeout(function(){d10.style.borderColor='#f59e0b';},400); }
-    else _showGachaAnim(res);
+    if(res===null) return;
+    _showGachaAnim(res);
   });
   // 분해
   var decBtn=document.getElementById('prism-decompose');
