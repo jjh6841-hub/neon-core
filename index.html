@@ -17223,7 +17223,7 @@ function _renderModuleContent() {
       mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;';
       mCard.innerHTML =
         (_mSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;font-family:monospace;">+'+_mSub+'</div>':'')+
-        (mod.locked?'<div style="position:absolute;bottom:2px;left:3px;font-size:7px;color:#f59e0b;">🔒</div>':'')+
+        (mod.locked?'<div style="position:absolute;bottom:1px;left:2px;"><svg width="9" height="9" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#ff6a00" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#ff6a00" stroke-width="1.3"/><circle cx="8" cy="11.5" r="1" fill="#ff6a00"/></svg></div>':'')+
         '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||1)+'</div>'+
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
         _modIcon(mod.typeId, tier.color, 28)+
@@ -17389,7 +17389,9 @@ function _showModuleDetail(mod) {
   } else {
     btnsHtml += '<button id="mod-unequip" style="flex:1;background:#030b10;border:1px solid #556677;color:#556677;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">해제</button>';
   }
-  btnsHtml += '<button id="mod-lock" style="flex:1;background:#030b10;border:1px solid '+(isLocked?'#f59e0b':'#334455')+';color:'+(isLocked?'#f59e0b':'#556677')+';font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">'+(isLocked?'🔒 잠금 해제':'🔓 잠금')+'</button>';
+  var _lockCol=isLocked?'#ff6a00':'#334455';
+  var _lockSvg='<svg width="12" height="12" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="'+_lockCol+'" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="'+_lockCol+'" stroke-width="1.2"'+(isLocked?'':' stroke-dasharray="2 1.5"')+'/><circle cx="8" cy="11.5" r="1" fill="'+_lockCol+'"/></svg>';
+  btnsHtml += '<button id="mod-lock" style="flex:1;background:#030b10;border:1px solid '+_lockCol+';color:'+(isLocked?'#ff6a00':'#556677')+';font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">'+_lockSvg+(isLocked?'잠금 해제':'잠금')+'</button>';
 
   var fullName = _fullTierName(mod.tier, modSub);
   var stars = '';
@@ -17592,7 +17594,7 @@ function _enterDecomposeMode() {
       if(_ms>0) h+='<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;">+'+_ms+'</div>';
       if(isSel) h+='<div style="position:absolute;top:2px;left:3px;font-size:8px;color:#ef4444;">✓</div>';
       if(isEquipped) h+='<div style="position:absolute;top:2px;left:3px;font-size:6px;color:#00ffff;">장착</div>';
-      if(isLocked&&!isEquipped) h+='<div style="position:absolute;top:2px;left:3px;font-size:7px;color:#f59e0b;">🔒</div>';
+      if(isLocked&&!isEquipped) h+='<div style="position:absolute;top:2px;left:2px;"><svg width="9" height="9" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#ff6a00" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#ff6a00" stroke-width="1.3"/><circle cx="8" cy="11.5" r="1" fill="#ff6a00"/></svg></div>';
       h+='<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>';
       h+=_modIcon(mod.typeId,tier.color,28);
       h+='<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' 증폭기','')+'</div>';
