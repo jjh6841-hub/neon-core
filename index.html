@@ -2841,7 +2841,7 @@ function applyPermStats() {
   G.enhCritMult   = (ws.enhCritMult || 0) > 0 ? 1.5 + (ws.enhCritMult || 0) * 0.1 : 0; // 레벨당 +0.1, 기본 1.5x
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
-  G.gemMult    = 1 + (ws.gemGain  || 0) * 0.1;
+  G.gemMult    = 1;
   G.rangeLevel = 5 + PERM.rngLv;
   G.zoom       = getTargetZoom();
   G.targetZoom = G.zoom;
@@ -4706,7 +4706,7 @@ function _showUpgDetail(upg) {
     maxhp:'타워의 최대 체력을 늘립니다',hpRegen:'매 초 자동으로 체력을 회복합니다',
     armor:'받는 피해를 감소시키는 방어 중첩을 쌓습니다',defRate:'받는 피해를 비율로 감소시킵니다 (최대 90%)',defAbs:'받는 피해에서 고정 수치를 차감합니다',vamp:'적 처치 시 체력을 흡수합니다',
     explode:'적 사망 시 주변 적에게 범위 피해를 줍니다',slow:'적 이동 속도를 감소시킵니다',
-    gemup:'보석 획득량을 증폭합니다',goldup:'골드 획득량을 증폭합니다'
+    goldup:'골드 획득량을 증폭합니다'
   };
   var desc = descMap[upg.key] || upg.name + ' 능력을 강화합니다';
   var upgBtnStyle = isMax
@@ -7535,7 +7535,6 @@ var RESEARCH_LIST = {
   utility: [
     { id:'start_cash',   name:'시작 골드',   desc:'게임 시작 시 +골드',        time:6300,  cost:2940,  maxLv:20 },
     { id:'r_wave_cash',  name:'웨이브 연구',   desc:'웨이브 골드 향상',         time:15660, cost:9810,  maxLv:50 },
-    { id:'r_gem_gain',   name:'보석 획득 연구',desc:'보석 획득량 향상',         time:18000, cost:12000, maxLv:20 },
     { id:'r_gold_gain',  name:'골드 획득 연구',desc:'골드 획득량 향상',         time:14400, cost:8000,  maxLv:30 },
   ],
   ultimate: [
@@ -9963,7 +9962,6 @@ var NEW_MAX = {
   hpRegen:   50,
   lifeSteal: 30,
   goldGain:  99,
-  gemGain:   30,
   enhCritChance: 30,
   enhCritMult:   20,
 };
@@ -10199,7 +10197,7 @@ function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
 /* §6 — WS 영구 강화 기본 비용 */
 var WS_BASE_COSTS = {
   damage:8, atkspd:10, critChance:12, critMult:15, enhCritChance:20, enhCritMult:30,
-  maxHp:10, defense:9, hpRegen:10, lifeSteal:14, goldGain:13, gemGain:12,
+  maxHp:10, defense:9, hpRegen:10, lifeSteal:14, goldGain:13,
 };
 
 /* ════════════════════════════════════════════════════════
@@ -10322,7 +10320,7 @@ function _patchApplyPermStats() {
     G.reflectPct = (ws.reflectDmg || 0) * 0.005;                     // 0.5%/lv
     G.knockbackChance = (ws.knockChance || 0) * 0.005;               // 0.5%/lv
     G.goldMult = 1 + (ws.goldGain || 0) * 0.1;                       // 10%/lv (UI와 일치)
-    G.gemMult  = 1 + (ws.gemGain  || 0) * 0.1;
+    G.gemMult  = 1;
   };
   window.applyPermStats._fBal = true;
 }
@@ -10405,10 +10403,6 @@ function _applyWsCostPatches() {
   if (items.goldGain) {
     items.goldGain.cur = function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); };
     items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); };
-  }
-  if (items.gemGain) {
-    items.gemGain.cur = function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); };
-    items.gemGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); };
   }
 }
 
@@ -12220,7 +12214,6 @@ function _showStatsPopup() {
   var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1).toFixed(1)+'%');
   var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, (_shl*10));
   var _ggl=ws.goldGain||0;  h+=_row('골드 획득 Lv.'+_ggl, 'x'+(1+_ggl*0.1).toFixed(1));
-  var _gel=ws.gemGain||0;   h+=_row('보석 획득 Lv.'+_gel, 'x'+(1+_gel*0.1).toFixed(1));
 
   // ── 코어랩 연구 ──
   h+=_section('코어랩 연구');
@@ -12246,7 +12239,6 @@ function _showStatsPopup() {
     ['쉴드','r_shield',function(l){return '+'+(l*5)+'%';}],
     ['시작 골드','start_cash',function(l){return '+'+(l*50);}],
     ['웨이브 골드','r_wave_cash',function(l){return '+'+(l*2)+'%';}],
-    ['보석 획득','r_gem_gain',function(l){return '+'+(l*2)+'%';}],
     ['골드 획득','r_gold_gain',function(l){return '+'+(l*2)+'%';}],
     ['속성 공격','r_elem_atk',function(l){return '+'+(l*2)+'%';}],
     ['속성 방어','r_elem_def',function(l){return '+'+(l*2)+'%';}],
@@ -12500,7 +12492,6 @@ function _showEncyclopedia() {
       { id:'gold_bonus', name:'골드 획득량', desc:'적 처치 시 획득 골드 배율. 강화소에서 레벨당 +10%.' },
       { id:'gold_wave',  name:'골드/웨이브', desc:'웨이브 클리어 시 추가 지급 골드.' },
       { id:'interest',   name:'이자',        desc:'보유 골드의 일정 %를 매 웨이브마다 추가 지급.' },
-      { id:'gem_bonus',  name:'보석 획득량', desc:'보석 획득 시 추가 배율. 강화소에서 레벨당 +10%.' },
     ]},
     system:{ label:'시스템', rows:[
       ['행성','에이온→스펙트라→넥사르→피라온→오메가 순으로 해금. 각 행성마다 적 배율과 골드 배율이 다르다.'],

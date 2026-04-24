@@ -402,7 +402,6 @@ function renderModal() {
     { key:'defense',    label:'방어',       val:ws.defense||0 },
     { key:'lifeSteal',  label:'흡혈',       val:ws.lifeSteal||0 },
     { key:'goldGain',   label:'골드 획득',  val:ws.goldGain||0 },
-    { key:'gemGain',    label:'보석 획득',  val:ws.gemGain||0 },
   ];
   wsItems.forEach(function(w){
     html += '<div class="modal-row"><label>'+w.label+'</label><input type="number" data-ws="'+w.key+'" value="'+w.val+'"></div>';
