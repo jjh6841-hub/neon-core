@@ -2903,17 +2903,6 @@ function startGame() {
   syncUI();
   applyPendingHighlight();
 
-  // Daily gem
-  try {
-    const today = new Date().toDateString();
-    if (localStorage.getItem('td_day') !== today) {
-      G.gems += 1;
-      PERM.gems += 1;
-      logCurrency('gems', 1, '일일 보석');
-      localStorage.setItem('td_day', today);
-      savePerm();
-    }
-  } catch (_) {}
 
   G.initialGems = G.gems;
   G.initialBossKills = PERM.bossKills;
