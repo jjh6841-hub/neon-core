@@ -2318,7 +2318,7 @@ var UPGRADES = [
   },
   { key:'crit',    tab:'atk', icon:'!',  name:'치명타<br>확률',  baseCost:8,  unlock:'crit',
     cost()   { return upgCost('crit',8); },
-    stat()   { return Math.round(G.critChance*100)+'%'; },
+    stat()   { return (G.critChance*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('crit',8); },
     apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.005); },
   },
@@ -2384,7 +2384,7 @@ var UPGRADES = [
   },
   { key:'enhCritChance', tab:'atk', icon:'!!', name:'강화 치명타<br>확률', baseCost:12, unlock:'enhCrit', maxLv:20,
     cost()   { return upgCost('enhCritChance',12); },
-    stat()   { return Math.round((G.enhCritChance||0)*100)+'%'; },
+    stat()   { return ((G.enhCritChance||0)*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('enhCritChance',12); },
     apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.005); },
   },
@@ -2435,7 +2435,7 @@ var UPGRADES = [
     cost()   { return upgCost('knockback',10); },
     stat()   { return ((G.knockbackChance||0)*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('knockback',10); },
-    apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.5,(G.knockbackChance||0)+0.02); },
+    apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.5,(G.knockbackChance||0)+0.005); },
   },
   { key:'shieldHP', tab:'def', icon:'◇', name:'쉴드<br>HP', baseCost:12, unlock:'shield', maxLv:30,
     cost()   { return upgCost('shieldHP',12); },
@@ -10303,10 +10303,10 @@ function _patchApplyPermStats() {
     var p  = window.PERM || {};
     var ws = p.ws || {};
     // §2 기본 스탯
-    t.dmg   = BASE_DMG + (p.dmgLv || 0) + (ws.damage || 0);
+    t.dmg   = Math.round(5 * Math.pow(1.20, (p.dmgLv || 0) + (ws.damage || 0)));
     var _spdMult = 1 + (p.spdLv || 0) * 0.05 + (ws.atkspd || 0) * 0.05;
     t.atkMs = Math.max(200, Math.round(BASE_ATKMS / _spdMult));
-    t.maxHp = BASE_HP + (p.hpLv || 0) * 2 + (ws.maxHp || 0) * 2;   // 2/lv (스펙)
+    t.maxHp = Math.round(25 * Math.pow(1.20, (p.hpLv || 0) + (ws.maxHp || 0)));
     t.hp    = t.maxHp;
     t.range = BASE_RANGE + (p.rngLv || 0) * 30 + (ws.wsRange || 0) * 8;
     // §7 치명타 — fireTower가 참조하는 G.critChance / G.critMult 에도 반영
@@ -10314,12 +10314,14 @@ function _patchApplyPermStats() {
     G.critChance = Math.min(0.9, (G.critChance || 0) + t.critChance);
     t.critMult   = 1.5 + (ws.critMult || 0) * 0.1;                   // +0.1/lv
     G.critMult   = t.critMult;
-    // §7 방어/재생/골드
-    t.defense  = Math.min(0.9, (ws.defense  || 0) * 0.02);           // 2%/lv, 90% 캡
-    t.hpRegen  = (ws.hpRegen  || 0) * 0.05;                          // 0.05/s/lv
-    G.defenseAbs = ws.defenseAbsolute || 0;                          // 절대 피해 차감 (flat)
-    G.lifeSteal  = (G.lifeSteal || 0) + (ws.lifeSteal || 0);          // 흡혈 +1/킬/lv
-    G.goldMult = 1 + (ws.goldGain || 0) * 0.05;                      // 5%/lv (was 10%)
+    // §7 방어/재생/골드 (키를 WS_ITEMS와 일치시킴)
+    t.defense  = Math.min(0.9, (ws.defRate   || 0) * 0.01);          // 1%/lv, 90% 캡
+    t.hpRegen  = (ws.hpRegen   || 0) * 0.05;                         // 0.05/s/lv
+    G.defenseAbs = ws.defAbs   || 0;                                  // 절대 피해 차감 (flat)
+    G.lifeSteal  = (ws.vampChance || 0) * 0.1;                       // 0.1%/lv
+    G.reflectPct = (ws.reflectDmg || 0) * 0.005;                     // 0.5%/lv
+    G.knockbackChance = (ws.knockChance || 0) * 0.005;               // 0.5%/lv
+    G.goldMult = 1 + (ws.goldGain || 0) * 0.1;                       // 10%/lv (UI와 일치)
     G.gemMult  = 1 + (ws.gemGain  || 0) * 0.1;
   };
   window.applyPermStats._fBal = true;
@@ -14589,7 +14591,7 @@ window.showMarketToast = function (msg, color) {
     _origAPS_shd.apply(this, arguments);
     if (!window.G || !G.tower) return;
     var ws = (window.PERM && window.PERM.ws) || {};
-    G.tower.shdMax = (ws.shieldHP || 0) * 5;   // 워크샵 shieldHP Lv당 5HP
+    G.tower.shdMax = (ws.shieldHP || 0) * 10;  // 워크샵 shieldHP Lv당 10HP (UI와 일치)
     G.tower.shdCur = G.tower.shdMax;            // 게임 시작 시 꽉 채워서 시작
     G.tower.absorbPct = (ws.absorbPct || 0) * 0.02; // 0~60% 피해 흡수율 (미사용 예비)
   };
