@@ -2382,6 +2382,18 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('enemyDefReduce',15); },
     apply()  { var c=upgCost('enemyDefReduce',15); coreChips-=c; G.upgLvl.enemyDefReduce=(G.upgLvl.enemyDefReduce||0)+1; G.enemyDefReduce=Math.min(74,(G.upgLvl.enemyDefReduce||0)); },
   },
+  { key:'enhCritChance', tab:'atk', icon:'!!', name:'강화 치명타<br>확률', baseCost:12, unlock:'enhCrit', maxLv:20,
+    cost()   { return upgCost('enhCritChance',12); },
+    stat()   { return Math.round((G.enhCritChance||0)*100)+'%'; },
+    canBuy() { return coreChips>=upgCost('enhCritChance',12); },
+    apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.03); },
+  },
+  { key:'enhCritMult', tab:'atk', icon:'×!!', name:'강화 치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
+    cost()   { return upgCost('enhCritMult',15); },
+    stat()   { return (G.enhCritMult||0) > 0 ? (G.enhCritMult).toFixed(1)+'x' : '-'; },
+    canBuy() { return coreChips>=upgCost('enhCritMult',15); },
+    apply()  { var c=upgCost('enhCritMult',15); coreChips-=c; G.upgLvl.enhCritMult=(G.upgLvl.enhCritMult||0)+1; G.enhCritMult=(G.enhCritMult||1.5)+0.1; },
+  },
   // ─ 방어 탭 ─
   { key:'maxhp',   tab:'def', icon:'+',  name:'최대<br>체력',  baseCost:7,  unlock:null,
     cost()   { return upgCost('maxhp',7); },
@@ -2824,6 +2836,9 @@ function applyPermStats() {
   t.hpRegen    = (ws.hpRegen    || 0) * 0.05;
   G.defenseAbs = ws.defAbs || 0;                             // 절대 방어
   G.enemyDefReduce = (ws.enemyDefReduce || 0);               // 적 방어력 감소 (강화소 기본값)
+  // 강화 치명타 (강화소 기본값, 프리즘과 합연산됨)
+  G.enhCritChance = (ws.enhCritChance || 0) * 0.02;          // 레벨당 2%
+  G.enhCritMult   = (ws.enhCritMult || 0) > 0 ? 1.5 + (ws.enhCritMult || 0) * 0.1 : 0; // 레벨당 +0.1, 기본 1.5x
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
   G.gemMult    = 1 + (ws.gemGain  || 0) * 0.1;
@@ -5670,6 +5685,14 @@ if (dailyPopup) {
       cost: function(lv) { return 10 + lv * 6; },
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv + 1) + '%'; } },
+    enhCritChance: { tab:'atk', name:'강화 치명타 확률', maxLv:20, atkGroup:7,
+      cost: function(lv) { return 20 + lv * 10; },
+      cur:  function(lv) { return (lv * 2) + '%'; },
+      nxt:  function(lv) { return ((lv + 1) * 2) + '%'; } },
+    enhCritMult:   { tab:'atk', name:'강화 치명타 계수', maxLv:10, atkGroup:7,
+      cost: function(lv) { return 30 + lv * 15; },
+      cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(1) + 'x'; },
+      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1).toFixed(1) + 'x'; } },
     goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
@@ -5738,6 +5761,7 @@ if (dailyPopup) {
       { group:4, name:'고속발사', cost:3000 }, // 연사 확률, 연사 지속
       { group:5, name:'바운스샷', cost:6000 }, // 도약탄 확률, 도약탄 수, 도약탄 범위
       { group:6, name:'적 방어 감소', cost:10000 }, // 적 방어력 감소
+      { group:7, name:'강화 치명타', cost:15000 }, // 강화 치명타 확률, 강화 치명타 계수
     ];
 
     if (tab === 'atk') {
@@ -5771,7 +5795,7 @@ if (dailyPopup) {
             PERM.ws_atk_unlocks = grp;
             // 전투 화면 인게임 업그레이드 잠금 해제 연동
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce']};
+            var unlockMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce'], 7:['enhCrit']};
             var keys = unlockMap[grp];
             if (keys) keys.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
@@ -9940,6 +9964,8 @@ var NEW_MAX = {
   lifeSteal: 30,
   goldGain:  99,
   gemGain:   30,
+  enhCritChance: 30,
+  enhCritMult:   20,
 };
 
 /* 지수 비용 공식: lv < 기존max → 기존 함수, 이후 1.4^n → 50 넘으면 1.6^n */
@@ -10172,7 +10198,7 @@ function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
 
 /* §6 — WS 영구 강화 기본 비용 */
 var WS_BASE_COSTS = {
-  damage:8, atkspd:10, critChance:12, critMult:15,
+  damage:8, atkspd:10, critChance:12, critMult:15, enhCritChance:20, enhCritMult:30,
   maxHp:10, defense:9, hpRegen:10, lifeSteal:14, goldGain:13, gemGain:12,
 };
 
@@ -11134,8 +11160,8 @@ function _applyPrismEffects() {
       case 'p_max_hp':     t.maxHp = Math.round(t.maxHp * (1 + val/100)); t.hp = t.maxHp; break; // #5 곱연산 20%씩
       case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
       case 'p_range':      t.range = t.range + val * 3; break;
-      case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break;
-      case 'p_crit_dmg2':  G.enhCritMult = val; break; // 배율 자체 (1.5/1.75/2.0/2.25/2.5)
+      case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break; // 강화소 값에 합산
+      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||0) > 0 ? G.enhCritMult + (val - 1.5) : val; break; // 강화소 기본값에 프리즘 추가분 합산
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100) || val * 0.01; break; // #6 곱연산 20%씩
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
@@ -12146,9 +12172,11 @@ function _showStatsPopup() {
   var baseCritMult=1.5+(ws.critMult||0)*0.1;
   var normalCritMult=baseCritMult+(_prismB.critDmg||0);
   var normalCritChance=(ws.critChance||0)*0.5+_prismB.critRate;
-  // 2. 강화 치명타 (일반 발동 시에만 2차 판정)
-  var enhCritChance=_prismB.enhCritRate||0;
-  var enhCritMult=_prismB.enhCritMult||0;
+  // 2. 강화 치명타 (강화소 + 프리즘 합연산)
+  var wsEnhCritChance=(ws.enhCritChance||0)*2; // 강화소: 레벨당 2%
+  var wsEnhCritMult=(ws.enhCritMult||0)>0?1.5+(ws.enhCritMult||0)*0.1:0; // 강화소: 기본 1.5x + 레벨당 0.1
+  var enhCritChance=wsEnhCritChance+(_prismB.enhCritRate||0); // 합연산
+  var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+(_prismB.enhCritMult-1.5):wsEnhCritMult||(_prismB.enhCritMult||0); // 합연산
   // 3. 모듈 치명타 (독립 판정)
   var modCritChance=_modB.crit||0;
   var modCritMult=_modB.cdmg||0;
