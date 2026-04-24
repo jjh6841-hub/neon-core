@@ -17056,10 +17056,14 @@ window._getModuleBonuses = function() {
 var _modMode = null;
 var _modSelected = [];
 var _modSynthFilter = { type:null, tier:null, sub:null };
+var _modScrollTop = 0;
 
 function _renderModuleContent() {
   var cont = document.getElementById('mods-content');
   if (!cont) return;
+  // 스크롤 위치 저장
+  var _prevScroll = cont.querySelector('#mod-inv-scroll');
+  if (_prevScroll) _modScrollTop = _prevScroll.scrollTop;
   cont.innerHTML = '';
   try {
     var mg=document.getElementById('mods-gold'); if(mg) mg.textContent=(PERM&&PERM.gold)||0;
@@ -17376,6 +17380,7 @@ function _renderModuleContent() {
     invWrap.appendChild(empty);
   } else {
     var invScroll = document.createElement('div');
+    invScroll.id = 'mod-inv-scroll';
     invScroll.style.cssText = 'flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;';
     var invGrid = document.createElement('div');
     invGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
@@ -17461,6 +17466,9 @@ function _renderModuleContent() {
   }
   wrap.appendChild(invWrap);
   cont.appendChild(wrap);
+  // 스크롤 위치 복원
+  var _restoredScroll = document.getElementById('mod-inv-scroll');
+  if (_restoredScroll && _modScrollTop > 0) _restoredScroll.scrollTop = _modScrollTop;
 }
 
 function _showSlotEquipPopup(slotIdx) {
