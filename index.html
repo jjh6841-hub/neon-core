@@ -9222,6 +9222,7 @@ function _renderMissions() {
 
   _updateBadge();
 }
+window._renderMissions = _renderMissions;
 
 /* ── 주간 노드 렌더링 ── */
 function _renderWeeklyNodes() {
@@ -9720,7 +9721,7 @@ setTimeout(_updateBadge, 500);
     var map={daily:'ms4-daily',weekly:'ms4-weekly',infinite:'ms4-inf'};
     Object.keys(map).forEach(function(k){ var el=document.getElementById(map[k]); if(el) el.style.display=(k===id)?'flex':'none'; });
     // 탭 전환 시 모두 받기 버튼 동기화
-    if (id==='daily' && typeof _renderMissions==='function') _renderMissions();
+    if (id==='daily' && window._renderMissions) window._renderMissions();
     else if (id==='weekly') _renderW();
     // infinite는 MutationObserver가 처리
   }
