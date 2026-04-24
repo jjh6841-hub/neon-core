@@ -2022,7 +2022,7 @@ function showToastMsg(msg, color) {
   var toast = document.createElement('div');
   toast.className = 'ach-toast';
   toast.textContent = msg;
-  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid '+(color||'#00ffff')+';color:'+(color||'#00ffff')+';font-family:"Courier New",monospace;font-size:12px;padding:8px 16px;z-index:9999;white-space:nowrap;pointer-events:none;animation:fadeInOut 2s ease forwards;';
+  toast.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid '+(color||'#00ffff')+';color:'+(color||'#00ffff')+';font-family:"Courier New",monospace;font-size:12px;padding:8px 16px;z-index:99999;white-space:nowrap;pointer-events:none;animation:fadeInOut 2s ease forwards;';
   document.body.appendChild(toast);
   setTimeout(function() { if (toast.parentNode) toast.remove(); }, 2000);
 }
@@ -17083,13 +17083,29 @@ function _renderModuleContent() {
   // 상단 슬롯 3개
   var topRow = document.createElement('div');
   topRow.style.cssText = 'display:flex;justify-content:center;gap:6px;margin-bottom:4px;';
-  // 가로 우주선 SVG
+  // 가로 우주선 SVG (디테일)
   var shipSvg = document.createElement('div');
-  shipSvg.style.cssText = 'display:flex;justify-content:center;align-items:center;height:24px;';
-  shipSvg.innerHTML = '<svg viewBox="0 0 280 60" width="200" height="20" style="opacity:0.15;">' +
-    '<path d="M20,30 L55,10 L120,5 L180,8 L215,15 L255,10 L265,30 L255,50 L215,45 L180,52 L120,55 L55,50 Z" fill="none" stroke="#00ffff" stroke-width="1.5"/>' +
-    '<path d="M40,30 L65,18 L120,14 L170,16 L175,30 L170,44 L120,46 L65,42 Z" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>' +
-    '<circle cx="110" cy="30" r="6" fill="none" stroke="#00ffff" stroke-width="0.6" opacity="0.3"/>' +
+  shipSvg.style.cssText = 'display:flex;justify-content:center;align-items:center;height:30px;';
+  shipSvg.innerHTML = '<svg viewBox="0 0 300 50" width="240" height="26" style="filter:drop-shadow(0 0 3px rgba(0,255,255,0.15));">' +
+    // 엔진 화염
+    '<ellipse cx="12" cy="25" rx="10" ry="6" fill="#00ffff" opacity="0.06"/>' +
+    '<ellipse cx="8" cy="25" rx="5" ry="3" fill="#00ffff" opacity="0.1"/>' +
+    // 외곽 선체
+    '<path d="M25,25 L50,10 L90,5 L200,4 L250,8 L275,15 L290,25 L275,35 L250,42 L200,46 L90,45 L50,40 Z" fill="#00ffff" opacity="0.03" stroke="#00ffff" stroke-width="1" opacity="0.2"/>' +
+    // 내부 선체
+    '<path d="M45,25 L70,15 L130,11 L210,10 L245,16 L260,25 L245,34 L210,40 L130,39 L70,35 Z" fill="none" stroke="#00ffff" stroke-width="0.6" opacity="0.12"/>' +
+    // 콕핏
+    '<path d="M265,20 L280,25 L265,30" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.2"/>' +
+    // 중앙 코어
+    '<circle cx="160" cy="25" r="5" fill="none" stroke="#00ffff" stroke-width="0.7" opacity="0.15"/>' +
+    '<circle cx="160" cy="25" r="2" fill="#00ffff" opacity="0.1"/>' +
+    // 날개 라인
+    '<line x1="100" y1="5" x2="80" y2="2" stroke="#00ffff" stroke-width="0.5" opacity="0.1"/>' +
+    '<line x1="100" y1="45" x2="80" y2="48" stroke="#00ffff" stroke-width="0.5" opacity="0.1"/>' +
+    // 엔진부 디테일
+    '<rect x="28" y="19" width="18" height="12" rx="2" fill="none" stroke="#00ffff" stroke-width="0.5" opacity="0.12"/>' +
+    '<line x1="32" y1="22" x2="42" y2="22" stroke="#00ffff" stroke-width="0.4" opacity="0.1"/>' +
+    '<line x1="32" y1="28" x2="42" y2="28" stroke="#00ffff" stroke-width="0.4" opacity="0.1"/>' +
   '</svg>';
   // 하단 슬롯 3개
   var botRow = document.createElement('div');
@@ -17416,53 +17432,93 @@ function _showSlotEquipPopup(slotIdx) {
 /* ── 모듈 제조 연출 ── */
 function _showModCraftAnim(mods, onDone) {
   var old=document.getElementById('mod-craft-anim'); if(old)old.remove();
+  // 최고 등급 색상
+  var bestTier=0; mods.forEach(function(m){if(m.tier>bestTier)bestTier=m.tier;});
+  var bestColor=(TIERS[bestTier]||TIERS[0]).color;
+
   var ov=document.createElement('div');
   ov.id='mod-craft-anim';
-  ov.style.cssText='position:fixed;inset:0;z-index:20000;background:rgba(3,8,16,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+  ov.style.cssText='position:fixed;inset:0;z-index:20000;background:rgba(3,8,16,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;overflow:hidden;';
 
-  // 1단계: 제조 중 애니메이션
-  var spinner=document.createElement('div');
-  spinner.style.cssText='width:60px;height:60px;border:3px solid #0a3344;border-top:3px solid #00ffff;border-radius:50%;animation:mod-spin 0.6s linear infinite;';
   var style=document.createElement('style');
-  style.textContent='@keyframes mod-spin{to{transform:rotate(360deg)}} @keyframes mod-pop{0%{transform:scale(0.3);opacity:0}50%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}';
+  style.textContent=
+    '@keyframes mod-spin{to{transform:rotate(360deg)}}'+
+    '@keyframes mod-pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}'+
+    '@keyframes mod-reveal{0%{transform:scale(0) rotate(-180deg);opacity:0}60%{transform:scale(1.15) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}'+
+    '@keyframes mod-glow{0%,100%{box-shadow:0 0 5px transparent}50%{box-shadow:0 0 20px VAR}}'+
+    '@keyframes mod-flash{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(3)}}'+
+    '@keyframes mod-particle{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--px),var(--py)) scale(0)}}'+
+    '@keyframes mod-line{0%{stroke-dashoffset:200}100%{stroke-dashoffset:0}}';
   ov.appendChild(style);
-  ov.appendChild(spinner);
-  var label=document.createElement('div');
-  label.style.cssText='color:#00ffff;font-size:13px;margin-top:16px;letter-spacing:2px;';
-  label.textContent='제조 중...';
-  ov.appendChild(label);
+
+  // 1단계: 제조 연출
+  var craftPhase=document.createElement('div');
+  craftPhase.style.cssText='display:flex;flex-direction:column;align-items:center;gap:12px;';
+  // 이중 링 스피너
+  craftPhase.innerHTML=
+    '<div style="position:relative;width:80px;height:80px;">'+
+      '<div style="position:absolute;inset:0;border:2px solid #0a3344;border-top:2px solid #00ffff;border-radius:50%;animation:mod-spin 0.8s linear infinite;"></div>'+
+      '<div style="position:absolute;inset:8px;border:2px solid #0a2233;border-bottom:2px solid '+bestColor+';border-radius:50%;animation:mod-spin 0.5s linear infinite reverse;"></div>'+
+      '<div style="position:absolute;inset:18px;display:flex;align-items:center;justify-content:center;">'+
+        '<div style="width:12px;height:12px;background:'+bestColor+';border-radius:50%;animation:mod-pulse 1s ease infinite;box-shadow:0 0 12px '+bestColor+';"></div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="color:#00ffff;font-size:12px;letter-spacing:3px;animation:mod-pulse 1.2s ease infinite;">CRAFTING...</div>';
+  ov.appendChild(craftPhase);
   document.body.appendChild(ov);
 
-  // 2단계: 결과 표시 (0.8초 후)
+  // 2단계: 플래시 → 결과
   setTimeout(function(){
-    spinner.remove(); label.remove();
-    var title=document.createElement('div');
-    title.style.cssText='color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;animation:mod-pop 0.3s ease-out;';
-    title.textContent='제조 완료!';
-    ov.appendChild(title);
+    craftPhase.remove();
+    // 중앙 플래시
+    var flash=document.createElement('div');
+    flash.style.cssText='position:absolute;top:50%;left:50%;width:20px;height:20px;background:'+bestColor+';border-radius:50%;transform:translate(-50%,-50%);animation:mod-flash 0.4s ease-out forwards;';
+    ov.appendChild(flash);
+    setTimeout(function(){flash.remove();},400);
 
-    var grid=document.createElement('div');
-    grid.style.cssText='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:300px;padding:0 16px;';
-    mods.forEach(function(mod,idx){
-      var type=MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
-      var tier=TIERS[mod.tier]||TIERS[0];
-      if(!type)return;
-      var card=document.createElement('div');
-      card.style.cssText='width:64px;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;padding:8px 4px;text-align:center;animation:mod-pop 0.3s ease-out;animation-delay:'+idx*0.08+'s;animation-fill-mode:backwards;';
-      card.innerHTML=
-        '<div style="font-size:8px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+tier.name+'</div>'+
-        _modIcon(mod.typeId, tier.color, 32)+
-        '<div style="font-size:7px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">'+type.name+'</div>';
-      grid.appendChild(card);
-    });
-    ov.appendChild(grid);
+    // 파티클
+    for(var pi=0;pi<12;pi++){
+      var angle=pi*(360/12);
+      var dist=60+Math.random()*40;
+      var px=Math.cos(angle*Math.PI/180)*dist;
+      var py=Math.sin(angle*Math.PI/180)*dist;
+      var dot=document.createElement('div');
+      dot.style.cssText='position:absolute;top:50%;left:50%;width:4px;height:4px;background:'+bestColor+';border-radius:50%;--px:'+px+'px;--py:'+py+'px;animation:mod-particle 0.6s ease-out forwards;animation-delay:'+pi*0.02+'s;';
+      ov.appendChild(dot);
+    }
 
-    var closeBtn=document.createElement('button');
-    closeBtn.style.cssText='margin-top:20px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;padding:10px 32px;cursor:pointer;letter-spacing:1px;';
-    closeBtn.textContent='확인';
-    closeBtn.addEventListener('click',function(){ ov.remove(); if(onDone)onDone(); });
-    ov.appendChild(closeBtn);
-  },800);
+    setTimeout(function(){
+      // 제목
+      var title=document.createElement('div');
+      title.style.cssText='color:#00ffff;font-size:15px;font-weight:bold;letter-spacing:4px;margin-bottom:16px;text-shadow:0 0 10px #00ffff44;animation:mod-reveal 0.4s ease-out;';
+      title.textContent='COMPLETE';
+      ov.appendChild(title);
+
+      // 카드 그리드
+      var grid=document.createElement('div');
+      grid.style.cssText='display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:300px;padding:0 16px;';
+      mods.forEach(function(mod,idx){
+        var type=MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0];
+        var tier=TIERS[mod.tier]||TIERS[0];
+        if(!type)return;
+        var glowStyle=mod.tier>=2?'animation:mod-glow 1.5s ease infinite;'.replace('VAR',tier.color+'66'):'';
+        var card=document.createElement('div');
+        card.style.cssText='width:64px;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;padding:8px 4px;text-align:center;animation:mod-reveal 0.4s ease-out;animation-delay:'+(0.1+idx*0.06)+'s;animation-fill-mode:backwards;'+glowStyle;
+        card.innerHTML=
+          '<div style="font-size:8px;color:'+tier.color+';font-weight:bold;margin-bottom:3px;">'+tier.name+'</div>'+
+          _modIcon(mod.typeId, tier.color, 32)+
+          '<div style="font-size:7px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">'+type.name+'</div>';
+        grid.appendChild(card);
+      });
+      ov.appendChild(grid);
+
+      var closeBtn=document.createElement('button');
+      closeBtn.style.cssText='margin-top:20px;background:#030b10;border:1px solid #00ffff44;color:#00ffff;font-family:monospace;font-size:12px;padding:10px 32px;cursor:pointer;letter-spacing:2px;animation:mod-reveal 0.3s ease-out;animation-delay:0.5s;animation-fill-mode:backwards;';
+      closeBtn.textContent='확인';
+      closeBtn.addEventListener('click',function(){ ov.remove(); if(onDone)onDone(); });
+      ov.appendChild(closeBtn);
+    },200);
+  },1000);
 }
 
 /* ── 모듈 구매 ── */
