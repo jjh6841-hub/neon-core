@@ -1673,6 +1673,61 @@ canvas {
   var uid = localStorage.getItem('td_uid');
   if (!uid) { uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); localStorage.setItem('td_uid', uid); }
   window._fbUid = uid;
+
+  // ── 접속 정지 체크 ──
+  window._checkBanStatus = function() {
+    if (!window._fbDb || !window._fbUid) return;
+    window._fbDb.collection('users').doc(window._fbUid).get().then(function(doc) {
+      if (!doc.exists) return;
+      var ban = doc.data().ban;
+      if (!ban || !ban.active) return;
+      // 기간 정지인 경우 만료 체크
+      if (!ban.permanent && ban.until && new Date(ban.until) <= new Date()) {
+        // 정지 기간 만료 → 자동 해제
+        window._fbDb.collection('users').doc(window._fbUid).update({ 'ban.active': false });
+        return;
+      }
+      // 정지 중 → 팝업 표시
+      window._showBanPopup(ban);
+    }).catch(function(){});
+  };
+
+  window._showBanPopup = function(ban) {
+    // 기존 팝업 제거
+    var old = document.getElementById('ban-block-overlay');
+    if (old) old.remove();
+
+    var ov = document.createElement('div');
+    ov.id = 'ban-block-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(3,11,16,0.97);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+
+    var durationText = '';
+    if (ban.permanent) {
+      durationText = '<div style="color:#ff6666;font-size:13px;font-weight:bold;margin-bottom:12px;">영구 정지</div>';
+    } else if (ban.until) {
+      var untilDate = new Date(ban.until);
+      var daysLeft = Math.ceil((untilDate - new Date()) / 86400000);
+      var dateStr = untilDate.getFullYear() + '-' + String(untilDate.getMonth()+1).padStart(2,'0') + '-' + String(untilDate.getDate()).padStart(2,'0') + ' ' + String(untilDate.getHours()).padStart(2,'0') + ':' + String(untilDate.getMinutes()).padStart(2,'0');
+      durationText = '<div style="color:#ef4444;font-size:12px;margin-bottom:4px;">잔여 기간: <b>' + daysLeft + '일</b></div>' +
+        '<div style="color:#556677;font-size:10px;margin-bottom:12px;">해제 예정: ' + dateStr + '</div>';
+    }
+
+    ov.innerHTML =
+      '<div style="background:#0a0a1a;border:1px solid #ef4444;padding:28px 24px;max-width:320px;width:90%;text-align:center;">' +
+        '<div style="color:#ef4444;font-size:22px;margin-bottom:8px;">⛔</div>' +
+        '<div style="color:#ef4444;font-size:15px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">접속 정지</div>' +
+        durationText +
+        '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:12px;margin-bottom:16px;text-align:left;">' +
+          '<div style="color:#556677;font-size:9px;margin-bottom:4px;">정지 사유</div>' +
+          '<div style="color:#f1f5f9;font-size:11px;line-height:1.6;word-break:break-all;">' + (ban.reason || '운영 정책 위반') + '</div>' +
+        '</div>' +
+        '<div style="color:#334455;font-size:9px;line-height:1.5;">문의사항은 설정 > 문의하기를 이용해주세요.</div>' +
+      '</div>';
+
+    document.body.appendChild(ov);
+    // 홈화면 전환 차단
+    window._isBanned = true;
+  };
 })();
 </script>
 
@@ -5305,9 +5360,14 @@ document.addEventListener('touchend', function(e) {
           titleScreen.classList.add('show');
 
           // 5. 탭하면 홈화면으로 전환
+          // 타이틀 진입 시 정지 체크
+          if (window._checkBanStatus) window._checkBanStatus();
+
           var titleTapped = false;
           function goToHome() {
             if (titleTapped) return;
+            // 정지 상태면 홈화면 전환 차단
+            if (window._isBanned) return;
             titleTapped = true;
             AudioManager.init();
             if (PERM.settings.music) AudioManager.playBGM();

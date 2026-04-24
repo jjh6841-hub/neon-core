@@ -78,6 +78,32 @@ tr { cursor:pointer; }
 .btn-del-ok { border:1px solid #ef4444; color:#ef4444; }
 .btn-del-cancel { border:1px solid #334455; color:#556677; }
 
+/* 정지 뱃지 */
+.badge-banned { color:#ef4444; font-size:9px; font-weight:bold; border:1px solid #ef4444; padding:1px 5px; border-radius:3px; background:#1a0505; }
+.badge-ban-perm { color:#ff6666; font-size:9px; font-weight:bold; border:1px solid #ff4444; padding:1px 5px; border-radius:3px; background:#2a0505; }
+
+/* 정지 팝업 */
+#ban-popup { display:none; position:fixed; inset:0; background:rgba(3,11,16,0.95); z-index:200; align-items:center; justify-content:center; }
+#ban-popup.show { display:flex; }
+.ban-box { background:#1a0a0a; border:1px solid #ef4444; padding:24px; width:90%; max-width:400px; }
+.ban-box h3 { color:#ef4444; font-size:14px; letter-spacing:2px; margin-bottom:16px; text-align:center; }
+.ban-box .ban-uid { color:#00ffff; font-size:11px; margin-bottom:12px; text-align:center; word-break:break-all; }
+.ban-field { margin-bottom:10px; }
+.ban-field label { display:block; color:#556677; font-size:10px; margin-bottom:4px; }
+.ban-field input, .ban-field select, .ban-field textarea { width:100%; background:#030b10; border:1px solid #0a3344; color:#f1f5f9; font-family:'Courier New',monospace; font-size:11px; padding:8px; box-sizing:border-box; }
+.ban-field textarea { resize:vertical; }
+.ban-duration-row { display:flex; gap:8px; align-items:center; }
+.ban-duration-row input[type="number"] { flex:1; }
+.ban-duration-row label { color:#94a3b8; font-size:10px; white-space:nowrap; display:flex; align-items:center; gap:4px; cursor:pointer; }
+.ban-duration-row input[type="checkbox"] { accent-color:#ef4444; }
+.ban-actions { display:flex; gap:8px; margin-top:16px; }
+.ban-actions button { flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; background:#030b10; letter-spacing:1px; }
+.btn-ban-ok { border:1px solid #ef4444; color:#ef4444; }
+.btn-ban-cancel { border:1px solid #334455; color:#556677; }
+.ban-status-box { background:#1a0505; border:1px solid #3a1a1a; padding:12px; margin-bottom:12px; }
+.ban-status-box .ban-label { color:#ef4444; font-size:11px; font-weight:bold; margin-bottom:6px; }
+.ban-status-box .ban-detail { color:#94a3b8; font-size:10px; line-height:1.6; }
+
 /* 모달 탭 */
 .modal-tabs { display:flex; gap:0; margin-bottom:12px; border-bottom:1px solid #0a3344; }
 .modal-tab { flex:1; background:none; border:none; border-bottom:2px solid transparent; color:#556677; font-family:'Courier New',monospace; font-size:11px; padding:8px 0; cursor:pointer; letter-spacing:1px; }
@@ -136,6 +162,7 @@ tr { cursor:pointer; }
       <tr>
         <th>유저 ID</th>
         <th>연동</th>
+        <th>상태</th>
         <th>골드</th>
         <th>보석</th>
         <th>행성별 웨이브</th>
@@ -211,6 +238,7 @@ tr { cursor:pointer; }
     <div id="modal-actions-wrap" class="modal-actions">
       <button class="btn-save" id="modal-save">저장</button>
       <button class="btn-cancel" id="modal-cancel">닫기</button>
+      <button id="modal-ban" style="border-color:#f59e0b !important;color:#f59e0b;">정지</button>
       <button id="modal-delete" style="border-color:#ef4444 !important;color:#ef4444;">삭제</button>
     </div>
   </div>
@@ -224,6 +252,29 @@ tr { cursor:pointer; }
     <div class="del-actions">
       <button class="btn-del-cancel" id="del-cancel">취소</button>
       <button class="btn-del-ok" id="del-ok">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div id="ban-popup">
+  <div class="ban-box">
+    <h3>⛔ 접속 정지</h3>
+    <div class="ban-uid" id="ban-uid"></div>
+    <div class="ban-field">
+      <label>정지 사유</label>
+      <textarea id="ban-reason" rows="3" placeholder="정지 사유를 입력하세요..."></textarea>
+    </div>
+    <div class="ban-field">
+      <label>정지 기간</label>
+      <div class="ban-duration-row">
+        <input type="number" id="ban-days" min="1" value="7" placeholder="일수">
+        <span style="color:#556677;font-size:10px;">일</span>
+        <label><input type="checkbox" id="ban-perm"> 영구 정지</label>
+      </div>
+    </div>
+    <div class="ban-actions">
+      <button class="btn-ban-cancel" id="ban-cancel">취소</button>
+      <button class="btn-ban-ok" id="ban-ok">정지 적용</button>
     </div>
   </div>
 </div>
@@ -309,9 +360,20 @@ function renderUsers(list) {
     }
     if (!planetSummary && (p.bestWave||0) > 0) planetSummary = '에' + (p.bestWave||0);
     var isLinked = !!(p.accountEmail);
+    var ban = u.data.ban || {};
+    var isBanned = ban.active && (ban.permanent || (ban.until && new Date(ban.until) > new Date()));
+    var banLabel = '';
+    if (isBanned) {
+      if (ban.permanent) banLabel = '<span class="badge-ban-perm">영구정지</span>';
+      else {
+        var daysLeft = Math.ceil((new Date(ban.until) - new Date()) / 86400000);
+        banLabel = '<span class="badge-banned">' + daysLeft + '일</span>';
+      }
+    }
     tr.innerHTML =
       '<td class="uid-cell">' + u.id + '</td>' +
       '<td><span class="'+(isLinked?'badge-linked':'badge-unlinked')+'">'+(isLinked?'연동':'미연동')+'</span></td>' +
+      '<td>' + (banLabel || '<span style="color:#334455;font-size:9px;">-</span>') + '</td>' +
       '<td class="gold">' + (p.gold||0).toLocaleString() + '</td>' +
       '<td class="gem">' + (p.gems||0).toLocaleString() + '</td>' +
       '<td style="color:#10b981;font-size:10px;">' + (planetSummary||'-') + '</td>' +
@@ -358,6 +420,24 @@ function renderModal() {
   /* ── 정보 탭 ── */
   var html = '';
   var isLinked = !!(p.accountEmail);
+  var ban = currentUser.data.ban || {};
+  var isBanned = ban.active && (ban.permanent || (ban.until && new Date(ban.until) > new Date()));
+
+  // 정지 상태 표시
+  if (isBanned) {
+    html += '<div class="ban-status-box">';
+    html += '<div class="ban-label">⛔ 접속 정지 중</div>';
+    if (ban.permanent) {
+      html += '<div class="ban-detail">유형: <b style="color:#ff6666;">영구 정지</b></div>';
+    } else {
+      var daysLeft = Math.ceil((new Date(ban.until) - new Date()) / 86400000);
+      html += '<div class="ban-detail">잔여: <b style="color:#ef4444;">' + daysLeft + '일</b> (해제: ' + formatTime(ban.until) + ')</div>';
+    }
+    html += '<div class="ban-detail">사유: ' + (ban.reason||'-') + '</div>';
+    html += '<div class="ban-detail" style="color:#334455;">정지일: ' + formatTime(ban.bannedAt) + '</div>';
+    html += '</div>';
+  }
+
   html += '<div class="modal-row"><label>유저 ID</label><span style="color:#00ffff;font-size:10px;">'+currentUser.id+'</span></div>';
   html += '<div class="modal-row"><label>계정 연동</label><span class="'+(isLinked?'badge-linked':'badge-unlinked')+'" style="font-size:10px;">'+(isLinked?'연동됨 ('+p.accountEmail+')':'미연동')+'</span></div>';
   html += '<div class="modal-row"><label>마지막 접속</label><span>'+formatTime(currentUser.data.lastActive)+'</span></div>';
@@ -507,6 +587,18 @@ function renderModal() {
   }
 
   document.getElementById('modal-tab-log').innerHTML = logHtml;
+
+  // 정지/해제 버튼 상태 갱신
+  var banBtn = document.getElementById('modal-ban');
+  if (isBanned) {
+    banBtn.textContent = '정지 해제';
+    banBtn.style.borderColor = '#00ff88';
+    banBtn.style.color = '#00ff88';
+  } else {
+    banBtn.textContent = '정지';
+    banBtn.style.borderColor = '#f59e0b';
+    banBtn.style.color = '#f59e0b';
+  }
 
   // 탭 전환 + 모달 표시
   switchModalTab('info');
@@ -879,6 +971,73 @@ document.getElementById('delete-confirm').addEventListener('click', function(e){
     this.classList.remove('show');
     deleteTargetId = null;
   }
+});
+
+// ── 접속 정지 ──
+document.getElementById('modal-ban').addEventListener('click', function(){
+  if (!currentUser) return;
+  var ban = currentUser.data.ban || {};
+  var isBanned = ban.active && (ban.permanent || (ban.until && new Date(ban.until) > new Date()));
+
+  if (isBanned) {
+    // 정지 해제
+    if (!confirm(currentUser.id + ' 유저의 접속 정지를 해제하시겠습니까?')) return;
+    db.collection('users').doc(currentUser.id).update({
+      'ban.active': false
+    }).then(function(){
+      showToast('정지 해제: ' + currentUser.id);
+      closeModal();
+      loadUsers();
+    });
+  } else {
+    // 정지 팝업 표시
+    document.getElementById('ban-uid').textContent = currentUser.id;
+    document.getElementById('ban-reason').value = '';
+    document.getElementById('ban-days').value = '7';
+    document.getElementById('ban-perm').checked = false;
+    document.getElementById('ban-days').disabled = false;
+    document.getElementById('ban-popup').classList.add('show');
+  }
+});
+
+document.getElementById('ban-perm').addEventListener('change', function(){
+  document.getElementById('ban-days').disabled = this.checked;
+});
+
+document.getElementById('ban-cancel').addEventListener('click', function(){
+  document.getElementById('ban-popup').classList.remove('show');
+});
+
+document.getElementById('ban-popup').addEventListener('click', function(e){
+  if (e.target === this) this.classList.remove('show');
+});
+
+document.getElementById('ban-ok').addEventListener('click', async function(){
+  if (!currentUser) return;
+  var reason = document.getElementById('ban-reason').value.trim();
+  if (!reason) { showToast('정지 사유를 입력하세요'); return; }
+  var isPerm = document.getElementById('ban-perm').checked;
+  var days = parseInt(document.getElementById('ban-days').value) || 7;
+
+  var banData = {
+    active: true,
+    reason: reason,
+    permanent: isPerm,
+    bannedAt: new Date().toISOString()
+  };
+  if (!isPerm) {
+    var until = new Date();
+    until.setDate(until.getDate() + days);
+    banData.until = until.toISOString();
+  } else {
+    banData.until = null;
+  }
+
+  await db.collection('users').doc(currentUser.id).update({ ban: banData });
+  showToast((isPerm ? '영구' : days + '일') + ' 정지 적용: ' + currentUser.id);
+  document.getElementById('ban-popup').classList.remove('show');
+  closeModal();
+  loadUsers();
 });
 </script>
 </body>
