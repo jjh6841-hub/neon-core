@@ -1515,6 +1515,13 @@ canvas {
         <span id="panel-datacell" style="color:#00ff88; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
+      <!-- 모듈 -->
+      <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">모듈</div>
+      <div class="currency-row">
+        <span style="color:#88aaff; font-family:monospace; font-size:11px;">⊿ 모듈 조각</span>
+        <span id="panel-mod-frag" style="color:#88aaff; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
+      </div>
+      <div style="border-top:1px solid #0a3344; margin:6px 0;"></div>
       <!-- 기록 -->
       <div style="padding:0 8px 4px;font-family:monospace;font-size:8px;color:#334455;letter-spacing:1px;">기록</div>
       <div class="currency-row">
@@ -8178,6 +8185,8 @@ function openPanel() {
   try { document.getElementById('panel-access').textContent = parseInt(localStorage.getItem('accessCodes')||'0',10); } catch(_) {}
   try { document.getElementById('panel-pcore').textContent = parseInt(localStorage.getItem('powerCores')||'0',10); } catch(_) {}
   try { document.getElementById('panel-datacell').textContent = parseInt(localStorage.getItem('dataCells')||'0',10); } catch(_) {}
+  // 모듈
+  try { var _md=JSON.parse(localStorage.getItem('td_modules')||'{}'); document.getElementById('panel-mod-frag').textContent = _md.moduleFragments||0; } catch(_) {}
   panel.style.display = 'block';
   toggleBtn.textContent = '▲';
   toggleBtn.style.color = '#00ffff';
@@ -14803,34 +14812,55 @@ window.toggleCurrencyDropdown = function () {
     el.id = 'currency-dropdown';
     el.style.cssText =
       'position:absolute;top:48px;right:8px;' +
-      'background:#0a1a2a;border:1px solid #1a3444;border-radius:8px;' +
+      'background:#0a1a2a;border:1px solid #1a3344;border-radius:8px;' +
       'padding:10px 14px;font-family:\'Courier New\',monospace;' +
-      'font-size:11px;color:#00ffff;z-index:300;min-width:160px;line-height:2;';
+      'font-size:11px;color:#00ffff;z-index:300;min-width:180px;max-height:70vh;overflow-y:auto;-webkit-overflow-scrolling:touch;';
+    var _sep='<div style="border-top:1px solid #0a3344;margin:4px 0;"></div>';
+    var _cat=function(t){return '<div style="font-size:8px;color:#334455;letter-spacing:1px;margin-top:2px;">'+t+'</div>';};
+    var _r=function(icon,label,color,id){return '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="color:'+color+';">'+icon+' '+label+'</span><span id="'+id+'" style="color:'+color+';font-weight:bold;">0</span></div>';};
     el.innerHTML =
-      '<div style="color:#f59e0b;">◈ 골드: <span id="dd-gold">0</span></div>' +
-      '<div style="color:#00ffff;">❖ 보석: <span id="dd-gem">0</span></div>' +
-      '<div style="color:#ffc800;">✦ 펄스 조각: <span id="dd-pulse">0</span></div>' +
-      '<div style="color:#ff8822;">◉ 파워 코어: <span id="dd-pc">0</span></div>' +
-      '<div style="color:#bb44ff;">⌘ 접근 코드: <span id="dd-ac">0</span></div>' +
-      '<div style="color:#00ff88;">▣ 데이터 셀: <span id="dd-dc">0</span></div>';
+      _cat('기본 재화')+
+      _r('◈','골드','#f59e0b','dd-gold')+
+      _r('❖','보석','#00ffff','dd-gem')+
+      _sep+_cat('프리즘')+
+      _r('◆','프리즘 파편','#cc44ff','dd-prism-frag')+
+      _r('⬡','프리즘 슬롯','#cc44ff','dd-prism-slot')+
+      _sep+_cat('요일탐사')+
+      _r('🎫','탐사 티켓','#ff8822','dd-ticket')+
+      _r('✹','화염 코어','#ef4444','dd-core-fire')+
+      _r('⎈','심해 코어','#3b82f6','dd-core-water')+
+      _r('⚛','번개 코어','#f59e0b','dd-core-electric')+
+      _r('⏣','대지 코어','#d4a04a','dd-core-earth')+
+      _r('❊','질풍 코어','#10b981','dd-core-wind')+
+      _r('☽','암흑 코어','#6b21a8','dd-core-dark')+
+      _sep+_cat('기타')+
+      _r('✦','펄스 조각','#cc44ff','dd-pulse')+
+      _r('⌘','접근 코드','#bb44ff','dd-ac')+
+      _r('⊕','파워 코어','#ff8822','dd-pc')+
+      _r('▣','데이터 셀','#00ff88','dd-dc')+
+      _sep+_cat('모듈')+
+      _r('⊿','모듈 조각','#88aaff','dd-mod-frag');
     var hud = document.getElementById('screen-home');
     if (hud) hud.appendChild(el);
   }
   var visible = el.style.display !== 'none' && el.style.display !== '';
   el.style.display = visible ? 'none' : 'block';
   if (!visible) {
-    var gEl = document.getElementById('dd-gold');
-    var bEl = document.getElementById('dd-gem');
-    var pEl = document.getElementById('dd-pulse');
-    if (gEl) gEl.textContent = (typeof PERM !== 'undefined') ? (PERM.gold || 0) : 0;
-    if (bEl) bEl.textContent = (typeof PERM !== 'undefined') ? (PERM.gems || 0) : 0;
-    if (pEl) pEl.textContent = window.pulseFragments || 0;
-    var pcEl = document.getElementById('dd-pc');
-    var acEl = document.getElementById('dd-ac');
-    var dcEl = document.getElementById('dd-dc');
-    if (pcEl) pcEl.textContent = parseInt(localStorage.getItem('powerCores')||'0',10);
-    if (acEl) acEl.textContent = parseInt(localStorage.getItem('accessCodes')||'0',10);
-    if (dcEl) dcEl.textContent = parseInt(localStorage.getItem('dataCells')||'0',10);
+    var _v=function(id,val){var e=document.getElementById(id);if(e)e.textContent=val;};
+    var _p=(typeof PERM!=='undefined')?PERM:{};
+    _v('dd-gold',(_p.gold||0).toLocaleString());
+    _v('dd-gem',(_p.gems||0).toLocaleString());
+    _v('dd-prism-frag',_p.prismFragments||0);
+    _v('dd-prism-slot',(_p.prismSlotCount||1)+' / 10');
+    _v('dd-ticket',parseInt(localStorage.getItem('explore_tickets')||'3',10));
+    ['fire','water','electric','earth','wind','dark'].forEach(function(eid){
+      _v('dd-core-'+eid,parseInt(localStorage.getItem('core_'+eid)||'0',10));
+    });
+    _v('dd-pulse',window.pulseFragments||0);
+    _v('dd-ac',parseInt(localStorage.getItem('accessCodes')||'0',10));
+    _v('dd-pc',parseInt(localStorage.getItem('powerCores')||'0',10));
+    _v('dd-dc',parseInt(localStorage.getItem('dataCells')||'0',10));
+    try{var _md=JSON.parse(localStorage.getItem('td_modules')||'{}');_v('dd-mod-frag',_md.moduleFragments||0);}catch(_){}
   }
 };
 
