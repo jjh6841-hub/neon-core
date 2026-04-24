@@ -18478,14 +18478,28 @@ if (_gemAdBtn) {
   }
 
   window._handleBackButton = function() {
-    // 종료 확인 팝업이 열려있으면 닫기
+    // 종료 확인 팝업
     var exitPop = document.getElementById('exit-confirm');
     if (exitPop) { exitPop.remove(); return; }
 
-    // 광고 오버레이 (닫으면 안됨, 무시)
+    // 광고 오버레이 (닫으면 안됨)
     if (document.getElementById('gem-ad-overlay')) return;
 
-    // 각종 확인 팝업
+    // ── 최상위 팝업들 (z-index 높은 순) ──
+
+    // 슬롯 확인 팝업 (행성 잠금 등)
+    var slotPop = document.getElementById('slot-confirm-popup');
+    if (slotPop) { slotPop.remove(); return; }
+
+    // 전투 증강 팝업
+    var augPop = document.getElementById('aug-popup');
+    if (augPop) { augPop.remove(); return; }
+
+    // 시즌 패스 팝업
+    var spPop = document.getElementById('sp-popup');
+    if (spPop) { spPop.remove(); return; }
+
+    // 확인 팝업 (범용)
     var confirmOv = document.getElementById('confirm-overlay');
     if (confirmOv && confirmOv.style.display !== 'none') { confirmOv.style.display = 'none'; return; }
 
@@ -18501,6 +18515,27 @@ if (_gemAdBtn) {
     var rewardOv = document.querySelector('[id^="reward-popup"]');
     if (rewardOv) { rewardOv.remove(); return; }
 
+    // 행성 잠금 팝업 (동적 생성)
+    var tierLock = document.querySelector('[style*="z-index"][style*="ACCESS"]');
+    if (!tierLock) {
+      // _tierLockPopup은 display:flex로 보여짐
+      var allFixed = document.querySelectorAll('div[style*="position:fixed"][style*="display:flex"][style*="z-index"]');
+      for (var fi = allFixed.length - 1; fi >= 0; fi--) {
+        if (allFixed[fi].querySelector('#tier-lock-x')) { allFixed[fi].style.display = 'none'; return; }
+      }
+    }
+
+    // 통계 팝업 (동적 생성, z-index:9800)
+    // 패치 노트 팝업 (동적 생성, z-index:9800)
+    // 백과사전 팝업 (동적 생성, z-index:9800)
+    // 이들은 body에 직접 추가된 position:fixed 요소
+    var highZ = document.querySelectorAll('body > div[style*="position:fixed"][style*="z-index: 9"][style*="inset:0"], body > div[style*="position:fixed"][style*="z-index:9"][style*="inset:0"]');
+    for (var zi = highZ.length - 1; zi >= 0; zi--) {
+      var el = highZ[zi];
+      if (el.id && ['exit-confirm','gem-ad-overlay','ob-ov','pause-overlay','results-screen','settings-screen','achieve-screen','screen-missions'].indexOf(el.id) !== -1) continue;
+      el.remove(); return;
+    }
+
     // 프리즘/모듈 상세 팝업
     var prismPop = document.getElementById('prism-detail-popup') || document.getElementById('prism-select-popup');
     if (prismPop) { prismPop.remove(); return; }
@@ -18514,6 +18549,12 @@ if (_gemAdBtn) {
     // 강화소 상세 오버레이
     var wsDetail = document.getElementById('ws-detail-overlay');
     if (wsDetail) { wsDetail.remove(); return; }
+
+    // 온보딩 오버레이
+    var obOv = document.getElementById('ob-ov');
+    if (obOv && obOv.style.display !== 'none') { if(window._obDismiss) window._obDismiss(); return; }
+
+    // ── 게임 화면들 ──
 
     // 일시정지 메뉴
     var pauseOv = document.getElementById('pause-overlay');
@@ -18529,11 +18570,19 @@ if (_gemAdBtn) {
 
     // 업적 화면
     var achEl = document.getElementById('achieve-screen');
-    if (achEl && achEl.classList.contains('show')) { achEl.classList.remove('show'); return; }
+    if (achEl && achEl.classList.contains('show')) {
+      achEl.classList.remove('show');
+      achEl.style.display = 'none';
+      return;
+    }
 
     // 임무 화면
     var missEl = document.getElementById('screen-missions');
     if (missEl && missEl.style.display === 'flex') { missEl.style.display = 'none'; return; }
+
+    // 계정 관리 화면
+    var accEl = document.getElementById('screen-account');
+    if (accEl && (accEl.style.display === 'flex' || accEl.style.display === 'block')) { accEl.style.display = 'none'; return; }
 
     // 전투 화면 → 일시정지
     var gameEl = document.getElementById('screen-game');
@@ -18548,8 +18597,8 @@ if (_gemAdBtn) {
     var subs = ['workshop','store','lab','tournament','module','research','corelab','skin','mods','explore',
                 'frequency-wars','signal-market','event','ranking'];
     for (var i = 0; i < subs.length; i++) {
-      var el = document.getElementById('screen-' + subs[i]);
-      if (el && (el.style.display === 'flex' || el.style.display === 'block')) {
+      var sub = document.getElementById('screen-' + subs[i]);
+      if (sub && (sub.style.display === 'flex' || sub.style.display === 'block')) {
         if (window.showScreen) window.showScreen('home');
         return;
       }
