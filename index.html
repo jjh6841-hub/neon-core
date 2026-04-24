@@ -12013,16 +12013,67 @@ function _showStatsPopup() {
   function _row(label,val,color){ return '<div style="display:flex;justify-content:space-between;padding:5px 0;"><span style="color:#556677;font-size:10px;">'+label+'</span><span style="color:'+(color||'#00ffff')+';font-size:10px;font-weight:bold;">'+val+'</span></div>'; }
   function _section(title,color){ return '<div style="color:'+(color||'#00ffff')+';font-size:11px;font-weight:bold;margin-top:12px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #0a2233;">'+title+'</div>'; }
 
+  // ── 프리즘 보너스 계산 ──
+  var _prismB={atk:0,hp:0,def:0,critRate:0,critDmg:0,range:0,goldMult:0,atkSpd:0};
+  var _eqPrisms=(PERM&&PERM.prismEquipped)||[];
+  _eqPrisms.forEach(function(pid){
+    var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
+    if(!pr)return;
+    var pv=(PERM.prisms&&PERM.prisms[pid])||{};
+    if(pv.lv<=0)return;
+    var val=pr.lvEff[pv.lv-1];
+    if(pid==='p_damage')_prismB.atk+=val;
+    if(pid==='p_max_hp')_prismB.hp+=val;
+    if(pid==='p_def')_prismB.def+=val;
+    if(pid==='p_crit_rate')_prismB.critRate+=val;
+    if(pid==='p_crit_dmg')_prismB.critDmg+=val;
+    if(pid==='p_range')_prismB.range+=val;
+    if(pid==='p_atk_spd')_prismB.atkSpd+=val;
+    if(pid==='p_kill_cash'||pid==='p_cash')_prismB.goldMult+=val;
+  });
+
+  // ── 모듈 보너스 계산 ──
+  var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,cdmg:0,crit:0,gold:0,_lv:{atk:0,hp:0,def:0,cdmg:0,crit:0,gold:0}};
+  var _modLv=_modB._lv||{atk:0,hp:0,def:0,cdmg:0,crit:0,gold:0};
+
+  // ── 최종 스탯 (모든 시스템 합산) ──
+  var allDmg=finalDmg;
+  if(_prismB.atk>0)allDmg=Math.round(allDmg*(1+_prismB.atk/100));
+  if(_modB.atk>0)allDmg=Math.round(allDmg*(1+_modB.atk/100));
+  if(_modLv.atk>0)allDmg=Math.round(allDmg*(1+_modLv.atk/100));
+
+  var allHp=finalHp;
+  if(_prismB.hp>0)allHp=Math.round(allHp*(1+_prismB.hp/100));
+  if(_modB.hp>0)allHp=Math.round(allHp*(1+_modB.hp/100));
+  if(_modLv.hp>0)allHp=Math.round(allHp*(1+_modLv.hp/100));
+
+  var allDef=finalDef/100;
+  if(_prismB.def>0)allDef=allDef*(1+_prismB.def/100);
+  if(_modB.def>0)allDef=allDef*(1+_modB.def/100);
+  if(_modLv.def>0)allDef=allDef*(1+_modLv.def/100);
+  allDef=Math.min(90,Math.round(allDef*10000)/100);
+
+  var baseCritMult=1.5+(ws.critMult||0)*0.1;
+  var allCritMult=baseCritMult+(_prismB.critDmg||0);
+  var modCritMult=_modB.cdmg||0;
+  if(_modLv.cdmg>0&&modCritMult>0)modCritMult=modCritMult*(1+_modLv.cdmg/100);
+  var allCritDmg=Math.round(allDmg*allCritMult*(modCritMult>0?modCritMult:1));
+
+  var allCritChance=(ws.critChance||0)*0.5+_prismB.critRate;
+  var modCritChance=_modB.crit+(_modLv.crit||0);
+
   var h='';
-  // ── 최종 스탯 ──
-  h+=_section('최종 전투 능력치','#f59e0b');
-  h+=_row('공격력',finalDmg,'#ef4444');
-  h+=_row('체력',finalHp,'#10b981');
-  h+=_row('방어율',finalDef.toFixed(2)+'%','#3b82f6');
-  h+=_row('절대 방어',defAbs,'#3b82f6');
-  h+=_row('공격 속도','x'+(1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05).toFixed(2),'#f59e0b');
-  h+=_row('치명타 확률',((ws.critChance||0)*0.5).toFixed(1)+'%','#cc44ff');
-  h+=_row('치명타 배율','x'+(1.5+(ws.critMult||0)*0.1).toFixed(2),'#cc44ff');
+  // ── 최종 스탯 (클릭 가능) ──
+  h+=_section('최종 전투 능력치 <span style="font-size:8px;color:#445566;">(터치 시 상세)</span>','#f59e0b');
+  function _clickRow(label,val,color,detailId){ return '<div data-stat-detail="'+detailId+'" style="display:flex;justify-content:space-between;padding:5px 0;cursor:pointer;"><span style="color:#556677;font-size:10px;">'+label+' ▸</span><span style="color:'+(color||'#00ffff')+';font-size:10px;font-weight:bold;">'+val+'</span></div>'; }
+  h+=_clickRow('최종 공격력',_fn(allDmg),'#ef4444','detail-atk');
+  h+=_clickRow('최종 체력',_fn(allHp),'#10b981','detail-hp');
+  h+=_clickRow('최종 방어율',allDef.toFixed(2)+'%','#3b82f6','detail-def');
+  h+=_clickRow('최종 치명타 피해',_fn(allCritDmg),'#cc44ff','detail-crit');
+  h+=_row('치명타 확률 (일반)',allCritChance.toFixed(1)+'%','#cc44ff');
+  h+=_row('치명타 확률 (모듈)',modCritChance.toFixed(1)+'%','#cc44ff');
+  h+=_row('치명타 배율 (일반)','×'+allCritMult.toFixed(2),'#cc44ff');
+  if(modCritMult>0) h+=_row('치명타 배율 (모듈)','×'+modCritMult.toFixed(2),'#cc44ff');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1).toFixed(1)+'%','#ef4444');
 
@@ -12078,6 +12129,41 @@ function _showStatsPopup() {
     if(lv>0) h+=_row(li[0]+' Lv.'+lv, li[2](lv));
   });
 
+  // ── 프리즘 ──
+  h+=_section('프리즘 효과','#cc44ff');
+  if(_eqPrisms.length===0) h+=_row('장착 없음','-','#334455');
+  _eqPrisms.forEach(function(pid){
+    var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
+    if(!pr)return;
+    var pv=(PERM.prisms&&PERM.prisms[pid])||{};
+    if(pv.lv<=0)return;
+    var val=pr.lvEff[pv.lv-1];
+    var valStr=pr.unit==='x'?'+'+val+'x':'+'+val+pr.unit;
+    h+=_row(pr.name+' Lv.'+pv.lv, valStr,'#cc44ff');
+  });
+
+  // ── 모듈 ──
+  h+=_section('모듈 효과','#22ddaa');
+  var _modSlots2=window._getModSlots?_getModSlots():[];
+  var _modInv2=window._getModInv?_getModInv():[];
+  var _slotLvs2=window._getSlotLevels?_getSlotLevels():[0,0,0,0,0,0];
+  var _hasModEff=false;
+  _modSlots2.forEach(function(uid,si){
+    if(!uid)return;
+    var mod2=_modInv2.filter(function(m){return m.uid===uid;})[0];
+    if(!mod2)return;
+    _hasModEff=true;
+    var type2=MODULE_TYPES.filter(function(t){return t.id===mod2.typeId;})[0];
+    var tier2=TIERS[mod2.tier]||TIERS[0];
+    var eff2=window._getModEffect?_getModEffect(mod2):0;
+    var slotLv=_slotLvs2[si]||0;
+    var lvEff2=window._getModLvEffect?_getModLvEffect(mod2.typeId,slotLv):0;
+    var effLabel=window._modEffLabel?_modEffLabel(mod2.typeId,eff2):'';
+    h+=_row(type2.name+' ('+_fullTierName(mod2.tier,mod2.sub||0)+')', effLabel, tier2.color);
+    if(slotLv>0) h+=_row('  └ 슬롯 Lv.'+slotLv+' 효과', '+'+lvEff2+'%', '#00ccaa');
+  });
+  if(!_hasModEff) h+=_row('장착 없음','-','#334455');
+
   // ── 속성 ──
   h+=_section('속성');
   var elemIds=['fire','water','electric','earth','wind','dark'];
@@ -12124,6 +12210,91 @@ function _showStatsPopup() {
   document.body.appendChild(p);
   p.addEventListener('click',function(e){if(e.target===p)p.remove();});
   document.getElementById('stats-close').addEventListener('click',function(){ p.remove(); });
+
+  // ── 상세 분석 팝업 ──
+  var _details = {
+    'detail-atk': {
+      title:'공격력 상세',color:'#ef4444',
+      rows:[
+        ['기본 (강화소)', _fn(Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0))))],
+        ['코어랩 연구', rDmgLv>0?'×'+(1+rDmgLv*0.02).toFixed(2):'-'],
+        ['속성 배율', '×'+(em.atk||1).toFixed(2)],
+        ['스킨 보너스', '×'+(sm.atk||1).toFixed(2)],
+        ['프리즘 화력증폭', _prismB.atk>0?'×'+(1+_prismB.atk/100).toFixed(2):'-'],
+        ['모듈 등급 효과', _modB.atk>0?'×'+(1+_modB.atk/100).toFixed(2):'-'],
+        ['모듈 레벨 효과', _modLv.atk>0?'×'+(1+_modLv.atk/100).toFixed(2):'-'],
+        ['─────────',''],
+        ['최종 공격력', _fn(allDmg)]
+      ]
+    },
+    'detail-hp': {
+      title:'체력 상세',color:'#10b981',
+      rows:[
+        ['기본 (강화소)', _fn(Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0))))],
+        ['코어랩 연구', rHpLv>0?'×'+(1+rHpLv*0.02).toFixed(2):'-'],
+        ['속성 배율', '×'+(em.hp||1).toFixed(2)],
+        ['스킨 보너스', '×'+(sm.hp||1).toFixed(2)],
+        ['프리즘 코어생명력', _prismB.hp>0?'×'+(1+_prismB.hp/100).toFixed(2):'-'],
+        ['모듈 등급 효과', _modB.hp>0?'×'+(1+_modB.hp/100).toFixed(2):'-'],
+        ['모듈 레벨 효과', _modLv.hp>0?'×'+(1+_modLv.hp/100).toFixed(2):'-'],
+        ['─────────',''],
+        ['최종 체력', _fn(allHp)]
+      ]
+    },
+    'detail-def': {
+      title:'방어율 상세',color:'#3b82f6',
+      rows:[
+        ['기본 (강화소)', (ws.defRate||0)+'%'],
+        ['코어랩 연구', rDefLv>0?'×'+(1+rDefLv*0.02).toFixed(2):'-'],
+        ['속성 배율', '×'+(em.def||1).toFixed(2)],
+        ['스킨 보너스', '×'+(sm.def||1).toFixed(2)],
+        ['프리즘 장갑코팅', _prismB.def>0?'×'+(1+_prismB.def/100).toFixed(2):'-'],
+        ['모듈 등급 효과', _modB.def>0?'×'+(1+_modB.def/100).toFixed(2):'-'],
+        ['모듈 레벨 효과', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
+        ['─────────',''],
+        ['최종 방어율', allDef.toFixed(2)+'% (최대 90%)']
+      ]
+    },
+    'detail-crit': {
+      title:'치명타 피해 상세',color:'#cc44ff',
+      rows:[
+        ['최종 공격력', _fn(allDmg)],
+        ['일반 치명타 배율', '×'+baseCritMult.toFixed(2)+' (기본 1.5+강화소)'],
+        ['프리즘 급소배율', _prismB.critDmg>0?'+'+_prismB.critDmg+'x':'-'],
+        ['= 일반 치명타 배율', '×'+allCritMult.toFixed(2)],
+        ['모듈 치명타 배율', modCritMult>0?'×'+modCritMult.toFixed(2):'-'],
+        ['모듈 레벨 배율', _modLv.cdmg>0?'×'+(1+_modLv.cdmg/100).toFixed(2):'-'],
+        ['─────────',''],
+        ['일반+모듈 동시 발동 시', _fn(allCritDmg)],
+        ['',''],
+        ['일반 치명타 확률', allCritChance.toFixed(1)+'%'],
+        ['모듈 치명타 확률', modCritChance.toFixed(1)+'% (독립 판정)'],
+      ]
+    }
+  };
+  p.querySelectorAll('[data-stat-detail]').forEach(function(el){
+    el.addEventListener('click',function(){
+      var key=el.dataset.statDetail;
+      var info=_details[key]; if(!info)return;
+      var old2=document.getElementById('stat-detail-popup');if(old2)old2.remove();
+      var dp=document.createElement('div');
+      dp.id='stat-detail-popup';
+      dp.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9900;display:flex;align-items:center;justify-content:center;padding:16px;';
+      var dh='<div style="background:#0a1a2a;border:1px solid '+info.color+'55;width:100%;max-width:300px;padding:16px;font-family:Courier New,monospace;">';
+      dh+='<div style="color:'+info.color+';font-size:12px;font-weight:bold;letter-spacing:2px;margin-bottom:12px;text-align:center;">'+info.title+'</div>';
+      info.rows.forEach(function(r){
+        if(r[0].indexOf('───')>=0) dh+='<div style="border-top:1px solid #0a2233;margin:6px 0;"></div>';
+        else if(r[1]==='') dh+='<div style="height:4px;"></div>';
+        else dh+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:9px;"><span style="color:'+(r[1]==='-'?'#2a3a4a':'#7a9aaa')+';">'+r[0]+'</span><span style="color:'+(r[1]==='-'?'#2a3a4a':info.color)+';font-weight:bold;">'+r[1]+'</span></div>';
+      });
+      dh+='<button id="stat-detail-close" style="width:100%;margin-top:12px;background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">닫기</button>';
+      dh+='</div>';
+      dp.innerHTML=dh;
+      document.body.appendChild(dp);
+      dp.addEventListener('click',function(e){if(e.target===dp)dp.remove();});
+      document.getElementById('stat-detail-close').addEventListener('click',function(){dp.remove();});
+    });
+  });
 }
 
 function _showLanguageSelector() {
