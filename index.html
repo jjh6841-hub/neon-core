@@ -17756,8 +17756,15 @@ function _showModuleDetail(mod) {
   var stars = '';
   for(var _si=0;_si<5;_si++) stars += '<span style="color:'+(_si<=mod.tier?tier.color:'#1a2a3a')+';font-size:10px;">\u2605</span>';
 
+  // 장착 슬롯 번호 계산
+  var _slotIdx = MOD_SLOT_FILTER.indexOf(mod.typeId);
+  var _slotNames = ['무기','센서','실드','리액터','엔진','화물'];
+  var _slotLabel = _slotIdx >= 0 ? (_slotIdx+1)+'번 · '+_slotNames[_slotIdx] : '';
+  var _slotUnlocked = _slotIdx < _getModSlotsBought();
+
   ov.innerHTML =
-    '<div style="background:#0a1520;border:1px solid '+tier.border+';padding:18px;max-width:280px;width:90%;font-family:Courier New,monospace;">'+
+    '<div style="background:#0a1520;border:1px solid '+tier.border+';padding:18px;max-width:280px;width:90%;font-family:Courier New,monospace;position:relative;">'+
+      '<div style="position:absolute;top:8px;right:12px;font-size:8px;color:'+(_slotUnlocked?'#556677':'#334455')+';font-family:monospace;">슬롯 '+_slotLabel+(_slotUnlocked?'':' 🔒')+'</div>'+
       '<div style="text-align:center;margin-bottom:12px;">'+
         '<div style="font-size:10px;color:'+tier.color+';font-weight:bold;margin-bottom:4px;">'+fullName+'</div>'+
         _modIcon(mod.typeId, tier.color, 52)+
