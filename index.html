@@ -18453,6 +18453,169 @@ if (_gemAdBtn) {
 }
 
 }());
+
+/* ═══════════════════════════════════════════════════════════════
+   Android 백 버튼 처리
+═══════════════════════════════════════════════════════════════ */
+(function() {
+  // 초기 history 상태 설정
+  history.replaceState({screen:'base'}, '');
+  history.pushState({screen:'app'}, '');
+
+  // 종료 확인 팝업
+  function showExitConfirm() {
+    var existing = document.getElementById('exit-confirm');
+    if (existing) return;
+    var ov = document.createElement('div');
+    ov.id = 'exit-confirm';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+    ov.innerHTML =
+      '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:24px;max-width:280px;width:90%;text-align:center;">' +
+        '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:16px;">게임 종료</div>' +
+        '<div style="color:#94a3b8;font-size:11px;margin-bottom:20px;">게임을 종료하시겠습니까?</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button id="exit-cancel" style="flex:1;padding:12px;background:#030b10;border:1px solid #0a3344;color:#556677;font-family:monospace;font-size:11px;cursor:pointer;letter-spacing:1px;">취소</button>' +
+          '<button id="exit-ok" style="flex:1;padding:12px;background:#030b10;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;cursor:pointer;letter-spacing:1px;">종료</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', function(e) { if (e.target === ov) _dismissExit(); });
+    document.getElementById('exit-cancel').addEventListener('click', _dismissExit);
+    document.getElementById('exit-ok').addEventListener('click', function() {
+      ov.remove();
+      // Capacitor App.exitApp() 또는 브라우저 닫기
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+        window.Capacitor.Plugins.App.exitApp();
+      } else {
+        window.close();
+      }
+    });
+  }
+  function _dismissExit() {
+    var ov = document.getElementById('exit-confirm');
+    if (ov) ov.remove();
+    // 스택 복구
+    history.pushState({screen:'app'}, '');
+  }
+
+  // 현재 열린 팝업/오버레이 닫기 시도
+  function tryCloseOverlay() {
+    // 종료 확인 팝업
+    var exitPop = document.getElementById('exit-confirm');
+    if (exitPop) { exitPop.remove(); return true; }
+
+    // 광고 오버레이 (닫으면 안됨)
+    var gemAdOv = document.getElementById('gem-ad-overlay');
+    if (gemAdOv) return true;
+
+    // 각종 확인 팝업들
+    var confirmOv = document.getElementById('confirm-overlay');
+    if (confirmOv && confirmOv.style.display !== 'none') {
+      confirmOv.style.display = 'none'; return true;
+    }
+
+    // 쿠폰 팝업
+    var couponPop = document.getElementById('coupon-popup');
+    if (couponPop) { couponPop.remove(); return true; }
+
+    // 출석 팝업
+    var dailyPop = document.getElementById('daily-popup');
+    if (dailyPop && dailyPop.style.display !== 'none') {
+      dailyPop.style.display = 'none'; return true;
+    }
+
+    // 보상 팝업
+    var rewardOv = document.querySelector('[id^="reward-popup"]');
+    if (rewardOv) { rewardOv.remove(); return true; }
+
+    // 프리즘/모듈 상세 팝업
+    var prismPop = document.getElementById('prism-detail-popup') || document.getElementById('prism-select-popup');
+    if (prismPop) { prismPop.remove(); return true; }
+    var modPop = document.getElementById('mod-level-popup');
+    if (modPop) { modPop.remove(); return true; }
+
+    // 코어랩 팝업
+    var labPop = document.getElementById('lab-popup');
+    if (labPop && labPop.style.display !== 'none') {
+      labPop.style.display = 'none'; return true;
+    }
+
+    // 강화소 상세 오버레이
+    var wsDetail = document.getElementById('ws-detail-overlay');
+    if (wsDetail) { wsDetail.remove(); return true; }
+
+    // 일시정지 메뉴
+    var pauseOv = document.getElementById('pause-overlay');
+    if (pauseOv && pauseOv.style.display !== 'none') {
+      if (window.resumeGame) window.resumeGame();
+      return true;
+    }
+
+    // 결과 화면
+    var resultsEl = document.getElementById('results-screen');
+    if (resultsEl && resultsEl.classList.contains('show')) {
+      if (window.goHome) window.goHome();
+      return true;
+    }
+
+    // 설정 화면
+    var settingsEl = document.getElementById('settings-screen');
+    if (settingsEl && settingsEl.classList.contains('show')) {
+      settingsEl.classList.remove('show'); return true;
+    }
+
+    // 업적 화면
+    var achEl = document.getElementById('achieve-screen');
+    if (achEl && achEl.classList.contains('show')) {
+      achEl.classList.remove('show'); return true;
+    }
+
+    // 임무 화면
+    var missEl = document.getElementById('screen-missions');
+    if (missEl && missEl.style.display === 'flex') {
+      missEl.style.display = 'none'; return true;
+    }
+
+    // 전투 화면 (전투 중이면 일시정지)
+    var gameEl = document.getElementById('screen-game');
+    if (gameEl && gameEl.style.display === 'flex') {
+      if (window.G && window.G.phase !== 'gameover' && !window.isPaused) {
+        if (window.togglePause) window.togglePause();
+        return true;
+      }
+    }
+
+    // 서브 화면 → 홈으로
+    var subScreens = ['workshop','store','lab','tournament','module','research','corelab','skin','mods','explore',
+                      'frequency-wars','signal-market','event','ranking'];
+    for (var i = 0; i < subScreens.length; i++) {
+      var el = document.getElementById('screen-' + subScreens[i]);
+      if (el && (el.style.display === 'flex' || el.style.display === 'block')) {
+        if (window.showScreen) window.showScreen('home');
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  window.addEventListener('popstate', function(e) {
+    // 팝업/오버레이가 열려있으면 닫기
+    if (tryCloseOverlay()) {
+      history.pushState({screen:'app'}, '');
+      return;
+    }
+    // 홈 화면이면 종료 확인
+    var homeEl = document.getElementById('screen-home');
+    if (homeEl && homeEl.style.display !== 'none') {
+      showExitConfirm();
+      // popstate 이후 스택 복구하지 않음 (종료 팝업에서 처리)
+      return;
+    }
+    // 기본: 스택 복구
+    history.pushState({screen:'app'}, '');
+  });
+})();
 </script>
 </body>
 </html>
