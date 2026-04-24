@@ -17091,39 +17091,71 @@ function _renderModuleContent() {
   var rightCol = document.createElement('div');
   rightCol.style.cssText = 'display:flex;flex-direction:column;gap:4px;';
 
-  // 중앙 탐사선 SVG (컬러, 디테일)
+  // 중앙 SF 전투함 SVG
   var shipSvg = document.createElement('div');
   shipSvg.style.cssText = 'flex-shrink:0;';
-  shipSvg.innerHTML = '<svg viewBox="0 0 120 200" width="55" height="110" style="display:block;filter:drop-shadow(0 0 4px rgba(0,255,255,0.2));">' +
-    // 선체 외곽 (그라데이션 느낌)
-    '<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ffff" stop-opacity="0.15"/><stop offset="50%" stop-color="#0066aa" stop-opacity="0.08"/><stop offset="100%" stop-color="#00ffff" stop-opacity="0.15"/></linearGradient></defs>' +
-    '<path d="M60,8 L78,30 L82,60 L85,100 L82,140 L78,165 L68,185 L60,192 L52,185 L42,165 L38,140 L35,100 L38,60 L42,30 Z" fill="url(#sg)" stroke="#00ddff" stroke-width="1.2"/>' +
-    // 내부 프레임
-    '<path d="M60,20 L72,38 L75,65 L76,100 L75,135 L72,158 L60,172 L48,158 L45,135 L44,100 L45,65 L48,38 Z" fill="none" stroke="#0088cc" stroke-width="0.6" opacity="0.5"/>' +
-    // 콕핏 (상단)
-    '<ellipse cx="60" cy="22" rx="8" ry="6" fill="#001a33" stroke="#00ccff" stroke-width="0.8"/>' +
-    '<ellipse cx="60" cy="22" rx="4" ry="3" fill="#003355" opacity="0.6"/>' +
-    // 코어 (중앙 발광)
-    '<circle cx="60" cy="95" r="8" fill="#003344" stroke="#00ffff" stroke-width="0.7" opacity="0.6"/>' +
-    '<circle cx="60" cy="95" r="4" fill="#00ffff" opacity="0.2"/>' +
-    '<circle cx="60" cy="95" r="2" fill="#00ffff" opacity="0.4"/>' +
-    // 날개 좌/우
-    '<path d="M38,70 L18,60 L10,75 L15,95 L35,100" fill="#001122" stroke="#0088cc" stroke-width="0.8" opacity="0.6"/>' +
-    '<path d="M82,70 L102,60 L110,75 L105,95 L85,100" fill="#001122" stroke="#0088cc" stroke-width="0.8" opacity="0.6"/>' +
-    // 날개 끝 라이트
-    '<circle cx="10" cy="75" r="2" fill="#ef4444" opacity="0.5"/>' +
-    '<circle cx="110" cy="75" r="2" fill="#10b981" opacity="0.5"/>' +
-    // 엔진 노즐 (하단)
-    '<rect x="48" y="180" width="8" height="10" rx="1" fill="#001a2a" stroke="#0088cc" stroke-width="0.6"/>' +
-    '<rect x="64" y="180" width="8" height="10" rx="1" fill="#001a2a" stroke="#0088cc" stroke-width="0.6"/>' +
+  shipSvg.innerHTML = '<svg viewBox="0 0 140 220" width="75" height="130" style="display:block;filter:drop-shadow(0 0 6px rgba(0,200,255,0.25));">' +
+    '<defs>' +
+      '<linearGradient id="hull" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a2a44"/><stop offset="50%" stop-color="#0d1f33"/><stop offset="100%" stop-color="#0a2a44"/></linearGradient>' +
+      '<linearGradient id="wing" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0c2238"/><stop offset="100%" stop-color="#061320"/></linearGradient>' +
+      '<radialGradient id="core"><stop offset="0%" stop-color="#00ffff" stop-opacity="0.6"/><stop offset="100%" stop-color="#003366" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="eng"><stop offset="0%" stop-color="#00ccff" stop-opacity="0.5"/><stop offset="60%" stop-color="#0066ff" stop-opacity="0.2"/><stop offset="100%" stop-color="transparent"/></radialGradient>' +
+    '</defs>' +
+    // 메인 선체
+    '<path d="M70,6 L82,25 L88,55 L90,90 L88,130 L84,155 L78,170 L70,176 L62,170 L56,155 L52,130 L50,90 L52,55 L58,25 Z" fill="url(#hull)" stroke="#00aadd" stroke-width="1"/>' +
+    // 선체 하이라이트 엣지
+    '<path d="M70,10 L80,27 L85,55 L87,90 L85,128 L70,170" fill="none" stroke="#00ddff" stroke-width="0.4" opacity="0.5"/>' +
+    '<path d="M70,10 L60,27 L55,55 L53,90 L55,128 L70,170" fill="none" stroke="#00ddff" stroke-width="0.4" opacity="0.3"/>' +
+    // 콕핏 (캐노피)
+    '<path d="M70,12 L78,24 L78,35 L70,40 L62,35 L62,24 Z" fill="#001825" stroke="#00ccff" stroke-width="0.8"/>' +
+    '<path d="M70,16 L75,24 L75,32 L70,35 L65,32 L65,24 Z" fill="#003355" opacity="0.5"/>' +
+    '<line x1="70" y1="16" x2="70" y2="35" stroke="#00eeff" stroke-width="0.3" opacity="0.6"/>' +
+    // 전방 무기 마운트
+    '<rect x="62" y="42" width="16" height="4" rx="1" fill="#0a1a2a" stroke="#0088aa" stroke-width="0.5"/>' +
+    '<circle cx="66" cy="44" r="1.2" fill="#00ffff" opacity="0.4"/>' +
+    '<circle cx="74" cy="44" r="1.2" fill="#00ffff" opacity="0.4"/>' +
+    // 코어 리액터 (중앙 발광)
+    '<circle cx="70" cy="92" r="14" fill="url(#core)"/>' +
+    '<circle cx="70" cy="92" r="8" fill="none" stroke="#00ddff" stroke-width="0.6" opacity="0.6"/>' +
+    '<circle cx="70" cy="92" r="4" fill="#00ffff" opacity="0.3"/>' +
+    '<circle cx="70" cy="92" r="1.5" fill="#ffffff" opacity="0.5"/>' +
+    // 코어 링
+    '<ellipse cx="70" cy="92" rx="11" ry="3" fill="none" stroke="#00ccff" stroke-width="0.4" opacity="0.3" transform="rotate(30,70,92)"/>' +
+    '<ellipse cx="70" cy="92" rx="11" ry="3" fill="none" stroke="#00ccff" stroke-width="0.4" opacity="0.3" transform="rotate(-30,70,92)"/>' +
+    // 좌측 주익
+    '<path d="M52,65 L22,55 L8,70 L6,85 L14,98 L28,105 L50,100" fill="url(#wing)" stroke="#0088bb" stroke-width="0.8"/>' +
+    '<path d="M48,70 L25,62 L14,73 L14,90 L30,98" fill="none" stroke="#006699" stroke-width="0.4" opacity="0.4"/>' +
+    // 우측 주익
+    '<path d="M88,65 L118,55 L132,70 L134,85 L126,98 L112,105 L90,100" fill="url(#wing)" stroke="#0088bb" stroke-width="0.8"/>' +
+    '<path d="M92,70 L115,62 L126,73 L126,90 L110,98" fill="none" stroke="#006699" stroke-width="0.4" opacity="0.4"/>' +
+    // 날개 끝 무장 포드
+    '<rect x="3" y="72" width="8" height="16" rx="2" fill="#0a1520" stroke="#0077aa" stroke-width="0.6"/>' +
+    '<circle cx="7" cy="75" r="1.5" fill="#ef4444" opacity="0.6"/>' +
+    '<rect x="129" y="72" width="8" height="16" rx="2" fill="#0a1520" stroke="#0077aa" stroke-width="0.6"/>' +
+    '<circle cx="133" cy="75" r="1.5" fill="#10b981" opacity="0.6"/>' +
+    // 후미 안정익
+    '<path d="M56,140 L38,148 L32,160 L40,165 L54,155" fill="url(#wing)" stroke="#006699" stroke-width="0.6"/>' +
+    '<path d="M84,140 L102,148 L108,160 L100,165 L86,155" fill="url(#wing)" stroke="#006699" stroke-width="0.6"/>' +
+    // 3연 엔진 노즐
+    '<rect x="58" y="172" width="7" height="12" rx="1.5" fill="#081828" stroke="#0088cc" stroke-width="0.6"/>' +
+    '<rect x="66.5" y="170" width="7" height="14" rx="1.5" fill="#081828" stroke="#00aadd" stroke-width="0.7"/>' +
+    '<rect x="75" y="172" width="7" height="12" rx="1.5" fill="#081828" stroke="#0088cc" stroke-width="0.6"/>' +
     // 엔진 화염
-    '<ellipse cx="52" cy="194" rx="4" ry="6" fill="#00bbff" opacity="0.15"/>' +
-    '<ellipse cx="68" cy="194" rx="4" ry="6" fill="#00bbff" opacity="0.15"/>' +
-    '<ellipse cx="52" cy="196" rx="2" ry="4" fill="#00ffff" opacity="0.2"/>' +
-    '<ellipse cx="68" cy="196" rx="2" ry="4" fill="#00ffff" opacity="0.2"/>' +
-    // 패널 라인
-    '<line x1="45" y1="50" x2="75" y2="50" stroke="#0066aa" stroke-width="0.4" opacity="0.3"/>' +
-    '<line x1="44" y1="130" x2="76" y2="130" stroke="#0066aa" stroke-width="0.4" opacity="0.3"/>' +
+    '<ellipse cx="61.5" cy="190" rx="3.5" ry="8" fill="url(#eng)"/>' +
+    '<ellipse cx="70" cy="192" rx="4" ry="12" fill="url(#eng)"/>' +
+    '<ellipse cx="78.5" cy="190" rx="3.5" ry="8" fill="url(#eng)"/>' +
+    '<ellipse cx="61.5" cy="188" rx="1.5" ry="4" fill="#00ffff" opacity="0.3"/>' +
+    '<ellipse cx="70" cy="190" rx="2" ry="6" fill="#00ffff" opacity="0.35"/>' +
+    '<ellipse cx="78.5" cy="188" rx="1.5" ry="4" fill="#00ffff" opacity="0.3"/>' +
+    // 선체 패널 라인
+    '<line x1="58" y1="55" x2="82" y2="55" stroke="#005577" stroke-width="0.3" opacity="0.4"/>' +
+    '<line x1="56" y1="110" x2="84" y2="110" stroke="#005577" stroke-width="0.3" opacity="0.4"/>' +
+    '<line x1="57" y1="135" x2="83" y2="135" stroke="#005577" stroke-width="0.3" opacity="0.4"/>' +
+    // 측면 배기 벤트
+    '<line x1="50" y1="120" x2="42" y2="125" stroke="#006688" stroke-width="0.5" opacity="0.3"/>' +
+    '<line x1="50" y1="125" x2="42" y2="130" stroke="#006688" stroke-width="0.5" opacity="0.3"/>' +
+    '<line x1="90" y1="120" x2="98" y2="125" stroke="#006688" stroke-width="0.5" opacity="0.3"/>' +
+    '<line x1="90" y1="125" x2="98" y2="130" stroke="#006688" stroke-width="0.5" opacity="0.3"/>' +
   '</svg>';
 
   SLOT_PARTS.forEach(function(part) {
