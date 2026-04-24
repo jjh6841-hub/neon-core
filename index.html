@@ -765,7 +765,7 @@ canvas {
 #achieve-screen .ach-header {
   flex-shrink: 0;
   width: 100%;
-  padding: 16px 16px 10px;
+  padding: calc(16px + var(--sat)) 16px 10px;
   background: #06061a;
   border-bottom: 1px solid rgba(0,255,255,0.1);
   position: relative;
@@ -774,7 +774,7 @@ canvas {
 #achieve-screen #ach-list {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 10px 16px 20px;
+  padding: 10px 16px calc(20px + var(--sab));
 }
 #achieve-screen.show { display: -webkit-flex; display: flex; }
 .achieve-title { display: none; }
@@ -1220,7 +1220,7 @@ canvas {
 <!-- ── 업적 화면 ── -->
 <div id="achieve-screen">
   <div class="ach-header">
-    <button id="btn-achieve-back" style="position:absolute; top:14px; left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
+    <button id="btn-achieve-back" style="position:absolute; top:calc(14px + var(--sat)); left:14px; background:none; border:none; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
     <div style="text-align:center; padding:4px 0 0; width:100%;">
       <div style="display:flex; align-items:center; justify-content:center; gap:8px;"><svg width="28" height="30" viewBox="0 0 22 24" fill="none" stroke="#00ffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="9" r="7"/><polygon points="11,3 12.8,7.2 17.4,7.6 14,10.6 15,15 11,12.5 7,15 8,10.6 4.6,7.6 9.2,7.2" fill="#00ffff" stroke="none" opacity="0.3"/><polygon points="11,4.5 12.3,7.8 16,8.1 13.2,10.5 14,14 11,12 8,14 8.8,10.5 6,8.1 9.7,7.8" fill="none" stroke="#00ffff" stroke-width="0.8"/><line x1="8" y1="16" x2="6.5" y2="22"/><line x1="14" y1="16" x2="15.5" y2="22"/><line x1="11" y1="17" x2="11" y2="23"/></svg><span style="font-size:18px; letter-spacing:6px; color:#00ffff; font-family:'Courier New',monospace;">업적</span></div>
     </div>
@@ -1232,10 +1232,10 @@ canvas {
 <div id="settings-screen">
 
   <!-- 좌측 상단 뒤로가기 -->
-  <button id="btn-settings-back" style="position:absolute;top:14px;left:14px;background:none;border:none;color:#00ffff;font-family:'Courier New',monospace;font-size:12px;cursor:pointer;padding:4px;-webkit-appearance:none;">◀ 뒤로</button>
+  <button id="btn-settings-back" style="position:absolute;top:calc(14px + var(--sat));left:14px;background:none;border:none;color:#00ffff;font-family:'Courier New',monospace;font-size:12px;cursor:pointer;padding:4px;-webkit-appearance:none;">◀ 뒤로</button>
 
   <!-- 타이틀 -->
-  <div style="text-align:center;padding:28px 0 12px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
+  <div style="text-align:center;padding:calc(28px + var(--sat)) 0 12px;font-family:'Courier New',monospace;font-size:16px;letter-spacing:4px;color:#00ffff;">설정</div>
   <div style="width:100%;max-width:340px;margin:0 auto 12px;height:1px;background:linear-gradient(90deg,transparent,#0a3344,#00ffff,#0a3344,transparent);"></div>
 
   <div style="padding:0 16px;display:flex;flex-direction:column;gap:0;width:100%;max-width:340px;">
@@ -6245,7 +6245,7 @@ if (dailyPopup) {
      주파수 전쟁 화면 (정적 HTML — JS 동적 주입 중복 방지용)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-frequency-wars" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
-  <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
+  <div style="display:flex; align-items:center; padding:calc(12px + var(--sat)) 16px 12px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
     <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
     <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">주파수 전쟁</span>
     <span style="margin-left:auto; color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
@@ -6306,7 +6306,7 @@ if (dailyPopup) {
      시그널 마켓 화면 (정적 HTML — JS 동적 주입 중복 방지용)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-signal-market" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
-  <div style="display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
+  <div style="display:flex; align-items:center; padding:calc(12px + var(--sat)) 16px 12px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
     <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
     <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">시그널 마켓</span>
     <span style="margin-left:auto; color:#ffc800; font-size:12px;">✦ <span id="sm-pulse-display">0</span></span>
@@ -14141,7 +14141,7 @@ function _injectScreens() {
       'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
     fw.innerHTML =
       /* 상단 바 */
-      '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
+      '<div style="display:flex;align-items:center;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
         '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
         '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">주파수 전쟁</span>' +
         '<span style="margin-left:auto;color:#ffc800;font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>' +
@@ -14192,7 +14192,7 @@ function _injectScreens() {
       'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
     sm.innerHTML =
       /* 상단 바 */
-      '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
+      '<div style="display:flex;align-items:center;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
         '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
         '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">시그널 마켓</span>' +
         '<span style="margin-left:auto;color:#ffc800;font-size:12px;">✦ <span id="sm-pulse-display">0</span></span>' +
@@ -15278,7 +15278,7 @@ function _injectScreen() {
   sc.id='screen-research';
   sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:\"Courier New\",monospace;';
   sc.innerHTML=
-    '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
+    '<div style="display:flex;align-items:center;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
       '<button id="res-back" style="background:none;border:none;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
       '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#00ff88;">코어랩</span>'+
       '<span style="font-size:11px;color:#f59e0b;">◈ <span id="research-gold">0</span></span>'+
