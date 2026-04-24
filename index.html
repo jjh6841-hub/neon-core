@@ -17046,6 +17046,11 @@ window._getModuleBonuses = function() {
   return b;
 };
 
+/* ── 모드 상태 (null / 'synth' / 'decomp') ── */
+var _modMode = null;
+var _modSelected = [];
+var _modSynthFilter = { type:null, tier:null, sub:null };
+
 function _renderModuleContent() {
   var cont = document.getElementById('mods-content');
   if (!cont) return;
@@ -17179,23 +17184,77 @@ function _renderModuleContent() {
   wrap.appendChild(lvRow);
   lvRow.addEventListener('click', function() { _showModLevelPopup(); });
 
-  // ── 버튼 통합 (제조 + 합성 + 분해) ──
+  // ── 버튼 영역 (모드에 따라 변경) ──
   var actionRow = document.createElement('div');
-  actionRow.style.cssText = 'display:flex;gap:4px;margin-bottom:8px;flex-shrink:0;';
-  actionRow.innerHTML =
-    '<button id="mod-buy-1" style="flex:1;background:#0a1520;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">1회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+MOD_BUY_COST+'</span></button>'+
-    '<button id="mod-buy-10" style="flex:1;background:#0a1520;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">10회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+(MOD_BUY_COST*10)+'</span></button>'+
-    '<button id="mod-synth-btn" style="flex:1;background:#081a18;border:1px solid #22ddaa;color:#22ddaa;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">합성</button>'+
-    '<button id="mod-decomp-btn" style="flex:1;background:#0a0808;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">분해</button>';
+  actionRow.style.cssText = 'display:flex;gap:4px;margin-bottom:6px;flex-shrink:0;';
+  if (!_modMode) {
+    // 기본 모드
+    actionRow.innerHTML =
+      '<button id="mod-buy-1" style="flex:1;background:#0a1520;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">1회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+MOD_BUY_COST+'</span></button>'+
+      '<button id="mod-buy-10" style="flex:1;background:#0a1520;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">10회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+(MOD_BUY_COST*10)+'</span></button>'+
+      '<button id="mod-synth-btn" style="flex:1;background:#081a18;border:1px solid #22ddaa;color:#22ddaa;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">합성</button>'+
+      '<button id="mod-decomp-btn" style="flex:1;background:#0a0808;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">분해</button>';
+  } else if (_modMode === 'synth') {
+    var _sInfo = _modSelected.length === 3 && _modSynthFilter.type
+      ? '→ '+_fullTierName(_modSynthFilter.sub<2?_modSynthFilter.tier:_modSynthFilter.tier+1, _modSynthFilter.sub<2?_modSynthFilter.sub+1:0)
+      : _modSelected.length+'/3 선택';
+    actionRow.innerHTML =
+      '<div style="flex:1;display:flex;align-items:center;gap:4px;font-size:9px;color:#22ddaa;font-family:monospace;font-weight:bold;">합성 '+_sInfo+'</div>'+
+      '<button id="mod-synth-do" style="background:'+ (_modSelected.length===3?'#081a18':'#060810') +';border:1px solid '+ (_modSelected.length===3?'#22ddaa':'#1a2a3a') +';color:'+ (_modSelected.length===3?'#22ddaa':'#334455') +';font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;font-weight:bold;">확인</button>'+
+      '<button id="mod-mode-cancel" style="background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;">취소</button>';
+  } else {
+    var _dFrags = 0;
+    _modSelected.forEach(function(uid){ var m=inv.filter(function(x){return x.uid===uid;})[0]; if(m) _dFrags += ([5,15,50,150,500,1500][m.tier]||5)*[1,2,4][m.sub||0]; });
+    actionRow.innerHTML =
+      '<div style="flex:1;display:flex;align-items:center;gap:4px;font-size:9px;color:#ef4444;font-family:monospace;font-weight:bold;">분해 '+_modSelected.length+'개'+ (_dFrags>0?' <span style="color:#88aaff;">⊿'+_dFrags+'</span>':'') +'</div>'+
+      '<button id="mod-decomp-do" style="background:'+ (_modSelected.length>0?'#1a0808':'#060810') +';border:1px solid '+ (_modSelected.length>0?'#ef4444':'#1a2a3a') +';color:'+ (_modSelected.length>0?'#ef4444':'#334455') +';font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;font-weight:bold;">확인</button>'+
+      '<button id="mod-mode-cancel" style="background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;">취소</button>';
+  }
   wrap.appendChild(actionRow);
   setTimeout(function() {
+    // 기본 모드 버튼
     var b1=document.getElementById('mod-buy-1'), b10=document.getElementById('mod-buy-10');
     if(b1) b1.addEventListener('click', function(){ _buyModule(1); });
     if(b10) b10.addEventListener('click', function(){ _buyModule(10); });
     var sb=document.getElementById('mod-synth-btn');
-    if(sb) sb.addEventListener('click',function(){ _enterSynthMode(); });
+    if(sb) sb.addEventListener('click',function(){ _modMode='synth'; _modSelected=[]; _modSynthFilter={type:null,tier:null,sub:null}; _renderModuleContent(); });
     var db=document.getElementById('mod-decomp-btn');
-    if(db) db.addEventListener('click',function(){ _enterDecomposeMode(); });
+    if(db) db.addEventListener('click',function(){ _modMode='decomp'; _modSelected=[]; _renderModuleContent(); });
+    // 취소
+    var mc=document.getElementById('mod-mode-cancel');
+    if(mc) mc.addEventListener('click',function(){ _modMode=null; _modSelected=[]; _renderModuleContent(); });
+    // 합성 확인
+    var sd=document.getElementById('mod-synth-do');
+    if(sd) sd.addEventListener('click',function(){
+      if(_modSelected.length!==3||!_modSynthFilter.type) return;
+      var d=_loadMods();var invArr=d.inventory||[];var sl=d.slots||[];
+      _modSelected.forEach(function(uid){
+        for(var si=0;si<sl.length;si++){if(sl[si]===uid)sl[si]=null;}
+        var idx=invArr.findIndex(function(m){return m.uid===uid;}); if(idx!==-1)invArr.splice(idx,1);
+      });
+      var fs=_modSynthFilter; var resTier=fs.sub<2?fs.tier:fs.tier+1; var resSub=fs.sub<2?fs.sub+1:0;
+      invArr.push({typeId:fs.type,tier:resTier,sub:resSub,level:0,uid:Date.now()+'_'+Math.random().toString(36).substr(2,5)});
+      d.inventory=invArr;d.slots=sl;_saveMods(d);
+      _modMode=null;_modSelected=[];_renderModuleContent();
+      if(window.showToastMsg)showToastMsg(_fullTierName(resTier,resSub)+' 합성 성공!',(TIERS[resTier]||TIERS[0]).color);
+    });
+    // 분해 확인
+    var dd=document.getElementById('mod-decomp-do');
+    if(dd) dd.addEventListener('click',function(){
+      if(_modSelected.length===0) return;
+      var totalF=0;
+      _modSelected.forEach(function(uid){var m=inv.filter(function(x){return x.uid===uid;})[0];if(m)totalF+=([5,15,50,150,500,1500][m.tier]||5)*[1,2,4][m.sub||0];});
+      if(window._showSlotConfirm) _showSlotConfirm('모듈 분해',_modSelected.length+'개 분해\n⊿ '+totalF+' 파편 획득',function(){
+        var d=_loadMods();var invArr=d.inventory||[];var sl=d.slots||[];
+        _modSelected.forEach(function(uid){
+          for(var si=0;si<sl.length;si++){if(sl[si]===uid)sl[si]=null;}
+          var idx=invArr.findIndex(function(m){return m.uid===uid;});if(idx!==-1)invArr.splice(idx,1);
+        });
+        d.inventory=invArr;d.slots=sl;d.moduleFragments=(d.moduleFragments||0)+totalF;_saveMods(d);
+        _modMode=null;_modSelected=[];_renderModuleContent();
+        if(window.showToastMsg)showToastMsg('파편 '+totalF+'개 획득!','#f59e0b');
+      });
+    });
   },0);
 
   // ── 인벤토리 ──
@@ -17226,16 +17285,53 @@ function _renderModuleContent() {
       mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;';
       var _lkCol = mod.locked ? '#ff6a00' : '#1a2a3a';
       var _lkDash = mod.locked ? '' : ' stroke-dasharray="2 1.5"';
+      // 모드별 카드 상태
+      var _isSel = _modSelected.indexOf(mod.uid) !== -1;
+      var _dimmed = false;
+      if (_modMode === 'synth') {
+        var _ms2 = mod.sub||0;
+        if (_isMaxSynth(mod.tier, _ms2)) _dimmed = true;
+        else if (_modSynthFilter.type && (mod.typeId !== _modSynthFilter.type || mod.tier !== _modSynthFilter.tier || _ms2 !== _modSynthFilter.sub)) _dimmed = true;
+      } else if (_modMode === 'decomp') {
+        if (equipped || mod.locked) _dimmed = true;
+      }
+      var _cardBorder = _isSel ? (_modMode==='synth'?'#22ddaa':'#ef4444') : (equipped?'#00ffff':tier.border);
+      var _cardBg = _isSel ? (_modMode==='synth'?'#0a1a18':'#1a0a0a') : (equipped?'#0c1a28':'#0a1520');
+      mCard.style.cssText = 'background:'+_cardBg+';border:1px solid '+_cardBorder+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;opacity:'+(_dimmed?'0.25':'1')+';';
       mCard.innerHTML =
         (_mSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;font-family:monospace;">+'+_mSub+'</div>':'')+
-        '<div data-lock-uid="'+mod.uid+'" style="position:absolute;bottom:1px;left:1px;padding:2px;cursor:pointer;z-index:2;"><svg width="10" height="10" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="'+_lkCol+'" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="'+_lkCol+'" stroke-width="1.3"'+_lkDash+'/><circle cx="8" cy="11.5" r="1" fill="'+_lkCol+'"/></svg></div>'+
+        (_isSel?'<div style="position:absolute;top:1px;left:2px;font-size:8px;color:'+(_modMode==='synth'?'#22ddaa':'#ef4444')+';">✓</div>':'')+
+        (!_modMode?'<div data-lock-uid="'+mod.uid+'" style="position:absolute;bottom:1px;left:1px;padding:2px;cursor:pointer;z-index:2;"><svg width="10" height="10" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="'+_lkCol+'" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="'+_lkCol+'" stroke-width="1.3"'+_lkDash+'/><circle cx="8" cy="11.5" r="1" fill="'+_lkCol+'"/></svg></div>':'')+
         '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||0)+'</div>'+
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
         _modIcon(mod.typeId, tier.color, 28)+
         '<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
         '<div style="font-size:7px;color:#94a3b8;">'+_modEffLabel(mod.typeId,eff)+'</div>'+
-        (equipped?'<div style="font-size:6px;color:#00ffff;">\uc7a5\ucc29</div>':'');
-      (function(m) { mCard.addEventListener('click', function(e){ if(e.target.closest('[data-lock-uid]'))return; _showModuleDetail(m); }); })(mod);
+        (equipped&&!_modMode?'<div style="font-size:6px;color:#00ffff;">\uc7a5\ucc29</div>':'');
+      // 클릭 핸들러
+      if (_modMode) {
+        (function(m){
+          mCard.addEventListener('click', function(){
+            if (_dimmed) return;
+            var uid = m.uid, ms = m.sub||0;
+            if (_modSelected.indexOf(uid) !== -1) {
+              _modSelected = _modSelected.filter(function(u){return u!==uid;});
+              if (_modMode==='synth' && _modSelected.length===0) _modSynthFilter = {type:null,tier:null,sub:null};
+              _renderModuleContent(); return;
+            }
+            if (_modMode === 'synth') {
+              if (_modSelected.length >= 3) return;
+              if (!_modSynthFilter.type) { _modSynthFilter = {type:m.typeId, tier:m.tier, sub:ms}; }
+              _modSelected.push(uid);
+            } else {
+              _modSelected.push(uid);
+            }
+            _renderModuleContent();
+          });
+        })(mod);
+      } else {
+        (function(m) { mCard.addEventListener('click', function(e){ if(e.target.closest('[data-lock-uid]'))return; _showModuleDetail(m); }); })(mod);
+      }
       invGrid.appendChild(mCard);
     });
     invScroll.appendChild(invGrid);
@@ -17480,193 +17576,6 @@ function _showModuleDetail(mod) {
     ov.remove(); _showModuleDetail(mod);
     if(window.showToastMsg) showToastMsg('Lv.'+target.level+'! 레벨업 성공','#00ccaa');
   });
-}
-
-/* ── 합성 선택 모드 ── */
-function _enterSynthMode() {
-  var old=document.getElementById('mod-select-overlay'); if(old)old.remove();
-  var inv=_getModInv();
-  var slots=_getModSlots();
-  var selected=[];
-  var filterType=null, filterTier=null, filterSub=null;
-
-  var ov=document.createElement('div');
-  ov.id='mod-select-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(3,8,16,0.95);display:flex;flex-direction:column;font-family:"Courier New",monospace;';
-
-  function _render(){
-    var h='<div style="text-align:center;padding:14px;color:#cc44ff;font-size:13px;font-weight:bold;letter-spacing:2px;">합성할 모듈 선택 ('+selected.length+'/3)</div>';
-    if(filterType){
-      var _ft=MODULE_TYPES.filter(function(t){return t.id===filterType;})[0];
-      var _tt=TIERS[filterTier]||TIERS[0];
-      h+='<div style="text-align:center;font-size:9px;color:#94a3b8;margin-bottom:8px;">'+_fullTierName(filterTier,filterSub)+' '+(_ft?_ft.name:'')+'</div>';
-    } else {
-      h+='<div style="text-align:center;font-size:9px;color:#556677;margin-bottom:8px;">첫 번째 모듈을 선택하세요</div>';
-    }
-    h+='<div style="flex:1;overflow-y:auto;padding:0 12px;"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">';
-    inv.forEach(function(mod){
-      var type=MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0]; if(!type)return;
-      var tier=TIERS[mod.tier]||TIERS[0];
-      var eff=_getModEffect(mod);
-      var _ms=mod.sub||0;
-      var isSel=selected.indexOf(mod.uid)!==-1;
-      var isMatch=!filterType||(mod.typeId===filterType&&mod.tier===filterTier&&_ms===filterSub);
-      var isMax=_isMaxSynth(mod.tier,_ms);
-      var canPick=isMatch&&!isMax&&selected.length<3&&!isSel;
-      var opacity=isMatch&&!isMax?1:0.25;
-      var border=isSel?'#cc44ff':tier.border;
-      var bg=isSel?'#1a0a2a':'#0a1520';
-      h+='<div data-synth-uid="'+mod.uid+'" style="background:'+bg+';border:2px solid '+border+';padding:6px 4px;text-align:center;cursor:'+(canPick||isSel?'pointer':'default')+';display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;opacity:'+opacity+';">';
-      if(_ms>0) h+='<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;">+'+_ms+'</div>';
-      if(isSel) h+='<div style="position:absolute;top:2px;left:3px;font-size:8px;color:#cc44ff;">✓</div>';
-      h+='<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>';
-      h+=_modIcon(mod.typeId,tier.color,28);
-      h+='<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' 증폭기','')+'</div>';
-      h+='<div style="font-size:7px;color:#94a3b8;">'+_modEffLabel(mod.typeId,eff)+'</div>';
-      h+='</div>';
-    });
-    h+='</div></div>';
-    // 결과 미리보기 + 버튼
-    var previewHtml='';
-    if(selected.length===3&&filterType){
-      var _ns=filterSub<2?filterSub+1:0;
-      var _nt=filterSub<2?filterTier:filterTier+1;
-      previewHtml='<div style="text-align:center;font-size:10px;color:#cc44ff;margin-bottom:6px;">→ '+_fullTierName(_nt,_ns)+'</div>';
-    }
-    h+='<div style="padding:12px;display:flex;flex-direction:column;gap:8px;">'+previewHtml;
-    h+='<div style="display:flex;gap:8px;">';
-    h+='<button id="synth-confirm" style="flex:1;padding:10px;background:'+(selected.length===3?'#0a0a20':'#060810')+';border:1px solid '+(selected.length===3?'#cc44ff':'#1a2a3a')+';color:'+(selected.length===3?'#cc44ff':'#334455')+';font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">합성</button>';
-    h+='<button id="synth-cancel" style="flex:1;padding:10px;background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:12px;cursor:pointer;">취소</button>';
-    h+='</div></div>';
-    ov.innerHTML=h;
-
-    // 이벤트
-    ov.querySelectorAll('[data-synth-uid]').forEach(function(el){
-      el.addEventListener('click',function(){
-        var uid=el.dataset.synthUid;
-        var mod2=inv.filter(function(m){return m.uid===uid;})[0]; if(!mod2)return;
-        var _ms2=mod2.sub||0;
-        if(selected.indexOf(uid)!==-1){
-          selected=selected.filter(function(u){return u!==uid;});
-          if(selected.length===0){filterType=null;filterTier=null;filterSub=null;}
-          _render(); return;
-        }
-        if(_isMaxSynth(mod2.tier,_ms2))return;
-        if(filterType&&(mod2.typeId!==filterType||mod2.tier!==filterTier||_ms2!==filterSub))return;
-        if(selected.length>=3)return;
-        if(!filterType){filterType=mod2.typeId;filterTier=mod2.tier;filterSub=_ms2;}
-        selected.push(uid);
-        _render();
-      });
-    });
-    var confirmBtn=document.getElementById('synth-confirm');
-    if(confirmBtn) confirmBtn.addEventListener('click',function(){
-      if(selected.length!==3)return;
-      var d=_loadMods();var invArr=d.inventory||[];var sl=d.slots||[];
-      selected.forEach(function(uid){
-        for(var si=0;si<sl.length;si++){if(sl[si]===uid)sl[si]=null;}
-        var idx=invArr.findIndex(function(m){return m.uid===uid;}); if(idx!==-1)invArr.splice(idx,1);
-      });
-      var resTier=filterSub<2?filterTier:filterTier+1;
-      var resSub=filterSub<2?filterSub+1:0;
-      var newMod={typeId:filterType,tier:resTier,sub:resSub,level:1,uid:Date.now()+'_'+Math.random().toString(36).substr(2,5)};
-      invArr.push(newMod); d.inventory=invArr;d.slots=sl;_saveMods(d);
-      ov.remove(); _renderModuleContent();
-      if(window.showToastMsg)showToastMsg(_fullTierName(resTier,resSub)+' 합성 성공!',(TIERS[resTier]||TIERS[0]).color);
-    });
-    var cancelBtn=document.getElementById('synth-cancel');
-    if(cancelBtn) cancelBtn.addEventListener('click',function(){ov.remove();});
-  }
-  _render();
-  document.body.appendChild(ov);
-}
-
-/* ── 분해 다중 선택 모드 ── */
-function _enterDecomposeMode() {
-  var old=document.getElementById('mod-select-overlay'); if(old)old.remove();
-  var inv=_getModInv();
-  var slots=_getModSlots();
-  var selected=[];
-
-  var ov=document.createElement('div');
-  ov.id='mod-select-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:9500;background:rgba(3,8,16,0.95);display:flex;flex-direction:column;font-family:"Courier New",monospace;';
-
-  function _calcFrags(mod){
-    var base=[5,15,50,150,500,1500][mod.tier]||5;
-    return base*[1,2,4][mod.sub||0];
-  }
-
-  function _render(){
-    var totalFrags=0;
-    selected.forEach(function(uid){
-      var m=inv.filter(function(x){return x.uid===uid;})[0];
-      if(m) totalFrags+=_calcFrags(m);
-    });
-    var h='<div style="text-align:center;padding:14px;color:#ef4444;font-size:13px;font-weight:bold;letter-spacing:2px;">분해할 모듈 선택 ('+selected.length+'개)</div>';
-    h+='<div style="text-align:center;font-size:9px;color:#556677;margin-bottom:8px;">장착 중인 모듈은 선택 불가</div>';
-    h+='<div style="flex:1;overflow-y:auto;padding:0 12px;"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">';
-    inv.forEach(function(mod){
-      var type=MODULE_TYPES.filter(function(t){return t.id===mod.typeId;})[0]; if(!type)return;
-      var tier=TIERS[mod.tier]||TIERS[0];
-      var eff=_getModEffect(mod);
-      var _ms=mod.sub||0;
-      var isEquipped=slots.indexOf(mod.uid)!==-1;
-      var isLocked=mod.locked||false;
-      var blocked=isEquipped||isLocked;
-      var isSel=selected.indexOf(mod.uid)!==-1;
-      var opacity=blocked?0.25:1;
-      var border=isSel?'#ef4444':tier.border;
-      var bg=isSel?'#1a0a0a':'#0a1520';
-      h+='<div data-decomp-uid="'+(blocked?'':mod.uid)+'" style="background:'+bg+';border:2px solid '+border+';padding:6px 4px;text-align:center;cursor:'+(blocked?'default':'pointer')+';display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;opacity:'+opacity+';">';
-      if(_ms>0) h+='<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;">+'+_ms+'</div>';
-      if(isSel) h+='<div style="position:absolute;top:2px;left:3px;font-size:8px;color:#ef4444;">✓</div>';
-      if(isEquipped) h+='<div style="position:absolute;top:2px;left:3px;font-size:6px;color:#00ffff;">장착</div>';
-      if(isLocked&&!isEquipped) h+='<div style="position:absolute;top:2px;left:2px;"><svg width="9" height="9" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#ff6a00" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#ff6a00" stroke-width="1.3"/><circle cx="8" cy="11.5" r="1" fill="#ff6a00"/></svg></div>';
-      h+='<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>';
-      h+=_modIcon(mod.typeId,tier.color,28);
-      h+='<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' 증폭기','')+'</div>';
-      h+='<div style="font-size:7px;color:#94a3b8;">'+_modEffLabel(mod.typeId,eff)+'</div>';
-      h+='</div>';
-    });
-    h+='</div></div>';
-    h+='<div style="padding:12px;display:flex;flex-direction:column;gap:8px;">';
-    if(selected.length>0) h+='<div style="text-align:center;font-size:10px;color:#f59e0b;">파편 획득: ⊕ '+totalFrags+'</div>';
-    h+='<div style="display:flex;gap:8px;">';
-    h+='<button id="decomp-confirm" style="flex:1;padding:10px;background:'+(selected.length>0?'#1a0808':'#060810')+';border:1px solid '+(selected.length>0?'#ef4444':'#1a2a3a')+';color:'+(selected.length>0?'#ef4444':'#334455')+';font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">분해 ('+selected.length+'개)</button>';
-    h+='<button id="decomp-cancel" style="flex:1;padding:10px;background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:12px;cursor:pointer;">취소</button>';
-    h+='</div></div>';
-    ov.innerHTML=h;
-
-    ov.querySelectorAll('[data-decomp-uid]').forEach(function(el){
-      el.addEventListener('click',function(){
-        var uid=el.dataset.decompUid; if(!uid)return;
-        if(selected.indexOf(uid)!==-1) selected=selected.filter(function(u){return u!==uid;});
-        else selected.push(uid);
-        _render();
-      });
-    });
-    var confirmBtn=document.getElementById('decomp-confirm');
-    if(confirmBtn) confirmBtn.addEventListener('click',function(){
-      if(selected.length===0)return;
-      var totalF=0;
-      selected.forEach(function(uid){var m=inv.filter(function(x){return x.uid===uid;})[0];if(m)totalF+=_calcFrags(m);});
-      if(window._showSlotConfirm) _showSlotConfirm('모듈 분해','선택한 '+selected.length+'개 모듈을 분해합니다.\n⊕ '+totalF+' 파편 획득\n\n분해하시겠습니까?',function(){
-        var d=_loadMods();var invArr=d.inventory||[];var sl=d.slots||[];
-        selected.forEach(function(uid){
-          for(var si=0;si<sl.length;si++){if(sl[si]===uid)sl[si]=null;}
-          var idx=invArr.findIndex(function(m){return m.uid===uid;});if(idx!==-1)invArr.splice(idx,1);
-        });
-        d.inventory=invArr;d.slots=sl;d.moduleFragments=(d.moduleFragments||0)+totalF;_saveMods(d);
-        ov.remove();_renderModuleContent();
-        if(window.showToastMsg)showToastMsg('파편 '+totalF+'개 획득!','#f59e0b');
-      });
-    });
-    var cancelBtn=document.getElementById('decomp-cancel');
-    if(cancelBtn) cancelBtn.addEventListener('click',function(){ov.remove();});
-  }
-  _render();
-  document.body.appendChild(ov);
 }
 
 /* ── applyPermStats 체이닝: 모듈 보너스 적용 ── */
