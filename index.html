@@ -16882,7 +16882,7 @@ function _saveMods(d) { try { localStorage.setItem('td_modules', JSON.stringify(
     if(m.typeId==='mod_spd'){ m.typeId='mod_cdmg'; changed=true; }
     if(m.typeId==='mod_regen'||m.typeId==='mod_range'){ m.typeId='mod_cdmg'; changed=true; }
     if(m.sub===undefined){ m.sub=0; changed=true; }
-    if(m.level===undefined){ m.level=1; changed=true; }
+    if(m.level===undefined){ m.level=0; changed=true; }
   });
   if(changed) _saveMods(d);
 })();
@@ -16911,14 +16911,14 @@ var MOD_RATES = {
 function _createModule(forceTier, forceSub) {
   var type = MODULE_TYPES[Math.floor(Math.random()*MODULE_TYPES.length)];
   var _uid = Date.now()+'_'+Math.random().toString(36).substr(2,5);
-  if (forceTier !== undefined) return { typeId: type.id, tier: forceTier, sub: forceSub||0, level:1, uid: _uid };
+  if (forceTier !== undefined) return { typeId: type.id, tier: forceTier, sub: forceSub||0, level:0, uid: _uid };
   var lv = _getModLevel();
   var rates = MOD_RATES[lv] || MOD_RATES[1];
   var total = 0; for(var i=0;i<rates.length;i++) total+=rates[i];
   var r = Math.random() * total;
   var tier = 0, acc = 0;
   for (var ti = 0; ti < rates.length; ti++) { acc += rates[ti]; if (r < acc) { tier = ti; break; } }
-  return { typeId: type.id, tier: tier, sub: 0, level:1, uid: _uid };
+  return { typeId: type.id, tier: tier, sub: 0, level:0, uid: _uid };
 }
 
 /* ── 효과 계산: MOD_BASE_EFF[tier] × (1 + sub × 0.5) ── */
@@ -17012,9 +17012,24 @@ function _modEffLabel(typeId, eff) {
   return typeId === 'mod_cdmg' ? '\u00d7'+eff : '+'+eff+'%';
 }
 
+/* ── 모듈 레벨 효과 계산 ── */
+var MOD_LV_MAX = 1000;
+var MOD_LV_COST = 3; // 파편 3개/레벨
+function _getModLvEffect(mod) {
+  var lv = mod.level || 0;
+  if (lv <= 0) return 0;
+  if (mod.typeId === 'mod_crit') return Math.round(lv * 0.1 * 10) / 10;   // 레벨당 0.1%
+  if (mod.typeId === 'mod_gold') return Math.round(lv * 0.3 * 10) / 10;   // 레벨당 0.3%
+  return lv * 5; // atk, hp, def, cdmg: 레벨당 5%
+}
+function _modLvLabel(typeId, val) {
+  return typeId === 'mod_cdmg' ? '+'+val+'%' : '+'+val+'%';
+}
+
 /* ── 장착된 모듈 총 보너스 ── */
 window._getModuleBonuses = function() {
   var b = { atk:0, hp:0, def:0, cdmg:0, crit:0, gold:0 };
+  var lv = { atk:0, hp:0, def:0, cdmg:0, crit:0, gold:0 };
   var slots = _getModSlots();
   slots.forEach(function(uid) {
     if (!uid) return;
@@ -17024,7 +17039,10 @@ window._getModuleBonuses = function() {
     var eff = _getModEffect(mod);
     var key = mod.typeId.replace('mod_','');
     if (b[key] !== undefined) b[key] += eff;
+    var lvEff = _getModLvEffect(mod);
+    if (lv[key] !== undefined) lv[key] += lvEff;
   });
+  b._lv = lv;
   return b;
 };
 
@@ -17131,7 +17149,7 @@ function _renderModuleContent() {
       slot.innerHTML =
         '<div style="width:100%;height:100%;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 8px '+tier.color+'44;position:relative;">' +
           (_eqSub>0?'<div style="position:absolute;top:1px;right:3px;font-size:6px;color:'+tier.color+';font-weight:bold;">+'+_eqSub+'</div>':'')+
-          '<div style="position:absolute;bottom:1px;right:3px;font-size:5px;color:#556677;">Lv.'+(equippedMod.level||1)+'</div>'+
+          '<div style="position:absolute;bottom:1px;right:3px;font-size:5px;color:#556677;">Lv.'+(equippedMod.level||0)+'</div>'+
           '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>' +
           _modIcon(equippedMod.typeId, tier.color, 26) +
           '<div style="font-size:7px;color:#94a3b8;">'+_modEffLabel(equippedMod.typeId,eff)+'</div>' +
@@ -17224,7 +17242,7 @@ function _renderModuleContent() {
       mCard.innerHTML =
         (_mSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;font-family:monospace;">+'+_mSub+'</div>':'')+
         (mod.locked?'<div style="position:absolute;bottom:1px;left:2px;"><svg width="9" height="9" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#ff6a00" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#ff6a00" stroke-width="1.3"/><circle cx="8" cy="11.5" r="1" fill="#ff6a00"/></svg></div>':'')+
-        '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||1)+'</div>'+
+        '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||0)+'</div>'+
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
         _modIcon(mod.typeId, tier.color, 28)+
         '<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
@@ -17408,11 +17426,18 @@ function _showModuleDetail(mod) {
       '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">'+
         '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">등급</span><span style="color:'+tier.color+';">'+fullName+' '+stars+'</span></div>'+
         '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">효과</span><span style="color:#00ff88;">'+_modEffLabel(mod.typeId,eff)+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">강화</span><span style="color:#00ffff;">Lv.'+(mod.level||1)+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">레벨</span><span style="color:#00ffff;">Lv.'+(mod.level||0)+(mod.level>=MOD_LV_MAX?' (MAX)':'')+'</span></div>'+
+        ((mod.level||0)>0?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">레벨 효과</span><span style="color:#00ccaa;">'+_modLvLabel(mod.typeId,_getModLvEffect(mod))+'</span></div>':'')+
         (canMerge?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">합성</span><span style="color:#cc44ff;">'+sameCount+'/3 → '+nextTierName+'</span></div>':
          (!_isMaxSynth(mod.tier,modSub)?'<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">합성</span><span style="color:#334455;">'+sameCount+'/3</span></div>':''))+
       '</div>'+
       '<div style="display:flex;gap:6px;margin-bottom:8px;">'+btnsHtml+'</div>'+
+      ((mod.level||0)<MOD_LV_MAX?
+        '<button id="mod-lvup" style="width:100%;margin-bottom:6px;padding:8px;background:#030b10;border:1px solid #00ccaa;color:#00ccaa;font-family:monospace;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">'+
+          '<span>레벨업 (Lv.'+(mod.level||0)+' → '+ ((mod.level||0)+1)+')</span>'+
+          '<span style="color:#88aaff;">⊿ '+MOD_LV_COST+'</span>'+
+        '</button>'
+      :'')+
       '<button id="mod-detail-close" style="width:100%;background:transparent;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:11px;padding:6px;cursor:pointer;">닫기</button>'+
     '</div>';
 
@@ -17451,6 +17476,24 @@ function _showModuleDetail(mod) {
     if(target){ target.locked=!target.locked; mod.locked=target.locked; }
     _saveMods(d);
     ov.remove(); _showModuleDetail(mod);
+  });
+  // 레벨업
+  var lvUpBtn = document.getElementById('mod-lvup');
+  if(lvUpBtn) lvUpBtn.addEventListener('click', function() {
+    var d=_loadMods();
+    var frags=d.moduleFragments||0;
+    if(frags<MOD_LV_COST){
+      if(window.showToastMsg) showToastMsg('파편이 부족합니다 ('+frags+'/'+MOD_LV_COST+')','#ef4444');
+      return;
+    }
+    var target=d.inventory.filter(function(m){return m.uid===mod.uid;})[0];
+    if(!target||((target.level||0)>=MOD_LV_MAX)) return;
+    target.level=(target.level||0)+1;
+    mod.level=target.level;
+    d.moduleFragments=frags-MOD_LV_COST;
+    _saveMods(d);
+    ov.remove(); _showModuleDetail(mod);
+    if(window.showToastMsg) showToastMsg('Lv.'+target.level+'! 레벨업 성공','#00ccaa');
   });
 }
 
@@ -17648,6 +17691,8 @@ if (typeof _prevApplyMod === 'function') {
     _prevApplyMod.apply(this, arguments);
     if (!window.G || !G.tower) return;
     var b = window._getModuleBonuses();
+    var lv = b._lv || {};
+    // ── 모듈 등급 효과 ──
     // 곱연산: 공격력, 체력, 방어율
     if (b.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + b.atk/100));
     if (b.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + b.hp/100)); G.tower.hp = G.tower.maxHp; }
@@ -17655,8 +17700,17 @@ if (typeof _prevApplyMod === 'function') {
     // 모듈 치명타 (독립 판정 — 일반/강화 치명타와 별개)
     if (b.cdmg > 0) G.modCritMult = b.cdmg;
     if (b.crit > 0) G.modCritChance = Math.min(1.0, b.crit/100);
-    // 합연산: 골드 획득 (goldMult에 합산)
+    // 합연산: 골드 획득
     if (b.gold > 0) G.goldMult = (G.goldMult||1) * (1 + b.gold/100);
+    // ── 모듈 레벨 효과 ──
+    // 곱연산: 공격력, 체력, 방어율, 치명타 계수 (레벨당 5%)
+    if (lv.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + lv.atk/100));
+    if (lv.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + lv.hp/100)); G.tower.hp = G.tower.maxHp; }
+    if (lv.def > 0) G.tower.defense = Math.min(0.9, (G.tower.defense||0) * (1 + lv.def/100));
+    if (lv.cdmg > 0) G.modCritMult = (G.modCritMult||1) * (1 + lv.cdmg/100);
+    // 합연산: 치명타 확률 (레벨당 0.1%), 골드 (레벨당 0.3%)
+    if (lv.crit > 0) G.modCritChance = Math.min(1.0, (G.modCritChance||0) + lv.crit/100);
+    if (lv.gold > 0) G.goldMult = (G.goldMult||1) * (1 + lv.gold/100);
   };
 }
 
