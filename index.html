@@ -1712,6 +1712,12 @@ canvas {
       var now = new Date();
       var remain = kickAt - now;
 
+      // 새 점검 세션 감지 시 티커 플래그 초기화
+      if (window._mtLastKickAt !== mt.kickAt) {
+        window._mtLastKickAt = mt.kickAt;
+        window._mtShown = {};
+      }
+
       // 킥 시간 도달 → 점검 팝업
       if (remain <= 0) {
         window._showMaintenancePopup(mt.message || '서버 점검 중입니다.');
@@ -1734,7 +1740,7 @@ canvas {
 
   window._showMaintenanceTicker = function(msg) {
     var tk = document.createElement('div');
-    tk.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99998;background:#1a0a00;border-bottom:1px solid #f59e0b;padding:6px 0;overflow:hidden;height:28px;';
+    tk.style.cssText = 'position:fixed;top:calc(38px + var(--sat));left:0;right:0;z-index:99998;background:rgba(26,10,0,0.75);border-bottom:1px solid rgba(245,158,11,0.5);padding:6px 0;overflow:hidden;height:28px;pointer-events:none;';
     tk.innerHTML = '<div style="white-space:nowrap;color:#f59e0b;font-family:monospace;font-size:11px;font-weight:bold;animation:mt-scroll 12s linear forwards;">⚠ ' + msg + '</div>';
     var style = document.createElement('style');
     style.textContent = '@keyframes mt-scroll{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}';
@@ -1770,7 +1776,8 @@ canvas {
     document.body.appendChild(ov);
   };
 
-  // 점검 상태 주기적 폴링 (30초)
+  // 점검 상태 주기적 폴링 (30초) + 즉시 1회 실행
+  setTimeout(function(){ if(window._checkMaintenance) window._checkMaintenance(); }, 2000);
   setInterval(function(){ if(window._checkMaintenance) window._checkMaintenance(); }, 30000);
 
   window._showBanPopup = function(ban) {
