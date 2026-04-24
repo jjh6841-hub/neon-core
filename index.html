@@ -6419,7 +6419,7 @@ if (dailyPopup) {
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="lab-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">코어랩</div>
+  <div style="text-align:center; padding:6px; font-size:11px; color:#00ddff; font-family:'Courier New',monospace; letter-spacing:4px; background:linear-gradient(180deg,#050e18,#040c14); border-bottom:1px solid rgba(0,220,255,0.12); flex-shrink:0; text-shadow:0 0 8px rgba(0,220,255,0.3);">◈ 코어랩 ◈</div>
   <!-- 슬롯 목록 -->
   <div id="lab-slots" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px; padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));"></div>
 </div>
@@ -7444,7 +7444,7 @@ Object.keys(RESEARCH_LIST).forEach(function(cat) {
 });
 
 var LAB_SLOT_COUNT = 10;
-var LAB_SLOT_COST   = [0, 100, 200, 400, 600, 1000, 1500, 2000, 3000, 5000];
+var LAB_SLOT_COST   = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800];
 var _labSelectSlot  = null;
 var _labFilterCat   = 'all';
 var _labHideComplete = false;
@@ -7512,23 +7512,24 @@ function _buildLabSlots() {
     var inProgress = researchId && !done;
     var res = researchId ? ALL_RESEARCH.filter(function(r){return r.id===researchId;})[0] : null;
 
-    var _slotBorder = needBuy ? '#1a2233' : inProgress ? '#0a3344' : done ? '#00ff8844' : '#0a334466';
-    var _slotBg = needBuy ? '#060c16' : inProgress ? '#0a1520' : done ? '#0a1a18' : '#0a1520';
-    var _slotGlow = done ? 'box-shadow:0 0 8px #00ff8822;' : inProgress ? 'box-shadow:0 0 6px #00ffff11;' : '';
+    var _slotBorder = needBuy ? '#1a2233' : inProgress ? '#0a4466' : done ? '#00ff8855' : '#0a334466';
+    var _slotBg = needBuy ? '#060c16' : inProgress ? '#0a1822' : done ? '#081a14' : '#0a1520';
+    var _slotGlow = done ? 'box-shadow:0 0 10px #00ff8822,inset 0 0 15px #00ff8808;' : inProgress ? 'box-shadow:0 0 8px #00ffff11,inset 0 0 12px #00ffff06;' : '';
     var cell = document.createElement('div');
     cell.style.cssText = 'background:'+_slotBg+';border:1px solid '+_slotBorder+';padding:12px 14px;display:flex;flex-direction:row;align-items:center;gap:12px;min-height:54px;cursor:pointer;border-radius:8px;position:relative;'+_slotGlow;
 
     // 슬롯 번호 뱃지
-    var _numColor = needBuy ? '#1a2a3a' : done ? '#00ff88' : inProgress ? '#00ffff' : '#334455';
-    var _numBadge = '<div style="width:24px;height:24px;border-radius:50%;border:1.5px solid '+_numColor+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:'+_numColor+';font-family:monospace;font-weight:bold;">'+(i+1)+'</div>';
+    var _numColor = needBuy ? '#1a2a3a' : done ? '#00ff88' : inProgress ? '#00ddff' : '#445566';
+    var _numBg = needBuy ? 'transparent' : done ? '#00ff8812' : inProgress ? '#00ddff10' : 'transparent';
+    var _numBadge = '<div style="width:26px;height:26px;border-radius:50%;border:1.5px solid '+_numColor+';background:'+_numBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:'+_numColor+';font-family:monospace;font-weight:bold;">'+(i+1)+'</div>';
 
     if (needBuy) {
       cell.innerHTML = _numBadge +
         '<div style="flex:1;">' +
-          '<div style="font-size:10px;color:#334455;font-family:monospace;">잠김</div>' +
-          '<div style="font-size:8px;color:#1a2a3a;font-family:monospace;margin-top:2px;">보석으로 해금</div>' +
+          '<div style="font-size:10px;color:#445566;font-family:monospace;display:flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#445566" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#445566" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#445566"/></svg> 잠김</div>' +
+          '<div style="font-size:8px;color:#2a3a4a;font-family:monospace;margin-top:2px;">보석으로 해금 가능</div>' +
         '</div>' +
-        '<div style="background:#061020;border:1px solid #00ffff33;border-radius:4px;padding:4px 10px;font-size:11px;color:#00ffff;font-family:monospace;font-weight:bold;">❖ ' + LAB_SLOT_COST[i] + '</div>';
+        '<div style="background:#1a1008;border:1px solid #f59e0b55;border-radius:4px;padding:5px 12px;font-size:10px;color:#f59e0b;font-family:monospace;font-weight:bold;text-align:center;">해금<br><span style="font-size:11px;">❖ ' + LAB_SLOT_COST[i] + '</span></div>';
       (function(idx, cost, el) {
         el.addEventListener('click', function() {
           var gems = PERM.gems || 0;
@@ -7553,10 +7554,10 @@ function _buildLabSlots() {
       // 빈 슬롯 - 연구 선택
       cell.innerHTML = _numBadge +
         '<div style="flex:1;">' +
-          '<div style="font-size:11px;color:#556677;font-family:monospace;">대기 중</div>' +
+          '<div style="font-size:11px;color:#667788;font-family:monospace;">대기 중</div>' +
           '<div style="font-size:8px;color:#334455;font-family:monospace;margin-top:2px;">터치하여 연구 시작</div>' +
         '</div>' +
-        '<div style="background:#061020;border:1px solid #00ffff44;border-radius:4px;padding:4px 10px;font-size:10px;color:#00ffff;font-family:monospace;">연구 선택</div>';
+        '<div style="background:#061020;border:1px solid #00ddff44;border-radius:4px;padding:5px 12px;font-size:10px;color:#00ddff;font-family:monospace;">연구 선택</div>';
       (function(idx, el) {
         el.addEventListener('click', function() {
           _labSelectSlot = idx;
