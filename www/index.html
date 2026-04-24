@@ -2324,7 +2324,7 @@ var UPGRADES = [
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'공격범위',  baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
-    stat()   { return 'Lv.'+G.rangeLevel; },
+    stat()   { return Math.round(G.tower.range); },
     canBuy() { return coreChips>=upgCost('rng',6); },
     apply()  { var c=upgCost('rng',6); coreChips-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=8; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
   },
