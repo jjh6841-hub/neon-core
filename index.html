@@ -2063,7 +2063,19 @@ function _attendCycleDay() {
   return streak === 0 ? 0 : ((streak - 1) % 25) + 1;
 }
 
+// 주간 출석 카운트 (하루 1회 접속 시 — 보상과 무관)
+function _checkDailyAttend() {
+  var today = new Date().toDateString();
+  if (localStorage.getItem('wk_attend_date') === today) return;
+  localStorage.setItem('wk_attend_date', today);
+  try {
+    var wa = parseInt(localStorage.getItem('wk_attend_progress') || '0', 10);
+    localStorage.setItem('wk_attend_progress', wa + 1);
+  } catch(_) {}
+}
+
 function checkDailyReward() {
+  _checkDailyAttend();
   if (!PERM.bestWave || PERM.bestWave < 50) return;
   var today = new Date().toDateString();
   var lastLogin = localStorage.getItem('td_daily_login');
@@ -2072,10 +2084,6 @@ function checkDailyReward() {
   var newStreak = streak + 1;
   localStorage.setItem('td_daily_login', today);
   localStorage.setItem('td_daily_streak', String(newStreak));
-  try {
-    var wa = parseInt(localStorage.getItem('wk_attend_progress') || '0', 10);
-    localStorage.setItem('wk_attend_progress', wa + 1);
-  } catch(_) {}
   var cycleDay = ((newStreak - 1) % 25);
   var reward = DailyRewards[cycleDay];
   PERM.gold += reward.gold;
@@ -9540,6 +9548,7 @@ setTimeout(_updateBadge, 500);
     var last=localStorage.getItem('weekly_reset_date');
     if(last!==monStr){
       ['wk_wave_progress','wk_kills_progress','wk_boss_progress','wk_upgrade_progress','wk_games_progress','wk_ads_progress','wk_attend_progress','weekly_challenge_count'].forEach(function(k){localStorage.setItem(k,'0');});
+      localStorage.removeItem('wk_attend_date');
       WK_CHECKPOINTS.forEach(function(n){localStorage.removeItem('weekly_challenge_claimed_'+n);});
       WMISS.forEach(function(m){localStorage.removeItem('wk_claimed_'+m.id);});
       localStorage.setItem('weekly_reset_date',monStr);
