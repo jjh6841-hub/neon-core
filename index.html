@@ -11062,7 +11062,7 @@ function _applyPrismEffects() {
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100) || val * 0.01; break; // #6 곱연산 20%씩
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
       case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
-      case 'p_def':        t.defense = (t.defense||0) * (1 + val/100); break;              // #3 곱연산 20%씩
+      case 'p_def':        G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + val/100)); break; // 절대 방어 곱연산
       case 'p_cash':       G._prismChipWaveBonus = (G._prismChipWaveBonus||0) + val/100; break; // 웨이브 클리어 코어칩 보너스
       case 'p_kill_cash':  G.goldMult = (G.goldMult||1) * (1 + val/100); break;            // 전투 골드 추가
       case 'p_enemy_stat': G._prismChipKillBonus = (G._prismChipKillBonus||0) + val/100; break; // 적 처치 코어칩 보너스
@@ -11995,25 +11995,25 @@ function _showStatsPopup() {
   // ── 최종 스탯 계산 (v1 applyPermStats 공식) ──
   var baseDmg=Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0)));
   var baseHp=Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0)));
-  var baseDef=Math.min(0.50,(ws.defRate||0)*0.01);
-  var defAbs=ws.defAbs||0;
+  var evadeRate=Math.min(90,(ws.defRate||0)*0.5); // 방어율=회피 확률 (강화소 전용)
+  var baseDefAbs=ws.defAbs||0;
   // 코어랩 연구 보너스
   var rDmgLv=parseInt(localStorage.getItem('res_r_damage')||'0',10);
   var rHpLv=parseInt(localStorage.getItem('res_r_health')||'0',10);
   var rDefLv=parseInt(localStorage.getItem('res_r_defense')||'0',10);
   if(rDmgLv>0)baseDmg=Math.round(baseDmg*(1+rDmgLv*0.02));
   if(rHpLv>0)baseHp=Math.round(baseHp*(1+rHpLv*0.02));
-  if(rDefLv>0)baseDef=baseDef*(1+rDefLv*0.02);
+  if(rDefLv>0)baseDefAbs=Math.round(baseDefAbs*(1+rDefLv*0.02));
   // 속성 배율
   var em=window._getElementMultipliers?window._getElementMultipliers():{atk:1,def:1,hp:1};
   baseDmg=Math.round(baseDmg*em.atk);
   baseHp=Math.round(baseHp*em.hp);
-  baseDef=baseDef*em.def;
+  baseDefAbs=Math.round(baseDefAbs*em.def);
   // 스킨 보너스
   var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
   var finalDmg=Math.round(baseDmg*(sm.atk||1));
   var finalHp=Math.round(baseHp*(sm.hp||1));
-  var finalDef=Math.round(baseDef*(sm.def||1)*10000)/100;
+  var finalDefAbs=Math.round(baseDefAbs*(sm.def||1));
 
   function _row(label,val,color){ return '<div style="display:flex;justify-content:space-between;padding:5px 0;"><span style="color:#556677;font-size:10px;">'+label+'</span><span style="color:'+(color||'#00ffff')+';font-size:10px;font-weight:bold;">'+val+'</span></div>'; }
   function _section(title,color){ return '<div style="color:'+(color||'#00ffff')+';font-size:11px;font-weight:bold;margin-top:12px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #0a2233;">'+title+'</div>'; }
@@ -12054,11 +12054,10 @@ function _showStatsPopup() {
   if(_modB.hp>0)allHp=Math.round(allHp*(1+_modB.hp/100));
   if(_modLv.hp>0)allHp=Math.round(allHp*(1+_modLv.hp/100));
 
-  var allDef=finalDef/100;
-  if(_prismB.def>0)allDef=allDef*(1+_prismB.def/100);
-  if(_modB.def>0)allDef=allDef*(1+_modB.def/100);
-  if(_modLv.def>0)allDef=allDef*(1+_modLv.def/100);
-  allDef=Math.min(90,Math.round(allDef*10000)/100);
+  var allDefAbs=finalDefAbs;
+  if(_prismB.def>0)allDefAbs=Math.round(allDefAbs*(1+_prismB.def/100));
+  if(_modB.def>0)allDefAbs=Math.round(allDefAbs*(1+_modB.def/100));
+  if(_modLv.def>0)allDefAbs=Math.round(allDefAbs*(1+_modLv.def/100));
 
   // 1. 일반 치명타
   var baseCritMult=1.5+(ws.critMult||0)*0.1;
@@ -12082,7 +12081,8 @@ function _showStatsPopup() {
   function _clickRow(label,val,color,detailId){ return '<div data-stat-detail="'+detailId+'" style="display:flex;justify-content:space-between;padding:5px 0;cursor:pointer;"><span style="color:#556677;font-size:10px;">'+label+' ▸</span><span style="color:'+(color||'#00ffff')+';font-size:10px;font-weight:bold;">'+val+'</span></div>'; }
   h+=_clickRow('최종 공격력',_fn(allDmg),'#ef4444','detail-atk');
   h+=_clickRow('최종 체력',_fn(allHp),'#10b981','detail-hp');
-  h+=_clickRow('최종 방어율',allDef.toFixed(2)+'%','#3b82f6','detail-def');
+  h+=_row('방어율 (회피)',evadeRate.toFixed(1)+'%','#3b82f6');
+  h+=_clickRow('최종 절대 방어',_fn(allDefAbs),'#3b82f6','detail-def');
   h+=_clickRow('최대 치명타 피해',_fn(maxCritDmg),'#cc44ff','detail-crit');
   h+=_row('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff');
   h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult.toFixed(2):'미장착','#a855f7');
@@ -12259,18 +12259,22 @@ function _showStatsPopup() {
       ]
     },
     'detail-def': {
-      title:'방어율 상세',color:'#3b82f6',
+      title:'절대 방어 상세',color:'#3b82f6',
       rows:[
-        ['기본 (강화소)', (ws.defRate||0)+'%'],
+        ['기본 (강화소)', _fn(ws.defAbs||0)],
         ['코어랩 연구', rDefLv>0?'×'+(1+rDefLv*0.02).toFixed(2):'-'],
         ['속성 배율', '×'+(em.def||1).toFixed(2)],
         ['탐사선 스킨', '×'+(sm.shipDef||1).toFixed(2)],
         ['배경 스킨', '×'+(sm.bgDef||1).toFixed(2)],
         ['프리즘 장갑코팅', _prismB.def>0?'×'+(1+_prismB.def/100).toFixed(2):'-'],
-        ['모듈 등급 효과', _modB.def>0?'×'+(1+_modB.def/100).toFixed(2):'-'],
-        ['모듈 Lv 방어율', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
+        ['모듈 절대 방어', _modB.def>0?'×'+(1+_modB.def/100).toFixed(2):'-'],
+        ['모듈 Lv 절대 방어', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
         ['─────────',''],
-        ['최종 방어율', allDef.toFixed(2)+'% (최대 90%)']
+        ['최종 절대 방어', _fn(allDefAbs)],
+        ['',''],
+        ['방어율 (회피)', evadeRate.toFixed(1)+'% (강화소 전용)'],
+        ['',''],
+        ['피해 계산', '적 공격 → 회피 판정 → 절대 방어 차감']
       ]
     },
     'detail-crit': {
@@ -15311,6 +15315,7 @@ if(typeof _origApply==='function'){
     var hpLv=_getResLv('res_base_hp');     if(hpLv>0){ t.maxHp=Math.round(t.maxHp*(1+hpLv*0.03)); t.hp=t.maxHp; }
     var critLv=_getResLv('res_crit_rate'); if(critLv>0) t.critChance=Math.min(0.9,(t.critChance||0)+critLv*0.005);
     var regenLv=_getResLv('res_regen');    if(regenLv>0) G.regenRate=(G.regenRate||0)+regenLv*0.1;
+    var defResLv=_getResLv('res_r_defense');if(defResLv>0) G.defenseAbs=Math.round((G.defenseAbs||0)*(1+defResLv*0.02));
     var goldLv=_getResLv('res_gold_bonus');if(goldLv>0) G.goldBonus=(G.goldBonus||1)*(1+goldLv*0.02);
     var startLv=_getResLv('res_start_gold');if(startLv>0){ G.gold+=startLv*50; }
     var chipLv=_getResLv('res_start_chips');if(chipLv>0){ window.baseStartChips=chipLv*5; window.coreChips=window.baseStartChips; }
@@ -16743,7 +16748,7 @@ if (typeof _prevApplyElem === 'function') {
     G.tower.dmg     = Math.round(G.tower.dmg * m.atk);
     G.tower.maxHp   = Math.round(G.tower.maxHp * m.hp);
     G.tower.hp      = G.tower.maxHp;
-    G.tower.defense = Math.round((G.tower.defense||0) * m.def);
+    G.defenseAbs = Math.round((G.defenseAbs||0) * m.def);
     G.critMult      = (G.critMult||1.5) * m.critDmg;
     G.tower.critChance = Math.min(0.9, (G.tower.critChance||0) + m.critRate);
   };
@@ -18092,7 +18097,7 @@ if (typeof _prevApplyMod === 'function') {
     // 곱연산: 공격력, 체력, 방어율
     if (b.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + b.atk/100));
     if (b.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + b.hp/100)); G.tower.hp = G.tower.maxHp; }
-    if (b.def > 0) G.tower.defense = Math.min(0.9, (G.tower.defense||0) * (1 + b.def/100));
+    if (b.def > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + b.def/100));
     // 모듈 치명타 (독립 판정 — 일반/강화 치명타와 별개)
     if (b.cdmg > 0) G.modCritMult = b.cdmg;
     if (b.crit > 0) G.modCritChance = Math.min(1.0, b.crit/100);
@@ -18102,7 +18107,7 @@ if (typeof _prevApplyMod === 'function') {
     // 곱연산: 공격력, 체력, 방어율, 치명타 계수 (레벨당 5%)
     if (lv.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + lv.atk/100));
     if (lv.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + lv.hp/100)); G.tower.hp = G.tower.maxHp; }
-    if (lv.def > 0) G.tower.defense = Math.min(0.9, (G.tower.defense||0) * (1 + lv.def/100));
+    if (lv.def > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + lv.def/100));
     // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
     if (lv.cdmg > 0) G.modLvCritMult = 1 + lv.cdmg/100;
     if (lv.crit > 0) G.modLvCritChance = Math.min(1.0, lv.crit/100);
