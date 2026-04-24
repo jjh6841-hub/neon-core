@@ -6044,10 +6044,10 @@ if (dailyPopup) {
   ];
 
   var packages = [
-    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 제거 + ❖ 100 보석 지급', price:'₩11,000', once:true },
-    { id:'starter',   name:'스타터 팩',     desc:'◈ 1,000 골드 + ❖ 100 보석 (1회 한정)', price:'₩3,300', once:true },
-    { id:'growth',    name:'성장 팩',       desc:'◈ 3,000 골드 + ❖ 300 보석 (1회 한정)', price:'₩9,900', once:true },
-    { id:'monthly',   name:'월간 팩',       desc:'30일간 매일 ◈ 300 골드 + ❖ 30 보석 지급', price:'₩16,500', once:false },
+    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 영구 제거', rewards:[{icon:'❖',text:'보석 100',color:'#00ffff'}], price:'₩11,000', once:true },
+    { id:'starter',   name:'스타터 팩',     desc:'1회 한정', rewards:[{icon:'◈',text:'골드 1,000',color:'#f59e0b'},{icon:'❖',text:'보석 100',color:'#00ffff'}], price:'₩3,300', once:true },
+    { id:'growth',    name:'성장 팩',       desc:'1회 한정', rewards:[{icon:'◈',text:'골드 3,000',color:'#f59e0b'},{icon:'❖',text:'보석 300',color:'#00ffff'}], price:'₩9,900', once:true },
+    { id:'monthly',   name:'월간 팩',       desc:'30일간 매일 지급', rewards:[{icon:'◈',text:'골드 300/일',color:'#f59e0b'},{icon:'❖',text:'보석 30/일',color:'#00ffff'}], price:'₩16,500', once:false },
   ];
 
   function syncStoreHUD() {
@@ -6088,8 +6088,11 @@ if (dailyPopup) {
       var pk = packages[i];
       var bought = pk.once && localStorage.getItem('pkg_'+pk.id)==='1';
       html += '<div style="background:#0a1a2a; border:1px solid '+(bought?'#1a2a3a':'#0a3344')+'; border-left:4px solid '+(bought?'#334455':'#cc44ff')+'; padding:12px; display:flex; justify-content:space-between; align-items:center;'+(bought?'opacity:0.5;':'')+'">';
-      html += '<div><div style="color:'+(bought?'#556677':'#cc44ff')+'; font-family:monospace; font-size:12px; font-weight:bold;">' + pk.name + '</div>';
-      html += '<div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-top:4px;">' + pk.desc + '</div></div>';
+      var rwHtml='';
+      if(pk.rewards) pk.rewards.forEach(function(rw){ rwHtml+='<span style="color:'+rw.color+';font-weight:bold;">'+rw.icon+' '+rw.text+'</span>  '; });
+      html += '<div style="flex:1;min-width:0;"><div style="color:'+(bought?'#556677':'#cc44ff')+'; font-family:monospace; font-size:12px; font-weight:bold;">' + pk.name + '</div>';
+      html += '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;">'+rwHtml+'</div>';
+      html += '<div style="color:#556677; font-family:monospace; font-size:9px; margin-top:3px;">' + pk.desc + '</div></div>';
       if (bought) {
         html += '<span style="color:#334455;font-family:monospace;font-size:10px;">구매 완료</span>';
       } else {
@@ -6103,8 +6106,9 @@ if (dailyPopup) {
       var pcMonth = (new Date()).getFullYear()+'-'+((new Date()).getMonth()+1);
       var pcBought = parseInt(localStorage.getItem('pkg_pcore_'+pcMonth)||'0',10);
       html += '<div style="background:#0a1a2a; border:1px solid #ff8822; border-left:4px solid #ff8822; padding:12px; display:flex; justify-content:space-between; align-items:center;">';
-      html += '<div><div style="color:#ff8822; font-family:monospace; font-size:12px; font-weight:bold;">파워 코어 팩</div>';
-      html += '<div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-top:4px;">파워 코어 100개 (월 '+pcBought+'/5 구매)</div></div>';
+      html += '<div style="flex:1;min-width:0;"><div style="color:#ff8822; font-family:monospace; font-size:12px; font-weight:bold;">파워 코어 팩</div>';
+      html += '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;"><span style="color:#ff8822;font-weight:bold;">⊕ 파워 코어 100개</span></div>';
+      html += '<div style="color:#556677; font-family:monospace; font-size:9px; margin-top:3px;">월 '+pcBought+'/5 구매</div></div>';
       if (pcBought >= 5) {
         html += '<span style="color:#334455;font-family:monospace;font-size:10px;">이번 달 소진</span>';
       } else {
@@ -6117,13 +6121,14 @@ if (dailyPopup) {
     if (protoUnlocked) {
       var acMonth = (new Date()).getFullYear()+'-'+((new Date()).getMonth()+1);
       var acBought = parseInt(localStorage.getItem('pkg_acode_'+acMonth)||'0',10);
-      html += '<div style="background:#0a1a2a; border:1px solid #00ffff; border-left:4px solid #00ffff; padding:12px; display:flex; justify-content:space-between; align-items:center;">';
-      html += '<div><div style="color:#00ffff; font-family:monospace; font-size:12px; font-weight:bold;">접근 코드 팩</div>';
-      html += '<div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-top:4px;">접근 코드 100개 (월 '+acBought+'/5 구매)</div></div>';
+      html += '<div style="background:#0a1a2a; border:1px solid #e05577; border-left:4px solid #e05577; padding:12px; display:flex; justify-content:space-between; align-items:center;">';
+      html += '<div style="flex:1;min-width:0;"><div style="color:#e05577; font-family:monospace; font-size:12px; font-weight:bold;">접근 코드 팩</div>';
+      html += '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;"><span style="color:#e05577;font-weight:bold;">⌘ 접근 코드 100개</span></div>';
+      html += '<div style="color:#556677; font-family:monospace; font-size:9px; margin-top:3px;">월 '+acBought+'/5 구매</div></div>';
       if (acBought >= 5) {
         html += '<span style="color:#334455;font-family:monospace;font-size:10px;">이번 달 소진</span>';
       } else {
-        html += '<button data-pkg="acode" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:10px; padding:6px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; margin-left:8px;">₩1,100</button>';
+        html += '<button data-pkg="acode" style="background:#030b10; border:1px solid #e05577; color:#e05577; font-family:monospace; font-size:10px; padding:6px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; margin-left:8px;">₩1,100</button>';
       }
       html += '</div>';
     }
@@ -15564,8 +15569,9 @@ function _injectAbsorbPack() {
   card.style.cssText = 'background:#0a1a2a;border:1px solid #cc0044;border-left:4px solid #cc0044;padding:12px;display:flex;justify-content:space-between;align-items:center;margin:0 8px 8px;position:relative;';
   card.innerHTML =
     '' +
-    '<div><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">흡혈 코어 팩</div>' +
-    '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:4px;">에너지 흡수율 영구 +5%<br>레이저 적중 시 추가 회복</div></div>' +
+    '<div style="flex:1;min-width:0;"><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">흡혈 코어 팩</div>' +
+    '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;"><span style="color:#00ff88;font-weight:bold;">에너지 흡수율 영구 +5%</span></div>' +
+    '<div style="color:#556677;font-family:monospace;font-size:9px;margin-top:3px;">레이저 적중 시 추가 회복</div></div>' +
     (owned
       ? '<span style="color:#00ff88;font-family:monospace;font-size:11px;flex-shrink:0;margin-left:8px;">보유중</span>'
       : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid #cc0044;color:#cc0044;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">₩6,900</button>');
