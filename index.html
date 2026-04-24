@@ -16096,7 +16096,7 @@ function _submitCoupon() {
     </div>
   </div>
   <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">모듈</div>
-  <div id="mods-content" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
+  <div id="mods-content" style="flex:1; overflow:hidden; display:flex; flex-direction:column; padding-bottom:env(safe-area-inset-bottom,0px);"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -17060,30 +17060,25 @@ function _renderModuleContent() {
   var slots = _getModSlots();
   var inv = _getModInv();
   var wrap = document.createElement('div');
-  wrap.style.cssText = 'padding:12px;font-family:Courier New,monospace;';
+  wrap.style.cssText = 'padding:8px;font-family:Courier New,monospace;display:flex;flex-direction:column;height:100%;';
 
-  // ── 탐사선 + 슬롯 영역 ──
+  // ── 탐사선 + 슬롯 영역 (컴팩트) ──
   var SLOT_PARTS = [
-    { id:0, name:'\ubb34\uae30',   x:50, y:4,   filter:'mod_atk',  partColor:'#ef4444' },
+    { id:0, name:'\ubb34\uae30',   x:50, y:2,   filter:'mod_atk',  partColor:'#ef4444' },
     { id:1, name:'\uc13c\uc11c',   x:82, y:22,  filter:'mod_crit', partColor:'#cc44ff' },
     { id:2, name:'\uc2e4\ub4dc',   x:18, y:22,  filter:'mod_def',  partColor:'#3b82f6' },
-    { id:3, name:'\ub9ac\uc561\ud130', x:82, y:52,  filter:'mod_hp',   partColor:'#10b981' },
-    { id:4, name:'\uc5d4\uc9c4',   x:18, y:52,  filter:'mod_cdmg', partColor:'#f59e0b' },
-    { id:5, name:'\ud654\ubb3c',   x:50, y:75,  filter:'mod_gold', partColor:'#ffc800' },
+    { id:3, name:'\ub9ac\uc561\ud130', x:82, y:55,  filter:'mod_hp',   partColor:'#10b981' },
+    { id:4, name:'\uc5d4\uc9c4',   x:18, y:55,  filter:'mod_cdmg', partColor:'#f59e0b' },
+    { id:5, name:'\ud654\ubb3c',   x:50, y:76,  filter:'mod_gold', partColor:'#ffc800' },
   ];
 
   var shipArea = document.createElement('div');
-  shipArea.style.cssText = 'position:relative;width:100%;max-width:320px;margin:0 auto 16px;height:280px;';
+  shipArea.style.cssText = 'position:relative;width:100%;max-width:280px;margin:0 auto 6px;height:155px;flex-shrink:0;';
 
-  // SVG ship (centered)
-  shipArea.innerHTML = '<svg viewBox="0 0 200 280" width="100" height="180" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.2;">' +
-    '<path d="M100,20 L125,55 L135,120 L130,180 L145,215 L135,255 L100,265 L65,255 L55,215 L70,180 L65,120 L75,55 Z" fill="none" stroke="#00ffff" stroke-width="1.5"/>' +
-    '<path d="M100,40 L115,65 L120,120 L115,170 L100,175 L85,170 L80,120 L85,65 Z" fill="none" stroke="#00ffff" stroke-width="0.7" opacity="0.4"/>' +
-    '<circle cx="100" cy="110" r="12" fill="none" stroke="#00ffff" stroke-width="0.7" opacity="0.3"/>' +
-    '<line x1="65" y1="120" x2="45" y2="140" stroke="#00ffff" stroke-width="0.7" opacity="0.3"/>' +
-    '<line x1="135" y1="120" x2="155" y2="140" stroke="#00ffff" stroke-width="0.7" opacity="0.3"/>' +
-    '<polygon points="45,140 30,165 48,160" fill="none" stroke="#00ffff" stroke-width="0.7" opacity="0.2"/>' +
-    '<polygon points="155,140 170,165 152,160" fill="none" stroke="#00ffff" stroke-width="0.7" opacity="0.2"/>' +
+  // SVG ship (centered, compact)
+  shipArea.innerHTML = '<svg viewBox="0 0 200 280" width="60" height="110" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.15;">' +
+    '<path d="M100,20 L125,55 L135,120 L130,180 L145,215 L135,255 L100,265 L65,255 L55,215 L70,180 L65,120 L75,55 Z" fill="none" stroke="#00ffff" stroke-width="2"/>' +
+    '<path d="M100,40 L115,65 L120,120 L115,170 L100,175 L85,170 L80,120 L85,65 Z" fill="none" stroke="#00ffff" stroke-width="1" opacity="0.4"/>' +
   '</svg>';
 
   SLOT_PARTS.forEach(function(part) {
@@ -17092,7 +17087,7 @@ function _renderModuleContent() {
     var equippedUid = slots[si];
     var equippedMod = equippedUid ? inv.filter(function(m){return m.uid===equippedUid;})[0] : null;
     var slot = document.createElement('div');
-    slot.style.cssText = 'position:absolute;left:'+part.x+'%;top:'+part.y+'%;transform:translateX(-50%);width:60px;height:60px;cursor:pointer;';
+    slot.style.cssText = 'position:absolute;left:'+part.x+'%;top:'+part.y+'%;transform:translateX(-50%);width:48px;height:48px;cursor:pointer;';
 
     if (isLocked) {
       var cond = MOD_SLOT_COND[si];
@@ -17150,9 +17145,9 @@ function _renderModuleContent() {
         '<div style="width:100%;height:100%;background:#0c1825;border:2px solid '+tier.border+';border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 0 8px '+tier.color+'44;position:relative;">' +
           (_eqSub>0?'<div style="position:absolute;top:1px;right:3px;font-size:6px;color:'+tier.color+';font-weight:bold;">+'+_eqSub+'</div>':'')+
           '<div style="position:absolute;bottom:1px;right:3px;font-size:5px;color:#556677;">Lv.'+(equippedMod.level||0)+'</div>'+
-          '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>' +
-          _modIcon(equippedMod.typeId, tier.color, 26) +
-          '<div style="font-size:7px;color:#94a3b8;">'+_modEffLabel(equippedMod.typeId,eff)+'</div>' +
+          '<div style="font-size:6px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>' +
+          _modIcon(equippedMod.typeId, tier.color, 22) +
+          '<div style="font-size:6px;color:#94a3b8;">'+_modEffLabel(equippedMod.typeId,eff)+'</div>' +
         '</div>';
       (function(mod) {
         slot.addEventListener('click', function() { _showModuleDetail(mod); });
@@ -17160,8 +17155,8 @@ function _renderModuleContent() {
     } else {
       slot.innerHTML =
         '<div style="width:100%;height:100%;background:#060e18;border:1px dashed '+part.partColor+'44;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;opacity:0.35;">' +
-          _modIcon(part.filter, part.partColor+'88', 24) +
-          '<div style="font-size:7px;color:'+part.partColor+'88;">'+part.name+'</div>' +
+          _modIcon(part.filter, part.partColor+'88', 20) +
+          '<div style="font-size:6px;color:'+part.partColor+'88;">'+part.name+'</div>' +
         '</div>';
       (function(idx) {
         slot.addEventListener('click', function() { _showSlotEquipPopup(idx); });
@@ -17171,46 +17166,32 @@ function _renderModuleContent() {
   });
   wrap.appendChild(shipArea);
 
-  // ── 제조 레벨 표시 ──
+  // ── 제조 레벨 (인라인) ──
   var lvInfo = _getModLevelInfo();
-  var lvBar = document.createElement('div');
-  lvBar.id = 'mod-level-bar';
-  lvBar.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;border-radius:6px;padding:10px 12px;margin-bottom:10px;cursor:pointer;';
   var lvPct = Math.round(lvInfo.progress * 100);
-  lvBar.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-      '<span style="font-size:11px;color:#ff8822;font-weight:bold;">제조 Lv.' + lvInfo.level + '</span>' +
-      '<span style="font-size:9px;color:#556677;">총 ' + lvInfo.totalPulls + '회 제조</span>' +
-    '</div>' +
-    (lvInfo.level < 20 ?
-      '<div style="height:4px;background:#0a1520;border-radius:2px;"><div style="height:4px;background:#ff8822;border-radius:2px;width:' + lvPct + '%;"></div></div>' +
-      '<div style="text-align:right;font-size:8px;color:#445566;margin-top:2px;">다음 Lv: ' + lvInfo.next + '회</div>'
-    : '<div style="text-align:center;font-size:9px;color:#f59e0b;">MAX LEVEL</div>');
-  wrap.appendChild(lvBar);
-  lvBar.addEventListener('click', function() { _showModLevelPopup(); });
+  var lvRow = document.createElement('div');
+  lvRow.id = 'mod-level-bar';
+  lvRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 6px;background:#0a1520;border-radius:4px;cursor:pointer;flex-shrink:0;';
+  lvRow.innerHTML =
+    '<span style="font-size:9px;color:#ff8822;font-weight:bold;white-space:nowrap;">제조 Lv.'+lvInfo.level+'</span>'+
+    '<div style="flex:1;height:3px;background:#060e18;border-radius:2px;"><div style="height:3px;background:#ff8822;border-radius:2px;width:'+lvPct+'%;"></div></div>'+
+    '<span style="font-size:8px;color:#445566;white-space:nowrap;">'+lvInfo.totalPulls+'회</span>';
+  wrap.appendChild(lvRow);
+  lvRow.addEventListener('click', function() { _showModLevelPopup(); });
 
-  // ── 제조 버튼 ──
-  var pc = parseInt(localStorage.getItem('powerCores')||'0',10);
-  var buyRow = document.createElement('div');
-  buyRow.style.cssText = 'display:flex;gap:8px;margin-bottom:16px;';
-  buyRow.innerHTML =
-    '<button id="mod-buy-1" style="flex:1;background:#0a1a2a;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle;"><rect x="3" y="1" width="10" height="14" rx="1.5" fill="none" stroke="#cc44ff" stroke-width="1.1"/><line x1="5" y1="4" x2="11" y2="4" stroke="#cc44ff" stroke-width="0.8"/><line x1="5" y1="7" x2="11" y2="7" stroke="#cc44ff" stroke-width="0.8"/><circle cx="8" cy="11" r="2" fill="none" stroke="#cc44ff" stroke-width="0.8"/></svg></div>1회 제조<br><span style="font-size:10px;display:inline-flex;align-items:center;gap:2px;"><svg width="10" height="10" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" fill="none" stroke="#ff8822" stroke-width="1.2"/><circle cx="8" cy="8" r="2" fill="#ff8822"/></svg> '+MOD_BUY_COST+'</span></button>'+
-    '<button id="mod-buy-10" style="flex:1;background:#0a1a2a;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;text-align:center;border-radius:6px;"><div style="margin-bottom:4px;"><svg width="16" height="16" viewBox="0 0 16 16" style="vertical-align:middle;"><rect x="3" y="1" width="10" height="14" rx="1.5" fill="none" stroke="#f59e0b" stroke-width="1.1"/><line x1="5" y1="4" x2="11" y2="4" stroke="#f59e0b" stroke-width="0.8"/><line x1="5" y1="7" x2="11" y2="7" stroke="#f59e0b" stroke-width="0.8"/><circle cx="8" cy="11" r="2" fill="none" stroke="#f59e0b" stroke-width="0.8"/></svg> x10</div>10회 제조<br><span style="font-size:10px;display:inline-flex;align-items:center;gap:2px;"><svg width="10" height="10" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" fill="none" stroke="#ff8822" stroke-width="1.2"/><circle cx="8" cy="8" r="2" fill="#ff8822"/></svg> '+(MOD_BUY_COST*10)+'</span></button>';
-  wrap.appendChild(buyRow);
+  // ── 버튼 통합 (제조 + 합성 + 분해) ──
+  var actionRow = document.createElement('div');
+  actionRow.style.cssText = 'display:flex;gap:4px;margin-bottom:8px;flex-shrink:0;';
+  actionRow.innerHTML =
+    '<button id="mod-buy-1" style="flex:1;background:#0a1520;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">1회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+MOD_BUY_COST+'</span></button>'+
+    '<button id="mod-buy-10" style="flex:1;background:#0a1520;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">10회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+(MOD_BUY_COST*10)+'</span></button>'+
+    '<button id="mod-synth-btn" style="flex:1;background:#081a18;border:1px solid #22ddaa;color:#22ddaa;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">합성</button>'+
+    '<button id="mod-decomp-btn" style="flex:1;background:#0a0808;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">분해</button>';
+  wrap.appendChild(actionRow);
   setTimeout(function() {
     var b1=document.getElementById('mod-buy-1'), b10=document.getElementById('mod-buy-10');
     if(b1) b1.addEventListener('click', function(){ _buyModule(1); });
     if(b10) b10.addEventListener('click', function(){ _buyModule(10); });
-  },0);
-
-  // ── 합성 / 분해 버튼 ──
-  var actionRow = document.createElement('div');
-  actionRow.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;';
-  actionRow.innerHTML =
-    '<button id="mod-synth-btn" style="flex:1;background:#081a18;border:1px solid #22ddaa;color:#22ddaa;font-family:monospace;font-size:11px;padding:9px;cursor:pointer;border-radius:6px;font-weight:bold;">합성</button>'+
-    '<button id="mod-decomp-btn" style="flex:1;background:#0a0808;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;padding:9px;cursor:pointer;border-radius:6px;font-weight:bold;">분해</button>';
-  wrap.appendChild(actionRow);
-  setTimeout(function(){
     var sb=document.getElementById('mod-synth-btn');
     if(sb) sb.addEventListener('click',function(){ _enterSynthMode(); });
     var db=document.getElementById('mod-decomp-btn');
@@ -17218,16 +17199,20 @@ function _renderModuleContent() {
   },0);
 
   // ── 인벤토리 ──
+  var invWrap = document.createElement('div');
+  invWrap.style.cssText = 'flex:1;min-height:0;display:flex;flex-direction:column;';
   var invTitle = document.createElement('div');
-  invTitle.style.cssText = 'font-size:11px;color:#cc44ff;margin-bottom:8px;letter-spacing:1px;';
+  invTitle.style.cssText = 'font-size:10px;color:#cc44ff;margin-bottom:6px;letter-spacing:1px;flex-shrink:0;';
   invTitle.textContent = '\uc778\ubca4\ud1a0\ub9ac (' + inv.length + ')';
-  wrap.appendChild(invTitle);
+  invWrap.appendChild(invTitle);
   if (inv.length === 0) {
     var empty = document.createElement('div');
     empty.style.cssText = 'text-align:center;color:#334455;font-size:11px;padding:30px 0;';
     empty.textContent = '\ubcf4\uc720\ud55c \ubaa8\ub4c8\uc774 \uc5c6\uc2b5\ub2c8\ub2e4';
-    wrap.appendChild(empty);
+    invWrap.appendChild(empty);
   } else {
+    var invScroll = document.createElement('div');
+    invScroll.style.cssText = 'flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;';
     var invGrid = document.createElement('div');
     invGrid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
     inv.forEach(function(mod) {
@@ -17251,8 +17236,10 @@ function _renderModuleContent() {
       (function(m) { mCard.addEventListener('click', function(){ _showModuleDetail(m); }); })(mod);
       invGrid.appendChild(mCard);
     });
-    wrap.appendChild(invGrid);
+    invScroll.appendChild(invGrid);
+    invWrap.appendChild(invScroll);
   }
+  wrap.appendChild(invWrap);
   cont.appendChild(wrap);
 }
 
