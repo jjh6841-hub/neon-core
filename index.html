@@ -17224,20 +17224,32 @@ function _renderModuleContent() {
       var mCard = document.createElement('div');
       var _mSub = mod.sub||0;
       mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;';
+      var _lkCol = mod.locked ? '#ff6a00' : '#1a2a3a';
+      var _lkDash = mod.locked ? '' : ' stroke-dasharray="2 1.5"';
       mCard.innerHTML =
         (_mSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;font-family:monospace;">+'+_mSub+'</div>':'')+
-        (mod.locked?'<div style="position:absolute;bottom:1px;left:2px;"><svg width="9" height="9" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#ff6a00" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#ff6a00" stroke-width="1.3"/><circle cx="8" cy="11.5" r="1" fill="#ff6a00"/></svg></div>':'')+
+        '<div data-lock-uid="'+mod.uid+'" style="position:absolute;bottom:1px;left:1px;padding:2px;cursor:pointer;z-index:2;"><svg width="10" height="10" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="'+_lkCol+'" stroke-width="1.3"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="'+_lkCol+'" stroke-width="1.3"'+_lkDash+'/><circle cx="8" cy="11.5" r="1" fill="'+_lkCol+'"/></svg></div>'+
         '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||0)+'</div>'+
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
         _modIcon(mod.typeId, tier.color, 28)+
         '<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' \uc99d\ud3ed\uae30','')+'</div>'+
         '<div style="font-size:7px;color:#94a3b8;">'+_modEffLabel(mod.typeId,eff)+'</div>'+
         (equipped?'<div style="font-size:6px;color:#00ffff;">\uc7a5\ucc29</div>':'');
-      (function(m) { mCard.addEventListener('click', function(){ _showModuleDetail(m); }); })(mod);
+      (function(m) { mCard.addEventListener('click', function(e){ if(e.target.closest('[data-lock-uid]'))return; _showModuleDetail(m); }); })(mod);
       invGrid.appendChild(mCard);
     });
     invScroll.appendChild(invGrid);
     invWrap.appendChild(invScroll);
+    // 잠금 토글 이벤트
+    invGrid.querySelectorAll('[data-lock-uid]').forEach(function(el){
+      el.addEventListener('click', function(e){
+        e.stopPropagation();
+        var uid=el.dataset.lockUid;
+        var d=_loadMods(); var invArr=d.inventory||[];
+        var target=invArr.filter(function(m){return m.uid===uid;})[0];
+        if(target){ target.locked=!target.locked; _saveMods(d); _renderModuleContent(); }
+      });
+    });
   }
   wrap.appendChild(invWrap);
   cont.appendChild(wrap);
@@ -17386,17 +17398,12 @@ function _showModuleDetail(mod) {
   ov.id = 'mod-detail-popup';
   ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;';
 
-  var isLocked = mod.locked || false;
-
   var btnsHtml = '';
   if (!equipped) {
     btnsHtml += '<button id="mod-equip" style="flex:1;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">장착</button>';
   } else {
     btnsHtml += '<button id="mod-unequip" style="flex:1;background:#030b10;border:1px solid #556677;color:#556677;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">해제</button>';
   }
-  var _lockCol=isLocked?'#ff6a00':'#334455';
-  var _lockSvg='<svg width="12" height="12" viewBox="0 0 16 16" style="vertical-align:middle;margin-right:3px;"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="'+_lockCol+'" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="'+_lockCol+'" stroke-width="1.2"'+(isLocked?'':' stroke-dasharray="2 1.5"')+'/><circle cx="8" cy="11.5" r="1" fill="'+_lockCol+'"/></svg>';
-  btnsHtml += '<button id="mod-lock" style="flex:1;background:#030b10;border:1px solid '+_lockCol+';color:'+(isLocked?'#ff6a00':'#556677')+';font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">'+_lockSvg+(isLocked?'잠금 해제':'잠금')+'</button>';
 
   var fullName = _fullTierName(mod.tier, modSub);
   var stars = '';
@@ -17454,15 +17461,6 @@ function _showModuleDetail(mod) {
     for(var si3=0;si3<sl.length;si3++){ if(sl[si3]===mod.uid)sl[si3]=null; }
     d.slots=sl; _saveMods(d);
     ov.remove(); _renderModuleContent();
-  });
-  // 잠금 토글
-  var lockBtn = document.getElementById('mod-lock');
-  if(lockBtn) lockBtn.addEventListener('click', function() {
-    var d=_loadMods(); var invArr=d.inventory||[];
-    var target=invArr.filter(function(m){return m.uid===mod.uid;})[0];
-    if(target){ target.locked=!target.locked; mod.locked=target.locked; }
-    _saveMods(d);
-    ov.remove(); _showModuleDetail(mod);
   });
   // 레벨업
   var lvUpBtn = document.getElementById('mod-lvup');
