@@ -12014,7 +12014,7 @@ function _showStatsPopup() {
   function _section(title,color){ return '<div style="color:'+(color||'#00ffff')+';font-size:11px;font-weight:bold;margin-top:12px;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid #0a2233;">'+title+'</div>'; }
 
   // ── 프리즘 보너스 계산 ──
-  var _prismB={atk:0,hp:0,def:0,critRate:0,critDmg:0,range:0,goldMult:0,atkSpd:0};
+  var _prismB={atk:0,hp:0,def:0,critRate:0,critDmg:0,enhCritRate:0,enhCritMult:0,range:0,goldMult:0,atkSpd:0};
   var _eqPrisms=(PERM&&PERM.prismEquipped)||[];
   _eqPrisms.forEach(function(pid){
     var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
@@ -12027,6 +12027,8 @@ function _showStatsPopup() {
     if(pid==='p_def')_prismB.def+=val;
     if(pid==='p_crit_rate')_prismB.critRate+=val;
     if(pid==='p_crit_dmg')_prismB.critDmg+=val;
+    if(pid==='p_crit_rate2')_prismB.enhCritRate+=val;
+    if(pid==='p_crit_dmg2')_prismB.enhCritMult=val;
     if(pid==='p_range')_prismB.range+=val;
     if(pid==='p_atk_spd')_prismB.atkSpd+=val;
     if(pid==='p_kill_cash'||pid==='p_cash')_prismB.goldMult+=val;
@@ -12053,14 +12055,24 @@ function _showStatsPopup() {
   if(_modLv.def>0)allDef=allDef*(1+_modLv.def/100);
   allDef=Math.min(90,Math.round(allDef*10000)/100);
 
+  // 1. 일반 치명타
   var baseCritMult=1.5+(ws.critMult||0)*0.1;
-  var allCritMult=baseCritMult+(_prismB.critDmg||0);
+  var normalCritMult=baseCritMult+(_prismB.critDmg||0);
+  var normalCritChance=(ws.critChance||0)*0.5+_prismB.critRate;
+  // 2. 강화 치명타 (일반 발동 시에만 2차 판정)
+  var enhCritChance=_prismB.enhCritRate||0;
+  var enhCritMult=_prismB.enhCritMult||0;
+  // 3. 모듈 치명타 (독립 판정)
+  var modCritChance=_modB.crit||0;
   var modCritMult=_modB.cdmg||0;
-  if(_modLv.cdmg>0&&modCritMult>0)modCritMult=modCritMult*(1+_modLv.cdmg/100);
-  var allCritDmg=Math.round(allDmg*allCritMult*(modCritMult>0?modCritMult:1));
-
-  var allCritChance=(ws.critChance||0)*0.5+_prismB.critRate;
-  var modCritChance=_modB.crit+(_modLv.crit||0);
+  // 4. 모듈 레벨 치명타 (모듈 치명타에 곱연산)
+  var modLvCritChance=_modLv.crit||0;
+  var modLvCritMult=_modLv.cdmg||0;
+  // 모듈 치명타 합산 (확률: 합연산, 배율: 곱연산)
+  var totalModCritChance=modCritChance+modLvCritChance;
+  var totalModCritMult=modCritMult>0?(modLvCritMult>0?modCritMult*(1+modLvCritMult/100):modCritMult):0;
+  // 전부 터졌을 때 최대 치명타 피해
+  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(totalModCritMult>0?totalModCritMult:1));
 
   var h='';
   // ── 최종 스탯 (클릭 가능) ──
@@ -12069,11 +12081,11 @@ function _showStatsPopup() {
   h+=_clickRow('최종 공격력',_fn(allDmg),'#ef4444','detail-atk');
   h+=_clickRow('최종 체력',_fn(allHp),'#10b981','detail-hp');
   h+=_clickRow('최종 방어율',allDef.toFixed(2)+'%','#3b82f6','detail-def');
-  h+=_clickRow('최종 치명타 피해',_fn(allCritDmg),'#cc44ff','detail-crit');
-  h+=_row('치명타 확률 (일반)',allCritChance.toFixed(1)+'%','#cc44ff');
-  h+=_row('치명타 확률 (모듈)',modCritChance.toFixed(1)+'%','#cc44ff');
-  h+=_row('치명타 배율 (일반)','×'+allCritMult.toFixed(2),'#cc44ff');
-  if(modCritMult>0) h+=_row('치명타 배율 (모듈)','×'+modCritMult.toFixed(2),'#cc44ff');
+  h+=_clickRow('최대 치명타 피해',_fn(maxCritDmg),'#cc44ff','detail-crit');
+  h+=_row('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff');
+  h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult.toFixed(2):'미장착','#a855f7');
+  h+=_row('③ 모듈 치명타',totalModCritChance>0?totalModCritChance.toFixed(1)+'% / ×'+(totalModCritMult||0).toFixed(2):'미장착','#22ddaa');
+  h+=_row('④ 모듈Lv 보너스',modLvCritChance>0||modLvCritMult>0?'+'+modLvCritChance.toFixed(1)+'% / +'+modLvCritMult+'%':'Lv.0','#00ccaa');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1).toFixed(1)+'%','#ef4444');
 
@@ -12256,19 +12268,30 @@ function _showStatsPopup() {
       ]
     },
     'detail-crit': {
-      title:'치명타 피해 상세',color:'#cc44ff',
+      title:'치명타 피해 상세 (4종)',color:'#cc44ff',
       rows:[
         ['최종 공격력', _fn(allDmg)],
-        ['일반 치명타 배율', '×'+baseCritMult.toFixed(2)+' (기본 1.5+강화소)'],
-        ['프리즘 급소배율', _prismB.critDmg>0?'+'+_prismB.critDmg+'x':'-'],
-        ['= 일반 치명타 배율', '×'+allCritMult.toFixed(2)],
-        ['모듈 치명타 배율', modCritMult>0?'×'+modCritMult.toFixed(2):'-'],
-        ['모듈 레벨 배율', _modLv.cdmg>0?'×'+(1+_modLv.cdmg/100).toFixed(2):'-'],
-        ['─────────',''],
-        ['일반+모듈 동시 발동 시', _fn(allCritDmg)],
         ['',''],
-        ['일반 치명타 확률', allCritChance.toFixed(1)+'%'],
-        ['모듈 치명타 확률', modCritChance.toFixed(1)+'% (독립 판정)'],
+        ['① 일반 치명타','── 확률: '+normalCritChance.toFixed(1)+'%'],
+        ['  기본 배율', '×1.5'],
+        ['  강화소 치명타 계수', '+'+(ws.critMult||0)+'단계 (×'+(0.1*(ws.critMult||0)).toFixed(1)+')'],
+        ['  프리즘 급소배율', _prismB.critDmg>0?'+'+_prismB.critDmg+'x':'-'],
+        ['  = 일반 배율', '×'+normalCritMult.toFixed(2)],
+        ['',''],
+        ['② 강화 치명타','── 확률: '+(enhCritChance>0?enhCritChance+'%':'미장착')],
+        ['  프리즘 강화 치명타', enhCritMult>0?'×'+enhCritMult.toFixed(2):'-'],
+        ['  ※ 일반 발동 시에만 2차 판정',''],
+        ['',''],
+        ['③ 모듈 치명타','── 확률: '+(modCritChance>0?modCritChance.toFixed(1)+'%':'미장착')],
+        ['  모듈 등급 배율', modCritMult>0?'×'+modCritMult.toFixed(2):'-'],
+        ['  ※ 독립 판정 (일반과 별개)',''],
+        ['',''],
+        ['④ 모듈 레벨 보너스','── 슬롯 레벨 효과'],
+        ['  확률 추가', modLvCritChance>0?'+'+modLvCritChance.toFixed(1)+'%':'-'],
+        ['  배율 추가', modLvCritMult>0?'+'+modLvCritMult+'% (곱연산)':'-'],
+        ['─────────',''],
+        ['전부 발동 시 최대 피해', _fn(maxCritDmg)],
+        ['계산식', _fn(allDmg)+' × '+normalCritMult.toFixed(2)+(enhCritMult>0?' × '+enhCritMult.toFixed(2):'')+(totalModCritMult>0?' × '+totalModCritMult.toFixed(2):'')],
       ]
     }
   };
