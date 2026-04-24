@@ -2392,6 +2392,12 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('knockback',10); },
     apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.5,(G.knockbackChance||0)+0.02); },
   },
+  { key:'shieldHP', tab:'def', icon:'◇', name:'쉴드<br>HP', baseCost:12, unlock:'shield', maxLv:30,
+    cost()   { return upgCost('shieldHP',12); },
+    stat()   { return (G.upgLvl.shieldHP||0)*10; },
+    canBuy() { return coreChips>=upgCost('shieldHP',12); },
+    apply()  { var c=upgCost('shieldHP',12); coreChips-=c; G.upgLvl.shieldHP=(G.upgLvl.shieldHP||0)+1; if(G.tower){G.tower.shdMax=(G.tower.shdMax||0)+10;G.tower.shdCur=Math.min((G.tower.shdCur||0)+10,G.tower.shdMax);} },
+  },
   // ─ 특수 탭 ─
   { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
     cost()   { return upgCost('explode',15); },
@@ -5594,7 +5600,7 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return (lv * 0.5).toFixed(1); },
       nxt:  function(lv) { return Math.min(99, (lv + 1) * 0.5).toFixed(1); } },
-    vampChance: { tab:'def', name:'흡혈 확률',    maxLv:99,  defGroup:3,
+    vampChance: { tab:'def', name:'흡혈',          maxLv:99,  defGroup:3,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return (lv * 0.5).toFixed(1); },
       nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
@@ -5756,7 +5762,7 @@ if (dailyPopup) {
             PERM.gold -= cost;
             PERM.ws_def_unlocks = grp;
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {2:['reflect'], 3:['vamp'], 4:['knockback']};
+            var unlockMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield']};
             var ulks = unlockMap[grp];
             if (ulks) ulks.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
