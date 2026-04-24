@@ -62,6 +62,22 @@ tr { cursor:pointer; }
 .log-filter button { background:#030b10; border:1px solid #0a3344; color:#556677; font-family:monospace; font-size:9px; padding:4px 8px; cursor:pointer; }
 .log-filter button.active { border-color:#00ffff; color:#00ffff; }
 
+/* 연동 상태 뱃지 */
+.badge-linked { color:#00ff88; font-size:9px; font-weight:bold; border:1px solid #00ff88; padding:1px 5px; border-radius:3px; }
+.badge-unlinked { color:#556677; font-size:9px; border:1px solid #1a2a3a; padding:1px 5px; border-radius:3px; }
+
+/* 삭제 확인 팝업 */
+#delete-confirm { display:none; position:fixed; inset:0; background:rgba(3,11,16,0.95); z-index:200; align-items:center; justify-content:center; }
+#delete-confirm.show { display:flex; }
+.delete-box { background:#1a0a0a; border:1px solid #ef4444; padding:24px; width:90%; max-width:360px; text-align:center; }
+.delete-box h3 { color:#ef4444; font-size:14px; letter-spacing:2px; margin-bottom:12px; }
+.delete-box .del-uid { color:#00ffff; font-size:11px; margin-bottom:8px; word-break:break-all; }
+.delete-box .del-warn { color:#94a3b8; font-size:10px; margin-bottom:20px; line-height:1.6; }
+.delete-box .del-actions { display:flex; gap:8px; }
+.delete-box .del-actions button { flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; cursor:pointer; background:#030b10; letter-spacing:1px; }
+.btn-del-ok { border:1px solid #ef4444; color:#ef4444; }
+.btn-del-cancel { border:1px solid #334455; color:#556677; }
+
 /* 모달 탭 */
 .modal-tabs { display:flex; gap:0; margin-bottom:12px; border-bottom:1px solid #0a3344; }
 .modal-tab { flex:1; background:none; border:none; border-bottom:2px solid transparent; color:#556677; font-family:'Courier New',monospace; font-size:11px; padding:8px 0; cursor:pointer; letter-spacing:1px; }
@@ -119,6 +135,7 @@ tr { cursor:pointer; }
     <thead>
       <tr>
         <th>유저 ID</th>
+        <th>연동</th>
         <th>골드</th>
         <th>보석</th>
         <th>행성별 웨이브</th>
@@ -194,6 +211,19 @@ tr { cursor:pointer; }
     <div id="modal-actions-wrap" class="modal-actions">
       <button class="btn-save" id="modal-save">저장</button>
       <button class="btn-cancel" id="modal-cancel">닫기</button>
+      <button id="modal-delete" style="border-color:#ef4444 !important;color:#ef4444;">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div id="delete-confirm">
+  <div class="delete-box">
+    <h3>⚠ 유저 삭제</h3>
+    <div class="del-uid" id="del-uid"></div>
+    <div class="del-warn">이 유저의 모든 데이터가 영구 삭제됩니다.<br>이 작업은 되돌릴 수 없습니다.</div>
+    <div class="del-actions">
+      <button class="btn-del-cancel" id="del-cancel">취소</button>
+      <button class="btn-del-ok" id="del-ok">삭제</button>
     </div>
   </div>
 </div>
@@ -247,19 +277,21 @@ async function loadUsers() {
   renderUsers(allUsers);
   document.getElementById('total-users').textContent = '유저: ' + allUsers.length + '명';
 
-  var totalGold=0, totalGems=0, maxWave=0;
+  var totalGold=0, totalGems=0, maxWave=0, linkedCount=0, unlinkedCount=0;
   allUsers.forEach(function(u){
     var p=u.data.perm||{};
     var tb=u.data.tierBest||{};
     totalGold+=(p.gold||0);
     totalGems+=(p.gems||0);
+    if(p.accountEmail) linkedCount++; else unlinkedCount++;
     for(var ti=1;ti<=5;ti++){var tv=tb['tier'+ti]||0;if(tv>maxWave)maxWave=tv;}
     if((p.bestWave||0)>maxWave) maxWave=p.bestWave;
   });
   document.getElementById('stats-bar').innerHTML =
     '<span>총 골드: <b>'+totalGold.toLocaleString()+'</b></span>' +
     '<span>총 보석: <b>'+totalGems.toLocaleString()+'</b></span>' +
-    '<span>최고 웨이브 (전체): <b>'+maxWave+'</b></span>';
+    '<span>최고 웨이브 (전체): <b>'+maxWave+'</b></span>' +
+    '<span>연동: <b style="color:#00ff88;">'+linkedCount+'</b> / 미연동: <b style="color:#ef4444;">'+unlinkedCount+'</b></span>';
 }
 
 function renderUsers(list) {
@@ -276,8 +308,10 @@ function renderUsers(list) {
       if (tv > 0) planetSummary += (planetSummary?' / ':'') + pNames[ti-1]+tv;
     }
     if (!planetSummary && (p.bestWave||0) > 0) planetSummary = '에' + (p.bestWave||0);
+    var isLinked = !!(p.accountEmail);
     tr.innerHTML =
       '<td class="uid-cell">' + u.id + '</td>' +
+      '<td><span class="'+(isLinked?'badge-linked':'badge-unlinked')+'">'+(isLinked?'연동':'미연동')+'</span></td>' +
       '<td class="gold">' + (p.gold||0).toLocaleString() + '</td>' +
       '<td class="gem">' + (p.gems||0).toLocaleString() + '</td>' +
       '<td style="color:#10b981;font-size:10px;">' + (planetSummary||'-') + '</td>' +
@@ -323,7 +357,9 @@ function renderModal() {
 
   /* ── 정보 탭 ── */
   var html = '';
+  var isLinked = !!(p.accountEmail);
   html += '<div class="modal-row"><label>유저 ID</label><span style="color:#00ffff;font-size:10px;">'+currentUser.id+'</span></div>';
+  html += '<div class="modal-row"><label>계정 연동</label><span class="'+(isLinked?'badge-linked':'badge-unlinked')+'" style="font-size:10px;">'+(isLinked?'연동됨 ('+p.accountEmail+')':'미연동')+'</span></div>';
   html += '<div class="modal-row"><label>마지막 접속</label><span>'+formatTime(currentUser.data.lastActive)+'</span></div>';
   html += '<div class="modal-row"><label>UA</label><span style="font-size:9px;color:#334455;word-break:break-all;">'+(currentUser.data.ua||'-')+'</span></div>';
 
@@ -806,6 +842,44 @@ function runAnomalyDetection() {
 
 function avg(arr){if(!arr.length)return 0;var s=0;arr.forEach(function(v){s+=v;});return s/arr.length;}
 function stdev(arr){if(arr.length<2)return 0;var m=avg(arr);var ss=0;arr.forEach(function(v){ss+=(v-m)*(v-m);});return Math.sqrt(ss/arr.length);}
+
+// ── 유저 삭제 ──
+var deleteTargetId = null;
+
+document.getElementById('modal-delete').addEventListener('click', function(){
+  if (!currentUser) return;
+  deleteTargetId = currentUser.id;
+  document.getElementById('del-uid').textContent = currentUser.id;
+  document.getElementById('delete-confirm').classList.add('show');
+});
+
+document.getElementById('del-cancel').addEventListener('click', function(){
+  document.getElementById('delete-confirm').classList.remove('show');
+  deleteTargetId = null;
+});
+
+document.getElementById('del-ok').addEventListener('click', async function(){
+  if (!deleteTargetId) return;
+  var uid = deleteTargetId;
+  try {
+    await db.collection('users').doc(uid).delete();
+    showToast('유저 삭제 완료: ' + uid);
+  } catch(e) {
+    showToast('삭제 실패: ' + e.message);
+  }
+  document.getElementById('delete-confirm').classList.remove('show');
+  deleteTargetId = null;
+  closeModal();
+  loadUsers();
+});
+
+// 팝업 바깥 클릭으로 닫기
+document.getElementById('delete-confirm').addEventListener('click', function(e){
+  if (e.target === this) {
+    this.classList.remove('show');
+    deleteTargetId = null;
+  }
+});
 </script>
 </body>
 </html>
