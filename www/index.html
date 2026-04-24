@@ -29,11 +29,11 @@
   --laser-purple: #cc44ff;
   --laser-red: #ef4444;
   --laser-green: #00ff88;
-  /* 시스템 바 safe-area (Android에서 Java가 주입, 기본값 env() fallback) */
-  --sat: var(--sat);
-  --sab: var(--sab);
-  --sal: env(safe-area-inset-left, 0px);
-  --sar: var(--sar);
+  /* 시스템 바 safe-area (Android에서 Java가 실제 값 주입, 웹에서는 0px) */
+  --sat: 0px;
+  --sab: 0px;
+  --sal: 0px;
+  --sar: 0px;
 }
 *, *::before, *::after {
   margin: 0; padding: 0;
@@ -18486,8 +18486,8 @@ if (_gemAdBtn) {
     document.getElementById('exit-cancel').addEventListener('click', function() { ov.remove(); });
     document.getElementById('exit-ok').addEventListener('click', function() {
       ov.remove();
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-        window.Capacitor.Plugins.App.exitApp();
+      if (window.NeonBridge && window.NeonBridge.exitApp) {
+        window.NeonBridge.exitApp();
       } else if (navigator.app && navigator.app.exitApp) {
         navigator.app.exitApp();
       } else {
@@ -18504,78 +18504,60 @@ if (_gemAdBtn) {
     // 광고 오버레이 (닫으면 안됨)
     if (document.getElementById('gem-ad-overlay')) return;
 
-    // ── 최상위 팝업들 (z-index 높은 순) ──
+    // ── 동적 팝업 감지 (body 직속 position:fixed 요소) ──
+    // 통계, 패치노트, 문의하기, 백과사전, 기타 동적 팝업 일괄 처리
+    var bodyChildren = document.body.children;
+    for (var bi = bodyChildren.length - 1; bi >= 0; bi--) {
+      var ch = bodyChildren[bi];
+      if (ch.tagName !== 'DIV' || !ch.style.cssText) continue;
+      var st = ch.style;
+      if (st.position === 'fixed' && st.zIndex && parseInt(st.zIndex) >= 9000) {
+        // 알려진 영구 요소 스킵
+        var skip = ['exit-confirm','gem-ad-overlay','ob-ov','pause-overlay',
+                     'results-screen','settings-screen','achieve-screen',
+                     'screen-missions','screen-game','screen-home','bottom-nav'];
+        if (ch.id && skip.indexOf(ch.id) !== -1) continue;
+        ch.remove(); return;
+      }
+    }
 
-    // 슬롯 확인 팝업 (행성 잠금 등)
-    var slotPop = document.getElementById('slot-confirm-popup');
-    if (slotPop) { slotPop.remove(); return; }
+    // ── ID가 있는 팝업들 ──
+    var popupIds = ['slot-confirm-popup','aug-popup','sp-popup','coupon-popup',
+                    'prism-detail-popup','prism-select-popup','mod-level-popup',
+                    'ws-detail-overlay'];
+    for (var pi = 0; pi < popupIds.length; pi++) {
+      var pop = document.getElementById(popupIds[pi]);
+      if (pop) { pop.remove(); return; }
+    }
 
-    // 전투 증강 팝업
-    var augPop = document.getElementById('aug-popup');
-    if (augPop) { augPop.remove(); return; }
+    // display로 토글되는 팝업들
+    var toggleIds = ['confirm-overlay','daily-popup','lab-popup'];
+    for (var ti = 0; ti < toggleIds.length; ti++) {
+      var tog = document.getElementById(toggleIds[ti]);
+      if (tog && tog.style.display !== 'none' && tog.style.display !== '') { tog.style.display = 'none'; return; }
+    }
 
-    // 시즌 패스 팝업
-    var spPop = document.getElementById('sp-popup');
-    if (spPop) { spPop.remove(); return; }
-
-    // 확인 팝업 (범용)
-    var confirmOv = document.getElementById('confirm-overlay');
-    if (confirmOv && confirmOv.style.display !== 'none') { confirmOv.style.display = 'none'; return; }
-
-    // 쿠폰 팝업
-    var couponPop = document.getElementById('coupon-popup');
-    if (couponPop) { couponPop.remove(); return; }
-
-    // 출석 팝업
-    var dailyPop = document.getElementById('daily-popup');
-    if (dailyPop && dailyPop.style.display !== 'none') { dailyPop.style.display = 'none'; return; }
+    // 행성 잠금 팝업
+    var tierLockEl = document.querySelector('#tier-lock-x');
+    if (tierLockEl) {
+      var tlp = tierLockEl.closest('div[style*="position"]');
+      while (tlp && tlp !== document.body) {
+        if (tlp.style.position === 'fixed') { tlp.style.display = 'none'; return; }
+        tlp = tlp.parentElement;
+      }
+    }
 
     // 보상 팝업
     var rewardOv = document.querySelector('[id^="reward-popup"]');
     if (rewardOv) { rewardOv.remove(); return; }
 
-    // 행성 잠금 팝업 (동적 생성)
-    var tierLock = document.querySelector('[style*="z-index"][style*="ACCESS"]');
-    if (!tierLock) {
-      // _tierLockPopup은 display:flex로 보여짐
-      var allFixed = document.querySelectorAll('div[style*="position:fixed"][style*="display:flex"][style*="z-index"]');
-      for (var fi = allFixed.length - 1; fi >= 0; fi--) {
-        if (allFixed[fi].querySelector('#tier-lock-x')) { allFixed[fi].style.display = 'none'; return; }
-      }
-    }
-
-    // 통계 팝업 (동적 생성, z-index:9800)
-    // 패치 노트 팝업 (동적 생성, z-index:9800)
-    // 백과사전 팝업 (동적 생성, z-index:9800)
-    // 이들은 body에 직접 추가된 position:fixed 요소
-    var highZ = document.querySelectorAll('body > div[style*="position:fixed"][style*="z-index: 9"][style*="inset:0"], body > div[style*="position:fixed"][style*="z-index:9"][style*="inset:0"]');
-    for (var zi = highZ.length - 1; zi >= 0; zi--) {
-      var el = highZ[zi];
-      if (el.id && ['exit-confirm','gem-ad-overlay','ob-ov','pause-overlay','results-screen','settings-screen','achieve-screen','screen-missions'].indexOf(el.id) !== -1) continue;
-      el.remove(); return;
-    }
-
-    // 프리즘/모듈 상세 팝업
-    var prismPop = document.getElementById('prism-detail-popup') || document.getElementById('prism-select-popup');
-    if (prismPop) { prismPop.remove(); return; }
-    var modPop = document.getElementById('mod-level-popup');
-    if (modPop) { modPop.remove(); return; }
-
-    // 코어랩 팝업
-    var labPop = document.getElementById('lab-popup');
-    if (labPop && labPop.style.display !== 'none') { labPop.style.display = 'none'; return; }
-
-    // 강화소 상세 오버레이
-    var wsDetail = document.getElementById('ws-detail-overlay');
-    if (wsDetail) { wsDetail.remove(); return; }
-
-    // 온보딩 오버레이
+    // 온보딩
     var obOv = document.getElementById('ob-ov');
     if (obOv && obOv.style.display !== 'none') { if(window._obDismiss) window._obDismiss(); return; }
 
     // ── 게임 화면들 ──
 
-    // 일시정지 메뉴
+    // 일시정지
     var pauseOv = document.getElementById('pause-overlay');
     if (pauseOv && pauseOv.style.display !== 'none') { if (window.resumeGame) window.resumeGame(); return; }
 
@@ -18583,25 +18565,32 @@ if (_gemAdBtn) {
     var resultsEl = document.getElementById('results-screen');
     if (resultsEl && resultsEl.classList.contains('show')) { if (window.goHome) window.goHome(); return; }
 
-    // 설정 화면
+    // 설정
     var settingsEl = document.getElementById('settings-screen');
     if (settingsEl && settingsEl.classList.contains('show')) { settingsEl.classList.remove('show'); return; }
 
-    // 업적 화면
+    // 업적 (show 클래스 + display 모두 제거)
     var achEl = document.getElementById('achieve-screen');
-    if (achEl && achEl.classList.contains('show')) {
+    if (achEl && (achEl.classList.contains('show') || achEl.style.display === 'flex')) {
       achEl.classList.remove('show');
       achEl.style.display = 'none';
+      // bottom-nav 복구
+      var bn = document.getElementById('bottom-nav');
+      if (bn) bn.style.display = 'flex';
       return;
     }
 
-    // 임무 화면
+    // 임무
     var missEl = document.getElementById('screen-missions');
     if (missEl && missEl.style.display === 'flex') { missEl.style.display = 'none'; return; }
 
-    // 계정 관리 화면
+    // 계정
     var accEl = document.getElementById('screen-account');
     if (accEl && (accEl.style.display === 'flex' || accEl.style.display === 'block')) { accEl.style.display = 'none'; return; }
+
+    // 우편함
+    var mailEl = document.getElementById('screen-mail');
+    if (mailEl && (mailEl.style.display === 'flex' || mailEl.style.display === 'block')) { mailEl.style.display = 'none'; return; }
 
     // 전투 화면 → 일시정지
     var gameEl = document.getElementById('screen-game');

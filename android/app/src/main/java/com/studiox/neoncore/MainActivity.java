@@ -1,6 +1,7 @@
 package com.studiox.neoncore;
 
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
@@ -9,11 +10,20 @@ import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+
+    public class NeonBridge {
+        @JavascriptInterface
+        public void exitApp() {
+            runOnUiThread(() -> finishAffinity());
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         WebView webView = getBridge().getWebView();
+        webView.addJavascriptInterface(new NeonBridge(), "NeonBridge");
 
         // 시스템 바 inset CSS 변수 주입
         ViewCompat.setOnApplyWindowInsetsListener(webView, (v, insets) -> {
