@@ -2289,17 +2289,17 @@ var UPGRADES = [
     canBuy() { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return coreChips>=upgCost('spd',7) && totalLv<30; },
     apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round((window.BASE_ATKMS||1200)/(1+totalLv*0.05))); },
   },
-  { key:'rng',     tab:'atk', icon:'(+)',  name:'공격<br>범위',  baseCost:6,  unlock:'rng',
-    cost()   { return upgCost('rng',6); },
-    stat()   { return 'Lv.'+G.rangeLevel; },
-    canBuy() { return coreChips>=upgCost('rng',6); },
-    apply()  { var c=upgCost('rng',6); coreChips-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
-  },
   { key:'crit',    tab:'atk', icon:'!',  name:'치명타<br>확률',  baseCost:8,  unlock:'crit',
     cost()   { return upgCost('crit',8); },
     stat()   { return Math.round(G.critChance*100)+'%'; },
     canBuy() { return coreChips>=upgCost('crit',8); },
     apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.08); },
+  },
+  { key:'rng',     tab:'atk', icon:'(+)',  name:'공격<br>범위',  baseCost:6,  unlock:'rng',
+    cost()   { return upgCost('rng',6); },
+    stat()   { return 'Lv.'+G.rangeLevel; },
+    canBuy() { return coreChips>=upgCost('rng',6); },
+    apply()  { var c=upgCost('rng',6); coreChips-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
   },
   { key:'dmgPerMeter', tab:'atk', icon:'↗', name:'거리<br>피해', baseCost:8, unlock:'rng', maxLv:30,
     cost()   { return upgCost('dmgPerMeter',8); },
@@ -9727,7 +9727,7 @@ function _patchUpgrades() {
   var critIdx = -1;
   for (var i = 0; i < UPGRADES.length; i++) {
     if (UPGRADES[i].key === 'rng')  { UPGRADES[i].unlock = 'rng'; }           // 범위: 잠금
-    if (UPGRADES[i].key === 'crit') { UPGRADES[i].unlock = null; critIdx = i; } // 치명타 확률: 기본
+    if (UPGRADES[i].key === 'crit') { critIdx = i; } // 치명타 확률 위치 기억 (계수 삽입용)
   }
   // 치명타 계수 항목 추가 (crit 바로 다음)
   var hasCM = false;
