@@ -11422,10 +11422,10 @@ function _renderCardTab() {
     var eqP=eqId?_getPrism(eqId):null;
     if(unlocked&&eqPr){
       var catCol=PRISM_CAT_COLOR[eqPr.cat]||'#cc44ff';
-      html+='<div data-slot-unequip="'+eqId+'" style="width:52px;height:52px;background:#0a1020;border:1px solid '+catCol+';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:1px;">'+
-        '<span style="font-size:12px;color:'+catCol+';">◈</span>'+
-        '<span style="font-size:7px;color:#f1f5f9;font-family:monospace;text-align:center;line-height:1.1;">'+eqPr.name+'</span>'+
-        '<span style="font-size:7px;color:'+catCol+';font-family:monospace;">Lv.'+eqP.lv+'</span></div>';
+      html+='<div data-slot-unequip="'+eqId+'" style="width:52px;height:52px;background:#0a1020;border:1px solid '+catCol+';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:0px;">'+
+        '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;transform:scale(0.58);transform-origin:center;">'+_prismIcon(eqId,catCol)+'</div>'+
+        '<span style="font-size:6px;color:#f1f5f9;font-family:monospace;text-align:center;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:48px;">'+eqPr.name+'</span>'+
+        '<span style="font-size:6px;color:'+catCol+';font-family:monospace;">Lv.'+eqP.lv+'</span></div>';
     } else if(unlocked){
       html+='<div style="width:52px;height:52px;background:#060810;border:1px dashed #334455;display:flex;align-items:center;justify-content:center;">'+
         '<span style="font-size:9px;color:#334455;font-family:monospace;">빈 슬롯</span></div>';
