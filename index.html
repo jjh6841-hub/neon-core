@@ -6044,10 +6044,10 @@ if (dailyPopup) {
   ];
 
   var packages = [
-    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 제거 + ❖ 100 보석 지급', price:'₩5,500', once:true },
+    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 제거 + ❖ 100 보석 지급', price:'₩11,000', once:true },
     { id:'starter',   name:'스타터 팩',     desc:'◈ 1,000 골드 + ❖ 100 보석 (1회 한정)', price:'₩3,300', once:true },
-    { id:'growth',    name:'성장 팩',       desc:'◈ 3,000 골드 + ❖ 300 보석 (1회 한정)', price:'₩11,000', once:true },
-    { id:'monthly',   name:'월간 팩',       desc:'30일간 매일 ◈ 300 골드 + ❖ 30 보석 지급', price:'₩4,900', once:false },
+    { id:'growth',    name:'성장 팩',       desc:'◈ 3,000 골드 + ❖ 300 보석 (1회 한정)', price:'₩9,900', once:true },
+    { id:'monthly',   name:'월간 팩',       desc:'30일간 매일 ◈ 300 골드 + ❖ 30 보석 지급', price:'₩16,500', once:false },
   ];
 
   function syncStoreHUD() {
@@ -6108,7 +6108,7 @@ if (dailyPopup) {
       if (pcBought >= 5) {
         html += '<span style="color:#334455;font-family:monospace;font-size:10px;">이번 달 소진</span>';
       } else {
-        html += '<button data-pkg="pcore" style="background:#030b10; border:1px solid #ff8822; color:#ff8822; font-family:monospace; font-size:10px; padding:6px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; margin-left:8px;">₩1,100</button>';
+        html += '<button data-pkg="pcore" style="background:#030b10; border:1px solid #ff8822; color:#ff8822; font-family:monospace; font-size:10px; padding:6px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; margin-left:8px;">₩11,000</button>';
       }
       html += '</div>';
     }
@@ -6209,7 +6209,7 @@ if (dailyPopup) {
   /* ── 패키지 구매 처리 ── */
   function _handlePkgBuy(pkgId) {
     if (pkgId === 'ad_remove') {
-      if(window._showSlotConfirm) _showSlotConfirm('광고 영구제거','₩5,500을 결제하시겠습니까?\n\n* 테스트 모드: 무료 활성화', function(){
+      if(window._showSlotConfirm) _showSlotConfirm('광고 영구제거','₩11,000을 결제하시겠습니까?\n\n* 테스트 모드: 무료 활성화', function(){
         localStorage.setItem('pkg_ad_remove','1');
         PERM.gems = (PERM.gems||0) + 100;
         logCurrency('gems', 100, '패키지: 광고제거');
@@ -6229,7 +6229,7 @@ if (dailyPopup) {
         renderStoreTab('package');
       });
     } else if (pkgId === 'growth') {
-      if(window._showSlotConfirm) _showSlotConfirm('성장 팩','₩11,000을 결제하시겠습니까?\n\n* 테스트 모드: 무료 지급', function(){
+      if(window._showSlotConfirm) _showSlotConfirm('성장 팩','₩9,900을 결제하시겠습니까?\n\n* 테스트 모드: 무료 지급', function(){
         localStorage.setItem('pkg_growth','1');
         PERM.gold = (PERM.gold||0) + 3000;
         PERM.gems = (PERM.gems||0) + 300;
@@ -6240,7 +6240,7 @@ if (dailyPopup) {
         renderStoreTab('package');
       });
     } else if (pkgId === 'monthly') {
-      if(window._showSlotConfirm) _showSlotConfirm('월간 팩','₩4,900을 결제하시겠습니까?\n30일간 매일 ◈300 + ❖30 지급\n\n* 테스트 모드: 무료 활성화', function(){
+      if(window._showSlotConfirm) _showSlotConfirm('월간 팩','₩16,500을 결제하시겠습니까?\n30일간 매일 ◈300 + ❖30 지급\n\n* 테스트 모드: 무료 활성화', function(){
         var now = Date.now();
         localStorage.setItem('pkg_monthly_start', now);
         localStorage.setItem('pkg_monthly_end', now + 30*86400000);
@@ -6257,7 +6257,7 @@ if (dailyPopup) {
       });
     } else if (pkgId === 'pcore') {
       var pcM = (new Date()).getFullYear()+'-'+((new Date()).getMonth()+1);
-      if(window._showSlotConfirm) _showSlotConfirm('파워 코어 팩','₩1,100을 결제하시겠습니까?\n\n* 테스트 모드: 무료 지급', function(){
+      if(window._showSlotConfirm) _showSlotConfirm('파워 코어 팩','₩11,000을 결제하시겠습니까?\n\n* 테스트 모드: 무료 지급', function(){
         var cur = parseInt(localStorage.getItem('powerCores')||'0',10);
         localStorage.setItem('powerCores', cur + 100);
         var bc = parseInt(localStorage.getItem('pkg_pcore_'+pcM)||'0',10);
@@ -15568,7 +15568,7 @@ function _injectAbsorbPack() {
     '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:4px;">에너지 흡수율 영구 +5%<br>레이저 적중 시 추가 회복</div></div>' +
     (owned
       ? '<span style="color:#00ff88;font-family:monospace;font-size:11px;flex-shrink:0;margin-left:8px;">보유중</span>'
-      : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid #cc0044;color:#cc0044;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">₩5,900</button>');
+      : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid #cc0044;color:#cc0044;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">₩6,900</button>');
   content.appendChild(card);
 
   if (!owned) {
