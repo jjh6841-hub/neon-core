@@ -3149,6 +3149,11 @@ function update(dt) {
           dmg = Math.round(dmg * G.modCritMult);
           e.hitFlash = 2;
         }
+        // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
+        if (G.modLvCritChance && G.modLvCritMult && Math.random() < G.modLvCritChance) {
+          dmg = Math.round(dmg * G.modLvCritMult);
+          e.hitFlash = 2;
+        }
         // 흡혈: 적 적중 시 공격력의 X% 회복
         if (G.lifeSteal > 0) {
           var _healAmt = dmg * G.lifeSteal / 100;
@@ -12065,14 +12070,11 @@ function _showStatsPopup() {
   // 3. 모듈 치명타 (독립 판정)
   var modCritChance=_modB.crit||0;
   var modCritMult=_modB.cdmg||0;
-  // 4. 모듈 레벨 치명타 (모듈 치명타에 곱연산)
+  // 4. 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
   var modLvCritChance=_modLv.crit||0;
-  var modLvCritMult=_modLv.cdmg||0;
-  // 모듈 치명타 합산 (확률: 합연산, 배율: 곱연산)
-  var totalModCritChance=modCritChance+modLvCritChance;
-  var totalModCritMult=modCritMult>0?(modLvCritMult>0?modCritMult*(1+modLvCritMult/100):modCritMult):0;
+  var modLvCritMult=_modLv.cdmg>0?1+_modLv.cdmg/100:0;
   // 전부 터졌을 때 최대 치명타 피해
-  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(totalModCritMult>0?totalModCritMult:1));
+  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1));
 
   var h='';
   // ── 최종 스탯 (클릭 가능) ──
@@ -12084,8 +12086,8 @@ function _showStatsPopup() {
   h+=_clickRow('최대 치명타 피해',_fn(maxCritDmg),'#cc44ff','detail-crit');
   h+=_row('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff');
   h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult.toFixed(2):'미장착','#a855f7');
-  h+=_row('③ 모듈 치명타',totalModCritChance>0?totalModCritChance.toFixed(1)+'% / ×'+(totalModCritMult||0).toFixed(2):'미장착','#22ddaa');
-  h+=_row('④ 모듈Lv 보너스',modLvCritChance>0||modLvCritMult>0?'+'+modLvCritChance.toFixed(1)+'% / +'+modLvCritMult+'%':'Lv.0','#00ccaa');
+  h+=_row('③ 모듈 치명타',modCritChance>0?modCritChance.toFixed(1)+'% / ×'+(modCritMult||0).toFixed(2):'미장착','#22ddaa');
+  h+=_row('④ 모듈Lv 치명타',modLvCritChance>0?modLvCritChance.toFixed(1)+'% / ×'+(modLvCritMult||0).toFixed(2):'Lv.0','#00ccaa');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1).toFixed(1)+'%','#ef4444');
 
@@ -12287,14 +12289,14 @@ function _showStatsPopup() {
         ['',''],
         ['③ 모듈 치명타','── 확률: '+(modCritChance>0?modCritChance.toFixed(1)+'%':'미장착')],
         ['  모듈 등급 배율', modCritMult>0?'×'+modCritMult.toFixed(2):'-'],
-        ['  ※ 독립 판정 (일반과 별개)',''],
+        ['  ※ 독립 판정 (일반/강화와 별개)',''],
         ['',''],
-        ['④ 모듈 레벨 보너스','── 슬롯 레벨 효과'],
-        ['  확률 추가', modLvCritChance>0?'+'+modLvCritChance.toFixed(1)+'%':'-'],
-        ['  배율 추가', modLvCritMult>0?'+'+modLvCritMult+'% (곱연산)':'-'],
+        ['④ 모듈Lv 치명타','── 확률: '+(modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'Lv.0')],
+        ['  슬롯 레벨 배율', modLvCritMult>0?'×'+modLvCritMult.toFixed(2):'-'],
+        ['  ※ 독립 판정 (①②③과 모두 별개)',''],
         ['─────────',''],
         ['전부 발동 시 최대 피해', _fn(maxCritDmg)],
-        ['계산식', _fn(allDmg)+' × '+normalCritMult.toFixed(2)+(enhCritMult>0?' × '+enhCritMult.toFixed(2):'')+(totalModCritMult>0?' × '+totalModCritMult.toFixed(2):'')],
+        ['계산식', _fn(allDmg)+' × '+normalCritMult.toFixed(2)+(enhCritMult>0?' × '+enhCritMult.toFixed(2):'')+(modCritMult>0?' × '+modCritMult.toFixed(2):'')+(modLvCritMult>0?' × '+modLvCritMult.toFixed(2):'')],
       ]
     }
   };
@@ -18099,9 +18101,9 @@ if (typeof _prevApplyMod === 'function') {
     if (lv.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + lv.atk/100));
     if (lv.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + lv.hp/100)); G.tower.hp = G.tower.maxHp; }
     if (lv.def > 0) G.tower.defense = Math.min(0.9, (G.tower.defense||0) * (1 + lv.def/100));
-    if (lv.cdmg > 0) G.modCritMult = (G.modCritMult||1) * (1 + lv.cdmg/100);
-    // 합연산: 치명타 확률 (레벨당 0.1%), 골드 (레벨당 0.3%)
-    if (lv.crit > 0) G.modCritChance = Math.min(1.0, (G.modCritChance||0) + lv.crit/100);
+    // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
+    if (lv.cdmg > 0) G.modLvCritMult = 1 + lv.cdmg/100;
+    if (lv.crit > 0) G.modLvCritChance = Math.min(1.0, lv.crit/100);
     if (lv.gold > 0) G.goldMult = (G.goldMult||1) * (1 + lv.gold/100);
   };
 }
