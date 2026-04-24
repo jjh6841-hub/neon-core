@@ -14,7 +14,10 @@ public class MainActivity extends BridgeActivity {
     public class NeonBridge {
         @JavascriptInterface
         public void exitApp() {
-            runOnUiThread(() -> finishAffinity());
+            runOnUiThread(() -> {
+                finishAffinity();
+                System.exit(0);
+            });
         }
     }
 
@@ -41,7 +44,7 @@ public class MainActivity extends BridgeActivity {
             return WindowInsetsCompat.CONSUMED;
         });
 
-        // Android 백 버튼 → JS handleBackButton() 호출
+        // Android 백 버튼 → JS handleBackButton() 호출 (Android 13+ predictive back)
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -49,5 +52,16 @@ public class MainActivity extends BridgeActivity {
                     "if(window._handleBackButton) window._handleBackButton();", null));
             }
         });
+    }
+
+    // Android 12 이하: 기본 뒤로가기(webView.goBack) 방지
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onBackPressed() {
+        WebView webView = getBridge().getWebView();
+        if (webView != null) {
+            webView.post(() -> webView.evaluateJavascript(
+                "if(window._handleBackButton) window._handleBackButton();", null));
+        }
     }
 }

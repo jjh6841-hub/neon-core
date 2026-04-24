@@ -3851,6 +3851,14 @@ function triggerGameOver() {
   if (newUnlocks.length > 0) {
     unlockRow.innerHTML = newUnlocks.map(function(l) { return '■ [' + l + '] 해금됨!'; }).join('<br>');
     unlockRow.style.display = '';
+    // 잠금 해제 슬라이드 팝업 표시
+    if (window.showUnlockSlide) {
+      newUnlocks.forEach(function(label, i) {
+        setTimeout(function() {
+          window.showUnlockSlide({ name: label, desc: '새 콘텐츠가 해금되었습니다!' });
+        }, 600 + i * 3800);
+      });
+    }
   } else {
     unlockRow.style.display = 'none';
   }
@@ -9336,10 +9344,10 @@ setTimeout(_updateBadge, 500);
     var inner = document.getElementById('_up_inner');
     if (!inner) return;
     var icons = { atk:'⚔', def:'◎', spc:'★', utl:'⚙' };
-    document.getElementById('_up_icon').textContent  = icons[node.tab] || '🔓';
+    document.getElementById('_up_icon').textContent  = node.icon || icons[node.tab] || '🔓';
     document.getElementById('_up_name').textContent  = node.name;
     document.getElementById('_up_desc').textContent  = node.desc || '';
-    document.getElementById('_up_items').innerHTML   = (node.items||[]).map(function(it){return '+ '+it.name;}).join('<br>');
+    document.getElementById('_up_items').innerHTML   = (node.items||[]).map(function(it){return '+ '+(it.name||it);}).join('<br>');
     _el.style.display = 'block';
     requestAnimationFrame(function() { inner.style.transform='translateY(0)'; inner.style.opacity='1'; });
     clearTimeout(_tid);
@@ -9348,6 +9356,9 @@ setTimeout(_updateBadge, 500);
       setTimeout(function(){_el.style.display='none';},380);
     }, 3500);
   }
+
+  // 외부에서 호출 가능하도록 export
+  window.showUnlockSlide = _show;
 
 }());
 
@@ -18452,13 +18463,10 @@ if (_gemAdBtn) {
     document.getElementById('exit-cancel').addEventListener('click', function() { ov.remove(); });
     document.getElementById('exit-ok').addEventListener('click', function() {
       ov.remove();
-      if (window.NeonBridge && window.NeonBridge.exitApp) {
-        window.NeonBridge.exitApp();
-      } else if (navigator.app && navigator.app.exitApp) {
-        navigator.app.exitApp();
-      } else {
-        window.close();
-      }
+      try { if (window.NeonBridge && window.NeonBridge.exitApp) { window.NeonBridge.exitApp(); return; } } catch(e) {}
+      try { if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) { window.Capacitor.Plugins.App.exitApp(); return; } } catch(e) {}
+      try { if (navigator.app && navigator.app.exitApp) { navigator.app.exitApp(); return; } } catch(e) {}
+      window.close();
     });
   }
 
@@ -18535,28 +18543,38 @@ if (_gemAdBtn) {
     var settingsEl = document.getElementById('settings-screen');
     if (settingsEl && settingsEl.classList.contains('show')) { settingsEl.classList.remove('show'); return; }
 
-    // 업적 (show 클래스 + display 모두 제거)
+    // 업적 (show 클래스 + display 모두 제거 → 홈으로 복귀)
     var achEl = document.getElementById('achieve-screen');
     if (achEl && (achEl.classList.contains('show') || achEl.style.display === 'flex')) {
       achEl.classList.remove('show');
       achEl.style.display = 'none';
-      // bottom-nav 복구
-      var bn = document.getElementById('bottom-nav');
-      if (bn) bn.style.display = 'flex';
+      if (window.showScreen) showScreen('home');
       return;
     }
 
-    // 임무
+    // 임무 (bottom-nav 복구 포함)
     var missEl = document.getElementById('screen-missions');
-    if (missEl && missEl.style.display === 'flex') { missEl.style.display = 'none'; return; }
+    if (missEl && missEl.style.display === 'flex') {
+      missEl.style.display = 'none';
+      var bn2 = document.getElementById('bottom-nav'); if (bn2) bn2.style.display = 'flex';
+      return;
+    }
 
-    // 계정
+    // 계정 (bottom-nav 복구 포함)
     var accEl = document.getElementById('screen-account');
-    if (accEl && (accEl.style.display === 'flex' || accEl.style.display === 'block')) { accEl.style.display = 'none'; return; }
+    if (accEl && (accEl.style.display === 'flex' || accEl.style.display === 'block')) {
+      accEl.style.display = 'none';
+      var bn3 = document.getElementById('bottom-nav'); if (bn3) bn3.style.display = 'flex';
+      return;
+    }
 
-    // 우편함
+    // 우편함 (bottom-nav 복구 포함)
     var mailEl = document.getElementById('screen-mail');
-    if (mailEl && (mailEl.style.display === 'flex' || mailEl.style.display === 'block')) { mailEl.style.display = 'none'; return; }
+    if (mailEl && (mailEl.style.display === 'flex' || mailEl.style.display === 'block')) {
+      mailEl.style.display = 'none';
+      var bn = document.getElementById('bottom-nav'); if (bn) bn.style.display = 'flex';
+      return;
+    }
 
     // 전투 화면 → 일시정지
     var gameEl = document.getElementById('screen-game');
