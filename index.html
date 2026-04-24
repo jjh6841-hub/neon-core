@@ -2131,6 +2131,12 @@ function loadPerm() {
       PERM.ws           = (d.ws && typeof d.ws === 'object') ? d.ws : {};
       PERM.ws_atk_unlocks = d.ws_atk_unlocks ?? 0;
       PERM.ws_def_unlocks = d.ws_def_unlocks ?? 0;
+      // 해금 상태 동기화 (기존 데이터 마이그레이션)
+      if (!PERM.unlocks) PERM.unlocks = {};
+      var _atkUMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce']};
+      var _defUMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield']};
+      for (var _gi=1; _gi<=PERM.ws_atk_unlocks; _gi++) { if(_atkUMap[_gi]) _atkUMap[_gi].forEach(function(k){PERM.unlocks[k]=true;}); }
+      for (var _gj=1; _gj<=PERM.ws_def_unlocks; _gj++) { if(_defUMap[_gj]) _defUMap[_gj].forEach(function(k){PERM.unlocks[k]=true;}); }
       // 프리즘 데이터 복원
       PERM.prisms         = (d.prisms && typeof d.prisms === 'object') ? d.prisms : {};
       PERM.prismFragments = d.prismFragments ?? 0;
