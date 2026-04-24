@@ -17285,11 +17285,20 @@ function _renderModuleContent() {
   if (!_modMode) {
     actionRow.style.cssText = 'display:none;';
   } else if (_modMode === 'synth') {
-    var _sInfo = _modSelected.length === 3 && _modSynthFilter.type
-      ? '→ '+_fullTierName(_modSynthFilter.sub<2?_modSynthFilter.tier:_modSynthFilter.tier+1, _modSynthFilter.sub<2?_modSynthFilter.sub+1:0)
-      : _modSelected.length+'/3 선택';
+    var _sInfo = '';
+    if (_modSynthFilter.type) {
+      var _sfType = MODULE_TYPES.filter(function(t){return t.id===_modSynthFilter.type;})[0];
+      var _sfTier = TIERS[_modSynthFilter.tier]||TIERS[0];
+      var _sfName = _sfType ? _sfType.name.replace(' 증폭기','') : '';
+      var _sfTotal = inv.filter(function(m){return m.typeId===_modSynthFilter.type&&m.tier===_modSynthFilter.tier&&(m.sub||0)===_modSynthFilter.sub;}).length;
+      var _sfResult = _fullTierName(_modSynthFilter.sub<2?_modSynthFilter.tier:_modSynthFilter.tier+1, _modSynthFilter.sub<2?_modSynthFilter.sub+1:0);
+      _sInfo = '<span style="color:'+_sfTier.color+';">'+_sfName+'</span> '+_modSelected.length+'/3 <span style="color:#556677;">('+_sfTotal+'개 보유)</span>';
+      if (_modSelected.length===3) _sInfo += ' <span style="color:#00ff88;">→ '+_sfResult+'</span>';
+    } else {
+      _sInfo = _modSelected.length+'/3 선택';
+    }
     actionRow.innerHTML =
-      '<div style="flex:1;display:flex;align-items:center;gap:4px;font-size:9px;color:#22ddaa;font-family:monospace;font-weight:bold;">합성 '+_sInfo+'</div>'+
+      '<div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:2px;font-size:9px;color:#22ddaa;font-family:monospace;font-weight:bold;">합성 '+_sInfo+'</div>'+
       '<button id="mod-synth-do" style="background:'+ (_modSelected.length===3?'#081a18':'#060810') +';border:1px solid '+ (_modSelected.length===3?'#22ddaa':'#1a2a3a') +';color:'+ (_modSelected.length===3?'#22ddaa':'#334455') +';font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;font-weight:bold;">확인</button>'+
       '<button id="mod-mode-cancel" style="background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;">취소</button>';
   } else {
