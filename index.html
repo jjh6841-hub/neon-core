@@ -2397,7 +2397,7 @@ var UPGRADES = [
   },
   { key:'enhCritMult', tab:'atk', icon:'×!!', name:'강화 치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
     cost()   { return upgCost('enhCritMult',15); },
-    stat()   { return (G.enhCritMult||0) > 0 ? (G.enhCritMult).toFixed(1)+'x' : '-'; },
+    stat()   { var m=G.enhCritMult||0; return m>0?m.toFixed(1)+'x':'1.5x'; },
     canBuy() { return coreChips>=upgCost('enhCritMult',15); },
     apply()  { var c=upgCost('enhCritMult',15); coreChips-=c; G.upgLvl.enhCritMult=(G.upgLvl.enhCritMult||0)+1; G.enhCritMult=(G.enhCritMult||1.5)+0.1; },
   },
@@ -5774,6 +5774,7 @@ if (dailyPopup) {
     if (tab === 'atk') {
       var atkUnlocks = PERM.ws_atk_unlocks || 0; // 해금된 최대 그룹 번호
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'atk'; });
+      keys.sort(function(a,b){ return (WS_ITEMS[a].atkGroup||0)-(WS_ITEMS[b].atkGroup||0); });
 
       // 해금된 아이템 표시
       keys.forEach(function(key) {
