@@ -3010,8 +3010,7 @@ function startGame() {
   isPaused = false;
   var _pov = document.getElementById('pause-overlay');
   if (_pov) _pov.style.display = 'none';
-  try { var _wg=parseInt(localStorage.getItem('wk_games_progress')||'0',10); localStorage.setItem('wk_games_progress',_wg+1); } catch(_){}
-  try { var _dg=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',_dg+1); } catch(_){}
+  // 게임 횟수는 triggerGameOver에서 _missionProgress('play')로 카운트
   const _sb = document.getElementById('speed-btn');
   if (_sb) _sb.textContent = G.speed + '×';
   var _sd = document.getElementById('speed-display');
@@ -4936,6 +4935,8 @@ function doUpgrade(key) {
   AudioManager.playSfx('upgrade');
   PERM.upgradeCount++;
   try { var _su=parseInt(localStorage.getItem('stat_upgrades')||'0',10); localStorage.setItem('stat_upgrades',_su+1); } catch(_){}
+  // 임무 진행: 강화 업그레이드
+  if (window._missionProgress) window._missionProgress('upgrade', 1);
   checkAchievements();
   syncUI();
 }
@@ -6136,6 +6137,8 @@ if (dailyPopup) {
     savePerm();
     flashCard(card, '#00ffff');
     syncWorkshopHUD();
+    // 임무 진행: 강화 업그레이드
+    if (window._missionProgress) window._missionProgress('upgrade', 1);
     setTimeout(function() { buildWorkshopContent(wsActiveTab); }, 220);
   }
 
@@ -9069,8 +9072,8 @@ window._missionProgress = function(type, amount) {
     if(type==='kill')    { var v=parseInt(localStorage.getItem('daily_kills_progress')||'0',10); localStorage.setItem('daily_kills_progress',v+(amount||1)); }
     if(type==='boss')    { var v=parseInt(localStorage.getItem('daily_boss_progress')||'0',10); localStorage.setItem('daily_boss_progress',v+(amount||1)); }
     if(type==='wave')    { var cur=parseInt(localStorage.getItem('daily_wave_progress')||'0',10); if((amount||1)>cur) localStorage.setItem('daily_wave_progress',amount||1); var tw=parseInt(localStorage.getItem('daily_total_wave_progress')||'0',10); localStorage.setItem('daily_total_wave_progress',tw+1); }
-    if(type==='upgrade') { var v=parseInt(localStorage.getItem('daily_upgrade_progress')||'0',10); localStorage.setItem('daily_upgrade_progress',v+(amount||1)); }
-    if(type==='play')    { var v=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',v+(amount||1)); }
+    if(type==='upgrade') { var v=parseInt(localStorage.getItem('daily_upgrade_progress')||'0',10); localStorage.setItem('daily_upgrade_progress',v+(amount||1)); var wu=parseInt(localStorage.getItem('wk_upgrade_progress')||'0',10); localStorage.setItem('wk_upgrade_progress',wu+(amount||1)); }
+    if(type==='play')    { var v=parseInt(localStorage.getItem('daily_games_progress')||'0',10); localStorage.setItem('daily_games_progress',v+(amount||1)); var wg=parseInt(localStorage.getItem('wk_games_progress')||'0',10); localStorage.setItem('wk_games_progress',wg+(amount||1)); }
     if(type==='ad')      {
       localStorage.setItem('daily_ad_progress','1');
       var wa=parseInt(localStorage.getItem('wk_ads_progress')||'0',10);
