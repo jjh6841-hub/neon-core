@@ -17463,11 +17463,12 @@ function _renderModuleContent() {
         (function(idx, cost) {
           slot.addEventListener('click', function() {
             var condInfo = MOD_SLOT_COND[idx];
+            var hasGems = (PERM.gems||0) >= cost;
             var desc = condInfo
-              ? '조건: '+condInfo.name+' 클리어\n또는 보석 ❖'+cost+'으로 즉시 해금'
+              ? '[ 해금 조건 ]\n'+condInfo.name+' 클리어\n\n[ 즉시 해금 ]\n보석 ❖'+cost+' 사용'+(hasGems?'':'\n(보유: ❖'+(PERM.gems||0)+' — 부족)')
               : '보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?';
-            if ((PERM.gems||0) < cost) {
-              if(window._showSlotConfirm) _showSlotConfirm('모듈 슬롯 해금','보석이 부족합니다\n보유: ❖'+(PERM.gems||0)+' / 필요: ❖'+cost, null);
+            if (!hasGems) {
+              if(window._showSlotConfirm) _showSlotConfirm('모듈 슬롯 해금', desc, null);
               return;
             }
             if(window._showSlotConfirm) _showSlotConfirm('모듈 슬롯 해금', desc, function(){
