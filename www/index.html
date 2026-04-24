@@ -2326,7 +2326,7 @@ var UPGRADES = [
     cost()   { return upgCost('rng',6); },
     stat()   { return 'Lv.'+G.rangeLevel; },
     canBuy() { return coreChips>=upgCost('rng',6); },
-    apply()  { var c=upgCost('rng',6); coreChips-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=30; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
+    apply()  { var c=upgCost('rng',6); coreChips-=c; G.upgLvl.rng=(G.upgLvl.rng||0)+1; G.tower.range+=8; G.rangeLevel++; G.targetZoom=getTargetZoom(); },
   },
   { key:'dmgPerMeter', tab:'atk', icon:'↗', name:'거리<br>피해', baseCost:8, unlock:'rng', maxLv:30,
     cost()   { return upgCost('dmgPerMeter',8); },
@@ -2354,9 +2354,9 @@ var UPGRADES = [
   },
   { key:'rapidDuration', tab:'atk', icon:'T', name:'연사<br>지속', baseCost:50, unlock:'rapidChance', maxLvl:100,
     cost()   { return 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
-    stat()   { return ((G.upgLvl.rapidDuration||0)*0.05).toFixed(2)+'s'; },
+    stat()   { return ((G.upgLvl.rapidDuration||0)*0.1).toFixed(1)+'s'; },
     canBuy() { return (G.upgLvl.rapidDuration||0) < 100 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=Math.min(5,(G.upgLvl.rapidDuration||0)*0.05); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=Math.min(5,(G.upgLvl.rapidDuration||0)*0.1); },
   },
   { key:'bounceChance', tab:'atk', icon:'B', name:'도약탄<br>확률', baseCost:50, unlock:'bounceChance', maxLvl:140,
     cost()   { return 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
@@ -5647,8 +5647,8 @@ if (dailyPopup) {
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
     critMult:   { tab:'atk', name:'치명타 계수', maxLv:5, atkGroup:1,
       cost: function(lv) { return 15 + lv * 12; },
-      cur:  function(lv) { return (1.5 + lv * 0.25).toFixed(2); },
-      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.25).toFixed(2); } },
+      cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(2); },
+      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1).toFixed(2); } },
     maxHp:      { tab:'def', name:'최대 체력',   maxLv:999, defGroup:0,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 5); },
@@ -10312,7 +10312,7 @@ function _patchApplyPermStats() {
     // §7 치명타 — fireTower가 참조하는 G.critChance / G.critMult 에도 반영
     t.critChance = Math.min(0.9, (ws.critChance || 0) * 0.005);      // 0.5%/lv
     G.critChance = Math.min(0.9, (G.critChance || 0) + t.critChance);
-    t.critMult   = 1.5 + (ws.critMult || 0) * 0.05;                  // +5%/lv (was +25%)
+    t.critMult   = 1.5 + (ws.critMult || 0) * 0.1;                   // +0.1/lv
     G.critMult   = t.critMult;
     // §7 방어/재생/골드
     t.defense  = Math.min(0.9, (ws.defense  || 0) * 0.02);           // 2%/lv, 90% 캡
