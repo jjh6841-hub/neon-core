@@ -12184,6 +12184,17 @@ function _showStatsPopup() {
   // 전부 터졌을 때 최대 치명타 피해
   var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1));
 
+  // ── 최종 공격속도 계산 ──
+  var _baseSpdMult=1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05;
+  var _rSpdLv=parseInt(localStorage.getItem('res_r_spd')||'0',10);
+  var _rSpdMult=_rSpdLv>0?1+_rSpdLv*0.02:1;
+  var _prismSpdVal=_prismB.atkSpd||0;
+  var _totalSpdMult=_baseSpdMult+_prismSpdVal;
+  var _finalSpdMult=_totalSpdMult*_rSpdMult;
+  var _baseAtkMs=window.BASE_ATKMS||1200;
+  var _finalAtkMs=Math.max(200,Math.round(_baseAtkMs/_finalSpdMult));
+  var _atkPerSec=(1000/_finalAtkMs).toFixed(2);
+
   var h='';
   // ── 최종 스탯 (클릭 가능) ──
   h+=_section('최종 전투 능력치 <span style="font-size:8px;color:#445566;">(터치 시 상세)</span>','#f59e0b');
@@ -12191,9 +12202,10 @@ function _showStatsPopup() {
   h+=_clickRow('최종 공격력',_fn(allDmg),'#ef4444','detail-atk');
   h+=_clickRow('최종 체력',_fn(allHp),'#10b981','detail-hp');
   h+=_clickRow('최종 절대 방어',_fn(allDefAbs),'#3b82f6','detail-def');
+  h+=_clickRow('최종 공격속도',_atkPerSec+'/s ('+_finalAtkMs+'ms)','#f59e0b','detail-spd');
   h+=_row('방어율 (회피)',evadeRate.toFixed(1)+'%','#3b82f6');
   h+=_clickRow('최대 치명타 피해',_fn(maxCritDmg),'#cc44ff','detail-crit');
-  h+=_row('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff');
+  h+=_clickRow('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff','detail-ncrit');
   h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult.toFixed(2):'미장착','#a855f7');
   h+=_row('③ 모듈 치명타',modCritChance>0?modCritChance.toFixed(1)+'% / ×'+(modCritMult||0).toFixed(2):'미장착','#22ddaa');
   h+=_row('④ 모듈Lv 치명타 확률',modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'-','#00ccaa');
@@ -12378,6 +12390,51 @@ function _showStatsPopup() {
         ['모듈 Lv 절대 방어', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
         ['─────────',''],
         ['최종 절대 방어', _fn(allDefAbs)]
+      ]
+    },
+    'detail-ncrit': {
+      title:'일반 치명타 확률 상세',color:'#cc44ff',
+      rows:(function(){
+        var _wsCrit=(ws.critChance||0);
+        var _wsCritPct=_wsCrit*0.5;
+        var _prismCritRate=_prismB.critRate||0;
+        var _rCritLv=parseInt(localStorage.getItem('res_r_crit')||'0',10);
+        var _rCritPct=_rCritLv*0.5;
+        var _totalCritPct=_wsCritPct+_prismCritRate+_rCritPct;
+        var r=[];
+        r.push(['[ 확률 ]','']);
+        r.push(['강화소 치명타 확률',_wsCrit>0?'Lv.'+_wsCrit+' (+'+_wsCritPct.toFixed(1)+'%)':'-']);
+        r.push(['프리즘 약점 분석',_prismCritRate>0?'+'+_prismCritRate.toFixed(1)+'%':'-']);
+        r.push(['코어랩 치명타 연구',_rCritLv>0?'Lv.'+_rCritLv+' (+'+_rCritPct.toFixed(1)+'%)':'-']);
+        r.push(['─────────','']);
+        r.push(['합산 치명타 확률',_totalCritPct.toFixed(1)+'%']);
+        r.push(['','']);
+        r.push(['[ 배율 ]','']);
+        r.push(['기본 배율','×1.50']);
+        r.push(['강화소 치명타 계수',(ws.critMult||0)>0?'+'+(ws.critMult||0)+'단계 (+'+((ws.critMult||0)*0.1).toFixed(1)+')':'-']);
+        r.push(['프리즘 급소배율',(_prismB.critDmg||0)>0?'+'+_prismB.critDmg+'x':'-']);
+        r.push(['─────────','']);
+        r.push(['최종 배율','×'+normalCritMult.toFixed(2)]);
+        return r;
+      })()
+    },
+    'detail-spd': {
+      title:'공격속도 상세',color:'#f59e0b',
+      rows:[
+        ['기본 발사 간격', _baseAtkMs+'ms'],
+        ['─────────',''],
+        ['강화소 영구 (spdLv)', (PERM.spdLv||0)>0?'Lv.'+(PERM.spdLv||0)+' (+'+((PERM.spdLv||0)*0.05).toFixed(2)+')':'-'],
+        ['강화소 일시 (atkspd)', (ws.atkspd||0)>0?'Lv.'+(ws.atkspd||0)+' (+'+((ws.atkspd||0)*0.05).toFixed(2)+')':'-'],
+        ['= 기본 배율', '×'+_baseSpdMult.toFixed(2)],
+        ['',''],
+        ['코어랩 속도 연구', _rSpdLv>0?'Lv.'+_rSpdLv+' (×'+_rSpdMult.toFixed(2)+')':'-'],
+        ['프리즘 레이저가속', _prismSpdVal>0?'+'+_prismSpdVal.toFixed(2):'-'],
+        ['= 최종 속도 배율', '×'+_finalSpdMult.toFixed(2)],
+        ['─────────',''],
+        ['최종 발사 간격', _finalAtkMs+'ms'],
+        ['초당 공격 횟수', _atkPerSec+'/s'],
+        ['',''],
+        ['※ 최소 간격 200ms (5.00/s)','']
       ]
     },
     'detail-crit': {
@@ -15289,143 +15346,6 @@ _injectLabScreen();
 }());
 </script>
 
-<!-- ══════════════════════════════════════════════════════
-     연구소 (데이터 셀 → 영구 패시브)
-══════════════════════════════════════════════════════ -->
-<script>
-(function(){
-
-var RESEARCH = [
-  { id:'res_base_dmg',  name:'레이저 출력 강화',   desc:'기본 공격력 영구 +2%',       maxLv:50, cost:function(lv){return 30+lv*8;},   effect:function(lv){return lv*0.02;}, cat:'공격', unit:'%' },
-  { id:'res_base_hp',   name:'코어 장갑 강화',     desc:'최대 HP 영구 +3%',           maxLv:50, cost:function(lv){return 30+lv*8;},   effect:function(lv){return lv*0.03;}, cat:'방어', unit:'%' },
-  { id:'res_gold_bonus',name:'골드 회수율 향상',   desc:'골드 획득량 영구 +2%',       maxLv:50, cost:function(lv){return 40+lv*10;},  effect:function(lv){return lv*0.02;}, cat:'유틸', unit:'%' },
-  { id:'res_crit_rate', name:'정밀 타격 연구',     desc:'치명타 확률 영구 +0.5%',     maxLv:20, cost:function(lv){return 50+lv*15;},  effect:function(lv){return lv*0.005;},cat:'공격', unit:'%' },
-  { id:'res_regen',     name:'자가 수복 프로토콜', desc:'HP 재생 영구 +0.1/s',        maxLv:30, cost:function(lv){return 40+lv*12;},  effect:function(lv){return lv*0.1;},  cat:'방어', unit:'/s' },
-  { id:'res_start_gold',name:'선행 자원 배분',     desc:'게임 시작 골드 +50',          maxLv:20, cost:function(lv){return 60+lv*20;},  effect:function(lv){return lv*50;},   cat:'유틸', unit:'' },
-  { id:'res_absorb',   name:'에너지 순환 연구',   desc:'에너지 흡수율 영구 +0.2%',    maxLv:10, cost:function(lv){return 80+lv*30;},  effect:function(lv){return lv*0.002;}, cat:'방어', unit:'%' },
-  { id:'res_start_chips',name:'선행 보급 연구',     desc:'전투 시작 코어 칩 +5',        maxLv:10, cost:function(lv){return 50+lv*20;},  effect:function(lv){return lv*5;},     cat:'유틸', unit:'' },
-];
-
-function _getResLv(id){ return parseInt(localStorage.getItem('res_'+id)||'0',10); }
-function _getResGold(){ return (window.PERM && PERM.gold) || 0; }
-
-/* ── HTML 삽입 ── */
-function _injectScreen() {
-  if(document.getElementById('screen-research')) return;
-  var sc=document.createElement('div');
-  sc.id='screen-research';
-  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:\"Courier New\",monospace;';
-  sc.innerHTML=
-    '<div style="display:flex;align-items:center;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
-      '<button id="res-back" style="background:none;border:none;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
-      '<span style="margin:0 auto;font-size:13px;letter-spacing:2px;color:#00ff88;">코어랩</span>'+
-      '<span style="font-size:11px;color:#f59e0b;">◈ <span id="research-gold">0</span></span>'+
-    '</div>'+
-    '<div style="padding:14px;">'+
-      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">골드를 소모하여 영구 능력치를 강화합니다.<br>효과는 모든 게임에 적용됩니다.</div>'+
-      '<div id="research-list"></div>'+
-    '</div>';
-  document.body.appendChild(sc);
-  document.getElementById('res-back').addEventListener('click',function(){
-    sc.style.display='none';
-    var home=document.getElementById('screen-home');
-    if(home) home.style.display='flex';
-  });
-}
-
-/* ── 렌더링 ── */
-function renderResearch() {
-  _injectScreen();
-  var list=document.getElementById('research-list');
-  if(!list) return;
-  var gold=_getResGold();
-  var goldEl=document.getElementById('research-gold');
-  if(goldEl) goldEl.textContent=gold;
-  list.innerHTML='';
-  RESEARCH.forEach(function(item){
-    var lv=_getResLv(item.id);
-    var maxed=lv>=item.maxLv;
-    var cost=maxed?0:item.cost(lv);
-    var canAfford=gold>=cost;
-    var effVal=item.effect(lv);
-    var effStr=item.unit==='%'?'+'+(effVal*100).toFixed(1).replace(/\.0$/,'')+'%'
-              :item.unit==='/s'?'+'+effVal.toFixed(1)+'/s'
-              :'+'+effVal;
-    var card=document.createElement('div');
-    card.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;';
-    card.innerHTML=
-      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
-        '<span style="font-size:12px;color:#00ff88;font-weight:bold;">'+item.name+'</span>'+
-        '<span style="font-size:10px;color:#445566;">'+lv+' / '+item.maxLv+'</span>'+
-      '</div>'+
-      '<div style="font-size:10px;color:#556677;margin-bottom:8px;">'+item.desc+'</div>'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;">'+
-        '<span style="font-size:11px;color:#00ff88;">현재 효과: '+effStr+'</span>'+
-        (maxed
-          ?'<span style="color:#334455;font-size:11px;">MAX</span>'
-          :'<button data-res-buy="'+item.id+'" style="background:'+(canAfford?'#f59e0b':'#1a2a3a')+';color:'+(canAfford?'#0a0500':'#334455')+';border:none;border-radius:6px;padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">◈ '+cost+'</button>')+
-      '</div>';
-    var btn=card.querySelector('[data-res-buy]');
-    if(btn)(function(rid){
-      btn.addEventListener('click',function(){
-        var curGold=_getResGold();
-        var curLv=_getResLv(rid);
-        var it=RESEARCH.filter(function(r){return r.id===rid;})[0];
-        if(!it||curLv>=it.maxLv) return;
-        var c=it.cost(curLv);
-        if(curGold<c) return;
-        PERM.gold-=c; try{savePerm();}catch(_){}
-        localStorage.setItem('res_'+rid, curLv+1);
-        localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1);
-        renderResearch();
-        if(window.showToastMsg) showToastMsg(it.name+' Lv.'+(curLv+1)+'!');
-      });
-    })(item.id);
-    list.appendChild(card);
-  });
-}
-window.renderResearch=renderResearch;
-
-/* ── 연구소 버튼 클릭 → 화면 열기 ── */
-function _openResearch() {
-  // 홈/워크샵/스토어 숨기기
-  ['screen-home','screen-workshop','screen-store'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.style.display='none';
-  });
-  renderResearch();
-  document.getElementById('screen-research').style.display='flex';
-}
-// 연구소 nav 버튼에 클릭 바인딩
-['h-nav-lab','ws-nav-lab','st-nav-lab'].forEach(function(id){
-  var btn=document.getElementById(id);
-  if(btn) btn.addEventListener('click',function(){
-    if(btn.getAttribute('data-locked')==='true') return;
-    _openResearch();
-  });
-});
-
-/* ── 게임 시작 시 연구 효과 적용 ── */
-var _origApply=window.applyPermStats;
-if(typeof _origApply==='function'){
-  window.applyPermStats=function(){
-    _origApply.apply(this,arguments);
-    if(!window.G||!G.tower) return;
-    var t=G.tower;
-    var dmgLv=_getResLv('res_base_dmg');   if(dmgLv>0) t.dmg=Math.round(t.dmg*(1+dmgLv*0.02));
-    var hpLv=_getResLv('res_base_hp');     if(hpLv>0){ t.maxHp=Math.round(t.maxHp*(1+hpLv*0.03)); t.hp=t.maxHp; }
-    var critLv=_getResLv('res_crit_rate'); if(critLv>0) t.critChance=Math.min(0.9,(t.critChance||0)+critLv*0.005);
-    var regenLv=_getResLv('res_regen');    if(regenLv>0) G.regenRate=(G.regenRate||0)+regenLv*0.1;
-    var defResLv=_getResLv('res_r_defense');if(defResLv>0) G.defenseAbs=Math.round((G.defenseAbs||0)*(1+defResLv*0.02));
-    var goldLv=_getResLv('res_gold_bonus');if(goldLv>0) G.goldBonus=(G.goldBonus||1)*(1+goldLv*0.02);
-    var startLv=_getResLv('res_start_gold');if(startLv>0){ G.gold+=startLv*50; }
-    var chipLv=_getResLv('res_start_chips');if(chipLv>0){ window.baseStartChips=chipLv*5; window.coreChips=window.baseStartChips; }
-    var absorbLv=_getResLv('res_absorb');if(absorbLv>0){ localStorage.setItem('res_absorb_bonus',(absorbLv*0.002).toFixed(4)); }
-  };
-}
-
-_injectScreen();
-}());
-</script>
 
 <!-- ══════════════════════════════════════════════════════
      에너지 흡수(피해량 기반 %) + 치명타 통계
@@ -15461,7 +15381,7 @@ function _getAbsorbRate() {
   var ws = (window.PERM && PERM.ws) || {};
   var baseRate = (ws.energyAbsorb || 0) * 0.001; // 강화: 레벨 × 0.1%, 최대 10%
   var labBonus = parseFloat(localStorage.getItem('lab_absorb_bonus') || '0');   // 랩: 한 판 +3%
-  var resBonus = parseFloat(localStorage.getItem('res_absorb_bonus') || '0');   // 연구소: 영구
+  var resBonus = 0;
   var shopBonus = parseFloat(localStorage.getItem('shop_absorb_bonus') || '0'); // 스토어: 영구
   var cardBonus = parseFloat(localStorage.getItem('card_absorb_bonus') || '0'); // 카드: 영구
   return Math.min(baseRate + labBonus + resBonus + shopBonus + cardBonus, 0.20);
