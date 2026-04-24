@@ -2320,7 +2320,7 @@ var UPGRADES = [
     cost()   { return upgCost('crit',8); },
     stat()   { return (G.critChance*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('crit',8); },
-    apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.005); },
+    apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(1.0,G.critChance+0.005); },
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'공격범위',  baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
@@ -5641,7 +5641,7 @@ if (dailyPopup) {
       cost: function(lv) { return 5 + lv * 4; },
       cur:  function(lv) { return 'x' + (1 + lv * 0.05).toFixed(2); },
       nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.05).toFixed(2); } },
-    critChance: { tab:'atk', name:'치명타 확률', maxLv:10, atkGroup:1,
+    critChance: { tab:'atk', name:'치명타 확률', maxLv:100, atkGroup:1,
       cost: function(lv) { return 8 + lv * 5; },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
@@ -7516,7 +7516,7 @@ var RESEARCH_LIST = {
   attack: [
     { id:'r_damage',     name:'공격력 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:99 },
     { id:'r_spd',        name:'속도 연구',     desc:'공격속도 향상',            time:12600, cost:5000,  maxLv:99 },
-    { id:'r_crit',       name:'치명타 연구',   desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:50 },
+    { id:'r_crit',       name:'치명타 연구',   desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:70 },
     { id:'r_multishot',  name:'분열탄 연구',   desc:'분열탄 효과 향상',         time:21600, cost:11000, maxLv:30 },
     { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:30 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
@@ -9957,7 +9957,7 @@ setTimeout(function() {
 var NEW_MAX = {
   damage:    99,
   atkspd:    50,
-  critChance:30,
+  critChance:100,
   critMult:  30,
   maxHp:     99,
   defense:   50,
@@ -10310,8 +10310,8 @@ function _patchApplyPermStats() {
     t.hp    = t.maxHp;
     t.range = BASE_RANGE + (p.rngLv || 0) * 30 + (ws.wsRange || 0) * 8;
     // §7 치명타 — fireTower가 참조하는 G.critChance / G.critMult 에도 반영
-    t.critChance = Math.min(0.9, (ws.critChance || 0) * 0.005);      // 0.5%/lv
-    G.critChance = Math.min(0.9, (G.critChance || 0) + t.critChance);
+    t.critChance = Math.min(1.0, (ws.critChance || 0) * 0.005);      // 0.5%/lv, 최대 100Lv=50%
+    G.critChance = Math.min(1.0, (G.critChance || 0) + t.critChance);
     t.critMult   = 1.5 + (ws.critMult || 0) * 0.1;                   // +0.1/lv
     G.critMult   = t.critMult;
     // §7 방어/재생/골드 (키를 WS_ITEMS와 일치시킴)
@@ -12169,7 +12169,8 @@ function _showStatsPopup() {
   // 1. 일반 치명타
   var baseCritMult=1.5+(ws.critMult||0)*0.1;
   var normalCritMult=baseCritMult+(_prismB.critDmg||0);
-  var normalCritChance=(ws.critChance||0)*0.5+_prismB.critRate;
+  var _statRCritLv=parseInt(localStorage.getItem('res_r_crit')||'0',10);
+  var normalCritChance=Math.min(100,(ws.critChance||0)*0.5+_prismB.critRate+_statRCritLv*0.5);
   // 2. 강화 치명타 (강화소 + 프리즘 합연산)
   var wsEnhCritChance=(ws.enhCritChance||0)*0.5; // 강화소: 레벨당 0.5%
   var wsEnhCritMult=(ws.enhCritMult||0)>0?1.5+(ws.enhCritMult||0)*0.1:0; // 강화소: 기본 1.5x + 레벨당 0.1
@@ -12403,11 +12404,11 @@ function _showStatsPopup() {
         var _totalCritPct=_wsCritPct+_prismCritRate+_rCritPct;
         var r=[];
         r.push(['[ 확률 ]','']);
-        r.push(['강화소 치명타 확률',_wsCrit>0?'Lv.'+_wsCrit+' (+'+_wsCritPct.toFixed(1)+'%)':'-']);
-        r.push(['프리즘 약점 분석',_prismCritRate>0?'+'+_prismCritRate.toFixed(1)+'%':'-']);
-        r.push(['코어랩 치명타 연구',_rCritLv>0?'Lv.'+_rCritLv+' (+'+_rCritPct.toFixed(1)+'%)':'-']);
+        r.push(['강화소 치명타 확률',_wsCrit>0?'Lv.'+_wsCrit+'/100 (+'+_wsCritPct.toFixed(1)+'% / 최대 50%)':'-']);
+        r.push(['프리즘 약점 분석',_prismCritRate>0?'+'+_prismCritRate.toFixed(1)+'% (최대 15%)':'-']);
+        r.push(['코어랩 치명타 연구',_rCritLv>0?'Lv.'+_rCritLv+'/70 (+'+_rCritPct.toFixed(1)+'% / 최대 35%)':'-']);
         r.push(['─────────','']);
-        r.push(['합산 치명타 확률',_totalCritPct.toFixed(1)+'%']);
+        r.push(['합산 치명타 확률',Math.min(_totalCritPct,100).toFixed(1)+'% (최대 100%)']);
         r.push(['','']);
         r.push(['[ 배율 ]','']);
         r.push(['기본 배율','×1.50']);
@@ -16770,7 +16771,7 @@ if (typeof _prevApplyElem === 'function') {
     G.tower.hp      = G.tower.maxHp;
     G.defenseAbs = Math.round((G.defenseAbs||0) * m.def);
     G.critMult      = (G.critMult||1.5) * m.critDmg;
-    G.tower.critChance = Math.min(0.9, (G.tower.critChance||0) + m.critRate);
+    G.tower.critChance = Math.min(1.0, (G.tower.critChance||0) + m.critRate);
   };
 }
 
@@ -16938,7 +16939,7 @@ if (typeof _prevApply === 'function') {
       if (a.id === 'aug_hp')  { t.maxHp = Math.round(t.maxHp * 1.5); t.hp = t.maxHp; }
       if (a.id === 'aug_chips') G._augChipMult = true;
       if (a.id === 'aug_regen') G._augRegenPct = 0.03;
-      if (a.id === 'aug_crit')  t.critChance = Math.min(0.9, (t.critChance || 0) + 0.05);
+      if (a.id === 'aug_crit')  t.critChance = Math.min(1.0, (t.critChance || 0) + 0.05);
       if (a.id === 'aug_start' && typeof coreChips !== 'undefined') coreChips += 300;
     });
     _pendingAugs = [];
