@@ -17067,24 +17067,33 @@ function _renderModuleContent() {
   var wrap = document.createElement('div');
   wrap.style.cssText = 'padding:8px;font-family:Courier New,monospace;display:flex;flex-direction:column;height:100%;';
 
-  // ── 탐사선 + 슬롯 영역 (컴팩트) ──
+  // ── 탐사선 + 슬롯 영역 (가로형) ──
   var SLOT_PARTS = [
-    { id:0, name:'\ubb34\uae30',   x:50, y:2,   filter:'mod_atk',  partColor:'#ef4444' },
-    { id:1, name:'\uc13c\uc11c',   x:82, y:22,  filter:'mod_crit', partColor:'#cc44ff' },
-    { id:2, name:'\uc2e4\ub4dc',   x:18, y:22,  filter:'mod_def',  partColor:'#3b82f6' },
-    { id:3, name:'\ub9ac\uc561\ud130', x:82, y:55,  filter:'mod_hp',   partColor:'#10b981' },
-    { id:4, name:'\uc5d4\uc9c4',   x:18, y:55,  filter:'mod_cdmg', partColor:'#f59e0b' },
-    { id:5, name:'\ud654\ubb3c',   x:50, y:76,  filter:'mod_gold', partColor:'#ffc800' },
+    { id:0, name:'무기',   row:0, col:0, filter:'mod_atk',  partColor:'#ef4444' },
+    { id:1, name:'센서',   row:0, col:1, filter:'mod_crit', partColor:'#cc44ff' },
+    { id:2, name:'실드',   row:0, col:2, filter:'mod_def',  partColor:'#3b82f6' },
+    { id:3, name:'리액터', row:1, col:0, filter:'mod_hp',   partColor:'#10b981' },
+    { id:4, name:'엔진',   row:1, col:1, filter:'mod_cdmg', partColor:'#f59e0b' },
+    { id:5, name:'화물',   row:1, col:2, filter:'mod_gold', partColor:'#ffc800' },
   ];
 
   var shipArea = document.createElement('div');
-  shipArea.style.cssText = 'position:relative;width:100%;max-width:280px;margin:0 auto 6px;height:155px;flex-shrink:0;';
+  shipArea.style.cssText = 'position:relative;width:100%;margin:0 auto 6px;flex-shrink:0;';
 
-  // SVG ship (centered, compact)
-  shipArea.innerHTML = '<svg viewBox="0 0 200 280" width="60" height="110" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.15;">' +
-    '<path d="M100,20 L125,55 L135,120 L130,180 L145,215 L135,255 L100,265 L65,255 L55,215 L70,180 L65,120 L75,55 Z" fill="none" stroke="#00ffff" stroke-width="2"/>' +
-    '<path d="M100,40 L115,65 L120,120 L115,170 L100,175 L85,170 L80,120 L85,65 Z" fill="none" stroke="#00ffff" stroke-width="1" opacity="0.4"/>' +
+  // 상단 슬롯 3개
+  var topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;justify-content:center;gap:6px;margin-bottom:4px;';
+  // 가로 우주선 SVG
+  var shipSvg = document.createElement('div');
+  shipSvg.style.cssText = 'display:flex;justify-content:center;align-items:center;height:24px;';
+  shipSvg.innerHTML = '<svg viewBox="0 0 280 60" width="200" height="20" style="opacity:0.15;">' +
+    '<path d="M20,30 L55,10 L120,5 L180,8 L215,15 L255,10 L265,30 L255,50 L215,45 L180,52 L120,55 L55,50 Z" fill="none" stroke="#00ffff" stroke-width="1.5"/>' +
+    '<path d="M40,30 L65,18 L120,14 L170,16 L175,30 L170,44 L120,46 L65,42 Z" fill="none" stroke="#00ffff" stroke-width="0.8" opacity="0.4"/>' +
+    '<circle cx="110" cy="30" r="6" fill="none" stroke="#00ffff" stroke-width="0.6" opacity="0.3"/>' +
   '</svg>';
+  // 하단 슬롯 3개
+  var botRow = document.createElement('div');
+  botRow.style.cssText = 'display:flex;justify-content:center;gap:6px;margin-top:4px;';
 
   SLOT_PARTS.forEach(function(part) {
     var si = part.id;
@@ -17092,7 +17101,7 @@ function _renderModuleContent() {
     var equippedUid = slots[si];
     var equippedMod = equippedUid ? inv.filter(function(m){return m.uid===equippedUid;})[0] : null;
     var slot = document.createElement('div');
-    slot.style.cssText = 'position:absolute;left:'+part.x+'%;top:'+part.y+'%;transform:translateX(-50%);width:48px;height:48px;cursor:pointer;';
+    slot.style.cssText = 'width:48px;height:48px;cursor:pointer;flex-shrink:0;';
 
     if (isLocked) {
       var cond = MOD_SLOT_COND[si];
@@ -17167,8 +17176,12 @@ function _renderModuleContent() {
         slot.addEventListener('click', function() { _showSlotEquipPopup(idx); });
       })(si);
     }
-    shipArea.appendChild(slot);
+    if (part.row === 0) topRow.appendChild(slot);
+    else botRow.appendChild(slot);
   });
+  shipArea.appendChild(topRow);
+  shipArea.appendChild(shipSvg);
+  shipArea.appendChild(botRow);
   wrap.appendChild(shipArea);
 
   // ── 제조 레벨 (인라인) ──
@@ -17185,15 +17198,21 @@ function _renderModuleContent() {
   lvRow.addEventListener('click', function() { _showModLevelPopup(); });
 
   // ── 버튼 영역 (모드에 따라 변경) ──
+  var actionArea = document.createElement('div');
+  actionArea.style.cssText = 'margin-bottom:6px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;';
   var actionRow = document.createElement('div');
-  actionRow.style.cssText = 'display:flex;gap:4px;margin-bottom:6px;flex-shrink:0;';
+  actionRow.style.cssText = 'display:flex;gap:4px;';
   if (!_modMode) {
-    // 기본 모드
+    // 기본 모드: 2줄
+    var craftRow = document.createElement('div');
+    craftRow.style.cssText = 'display:flex;gap:4px;';
+    craftRow.innerHTML =
+      '<button id="mod-buy-1" style="flex:1;background:#0a1520;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:6px 2px;cursor:pointer;border-radius:4px;">1회 제조 <span style="color:#ff8822;">⊙'+MOD_BUY_COST+'</span></button>'+
+      '<button id="mod-buy-10" style="flex:1;background:#0a1520;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:9px;padding:6px 2px;cursor:pointer;border-radius:4px;">10회 제조 <span style="color:#ff8822;">⊙'+(MOD_BUY_COST*10)+'</span></button>';
     actionRow.innerHTML =
-      '<button id="mod-buy-1" style="flex:1;background:#0a1520;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">1회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+MOD_BUY_COST+'</span></button>'+
-      '<button id="mod-buy-10" style="flex:1;background:#0a1520;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;">10회 제조<br><span style="color:#ff8822;font-size:8px;">⊙'+(MOD_BUY_COST*10)+'</span></button>'+
-      '<button id="mod-synth-btn" style="flex:1;background:#081a18;border:1px solid #22ddaa;color:#22ddaa;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">합성</button>'+
-      '<button id="mod-decomp-btn" style="flex:1;background:#0a0808;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:7px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">분해</button>';
+      '<button id="mod-synth-btn" style="flex:1;background:#081a18;border:1px solid #22ddaa;color:#22ddaa;font-family:monospace;font-size:9px;padding:6px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">합성</button>'+
+      '<button id="mod-decomp-btn" style="flex:1;background:#0a0808;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:6px 2px;cursor:pointer;border-radius:4px;font-weight:bold;">분해</button>';
+    actionArea.appendChild(craftRow);
   } else if (_modMode === 'synth') {
     var _sInfo = _modSelected.length === 3 && _modSynthFilter.type
       ? '→ '+_fullTierName(_modSynthFilter.sub<2?_modSynthFilter.tier:_modSynthFilter.tier+1, _modSynthFilter.sub<2?_modSynthFilter.sub+1:0)
@@ -17210,7 +17229,8 @@ function _renderModuleContent() {
       '<button id="mod-decomp-do" style="background:'+ (_modSelected.length>0?'#1a0808':'#060810') +';border:1px solid '+ (_modSelected.length>0?'#ef4444':'#1a2a3a') +';color:'+ (_modSelected.length>0?'#ef4444':'#334455') +';font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;font-weight:bold;">확인</button>'+
       '<button id="mod-mode-cancel" style="background:#030b10;border:1px solid #334455;color:#7aacac;font-family:monospace;font-size:9px;padding:7px 10px;cursor:pointer;border-radius:4px;">취소</button>';
   }
-  wrap.appendChild(actionRow);
+  actionArea.appendChild(actionRow);
+  wrap.appendChild(actionArea);
   setTimeout(function() {
     // 기본 모드 버튼
     var b1=document.getElementById('mod-buy-1'), b10=document.getElementById('mod-buy-10');
