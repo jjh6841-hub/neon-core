@@ -2389,13 +2389,13 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('enemyDefReduce',15); },
     apply()  { var c=upgCost('enemyDefReduce',15); coreChips-=c; G.upgLvl.enemyDefReduce=(G.upgLvl.enemyDefReduce||0)+1; G.enemyDefReduce=Math.min(74,(G.upgLvl.enemyDefReduce||0)); },
   },
-  { key:'enhCritChance', tab:'atk', icon:'!!', name:'강화 치명타<br>확률', baseCost:12, unlock:'enhCrit', maxLv:20,
+  { key:'enhCritChance', tab:'atk', icon:'!!', name:'강화치명타<br>확률', baseCost:12, unlock:'enhCrit', maxLv:20,
     cost()   { return upgCost('enhCritChance',12); },
     stat()   { return ((G.enhCritChance||0)*100).toFixed(1)+'%'; },
     canBuy() { return coreChips>=upgCost('enhCritChance',12); },
     apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.005); },
   },
-  { key:'enhCritMult', tab:'atk', icon:'×!!', name:'강화 치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
+  { key:'enhCritMult', tab:'atk', icon:'×!!', name:'강화치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
     cost()   { return upgCost('enhCritMult',15); },
     stat()   { var m=G.enhCritMult||0; return m>0?m.toFixed(1)+'x':'1.5x'; },
     canBuy() { return coreChips>=upgCost('enhCritMult',15); },
@@ -4675,9 +4675,11 @@ function buildCards() {
       btn.id        = 'upg-card-' + upg.key;
       btn.className = 'upg-card upgrade-btn';
       const statText = G ? upg.stat() : '-';
+      var _nameLines=upg.name.split('<br>');
+      var _longName=_nameLines.some(function(l){return l.replace(/<[^>]*>/g,'').length>4;});
       btn.innerHTML =
         '<span class="card-icon">'  + upg.icon + '</span>' +
-        '<span class="card-name">'  + upg.name + '</span>' +
+        '<span class="card-name"' + (_longName?' style="font-size:7px!important;"':'') + '>'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
         '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
       (function(_upg, _btn) {
