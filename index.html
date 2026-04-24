@@ -2320,7 +2320,7 @@ var UPGRADES = [
     cost()   { return upgCost('crit',8); },
     stat()   { return Math.round(G.critChance*100)+'%'; },
     canBuy() { return coreChips>=upgCost('crit',8); },
-    apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.08); },
+    apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(0.9,G.critChance+0.005); },
   },
   { key:'rng',     tab:'atk', icon:'(+)',  name:'공격<br>범위',  baseCost:6,  unlock:'rng',
     cost()   { return upgCost('rng',6); },
@@ -2386,7 +2386,7 @@ var UPGRADES = [
     cost()   { return upgCost('enhCritChance',12); },
     stat()   { return Math.round((G.enhCritChance||0)*100)+'%'; },
     canBuy() { return coreChips>=upgCost('enhCritChance',12); },
-    apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.03); },
+    apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.005); },
   },
   { key:'enhCritMult', tab:'atk', icon:'×!!', name:'강화 치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
     cost()   { return upgCost('enhCritMult',15); },
@@ -2837,7 +2837,7 @@ function applyPermStats() {
   G.defenseAbs = ws.defAbs || 0;                             // 절대 방어
   G.enemyDefReduce = (ws.enemyDefReduce || 0);               // 적 방어력 감소 (강화소 기본값)
   // 강화 치명타 (강화소 기본값, 프리즘과 합연산됨)
-  G.enhCritChance = (ws.enhCritChance || 0) * 0.02;          // 레벨당 2%
+  G.enhCritChance = (ws.enhCritChance || 0) * 0.005;         // 레벨당 0.5%
   G.enhCritMult   = (ws.enhCritMult || 0) > 0 ? 1.5 + (ws.enhCritMult || 0) * 0.1 : 0; // 레벨당 +0.1, 기본 1.5x
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
@@ -5687,8 +5687,8 @@ if (dailyPopup) {
       nxt:  function(lv) { return (lv + 1) + '%'; } },
     enhCritChance: { tab:'atk', name:'강화 치명타 확률', maxLv:20, atkGroup:7,
       cost: function(lv) { return 20 + lv * 10; },
-      cur:  function(lv) { return (lv * 2) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 2) + '%'; } },
+      cur:  function(lv) { return (lv * 0.5).toFixed(1) + '%'; },
+      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; } },
     enhCritMult:   { tab:'atk', name:'강화 치명타 계수', maxLv:10, atkGroup:7,
       cost: function(lv) { return 30 + lv * 15; },
       cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(1) + 'x'; },
@@ -10310,7 +10310,7 @@ function _patchApplyPermStats() {
     t.hp    = t.maxHp;
     t.range = BASE_RANGE + (p.rngLv || 0) * 30 + (ws.wsRange || 0) * 8;
     // §7 치명타 — fireTower가 참조하는 G.critChance / G.critMult 에도 반영
-    t.critChance = Math.min(0.9, (ws.critChance || 0) * 0.01);       // 1%/lv (was 5%)
+    t.critChance = Math.min(0.9, (ws.critChance || 0) * 0.005);      // 0.5%/lv
     G.critChance = Math.min(0.9, (G.critChance || 0) + t.critChance);
     t.critMult   = 1.5 + (ws.critMult || 0) * 0.05;                  // +5%/lv (was +25%)
     G.critMult   = t.critMult;
@@ -12173,7 +12173,7 @@ function _showStatsPopup() {
   var normalCritMult=baseCritMult+(_prismB.critDmg||0);
   var normalCritChance=(ws.critChance||0)*0.5+_prismB.critRate;
   // 2. 강화 치명타 (강화소 + 프리즘 합연산)
-  var wsEnhCritChance=(ws.enhCritChance||0)*2; // 강화소: 레벨당 2%
+  var wsEnhCritChance=(ws.enhCritChance||0)*0.5; // 강화소: 레벨당 0.5%
   var wsEnhCritMult=(ws.enhCritMult||0)>0?1.5+(ws.enhCritMult||0)*0.1:0; // 강화소: 기본 1.5x + 레벨당 0.1
   var enhCritChance=wsEnhCritChance+(_prismB.enhCritRate||0); // 합연산
   var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+(_prismB.enhCritMult-1.5):wsEnhCritMult||(_prismB.enhCritMult||0); // 합연산
@@ -15140,7 +15140,6 @@ var LAB_ITEMS = [
   { id:'lab_hp_boost',    name:'보조 장갑 장착',  desc:'이번 판 최대 HP +100%',     cost:3, effect:{type:'hp_mult',value:2.0} },
   { id:'lab_gold_boost',  name:'자원 스캐닝',     desc:'이번 판 골드 획득 +100%',   cost:2, effect:{type:'gold_mult',value:2.0} },
   { id:'lab_regen_boost', name:'나노 수복 유닛',  desc:'이번 판 HP 재생 +5/s',      cost:2, effect:{type:'regen_add',value:5} },
-  { id:'lab_crit_boost',  name:'정밀 조준 모드',  desc:'이번 판 치명타 확률 +10%',  cost:4, effect:{type:'crit_add',value:0.1} },
   { id:'lab_start_gold',  name:'선행 투자',       desc:'이번 판 시작 골드 +500',    cost:2, effect:{type:'start_gold',value:500} },
   { id:'lab_absorb_boost',name:'흡혈 증폭기',    desc:'이번 판 에너지 흡수율 +3%', cost:4, effect:{type:'absorb_add',value:0.03} },
 ];
@@ -15282,7 +15281,6 @@ if(typeof _origApplyLab==='function'){
       if(e.type==='hp_mult')  { t.maxHp=Math.round(t.maxHp*e.value); t.hp=t.maxHp; }
       if(e.type==='gold_mult')  G.goldBonus=(G.goldBonus||1)*e.value;
       if(e.type==='regen_add')  G.regenRate=(G.regenRate||0)+e.value;
-      if(e.type==='crit_add')   t.critChance=Math.min(0.9,(t.critChance||0)+e.value);
       if(e.type==='start_gold') coreChips+=e.value;
       if(e.type==='absorb_add') localStorage.setItem('lab_absorb_bonus',(parseFloat(localStorage.getItem('lab_absorb_bonus')||'0')+e.value).toFixed(3));
     });
