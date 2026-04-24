@@ -61,6 +61,23 @@ tr { cursor:pointer; }
 .log-filter { display:flex; gap:4px; margin:6px 0; }
 .log-filter button { background:#030b10; border:1px solid #0a3344; color:#556677; font-family:monospace; font-size:9px; padding:4px 8px; cursor:pointer; }
 .log-filter button.active { border-color:#00ffff; color:#00ffff; }
+
+/* 이상 감지 */
+#alert-section { margin-bottom:24px; }
+.alert-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ef4444; padding-bottom:8px; margin-bottom:10px; }
+.alert-header h2 { color:#ef4444; font-size:13px; letter-spacing:2px; }
+.alert-count { background:#ef4444; color:#030b10; font-size:10px; font-weight:bold; padding:2px 8px; border-radius:10px; }
+.alert-card { background:#1a0a0a; border:1px solid #3a1a1a; padding:10px 12px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.alert-card:hover { border-color:#ef4444; background:#2a0a0a; }
+.alert-level { font-size:9px; font-weight:bold; padding:2px 6px; border-radius:3px; flex-shrink:0; }
+.alert-high { background:#ef4444; color:#fff; }
+.alert-mid { background:#f59e0b; color:#030b10; }
+.alert-low { background:#3b82f6; color:#fff; }
+.alert-info { flex:1; }
+.alert-uid { color:#ef4444; font-size:10px; margin-bottom:2px; }
+.alert-desc { color:#94a3b8; font-size:10px; line-height:1.5; }
+.alert-detail { color:#556677; font-size:9px; margin-top:2px; }
+.alert-empty { color:#334455; font-size:11px; padding:16px 0; text-align:center; }
 </style>
 </head>
 <body>
@@ -83,6 +100,16 @@ tr { cursor:pointer; }
     <button id="refresh-btn">새로고침</button>
   </div>
   <div class="stats-bar" id="stats-bar"></div>
+
+  <!-- 이상 감지 -->
+  <div id="alert-section" style="display:none;">
+    <div class="alert-header">
+      <h2>⚠ 이상 감지</h2>
+      <span class="alert-count" id="alert-count">0</span>
+    </div>
+    <div id="alert-list"></div>
+  </div>
+
   <table>
     <thead>
       <tr>
@@ -502,12 +529,13 @@ document.getElementById('cp-create').addEventListener('click', async function(){
   loadCoupons();
 });
 
-// 로그인 성공 시 쿠폰+우편도 로드
+// 로그인 성공 시 쿠폰+우편+이상감지도 로드
 var _origLoadUsers = loadUsers;
 loadUsers = async function() {
   await _origLoadUsers();
   loadCoupons();
   loadMails();
+  runAnomalyDetection();
 };
 
 // ── 우편 관리 ──
@@ -577,6 +605,151 @@ document.getElementById('mail-send').addEventListener('click', async function(){
   rwFields.forEach(function(k){ document.getElementById('mail-rw-'+k).value=''; });
   loadMails();
 });
+
+/* ═══════════════════════════════════════════════════
+   이상 감지 시스템
+═══════════════════════════════════════════════════ */
+function runAnomalyDetection() {
+  var alerts = [];
+
+  // 전체 유저 통계 계산 (평균/표준편차)
+  var goldArr=[], gemArr=[], waveArr=[];
+  allUsers.forEach(function(u){
+    var p=u.data.perm||{};
+    var tb=u.data.tierBest||{};
+    goldArr.push(p.gold||0);
+    gemArr.push(p.gems||0);
+    var mw=0;
+    for(var ti=1;ti<=5;ti++){var tv=tb['tier'+ti]||0;if(tv>mw)mw=tv;}
+    if((p.bestWave||0)>mw) mw=p.bestWave||0;
+    waveArr.push(mw);
+  });
+
+  var avgGold=avg(goldArr), sdGold=stdev(goldArr);
+  var avgGems=avg(gemArr), sdGems=stdev(gemArr);
+
+  allUsers.forEach(function(u, idx){
+    var p=u.data.perm||{};
+    var tb=u.data.tierBest||{};
+    var gold=p.gold||0, gems=p.gems||0;
+    var maxWave=waveArr[idx];
+    var logs=p.currencyLog||[];
+
+    // ① 재화 대비 진행도 이상 (웨이브 낮은데 재화 과다)
+    if (maxWave <= 5) {
+      if (gold > 500) alerts.push({uid:u.id, level:'high', user:u,
+        desc:'웨이브 '+maxWave+'인데 골드 '+gold.toLocaleString()+' 보유',
+        detail:'초반 유저 재화 과다 의심'});
+      if (gems > 30) alerts.push({uid:u.id, level:'high', user:u,
+        desc:'웨이브 '+maxWave+'인데 보석 '+gems.toLocaleString()+' 보유',
+        detail:'초반 유저 재화 과다 의심'});
+    }
+
+    // ② 통계적 이상치 (평균 + 3σ 초과)
+    if (sdGold > 0 && gold > avgGold + 3*sdGold && gold > 1000) {
+      alerts.push({uid:u.id, level:'mid', user:u,
+        desc:'골드 '+gold.toLocaleString()+' (평균 '+Math.round(avgGold).toLocaleString()+', 3σ='+Math.round(avgGold+3*sdGold).toLocaleString()+')',
+        detail:'전체 유저 대비 통계적 이상치'});
+    }
+    if (sdGems > 0 && gems > avgGems + 3*sdGems && gems > 50) {
+      alerts.push({uid:u.id, level:'mid', user:u,
+        desc:'보석 '+gems.toLocaleString()+' (평균 '+Math.round(avgGems).toLocaleString()+', 3σ='+Math.round(avgGems+3*sdGems).toLocaleString()+')',
+        detail:'전체 유저 대비 통계적 이상치'});
+    }
+
+    // ③ 음수 재화 (비정상)
+    if (gold < 0) alerts.push({uid:u.id, level:'high', user:u,
+      desc:'골드가 음수: '+gold, detail:'데이터 조작 또는 버그'});
+    if (gems < 0) alerts.push({uid:u.id, level:'high', user:u,
+      desc:'보석이 음수: '+gems, detail:'데이터 조작 또는 버그'});
+
+    // ④ 로그 기반 분석
+    if (logs.length > 0) {
+      // 단일 대량 획득 (한 번에 골드 10000 이상 또는 보석 100 이상)
+      logs.forEach(function(log){
+        if (log.t==='gold' && log.a >= 10000) {
+          alerts.push({uid:u.id, level:'mid', user:u,
+            desc:'골드 +'+log.a.toLocaleString()+' 단일 획득 ('+log.r+')',
+            detail:formatTime(new Date(log.ts).toISOString())});
+        }
+        if (log.t==='gems' && log.a >= 100) {
+          alerts.push({uid:u.id, level:'mid', user:u,
+            desc:'보석 +'+log.a+' 단일 획득 ('+log.r+')',
+            detail:formatTime(new Date(log.ts).toISOString())});
+        }
+      });
+
+      // 짧은 시간 내 대량 트랜잭션 (1시간 내 20건 이상)
+      var now=Date.now();
+      var recentLogs=logs.filter(function(l){return now-l.ts<3600000;});
+      if (recentLogs.length >= 20) {
+        var recentSum={gold:0,gems:0};
+        recentLogs.forEach(function(l){
+          if(l.a>0) recentSum[l.t]=(recentSum[l.t]||0)+l.a;
+        });
+        alerts.push({uid:u.id, level:'low', user:u,
+          desc:'최근 1시간 내 '+recentLogs.length+'건 트랜잭션',
+          detail:'골드+'+recentSum.gold.toLocaleString()+', 보석+'+recentSum.gems});
+      }
+
+      // 알 수 없는 출처 (사유가 빈 로그)
+      var unknownLogs=logs.filter(function(l){return !l.r || l.r==='';});
+      if (unknownLogs.length >= 3) {
+        alerts.push({uid:u.id, level:'low', user:u,
+          desc:'출처 불명 로그 '+unknownLogs.length+'건',
+          detail:'로그에 사유가 기록되지 않은 트랜잭션'});
+      }
+    }
+  });
+
+  // 중복 유저+설명 제거
+  var seen={};
+  alerts = alerts.filter(function(a){
+    var key=a.uid+'|'+a.desc;
+    if(seen[key]) return false;
+    seen[key]=true;
+    return true;
+  });
+
+  // 심각도 순 정렬
+  var levelOrder={high:0,mid:1,low:2};
+  alerts.sort(function(a,b){return (levelOrder[a.level]||9)-(levelOrder[b.level]||9);});
+
+  // 렌더링
+  var section=document.getElementById('alert-section');
+  var list=document.getElementById('alert-list');
+  var countEl=document.getElementById('alert-count');
+
+  if (alerts.length === 0) {
+    section.style.display='none';
+    return;
+  }
+
+  section.style.display='block';
+  countEl.textContent=alerts.length;
+  list.innerHTML='';
+
+  var levelLabel={high:'위험',mid:'주의',low:'참고'};
+  alerts.forEach(function(a){
+    var card=document.createElement('div');
+    card.className='alert-card';
+    card.innerHTML=
+      '<div class="alert-info">'+
+        '<div class="alert-uid">'+a.uid+'</div>'+
+        '<div class="alert-desc">'+a.desc+'</div>'+
+        '<div class="alert-detail">'+a.detail+'</div>'+
+      '</div>'+
+      '<span class="alert-level alert-'+a.level+'">'+levelLabel[a.level]+'</span>';
+    card.addEventListener('click',function(){
+      var user=allUsers.find(function(u){return u.id===a.uid;});
+      if(user) openModal(user);
+    });
+    list.appendChild(card);
+  });
+}
+
+function avg(arr){if(!arr.length)return 0;var s=0;arr.forEach(function(v){s+=v;});return s/arr.length;}
+function stdev(arr){if(arr.length<2)return 0;var m=avg(arr);var ss=0;arr.forEach(function(v){ss+=(v-m)*(v-m);});return Math.sqrt(ss/arr.length);}
 </script>
 </body>
 </html>
