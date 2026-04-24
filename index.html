@@ -17223,6 +17223,7 @@ function _renderModuleContent() {
       mCard.style.cssText = 'background:'+(equipped?'#0c1a28':'#0a1520')+';border:1px solid '+(equipped?'#00ffff':tier.border)+';padding:6px 4px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;';
       mCard.innerHTML =
         (_mSub>0?'<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;font-family:monospace;">+'+_mSub+'</div>':'')+
+        (mod.locked?'<div style="position:absolute;bottom:2px;left:3px;font-size:7px;color:#f59e0b;">🔒</div>':'')+
         '<div style="position:absolute;bottom:2px;right:3px;font-size:6px;color:#556677;font-family:monospace;">Lv.'+(mod.level||1)+'</div>'+
         '<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>'+
         _modIcon(mod.typeId, tier.color, 28)+
@@ -17380,12 +17381,15 @@ function _showModuleDetail(mod) {
   ov.id = 'mod-detail-popup';
   ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;';
 
+  var isLocked = mod.locked || false;
+
   var btnsHtml = '';
   if (!equipped) {
     btnsHtml += '<button id="mod-equip" style="flex:1;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">장착</button>';
   } else {
     btnsHtml += '<button id="mod-unequip" style="flex:1;background:#030b10;border:1px solid #556677;color:#556677;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">해제</button>';
   }
+  btnsHtml += '<button id="mod-lock" style="flex:1;background:#030b10;border:1px solid '+(isLocked?'#f59e0b':'#334455')+';color:'+(isLocked?'#f59e0b':'#556677')+';font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">'+(isLocked?'🔒 잠금 해제':'🔓 잠금')+'</button>';
 
   var fullName = _fullTierName(mod.tier, modSub);
   var stars = '';
@@ -17436,6 +17440,15 @@ function _showModuleDetail(mod) {
     for(var si3=0;si3<sl.length;si3++){ if(sl[si3]===mod.uid)sl[si3]=null; }
     d.slots=sl; _saveMods(d);
     ov.remove(); _renderModuleContent();
+  });
+  // 잠금 토글
+  var lockBtn = document.getElementById('mod-lock');
+  if(lockBtn) lockBtn.addEventListener('click', function() {
+    var d=_loadMods(); var invArr=d.inventory||[];
+    var target=invArr.filter(function(m){return m.uid===mod.uid;})[0];
+    if(target){ target.locked=!target.locked; mod.locked=target.locked; }
+    _saveMods(d);
+    ov.remove(); _showModuleDetail(mod);
   });
 }
 
@@ -17569,14 +17582,17 @@ function _enterDecomposeMode() {
       var eff=_getModEffect(mod);
       var _ms=mod.sub||0;
       var isEquipped=slots.indexOf(mod.uid)!==-1;
+      var isLocked=mod.locked||false;
+      var blocked=isEquipped||isLocked;
       var isSel=selected.indexOf(mod.uid)!==-1;
-      var opacity=isEquipped?0.25:1;
+      var opacity=blocked?0.25:1;
       var border=isSel?'#ef4444':tier.border;
       var bg=isSel?'#1a0a0a':'#0a1520';
-      h+='<div data-decomp-uid="'+(isEquipped?'':mod.uid)+'" style="background:'+bg+';border:2px solid '+border+';padding:6px 4px;text-align:center;cursor:'+(isEquipped?'default':'pointer')+';display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;opacity:'+opacity+';">';
+      h+='<div data-decomp-uid="'+(blocked?'':mod.uid)+'" style="background:'+bg+';border:2px solid '+border+';padding:6px 4px;text-align:center;cursor:'+(blocked?'default':'pointer')+';display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:6px;position:relative;opacity:'+opacity+';">';
       if(_ms>0) h+='<div style="position:absolute;top:2px;right:3px;font-size:7px;color:'+tier.color+';font-weight:bold;">+'+_ms+'</div>';
       if(isSel) h+='<div style="position:absolute;top:2px;left:3px;font-size:8px;color:#ef4444;">✓</div>';
       if(isEquipped) h+='<div style="position:absolute;top:2px;left:3px;font-size:6px;color:#00ffff;">장착</div>';
+      if(isLocked&&!isEquipped) h+='<div style="position:absolute;top:2px;left:3px;font-size:7px;color:#f59e0b;">🔒</div>';
       h+='<div style="font-size:7px;color:'+tier.color+';font-weight:bold;">'+tier.name+'</div>';
       h+=_modIcon(mod.typeId,tier.color,28);
       h+='<div style="font-size:7px;color:'+type.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+type.name.replace(' 증폭기','')+'</div>';
