@@ -17264,15 +17264,22 @@ function _renderModuleContent() {
     if(sd) sd.addEventListener('click',function(){
       if(_modSelected.length!==3||!_modSynthFilter.type) return;
       var d=_loadMods();var invArr=d.inventory||[];var sl=d.slots||[];
+      // 소재 모듈 정보 저장 (연출용)
+      var srcMods=[];
+      _modSelected.forEach(function(uid){
+        var m=invArr.filter(function(x){return x.uid===uid;})[0];
+        if(m) srcMods.push({typeId:m.typeId,tier:m.tier,sub:m.sub||0});
+      });
       _modSelected.forEach(function(uid){
         for(var si=0;si<sl.length;si++){if(sl[si]===uid)sl[si]=null;}
         var idx=invArr.findIndex(function(m){return m.uid===uid;}); if(idx!==-1)invArr.splice(idx,1);
       });
       var fs=_modSynthFilter; var resTier=fs.sub<2?fs.tier:fs.tier+1; var resSub=fs.sub<2?fs.sub+1:0;
-      invArr.push({typeId:fs.type,tier:resTier,sub:resSub,level:0,uid:Date.now()+'_'+Math.random().toString(36).substr(2,5)});
+      var newMod={typeId:fs.type,tier:resTier,sub:resSub,level:0,uid:Date.now()+'_'+Math.random().toString(36).substr(2,5)};
+      invArr.push(newMod);
       d.inventory=invArr;d.slots=sl;_saveMods(d);
-      _modMode=null;_modSelected=[];_renderModuleContent();
-      if(window.showToastMsg)showToastMsg(_fullTierName(resTier,resSub)+' 합성 성공!',(TIERS[resTier]||TIERS[0]).color);
+      _modMode=null;_modSelected=[];
+      _showSynthAnim(srcMods, newMod, function(){ _renderModuleContent(); });
     });
     // 분해 확인
     var dd=document.getElementById('mod-decomp-do');
@@ -17427,6 +17434,108 @@ function _showSlotEquipPopup(slotIdx) {
   ov.appendChild(closeBtn);
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);
+}
+
+/* ── 모듈 합성 연출 ── */
+function _showSynthAnim(srcMods, resultMod, onDone) {
+  var old=document.getElementById('mod-synth-anim'); if(old)old.remove();
+  var resTier=TIERS[resultMod.tier]||TIERS[0];
+  var resType=MODULE_TYPES.filter(function(t){return t.id===resultMod.typeId;})[0];
+  var resColor=resTier.color;
+  var resEff=_getModEffect(resultMod);
+
+  var ov=document.createElement('div');
+  ov.id='mod-synth-anim';
+  ov.style.cssText='position:fixed;inset:0;z-index:20000;background:rgba(3,8,16,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:"Courier New",monospace;overflow:hidden;';
+
+  var style=document.createElement('style');
+  style.textContent=
+    '@keyframes synth-orbit{0%{transform:rotate(var(--sa)) translateX(60px) scale(1);opacity:1}80%{transform:rotate(calc(var(--sa) + 360deg)) translateX(10px) scale(0.5);opacity:0.8}100%{transform:rotate(calc(var(--sa) + 400deg)) translateX(0) scale(0);opacity:0}}'+
+    '@keyframes synth-core-pulse{0%{transform:translate(-50%,-50%) scale(0.3);opacity:0.5;box-shadow:0 0 10px RC}50%{transform:translate(-50%,-50%) scale(1.5);opacity:1;box-shadow:0 0 40px RC}100%{transform:translate(-50%,-50%) scale(0.8);opacity:0;box-shadow:0 0 60px RC}}'.replace(/RC/g,resColor)+
+    '@keyframes synth-burst{0%{opacity:1;transform:translate(-50%,-50%) scale(0.5)}100%{opacity:0;transform:translate(-50%,-50%) scale(4)}}'+
+    '@keyframes synth-result{0%{transform:scale(0) rotate(-90deg);opacity:0}50%{transform:scale(1.2) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}'+
+    '@keyframes synth-shimmer{0%,100%{box-shadow:0 0 8px '+resColor+'44}50%{box-shadow:0 0 24px '+resColor+'88}}'+
+    '@keyframes synth-ring{0%{transform:translate(-50%,-50%) scale(0.2);opacity:1;border-color:'+resColor+'}100%{transform:translate(-50%,-50%) scale(3);opacity:0;border-color:'+resColor+'}}';
+  ov.appendChild(style);
+
+  // 1단계: 3개 소재가 중앙으로 수렴
+  var arena=document.createElement('div');
+  arena.style.cssText='position:relative;width:200px;height:200px;';
+  srcMods.forEach(function(mod,i){
+    var t=TIERS[mod.tier]||TIERS[0];
+    var card=document.createElement('div');
+    card.style.cssText='position:absolute;top:50%;left:50%;width:40px;height:40px;margin:-20px 0 0 -20px;background:#0c1825;border:2px solid '+t.border+';border-radius:6px;display:flex;align-items:center;justify-content:center;--sa:'+(i*120)+'deg;animation:synth-orbit 1.2s ease-in forwards;';
+    card.innerHTML=_modIcon(mod.typeId,t.color,28);
+    arena.appendChild(card);
+  });
+  ov.appendChild(arena);
+
+  var label=document.createElement('div');
+  label.style.cssText='color:#22ddaa;font-size:11px;letter-spacing:3px;margin-top:12px;';
+  label.textContent='SYNTHESIZING...';
+  ov.appendChild(label);
+  document.body.appendChild(ov);
+
+  // 2단계: 융합 폭발
+  setTimeout(function(){
+    label.remove();
+    // 코어 펄스
+    var core=document.createElement('div');
+    core.style.cssText='position:absolute;top:50%;left:50%;width:20px;height:20px;background:'+resColor+';border-radius:50%;transform:translate(-50%,-50%);animation:synth-core-pulse 0.6s ease-out forwards;';
+    arena.appendChild(core);
+    // 링 이펙트
+    for(var ri=0;ri<3;ri++){
+      var ring=document.createElement('div');
+      ring.style.cssText='position:absolute;top:50%;left:50%;width:30px;height:30px;border:2px solid '+resColor+';border-radius:50%;transform:translate(-50%,-50%);animation:synth-ring 0.6s ease-out forwards;animation-delay:'+ri*0.1+'s;';
+      arena.appendChild(ring);
+    }
+    // 파티클
+    for(var pi=0;pi<16;pi++){
+      var a2=pi*(360/16);
+      var d2=40+Math.random()*50;
+      var px=Math.cos(a2*Math.PI/180)*d2;
+      var py=Math.sin(a2*Math.PI/180)*d2;
+      var dot=document.createElement('div');
+      dot.style.cssText='position:absolute;top:50%;left:50%;width:3px;height:3px;background:'+resColor+';border-radius:50%;--px:'+px+'px;--py:'+py+'px;animation:mod-particle 0.5s ease-out forwards;animation-delay:'+pi*0.015+'s;';
+      arena.appendChild(dot);
+    }
+  },1200);
+
+  // 3단계: 결과 카드 등장
+  setTimeout(function(){
+    arena.remove();
+    // 배경 버스트
+    var burst=document.createElement('div');
+    burst.style.cssText='position:absolute;top:50%;left:50%;width:60px;height:60px;border:3px solid '+resColor+';border-radius:50%;animation:synth-burst 0.5s ease-out forwards;';
+    ov.appendChild(burst);
+
+    setTimeout(function(){
+      burst.remove();
+      // 등급 텍스트
+      var tierLabel=document.createElement('div');
+      tierLabel.style.cssText='font-size:11px;color:'+resColor+';letter-spacing:3px;margin-bottom:8px;font-weight:bold;animation:synth-result 0.4s ease-out;';
+      tierLabel.textContent=_fullTierName(resultMod.tier,resultMod.sub||0);
+      ov.appendChild(tierLabel);
+
+      // 결과 카드
+      var resCard=document.createElement('div');
+      var glowAnim=resultMod.tier>=2?'animation:synth-shimmer 1.5s ease infinite;':'';
+      resCard.style.cssText='width:100px;background:#0c1825;border:3px solid '+resTier.border+';border-radius:10px;padding:14px 8px;text-align:center;animation:synth-result 0.5s ease-out;'+glowAnim;
+      resCard.innerHTML=
+        '<div style="font-size:10px;color:'+resColor+';font-weight:bold;margin-bottom:6px;">'+resTier.name+'</div>'+
+        _modIcon(resultMod.typeId,resColor,48)+
+        '<div style="font-size:11px;color:'+(resType?resType.color:'#94a3b8')+';font-weight:bold;margin-top:6px;">'+(resType?resType.name:'')+'</div>'+
+        '<div style="font-size:10px;color:#00ff88;margin-top:4px;">'+_modEffLabel(resultMod.typeId,resEff)+'</div>';
+      ov.appendChild(resCard);
+
+      // 확인 버튼
+      var closeBtn=document.createElement('button');
+      closeBtn.style.cssText='margin-top:20px;background:#030b10;border:1px solid '+resColor+'66;color:'+resColor+';font-family:monospace;font-size:12px;padding:10px 32px;cursor:pointer;letter-spacing:2px;animation:synth-result 0.3s ease-out;animation-delay:0.3s;animation-fill-mode:backwards;';
+      closeBtn.textContent='확인';
+      closeBtn.addEventListener('click',function(){ ov.remove(); if(onDone)onDone(); });
+      ov.appendChild(closeBtn);
+    },200);
+  },1800);
 }
 
 /* ── 모듈 제조 연출 ── */
