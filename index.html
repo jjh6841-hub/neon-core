@@ -9630,7 +9630,10 @@ setTimeout(_updateBadge, 500);
     });
     var map={daily:'ms4-daily',weekly:'ms4-weekly',infinite:'ms4-inf'};
     Object.keys(map).forEach(function(k){ var el=document.getElementById(map[k]); if(el) el.style.display=(k===id)?'flex':'none'; });
-    if (id==='weekly') _renderW();
+    // 탭 전환 시 모두 받기 버튼 동기화
+    if (id==='daily' && typeof _renderMissions==='function') _renderMissions();
+    else if (id==='weekly') _renderW();
+    // infinite는 MutationObserver가 처리
   }
 
   function _renderWGauge() {
@@ -18549,7 +18552,8 @@ if (_gemAdBtn) {
         // 알려진 영구 요소 스킵
         var skip = ['exit-confirm','gem-ad-overlay','ob-ov','pause-overlay',
                      'results-screen','settings-screen','achieve-screen',
-                     'screen-missions','screen-game','screen-home','bottom-nav'];
+                     'screen-missions','screen-game','screen-home','bottom-nav',
+                     'screen-account','screen-mail','ban-block-overlay'];
         if (ch.id && skip.indexOf(ch.id) !== -1) continue;
         ch.remove(); return;
       }
