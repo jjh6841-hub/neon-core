@@ -221,6 +221,28 @@ tr { cursor:pointer; }
       </table>
     </div>
   </div>
+
+  <!-- 점검 모드 -->
+  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+    <h2 style="color:#f59e0b;font-size:14px;letter-spacing:2px;margin-bottom:12px;">🔧 점검 모드</h2>
+    <div id="mt-status" style="margin-bottom:12px;"></div>
+    <div id="mt-controls" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <input type="number" id="mt-minutes" value="30" min="1" style="width:60px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px;text-align:center;">
+      <span style="color:#556677;font-size:10px;">분 후 킥</span>
+      <input type="text" id="mt-message" value="서버 점검 중입니다. 잠시 후 다시 접속해주세요." style="flex:1;min-width:150px;background:#0a1a2a;border:1px solid #0a3344;color:#f1f5f9;font-family:monospace;font-size:10px;padding:8px;">
+      <button id="mt-start" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px 16px;cursor:pointer;">점검 시작</button>
+      <button id="mt-end" style="display:none;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:11px;padding:8px 16px;cursor:pointer;">점검 종료</button>
+    </div>
+  </div>
+
+  <!-- 삭제된 유저 복구 -->
+  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+    <h2 style="color:#3b82f6;font-size:14px;letter-spacing:2px;margin-bottom:12px;">🗑 삭제된 유저 복구</h2>
+    <table>
+      <thead><tr><th>유저 ID</th><th>골드</th><th>보석</th><th>삭제일</th><th>복구</th></tr></thead>
+      <tbody id="deleted-list"></tbody>
+    </table>
+  </div>
 </div>
 
 <div id="user-modal">
@@ -954,8 +976,13 @@ document.getElementById('del-ok').addEventListener('click', async function(){
   if (!deleteTargetId) return;
   var uid = deleteTargetId;
   try {
+    // 백업 후 삭제
+    var doc = await db.collection('users').doc(uid).get();
+    if (doc.exists) {
+      await db.collection('deleted_users').doc(uid).set(Object.assign({}, doc.data(), { deletedAt: new Date().toISOString() }));
+    }
     await db.collection('users').doc(uid).delete();
-    showToast('유저 삭제 완료: ' + uid);
+    showToast('유저 삭제 완료 (복구 가능): ' + uid);
   } catch(e) {
     showToast('삭제 실패: ' + e.message);
   }
@@ -1039,6 +1066,101 @@ document.getElementById('ban-ok').addEventListener('click', async function(){
   closeModal();
   loadUsers();
 });
+
+// ── 삭제된 유저 복구 ──
+async function loadDeletedUsers() {
+  var snap = await db.collection('deleted_users').orderBy('deletedAt','desc').limit(50).get();
+  var tbody = document.getElementById('deleted-list');
+  tbody.innerHTML = '';
+  if (snap.empty) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:#334455;text-align:center;padding:12px;">삭제된 유저 없음</td></tr>';
+    return;
+  }
+  snap.forEach(function(doc) {
+    var d = doc.data();
+    var p = d.perm || {};
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="uid-cell">' + doc.id + '</td>' +
+      '<td class="gold">' + (p.gold||0).toLocaleString() + '</td>' +
+      '<td class="gem">' + (p.gems||0).toLocaleString() + '</td>' +
+      '<td class="time">' + formatTime(d.deletedAt) + '</td>' +
+      '<td><button data-restore="'+doc.id+'" style="background:none;border:1px solid #3b82f6;color:#3b82f6;font-family:monospace;font-size:9px;padding:3px 8px;cursor:pointer;">복구</button></td>';
+    tr.querySelector('[data-restore]').addEventListener('click', async function() {
+      if (!confirm(doc.id + ' 유저를 복구하시겠습니까?')) return;
+      try {
+        var backup = d;
+        delete backup.deletedAt;
+        await db.collection('users').doc(doc.id).set(backup, { merge: true });
+        await db.collection('deleted_users').doc(doc.id).delete();
+        showToast('유저 복구 완료: ' + doc.id);
+        loadUsers();
+      } catch(e) {
+        showToast('복구 실패: ' + e.message);
+      }
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ── 점검 모드 ──
+async function loadMaintenanceStatus() {
+  try {
+    var doc = await db.collection('system').doc('maintenance').get();
+    var statusEl = document.getElementById('mt-status');
+    var startBtn = document.getElementById('mt-start');
+    var endBtn = document.getElementById('mt-end');
+
+    if (doc.exists && doc.data().active) {
+      var mt = doc.data();
+      var kickAt = new Date(mt.kickAt);
+      var now = new Date();
+      var remain = kickAt - now;
+      var mins = Math.max(0, Math.ceil(remain / 60000));
+      statusEl.innerHTML = '<div style="background:#1a1a00;border:1px solid #f59e0b;padding:10px;font-size:11px;">' +
+        '<span style="color:#f59e0b;font-weight:bold;">⚠ 점검 진행 중</span>' +
+        (remain > 0 ? ' — 킥까지 <b style="color:#f59e0b;">' + mins + '분</b>' : ' — <b style="color:#ef4444;">킥 완료</b>') +
+        '<br><span style="color:#556677;font-size:9px;">시작: ' + formatTime(mt.startedAt) + ' | 메시지: ' + (mt.message||'-') + '</span></div>';
+      startBtn.style.display = 'none';
+      endBtn.style.display = '';
+    } else {
+      statusEl.innerHTML = '<span style="color:#334455;font-size:10px;">점검 중이 아닙니다.</span>';
+      startBtn.style.display = '';
+      endBtn.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+document.getElementById('mt-start').addEventListener('click', async function() {
+  var mins = parseInt(document.getElementById('mt-minutes').value) || 30;
+  var msg = document.getElementById('mt-message').value.trim() || '서버 점검 중입니다.';
+  if (!confirm(mins + '분 후 모든 유저가 킥됩니다. 점검을 시작하시겠습니까?')) return;
+  var kickAt = new Date();
+  kickAt.setMinutes(kickAt.getMinutes() + mins);
+  await db.collection('system').doc('maintenance').set({
+    active: true,
+    kickAt: kickAt.toISOString(),
+    message: msg,
+    startedAt: new Date().toISOString()
+  });
+  showToast('점검 시작 (' + mins + '분 후 킥)');
+  loadMaintenanceStatus();
+});
+
+document.getElementById('mt-end').addEventListener('click', async function() {
+  if (!confirm('점검을 종료하시겠습니까? 유저들이 다시 접속할 수 있습니다.')) return;
+  await db.collection('system').doc('maintenance').set({ active: false });
+  showToast('점검 종료');
+  loadMaintenanceStatus();
+});
+
+// loadUsers 확장: 복구 + 점검 상태도 로드
+var _origLoadUsers2 = loadUsers;
+loadUsers = async function() {
+  await _origLoadUsers2();
+  loadDeletedUsers();
+  loadMaintenanceStatus();
+};
 </script>
 </body>
 </html>

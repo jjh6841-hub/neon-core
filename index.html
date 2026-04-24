@@ -1674,23 +1674,104 @@ canvas {
   if (!uid) { uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); localStorage.setItem('td_uid', uid); }
   window._fbUid = uid;
 
-  // ── 접속 정지 체크 ──
-  window._checkBanStatus = function() {
-    if (!window._fbDb || !window._fbUid) return;
+  // ── 접속 정지 체크 (콜백 지원) ──
+  window._banChecked = false;
+  window._checkBanStatus = function(cb) {
+    if (!window._fbDb || !window._fbUid) { window._banChecked=true; if(cb) cb(false); return; }
     window._fbDb.collection('users').doc(window._fbUid).get().then(function(doc) {
-      if (!doc.exists) return;
+      window._banChecked = true;
+      if (!doc.exists) { if(cb) cb(false); return; }
       var ban = doc.data().ban;
-      if (!ban || !ban.active) return;
-      // 기간 정지인 경우 만료 체크
+      if (!ban || !ban.active) { window._isBanned=false; if(cb) cb(false); return; }
       if (!ban.permanent && ban.until && new Date(ban.until) <= new Date()) {
-        // 정지 기간 만료 → 자동 해제
         window._fbDb.collection('users').doc(window._fbUid).update({ 'ban.active': false });
-        return;
+        window._isBanned=false; if(cb) cb(false); return;
       }
-      // 정지 중 → 팝업 표시
       window._showBanPopup(ban);
-    }).catch(function(){});
+      if(cb) cb(true);
+    }).catch(function(){ window._banChecked=true; if(cb) cb(false); });
   };
+
+  // ── 점검 모드 체크 ──
+  window._isInMaintenance = false;
+  window._mtShown = {};
+  window._checkMaintenance = function(cb) {
+    if (!window._fbDb) { if(cb) cb(false); return; }
+    window._fbDb.collection('system').doc('maintenance').get().then(function(doc) {
+      if (!doc.exists || !doc.data().active) {
+        if (window._isInMaintenance) {
+          // 점검 종료 → 팝업 제거
+          window._isInMaintenance = false;
+          var mtOv = document.getElementById('mt-block-overlay');
+          if (mtOv) mtOv.remove();
+        }
+        if(cb) cb(false); return;
+      }
+      var mt = doc.data();
+      var kickAt = new Date(mt.kickAt);
+      var now = new Date();
+      var remain = kickAt - now;
+
+      // 킥 시간 도달 → 점검 팝업
+      if (remain <= 0) {
+        window._showMaintenancePopup(mt.message || '서버 점검 중입니다.');
+        if(cb) cb(true); return;
+      }
+
+      // 티커 표시 (30분, 10분, 5분 전)
+      var mins = Math.ceil(remain / 60000);
+      var ticks = [[30,'30분'],[10,'10분'],[5,'5분']];
+      for (var ti=0; ti<ticks.length; ti++) {
+        var t = ticks[ti];
+        if (mins <= t[0] && !window._mtShown[t[0]]) {
+          window._mtShown[t[0]] = true;
+          window._showMaintenanceTicker(t[1] + ' 후 업데이트 예정입니다. 안전한 저장을 위해 종료 부탁드립니다.');
+        }
+      }
+      if(cb) cb(false);
+    }).catch(function(){ if(cb) cb(false); });
+  };
+
+  window._showMaintenanceTicker = function(msg) {
+    var tk = document.createElement('div');
+    tk.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99998;background:#1a0a00;border-bottom:1px solid #f59e0b;padding:6px 0;overflow:hidden;height:28px;';
+    tk.innerHTML = '<div style="white-space:nowrap;color:#f59e0b;font-family:monospace;font-size:11px;font-weight:bold;animation:mt-scroll 12s linear forwards;">⚠ ' + msg + '</div>';
+    var style = document.createElement('style');
+    style.textContent = '@keyframes mt-scroll{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}';
+    tk.appendChild(style);
+    document.body.appendChild(tk);
+    setTimeout(function(){ tk.remove(); }, 13000);
+  };
+
+  window._showMaintenancePopup = function(msg) {
+    if (document.getElementById('mt-block-overlay')) return;
+    window._isInMaintenance = true;
+
+    // 모든 화면 숨기고 타이틀로
+    ['screen-home','screen-game','results-screen','settings-screen','achieve-screen','screen-missions'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el){ el.style.display='none'; el.classList.remove('show'); }
+    });
+    var titleEl = document.getElementById('screen-title');
+    if(titleEl) titleEl.classList.add('show');
+
+    var ov = document.createElement('div');
+    ov.id = 'mt-block-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(3,11,16,0.97);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+    ov.innerHTML =
+      '<div style="background:#0a0a1a;border:1px solid #f59e0b;padding:28px 24px;max-width:320px;width:90%;text-align:center;">' +
+        '<div style="color:#f59e0b;font-size:22px;margin-bottom:8px;">🔧</div>' +
+        '<div style="color:#f59e0b;font-size:15px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">서버 점검</div>' +
+        '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:12px;margin-bottom:16px;">' +
+          '<div style="color:#f1f5f9;font-size:11px;line-height:1.6;">' + (msg || '서버 점검 중입니다.') + '</div>' +
+        '</div>' +
+        '<div style="color:#334455;font-size:9px;line-height:1.5;">점검이 완료되면 자동으로 접속됩니다.</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+  };
+
+  // 점검 상태 주기적 폴링 (30초)
+  setInterval(function(){ if(window._checkMaintenance) window._checkMaintenance(); }, 30000);
 
   window._showBanPopup = function(ban) {
     // 기존 팝업 제거
@@ -5360,14 +5441,22 @@ document.addEventListener('touchend', function(e) {
           titleScreen.classList.add('show');
 
           // 5. 탭하면 홈화면으로 전환
-          // 타이틀 진입 시 정지 체크
+          // 타이틀 진입 시 정지 + 점검 체크
           if (window._checkBanStatus) window._checkBanStatus();
+          if (window._checkMaintenance) window._checkMaintenance();
 
           var titleTapped = false;
           function goToHome() {
             if (titleTapped) return;
-            // 정지 상태면 홈화면 전환 차단
-            if (window._isBanned) return;
+            // 정지/점검 상태면 차단
+            if (window._isBanned || window._isInMaintenance) return;
+            // 정지 체크 미완료 시 → 체크 후 재시도
+            if (!window._banChecked) {
+              if (window._checkBanStatus) window._checkBanStatus(function(banned) {
+                if (!banned) goToHome();
+              });
+              return;
+            }
             titleTapped = true;
             AudioManager.init();
             if (PERM.settings.music) AudioManager.playBGM();
