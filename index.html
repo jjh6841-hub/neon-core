@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <script>try{screen.orientation.lock('portrait').catch(function(){});}catch(e){}</script>
 <title>타워 디펜스</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg-dark:       #0a0e1a;
@@ -7939,7 +7939,7 @@ function _buildLabSlots() {
     var _gk = _greekLabels[i] || (i+1);
     var _numColor = needBuy ? '#1a2233' : done ? '#00ff88' : inProgress ? '#00ddff' : '#445566';
     var _numBorder = needBuy ? '#111825' : done ? '#00ff8844' : inProgress ? '#00ddff33' : '#1a2a3a';
-    var _numBadge = '<div style="width:32px;height:32px;border:1.5px solid '+_numBorder+';background:#060a12;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:'+_numColor+';font-family:serif;font-weight:bold;font-style:italic;letter-spacing:1px;">'+_gk+'</div>';
+    var _numBadge = '<div style="width:32px;height:32px;border:1.5px solid '+_numBorder+';background:#060a12;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:'+_numColor+';font-family:\'Orbitron\',monospace;font-weight:700;letter-spacing:0px;">'+_gk+'</div>';
 
     if (needBuy) {
       cell.style.cursor = 'default';
@@ -12903,7 +12903,7 @@ function _showEncyclopedia() {
       { id:'stealth',    name:'은신 함선',       color:'#6688cc', boss:false, desc:'3초 은신(타겟팅 불가) ↔ 2초 출현 반복. 처치 시 골드 x4. 대응: 범위 공격. [웨이브 81~]' },
       { id:'spawner',    name:'소환 모함',       color:'#aa66ff', boss:false, desc:'5초마다 기본 드론 소환(최대 3기). 본체 처치 시 소환체 소멸. 처치 시 골드 x5. 대응: 본체 우선. [웨이브 101~]' },
       { id:'kamikaze',   name:'자폭 드론',       color:'#ff6600', boss:false, desc:'코어 도달 시 3배 피해 후 자폭. 체력 30%, 속도 1.5배. 처치 시 골드 x2. 대응: 넉백. [스펙트라+, 웨이브 101~]' },
-      { id:'boss',       name:'코어 드레드노트', color:'#ff4444', boss:true,  desc:'10웨이브마다 등장. HP 10배, 속도 50%. HP 50% 이하 시 분노(속도 증가). 처치 시 골드 x5, 보석 1.' },
+      { id:'boss',       name:'코어 드레드노트', color:'#ff4444', boss:true,  desc:'10웨이브마다 등장. HP 10배, 속도 50%. HP 50% 이하 시 분노(속도 증가). 처치 시 골드 x5.' },
       { id:'boss_elite', name:'엘리트 드레드노트', color:'#ff8822', boss:true,  desc:'50웨이브마다 등장. HP 30배, 속도 30%. 처치 시 골드 x15, 보석 3.' },
       { id:'boss_hyper', name:'하이퍼 드레드노트', color:'#ff0044', boss:true,  desc:'100웨이브마다 등장. HP 100배, 속도 10%. 처치 시 골드 x30, 보석 5.' },
       { id:'boss_galaxy', name:'갤럭시 코어', color:'#cc44ff', boss:true,  desc:'10,000웨이브에 등장하는 행성 최종 보스. HP 500배, 속도 5%. 처치 시 행성 정복 업적 달성 + 접근 코드 보상.' },
