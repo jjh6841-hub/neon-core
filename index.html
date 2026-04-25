@@ -3540,6 +3540,13 @@ function update(dt) {
       if (ddx * ddx + ddy * ddy < (e.r + 5) * (e.r + 5)) {
         if (b.hitSet) b.hitSet.add(e);
         let dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
+        // 거리 피해: 타워에서 먼 적일수록 데미지 증가
+        if (G.dmgPerMeter && G.dmgPerMeter > 1) {
+          var _edx = e.x - G.cx, _edy = e.y - G.cy;
+          var _eDist = Math.sqrt(_edx*_edx + _edy*_edy);
+          var _distRatio = Math.min(1, _eDist / (G.tower.range || 162));
+          dmg = Math.round(dmg * (1 + (G.dmgPerMeter - 1) * _distRatio));
+        }
         if (G.goldDmgPct) dmg += Math.floor(G.gold / 100 * G.goldDmgPct);
         if (b.crit) {
           dmg = Math.round(dmg * (G.critMult || 1.5));
@@ -13810,13 +13817,11 @@ window.createState = function() {
   return g;
 };
 
-/* ── applyPermStats 확장: dmgPerMeter 피해 배율 ── */
+/* ── applyPermStats 확장: dmgPerMeter는 명중 시 적용 (여기서는 제거) ── */
 var _origAPS_p = window.applyPermStats;
 window.applyPermStats = function() {
   _origAPS_p.apply(this, arguments);
-  if (!G) return;
-  var dpm = (PERM.ws && PERM.ws.dmgPerMeter) || 0;
-  if (dpm > 0) G.tower.dmg = G.tower.dmg * (1 + dpm * 0.01);
+  // dmgPerMeter는 탄환 명중 시 거리 기반으로 적용 (고정 배율 제거)
 };
 
 /* ── fireTower 확장: 분열탄 트리거 ── */
