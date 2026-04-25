@@ -6099,7 +6099,7 @@ if (dailyPopup) {
 
   /* ══ WS_ITEMS 정의 ══ */
   var WS_ITEMS = {
-    damage:     { tab:'atk', name:'공격력',      maxLv:20, atkGroup:0,
+    damage:     { tab:'atk', name:'공격력',      maxLv:999, atkGroup:0,
       cost: function(lv) { return 3 + Math.floor(lv * 1.8); },
       cur:  function(lv) { return '' + lv; },
       nxt:  function(lv) { return '' + (lv + 1); } },
@@ -6111,7 +6111,7 @@ if (dailyPopup) {
       cost: function(lv) { return 8 + lv * 5; },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
-    critMult:   { tab:'atk', name:'치명타 계수', maxLv:5, atkGroup:1,
+    critMult:   { tab:'atk', name:'치명타 계수', maxLv:999, atkGroup:1,
       cost: function(lv) { return 15 + lv * 12; },
       cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(2); },
       nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1).toFixed(2); } },
@@ -6155,7 +6155,7 @@ if (dailyPopup) {
       cost: function(lv) { return 20 + lv * 10; },
       cur:  function(lv) { return (lv * 0.5).toFixed(1) + '%'; },
       nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; } },
-    enhCritMult:   { tab:'atk', name:'강화 치명타 계수', maxLv:10, atkGroup:7,
+    enhCritMult:   { tab:'atk', name:'강화 치명타 계수', maxLv:999, atkGroup:7,
       cost: function(lv) { return 30 + lv * 15; },
       cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(1) + 'x'; },
       nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1).toFixed(1) + 'x'; } },
@@ -6378,7 +6378,7 @@ if (dailyPopup) {
       '<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">' +
         '<div style="display:flex;align-items:center;gap:6px;">' +
           '<span style="font-size:11px;color:#7aacac;font-family:\'Courier New\',monospace;white-space:nowrap;">' + cfg.name + '</span>' +
-          '<span style="font-size:10px;color:#556677;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
+          '<span style="font-size:10px;color:#556677;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : (cfg.maxLv >= 999 ? ' / ∞' : ' / ' + cfg.maxLv)) + '</span>' +
         '</div>' +
         (valueHTML ? '<div>' + valueHTML + '</div>' : '') +
       '</div>' +
@@ -7788,7 +7788,7 @@ function _appendExtCard(container, key, ws) {
     '<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">' +
       '<div style="display:flex;align-items:center;gap:6px;">' +
         '<span style="font-size:11px;color:#7aacac;font-family:monospace;white-space:nowrap;">' + cfg.name + '</span>' +
-        '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
+        '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : (cfg.maxLv >= 999 ? ' / ∞' : ' / ' + cfg.maxLv)) + '</span>' +
       '</div>' +
       '<div>' + valueHTML2 + '</div>' +
     '</div>' +
