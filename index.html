@@ -2206,8 +2206,7 @@ function _initOfflineReward() {
   });
 }
 
-// last_online 주기적 갱신 (게임 중 30초마다)
-setInterval(function(){ localStorage.setItem('last_online', Date.now()); }, 30000);
+// last_online은 보상 수령 시에만 갱신 (온라인에서도 보상 누적)
 
 function checkDailyReward() {
   _checkDailyAttend();
