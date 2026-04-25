@@ -1796,7 +1796,7 @@ canvas {
         '</svg></div>' +
         '<div style="color:#f59e0b;font-size:15px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">서버 점검</div>' +
         '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:12px;margin-bottom:16px;">' +
-          '<div style="color:#f1f5f9;font-size:11px;line-height:1.6;">' + (msg || '서버 점검 중입니다.') + '</div>' +
+          '<div style="color:#f1f5f9;font-size:11px;line-height:1.6;">' + (msg || '서버 점검 중입니다.').replace(/\n/g,'<br>') + '</div>' +
         '</div>' +
         '<div style="color:#334455;font-size:9px;line-height:1.5;">점검이 완료되면 자동으로 접속됩니다.</div>' +
       '</div>';

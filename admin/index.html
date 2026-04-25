@@ -229,7 +229,8 @@ tr { cursor:pointer; }
     <div id="mt-controls" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
       <input type="number" id="mt-minutes" value="30" min="1" style="width:60px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px;text-align:center;">
       <span style="color:#556677;font-size:10px;">분 후 킥</span>
-      <input type="text" id="mt-message" value="서버 점검 중입니다. 잠시 후 다시 접속해주세요." style="flex:1;min-width:150px;background:#0a1a2a;border:1px solid #0a3344;color:#f1f5f9;font-family:monospace;font-size:10px;padding:8px;">
+      <textarea id="mt-message" rows="2" style="flex:1;min-width:150px;background:#0a1a2a;border:1px solid #0a3344;color:#f1f5f9;font-family:monospace;font-size:10px;padding:8px;resize:vertical;box-sizing:border-box;">서버 점검 중입니다.
+잠시 후 다시 접속해주세요.</textarea>
       <button id="mt-start" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px 16px;cursor:pointer;">점검 시작</button>
       <button id="mt-end" style="display:none;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:11px;padding:8px 16px;cursor:pointer;">점검 종료</button>
     </div>
