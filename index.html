@@ -1583,10 +1583,11 @@ canvas {
 
     </div>
 
-    <!-- 전투 시작 버튼 -->
-    <button id="btn-start-game" style="width:100%; height:52px; margin-top:16px; margin-bottom:calc(76px + var(--sab)); background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-size:18px; font-family:'Courier New',monospace; font-weight:bold; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff; white-space:nowrap;">
-      전투 준비
-    </button>
+    <!-- 전투 시작 + 오프라인 보상 -->
+    <div style="display:flex;gap:8px;margin-top:16px;margin-bottom:calc(76px + var(--sab));">
+      <button id="btn-offline-reward" style="width:52px;height:52px;background:#030b10;border:1px solid #f59e0b44;color:#f59e0b;font-size:18px;font-family:monospace;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;">☽</button>
+      <button id="btn-start-game" style="flex:1;height:52px;background:#030b10;border:2px solid #cc44ff;color:#ffffff;font-size:18px;font-family:'Courier New',monospace;font-weight:bold;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #cc44ff;white-space:nowrap;">전투 준비</button>
+    </div>
 
   </div>
 
@@ -2107,6 +2108,105 @@ function _checkDailyAttend() {
     localStorage.setItem('wk_attend_progress', wa + 1);
   } catch(_) {}
 }
+
+/* ── 오프라인 보상 시스템 ── */
+function _calcOfflineReward() {
+  var lastOnline = parseInt(localStorage.getItem('last_online')||'0',10);
+  if (!lastOnline) { localStorage.setItem('last_online', Date.now()); return null; }
+  var elapsed = Date.now() - lastOnline;
+  var mins = Math.floor(elapsed / 60000);
+  if (mins < 5) return null; // 5분 미만 무시
+  mins = Math.min(mins, 480); // 최대 8시간
+  var bestWave = PERM.bestWave || 0;
+  if (bestWave < 1) return null;
+  var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
+  var planetMult = [1,1,1.5,2,3,5][_tier] || 1;
+  var goldPerMin = bestWave * 0.3 * planetMult;
+  var gold = Math.floor(goldPerMin * mins);
+  var gems = Math.floor(elapsed / (2*3600000)); // 2시간당 1보석
+  gems = Math.min(gems, 4); // 최대 4보석
+  var hours = Math.floor(mins/60);
+  var remMins = mins % 60;
+  var timeStr = hours > 0 ? hours+'시간 '+remMins+'분' : remMins+'분';
+  return { gold:gold, gems:gems, mins:mins, timeStr:timeStr };
+}
+
+function _showOfflinePopup(data) {
+  if (!data || (data.gold <= 0 && data.gems <= 0)) return;
+  var old = document.getElementById('offline-reward-popup');
+  if (old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'offline-reward-popup';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(3,11,16,0.95);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+  var rwHTML = '';
+  if (data.gold > 0) rwHTML += '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#f59e0b;font-size:14px;">◈</span><span style="color:#f59e0b;font-size:18px;font-weight:bold;">'+data.gold.toLocaleString()+'</span></div>';
+  if (data.gems > 0) rwHTML += '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#00ffff;font-size:14px;">❖</span><span style="color:#00ffff;font-size:18px;font-weight:bold;">'+data.gems+'</span></div>';
+  ov.innerHTML =
+    '<div style="background:#0a0a1a;border:1px solid #f59e0b44;padding:28px 24px;max-width:300px;width:90%;text-align:center;">' +
+      '<div style="color:#f59e0b;font-size:18px;margin-bottom:6px;">☽</div>' +
+      '<div style="color:#f59e0b;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">오프라인 보상</div>' +
+      '<div style="color:#556677;font-size:10px;margin-bottom:16px;">부재 시간: '+data.timeStr+'</div>' +
+      '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:14px;margin-bottom:18px;display:flex;flex-direction:column;gap:8px;align-items:center;">'+rwHTML+'</div>' +
+      '<button id="offline-claim" style="width:100%;padding:12px;background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:13px;cursor:pointer;letter-spacing:1px;-webkit-appearance:none;">수령</button>' +
+    '</div>';
+  document.body.appendChild(ov);
+  document.getElementById('offline-claim').addEventListener('click', function() {
+    PERM.gold = (PERM.gold||0) + data.gold;
+    PERM.gems = (PERM.gems||0) + data.gems;
+    if (data.gold) logCurrency('gold', data.gold, '오프라인 보상');
+    if (data.gems) logCurrency('gems', data.gems, '오프라인 보상');
+    savePerm();
+    localStorage.setItem('last_online', Date.now());
+    ov.remove();
+    try {
+      var hg=document.getElementById('home-gold'); if(hg) hg.textContent=PERM.gold||0;
+      var hgm=document.getElementById('home-gem'); if(hgm) hgm.textContent=PERM.gems||0;
+      syncShopUI && syncShopUI();
+    } catch(_){}
+    if (window.showRewardPopup) {
+      var rw = [];
+      if (data.gold) rw.push({icon:'◈',label:'골드',amount:data.gold,color:'#f59e0b'});
+      if (data.gems) rw.push({icon:'❖',label:'보석',amount:data.gems,color:'#00ffff'});
+      showRewardPopup(rw, '오프라인 보상');
+    }
+  });
+}
+
+// 오프라인 보상 버튼 + 홈 진입 시 자동 체크
+function _initOfflineReward() {
+  var btn = document.getElementById('btn-offline-reward');
+  if (!btn) return;
+  var data = _calcOfflineReward();
+  if (data && (data.gold > 0 || data.gems > 0)) {
+    btn.style.borderColor = '#f59e0b';
+    btn.style.color = '#f59e0b';
+    btn.textContent = '☽';
+    // 빨간 점 뱃지
+    if (!btn.querySelector('.offl-badge')) {
+      var badge = document.createElement('div');
+      badge.className = 'offl-badge';
+      badge.style.cssText = 'position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:#ef4444;border-radius:50%;';
+      btn.style.position = 'relative';
+      btn.appendChild(badge);
+    }
+  } else {
+    btn.style.borderColor = '#1a2a3a';
+    btn.style.color = '#334455';
+    var badge2 = btn.querySelector('.offl-badge');
+    if (badge2) badge2.remove();
+  }
+  btn.addEventListener('click', function() {
+    var d = _calcOfflineReward();
+    if (d && (d.gold > 0 || d.gems > 0)) {
+      _showOfflinePopup(d);
+    } else {
+      if (window.showToastMsg) showToastMsg('오프라인 보상이 없습니다', '#334455');
+    }
+  });
+}
+
+// last_online 주기적 갱신 (게임 중 30초마다)
+setInterval(function(){ localStorage.setItem('last_online', Date.now()); }, 30000);
 
 function checkDailyReward() {
   _checkDailyAttend();
@@ -5678,6 +5778,7 @@ document.addEventListener('touchend', function(e) {
               fixIconPositions();
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
+              setTimeout(function() { _initOfflineReward(); var _od=_calcOfflineReward(); if(_od&&(_od.gold>0||_od.gems>0)) _showOfflinePopup(_od); }, 800);
             }, 400);
           }
           titleScreen.addEventListener('click', goToHome);
