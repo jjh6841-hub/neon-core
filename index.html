@@ -11265,13 +11265,16 @@ function _spOpenPopup() {
 function _injectGoalUI() {
   if (document.getElementById('sp-home-btn')) { _spUpdateHomeBtn(); return; }
   var startBtn = document.getElementById('btn-start-game');
-  if (!startBtn || !startBtn.parentNode) return;
+  if (!startBtn) return;
+  // flex 컨테이너(전투준비+오프라인 래퍼)의 앞에 삽입
+  var wrapper = startBtn.closest('div[style*="display:flex"]') || startBtn.parentNode;
+  if (!wrapper || !wrapper.parentNode) return;
   var bar = document.createElement('div');
   bar.id = 'sp-home-btn';
-  bar.style.cssText = 'width:100%;background:#0a1520;border:1px solid #ff8822;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;gap:8px;cursor:pointer;';
+  bar.style.cssText = 'width:100%;background:#0a1520;border:1px solid #ff8822;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;gap:8px;cursor:pointer;margin-top:12px;';
   bar.addEventListener('click', function() { _spOpenPopup(); });
   bar.addEventListener('touchend', function(e) { e.preventDefault(); _spOpenPopup(); });
-  startBtn.parentNode.insertBefore(bar, startBtn);
+  wrapper.parentNode.insertBefore(bar, wrapper);
   _spUpdateHomeBtn();
 }
 
