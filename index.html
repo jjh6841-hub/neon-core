@@ -2177,6 +2177,7 @@ function _showOfflinePopup(data) {
       var hgm=document.getElementById('home-gem'); if(hgm) hgm.textContent=PERM.gems||0;
       syncShopUI && syncShopUI();
     } catch(_){}
+    try { checkAchievements(); } catch(_){}
     // 버튼 비활성화 갱신
     _updateOfflineBtn();
   });
@@ -3061,6 +3062,7 @@ function claimAchievement(key) {
   if (rwItems.length && window.showRewardPopup) showRewardPopup(rwItems, '업적 보상');
 }
 window.claimAchievement = claimAchievement;
+window.checkAchievements = checkAchievements;
 
 function resizeCanvas() {
   const aw = areaEl.clientWidth  || window.innerWidth;
@@ -3542,8 +3544,13 @@ function update(dt) {
   // ── Tower fires ──
   G.tower.lastAtk += dt;
   if (G.tower.lastAtk >= G.tower.atkMs) {
-    G.tower.lastAtk = G.tower.lastAtk % G.tower.atkMs;
-    fireTower();
+    var _hadTarget = fireTower();
+    if (_hadTarget) {
+      G.tower.lastAtk = G.tower.lastAtk % G.tower.atkMs;
+    } else {
+      // 타겟 없으면 타이머 충전 유지 → 적 진입 시 즉시 발사
+      G.tower.lastAtk = G.tower.atkMs;
+    }
   }
 
   // ── Move bullets ──
@@ -4023,7 +4030,7 @@ function fireTower() {
     const d = Math.sqrt(dx * dx + dy * dy);
     if (d < minD) { minD = d; target = e; }
   }
-  if (!target) return;
+  if (!target) return false;
   const baseAngle = Math.atan2(target.y - G.cy, target.x - G.cx);
   const isCrit = G.critChance > 0 && Math.random() < G.critChance;
 
@@ -4073,6 +4080,7 @@ function fireTower() {
   if (!G.shootFlash) G.shootFlash = { alpha: 0, angle: 0 };
   G.shootFlash.alpha = 1.0;
   G.shootFlash.angle = baseAngle;
+  return true;
 }
 
 function addFx(x, y, maxR, color) {
@@ -8424,6 +8432,7 @@ function _buildLabSlots() {
               ld.research[_sid] = (ld.research[_sid]||0) + 1;
               localStorage.setItem('res_'+_sid, ld.research[_sid]);
               try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
+              try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
               var _rn = (ALL_RESEARCH.filter(function(r){return r.id===_sid;})[0]||{}).name || _sid;
               try { if(window.showToastMsg) showToastMsg('연구 완료: '+_rn); } catch(_){}
             }
@@ -8456,6 +8465,7 @@ function _buildLabSlots() {
           ld['slot'+idx].endTime = null;
           _saveLab(ld);
           try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
+          try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
           _buildLabSlots();
           var rName = (ALL_RESEARCH.filter(function(r){return r.id===sid;})[0]||{}).name || sid;
           try { if(window.showToastMsg) showToastMsg('연구 완료: '+rName); } catch(_){}
@@ -8646,6 +8656,7 @@ setInterval(function() {
         lab['slot'+i].endTime = null;
         _saveLab(lab);
         try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
+        try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
         if (window.showToastMsg) showToastMsg('연구 완료: ' + rName, '#00ff88');
         _buildLabSlots();
       }
@@ -11935,6 +11946,7 @@ function _doDraw(n) {
   for (var i = 0; i < n; i++) { var p = _drawOnePrism(); drawn.push(p); _addPrismDrop(p.id); }
   window.savePerm && window.savePerm();
   _syncPrismHUD();
+  try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
   return drawn;
 }
 
@@ -12509,6 +12521,7 @@ function _renderCardTab() {
             _setFragments(_getFragments()-30);
             _addPrismDrop(pid);
             window.savePerm&&window.savePerm();
+            try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
             if(window.showToastMsg) showToastMsg(pName+' 획득!', '#cc44ff');
             pop.remove();
             _renderCardTab();
@@ -17283,6 +17296,7 @@ window._renderElementTab = function(container) {
         if (cur < cost) return;
         _setCore(eId, cur - cost);
         _setElemLv(eId, sKey, lv + 1);
+        try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
         if (window._renderElementTab) window._renderElementTab(container);
       });
     })(btns[j]);
@@ -17498,6 +17512,7 @@ function _renderStagePopup() {
     _setCore(eId, _getCore(eId) + rw);
     _setCleared(eId, Math.max(_getCleared(eId), stg));
     _setStage(eId, stg + 1);
+    try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
     if (window.showToastMsg) showToastMsg(el.icon + ' ' + stg + '단계 클리어! ' + el.core + ' +' + rw);
     _viewStage = Math.min(stg + 1, MAX_STAGE);
     _renderStagePopup();
@@ -17694,6 +17709,7 @@ function _doStart() {
     try { savePerm(); } catch(_){}
     // 전투 증강 사용 횟수 통계
     try { var _ac=parseInt(localStorage.getItem('stat_augments')||'0',10); localStorage.setItem('stat_augments',_ac+_pendingAugs.length); } catch(_){}
+    try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
   }
   _close();
   window.startNewGame();
