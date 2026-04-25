@@ -1584,10 +1584,9 @@ canvas {
     </div>
 
     <!-- 전투 시작 + 오프라인 보상 -->
-    <div style="display:flex;gap:2px;margin-top:16px;margin-bottom:calc(76px + var(--sab));align-items:center;">
-      <button id="btn-offline-reward" style="width:36px;height:52px;background:#030b10;border:1px solid #f59e0b33;color:#f59e0b;font-family:'Courier New',monospace;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;padding:0;"><svg width="18" height="18" viewBox="0 0 20 20" style="display:block;"><line x1="5" y1="2" x2="15" y2="2" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="18" x2="15" y2="18" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><path d="M6,3 L6,7 L10,11 L14,7 L14,3" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><path d="M6,17 L6,13 L10,9 L14,13 L14,17" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><circle cx="10" cy="10" r="1.2" fill="#f59e0b" opacity="0.6"/></svg></button>
-      <button id="btn-start-game" style="flex:1;height:52px;background:#030b10;border:2px solid #cc44ff;color:#ffffff;font-size:18px;font-family:'Courier New',monospace;font-weight:bold;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #cc44ff;white-space:nowrap;text-align:center;">전투 준비</button>
-      <div style="width:36px;flex-shrink:0;"></div>
+    <div style="position:relative;margin-top:16px;margin-bottom:calc(76px + var(--sab));">
+      <button id="btn-start-game" style="width:100%;height:52px;background:#030b10;border:2px solid #cc44ff;color:#ffffff;font-size:18px;font-family:'Courier New',monospace;font-weight:bold;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #cc44ff;white-space:nowrap;text-align:center;padding-left:38px;padding-right:38px;">전투 준비</button>
+      <button id="btn-offline-reward" style="position:absolute;left:0;top:0;width:36px;height:52px;background:#030b10;border:1px solid #f59e0b33;border-right:1px solid #1a1a2a;color:#f59e0b;font-family:'Courier New',monospace;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;padding:0;"><svg width="18" height="18" viewBox="0 0 20 20" style="display:block;"><line x1="5" y1="2" x2="15" y2="2" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="18" x2="15" y2="18" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><path d="M6,3 L6,7 L10,11 L14,7 L14,3" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><path d="M6,17 L6,13 L10,9 L14,13 L14,17" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><circle cx="10" cy="10" r="1.2" fill="#f59e0b" opacity="0.6"/></svg></button>
     </div>
 
   </div>
