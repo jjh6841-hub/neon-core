@@ -7120,8 +7120,8 @@ window.formatNumber = function(n) {
     out = String(Math.floor(num));
   } else {
     var scaled = num / Math.pow(1000, idx);
-    // 소수점 둘째자리까지, 불필요한 trailing zeros 제거
-    out = scaled._tf2().replace(/\.?0+$/, '') + suffixes[idx];
+    // 접미사가 붙으면 소수점 2자리 고정 표시
+    out = scaled._tf2() + suffixes[idx];
   }
   return neg ? '-' + out : out;
 };
