@@ -5969,6 +5969,9 @@ document.addEventListener('touchend', function(e) {
               fixIconPositions();
               if (window._injectGoalUI) window._injectGoalUI();
               if (window._startHomeBg) window._startHomeBg();
+              // showScreen과 동일한 초기화 보장
+              if (window.showScreen) showScreen('home');
+              home.offsetHeight;
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
               setTimeout(function() { _initOfflineReward(); }, 800);
