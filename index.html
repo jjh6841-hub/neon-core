@@ -2585,6 +2585,10 @@ function upgCost(key, base) {
   }
   return raw;
 }
+// 소수점 절삭 (반올림 없이 내림) — Number prototype
+Number.prototype._tf2 = function() { var m=100; return (Math.floor(this*m)/m).toFixed(2); };
+Number.prototype._tf1 = function() { var m=10;  return (Math.floor(this*m)/m).toFixed(1); };
+
 var UPGRADES = [
   // ─ 공격 탭 ─
   { key:'dmg',     tab:'atk', icon:'/',  name:'공격력',   baseCost:5,  unlock:null,
@@ -2595,13 +2599,13 @@ var UPGRADES = [
   },
   { key:'spd',     tab:'atk', icon:'//',  name:'공격속도',  baseCost:7,  unlock:null, maxLv:30,
     cost()   { return upgCost('spd',7); },
-    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05).toFixed(2); },
+    stat()   { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return (1.00+totalLv*0.05)._tf2(); },
     canBuy() { var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); return coreChips>=upgCost('spd',7) && totalLv<30; },
     apply()  { var c=upgCost('spd',7); coreChips-=c; G.upgLvl.spd=(G.upgLvl.spd||0)+1; var totalLv=(PERM.spdLv||0)+((PERM.ws&&PERM.ws.atkspd)||0)+(G.upgLvl.spd||0); G.tower.atkMs=Math.max(200,Math.round((window.BASE_ATKMS||1200)/(1+totalLv*0.05))); },
   },
   { key:'crit',    tab:'atk', icon:'!',  name:'치명타<br>확률',  baseCost:8,  unlock:'crit',
     cost()   { return upgCost('crit',8); },
-    stat()   { return (G.critChance*100).toFixed(1)+'%'; },
+    stat()   { return (G.critChance*100)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('crit',8); },
     apply()  { var c=upgCost('crit',8); coreChips-=c; G.upgLvl.crit=(G.upgLvl.crit||0)+1; G.critChance=Math.min(1.0,G.critChance+0.005); },
   },
@@ -2613,13 +2617,13 @@ var UPGRADES = [
   },
   { key:'dmgPerMeter', tab:'atk', icon:'↗', name:'거리피해', baseCost:8, unlock:'rng', maxLv:30,
     cost()   { return upgCost('dmgPerMeter',8); },
-    stat()   { return 'x'+(1+(G.upgLvl.dmgPerMeter||0)*0.01).toFixed(2); },
+    stat()   { return 'x'+(1+(G.upgLvl.dmgPerMeter||0)*0.01)._tf2(); },
     canBuy() { return coreChips>=upgCost('dmgPerMeter',8); },
     apply()  { var c=upgCost('dmgPerMeter',8); coreChips-=c; G.upgLvl.dmgPerMeter=(G.upgLvl.dmgPerMeter||0)+1; G.dmgPerMeter=1+(G.upgLvl.dmgPerMeter||0)*0.01; },
   },
   { key:'multiChance', tab:'atk', icon:'%', name:'분열탄<br>확률', baseCost:10, unlock:'multi', maxLv:30,
     cost()   { return upgCost('multiChance',10); },
-    stat()   { return ((G.upgLvl.multiChance||0)*0.5).toFixed(1)+'%'; },
+    stat()   { return ((G.upgLvl.multiChance||0)*0.5)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('multiChance',10); },
     apply()  { var c=upgCost('multiChance',10); coreChips-=c; G.upgLvl.multiChance=(G.upgLvl.multiChance||0)+1; G.multiChance=Math.min(0.5,(G.upgLvl.multiChance||0)*0.005); },
   },
@@ -2631,19 +2635,19 @@ var UPGRADES = [
   },
   { key:'rapidChance', tab:'atk', icon:'R', name:'연사확률', baseCost:50, unlock:'rapidChance', maxLvl:80,
     cost()   { return 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
-    stat()   { return ((G.upgLvl.rapidChance||0)*0.5).toFixed(1)+'%'; },
+    stat()   { return ((G.upgLvl.rapidChance||0)*0.5)._tf1()+'%'; },
     canBuy() { return (G.upgLvl.rapidChance||0) < 80 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
     apply()  { var c=50*Math.pow(2,G.upgLvl.rapidChance||0); coreChips-=c; G.upgLvl.rapidChance=(G.upgLvl.rapidChance||0)+1; G.rapidChance=Math.min(0.40,(G.upgLvl.rapidChance||0)*0.005); },
   },
   { key:'rapidDuration', tab:'atk', icon:'T', name:'연사지속', baseCost:50, unlock:'rapidChance', maxLvl:100,
     cost()   { return 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
-    stat()   { return ((G.upgLvl.rapidDuration||0)*0.1).toFixed(1)+'s'; },
+    stat()   { return ((G.upgLvl.rapidDuration||0)*0.1)._tf1()+'s'; },
     canBuy() { return (G.upgLvl.rapidDuration||0) < 100 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
     apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=Math.min(5,(G.upgLvl.rapidDuration||0)*0.1); },
   },
   { key:'bounceChance', tab:'atk', icon:'B', name:'도약탄<br>확률', baseCost:50, unlock:'bounceChance', maxLvl:140,
     cost()   { return 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
-    stat()   { var v=((G.upgLvl.bounceChance||0)+1)*0.5; return Math.min(v,70).toFixed(1)+'%'; },
+    stat()   { var v=((G.upgLvl.bounceChance||0)+1)*0.5; return Math.min(v,70)._tf1()+'%'; },
     canBuy() { return (G.upgLvl.bounceChance||0) < 140 && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
     apply()  { var c=50*Math.pow(2,G.upgLvl.bounceChance||0); coreChips-=c; G.upgLvl.bounceChance=(G.upgLvl.bounceChance||0)+1; G.bounceChance=Math.min(0.70,((G.upgLvl.bounceChance||0)+1)*0.005); },
   },
@@ -2655,7 +2659,7 @@ var UPGRADES = [
   },
   { key:'bounceRange', tab:'atk', icon:'◎', name:'도약탄<br>범위', baseCost:50, unlock:'bounceChance', maxLv:30,
     cost()   { return upgCost('bounceRange',12); },
-    stat()   { return 'x'+(1+(G.upgLvl.bounceRange||0)*0.1).toFixed(1); },
+    stat()   { return 'x'+(1+(G.upgLvl.bounceRange||0)*0.1)._tf1(); },
     canBuy() { return coreChips>=upgCost('bounceRange',12); },
     apply()  { var c=upgCost('bounceRange',12); coreChips-=c; G.upgLvl.bounceRange=(G.upgLvl.bounceRange||0)+1; G.bounceRange=1+(G.upgLvl.bounceRange||0)*0.1; },
   },
@@ -2667,13 +2671,13 @@ var UPGRADES = [
   },
   { key:'enhCritChance', tab:'atk', icon:'!!', name:'강화치명타<br>확률', baseCost:12, unlock:'enhCrit', maxLv:20,
     cost()   { return upgCost('enhCritChance',12); },
-    stat()   { return ((G.enhCritChance||0)*100).toFixed(1)+'%'; },
+    stat()   { return ((G.enhCritChance||0)*100)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('enhCritChance',12); },
     apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.005); },
   },
   { key:'enhCritMult', tab:'atk', icon:'!!', name:'강화치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
     cost()   { return upgCost('enhCritMult',15); },
-    stat()   { var m=G.enhCritMult||0; return m>0?m.toFixed(1)+'x':'1.5x'; },
+    stat()   { var m=G.enhCritMult||0; return m>0?m._tf1()+'x':'1.5x'; },
     canBuy() { return coreChips>=upgCost('enhCritMult',15); },
     apply()  { var c=upgCost('enhCritMult',15); coreChips-=c; G.upgLvl.enhCritMult=(G.upgLvl.enhCritMult||0)+1; G.enhCritMult=(G.enhCritMult||1.5)+0.1; },
   },
@@ -2686,13 +2690,13 @@ var UPGRADES = [
   },
   { key:'hpRegen', tab:'def', icon:'♥',  name:'체력회복',  baseCost:8,  unlock:null,
     cost()   { return upgCost('hpRegen',8); },
-    stat()   { return G.regenRate.toFixed(2)+'/s'; },
+    stat()   { return G.regenRate._tf2()+'/s'; },
     canBuy() { return coreChips>=upgCost('hpRegen',8); },
     apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate=(G.regenRate||0)+0.05; },
   },
   { key:'defRate', tab:'def', icon:'%',  name:'방어율',   baseCost:8,  unlock:null,
     cost()   { return upgCost('defRate',8); },
-    stat()   { return (((G.tower&&G.tower.defense)||0)*100).toFixed(1)+'%'; },
+    stat()   { return (((G.tower&&G.tower.defense)||0)*100)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('defRate',8); },
     apply()  { var c=upgCost('defRate',8); coreChips-=c; G.upgLvl.defRate=(G.upgLvl.defRate||0)+1; G.tower.defense=Math.min(0.9,(G.tower.defense||0)+0.005); },
   },
@@ -2704,19 +2708,19 @@ var UPGRADES = [
   },
   { key:'vamp',    tab:'def', icon:'*',  name:'흡혈',     baseCost:9,  unlock:'vamp', maxLv:150,
     cost()   { return upgCost('vamp',9); },
-    stat()   { return ((G.upgLvl.vamp||0)*0.1).toFixed(1)+'%'; },
+    stat()   { return ((G.upgLvl.vamp||0)*0.1)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('vamp',9) && (G.upgLvl.vamp||0)<150; },
     apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; },
   },
   { key:'reflect', tab:'def', icon:'↩',  name:'반사<br>데미지', baseCost:10, unlock:'reflect', maxLv:30,
     cost()   { return upgCost('reflect',10); },
-    stat()   { return ((G.reflectPct||0)*100).toFixed(1)+'%'; },
+    stat()   { return ((G.reflectPct||0)*100)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('reflect',10); },
     apply()  { var c=upgCost('reflect',10); coreChips-=c; G.upgLvl.reflect=(G.upgLvl.reflect||0)+1; G.reflectPct=Math.min(0.5,(G.upgLvl.reflect||0)*0.005); },
   },
   { key:'knockback', tab:'def', icon:'⇤', name:'넉백확률',  baseCost:10, unlock:'knockback', maxLv:30,
     cost()   { return upgCost('knockback',10); },
-    stat()   { return ((G.knockbackChance||0)*100).toFixed(1)+'%'; },
+    stat()   { return ((G.knockbackChance||0)*100)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('knockback',10); },
     apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.5,(G.knockbackChance||0)+0.005); },
   },
@@ -2741,9 +2745,9 @@ var UPGRADES = [
   },
   { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:null,
     cost()   { return upgCost('goldup',11); },
-    stat()   { return 'x'+G.goldBonus.toFixed(1); },
+    stat()   { return 'x'+G.goldBonus._tf1(); },
     canBuy() { return coreChips>=upgCost('goldup',11); },
-    apply()  { var c=upgCost('goldup',11); coreChips-=c; G.upgLvl.goldup=(G.upgLvl.goldup||0)+1; G.goldBonus=parseFloat((G.goldBonus+0.5).toFixed(1)); },
+    apply()  { var c=upgCost('goldup',11); coreChips-=c; G.upgLvl.goldup=(G.upgLvl.goldup||0)+1; G.goldBonus=parseFloat((G.goldBonus+0.5)._tf1()); },
   },
 ];
 
@@ -4999,7 +5003,7 @@ function renderTowerPopup() {
   if (!G || !G.showTowerStats) return;
   const lines = [
     'ATK 공격력: ' + G.tower.dmg,
-    'SPD 속도: x'  + (1000 / Math.max(200, G.tower.atkMs)).toFixed(2),
+    'SPD 속도: x'  + (1000 / Math.max(200, G.tower.atkMs))._tf2(),
     'RNG 범위: '   + Math.round(G.tower.range),
     'DEF 방어구: ' + G.armor,
     'HP: '     + Math.ceil(G.tower.hp) + '/' + G.tower.maxHp,
@@ -6019,7 +6023,7 @@ if (dailyPopup) {
   function applyTier() {
     var t = TIERS[curTier];
     document.getElementById('tier-name').textContent       = t.name;
-    document.getElementById('tier-multiplier').textContent = t.mult.toFixed(1);
+    document.getElementById('tier-multiplier').textContent = t.mult._tf1();
     try { localStorage.setItem('td_tier', curTier + 1); } catch(_) {}
     // 티어 1 일 때 좌측 화살표 비활성화
     var prevBtn = document.getElementById('tier-prev');
@@ -6101,44 +6105,44 @@ if (dailyPopup) {
       nxt:  function(lv) { return '' + (lv + 1); } },
     atkspd:     { tab:'atk', name:'공격 속도',   maxLv:10, atkGroup:0,
       cost: function(lv) { return 5 + lv * 4; },
-      cur:  function(lv) { return 'x' + (1 + lv * 0.05).toFixed(2); },
-      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.05).toFixed(2); } },
+      cur:  function(lv) { return 'x' + (1 + lv * 0.05)._tf2(); },
+      nxt:  function(lv) { return 'x' + (1 + (lv + 1) * 0.05)._tf2(); } },
     critChance: { tab:'atk', name:'치명타 확률', maxLv:100, atkGroup:1,
       cost: function(lv) { return 8 + lv * 5; },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
     critMult:   { tab:'atk', name:'치명타 계수', maxLv:999, atkGroup:1,
       cost: function(lv) { return 15 + lv * 12; },
-      cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(2); },
-      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1).toFixed(2); } },
+      cur:  function(lv) { return (1.5 + lv * 0.1)._tf2(); },
+      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1)._tf2(); } },
     maxHp:      { tab:'def', name:'최대 체력',   maxLv:999, defGroup:0,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 5); },
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
     hpRegen:    { tab:'def', name:'체력 회복',    maxLv:999, defGroup:0,
       cost: function(lv) { return 10 + lv * 5; },
-      cur:  function(lv) { return (lv * 0.05).toFixed(2); },
-      nxt:  function(lv) { return ((lv + 1) * 0.05).toFixed(2); } },
+      cur:  function(lv) { return (lv * 0.05)._tf2(); },
+      nxt:  function(lv) { return ((lv + 1) * 0.05)._tf2(); } },
     defRate:    { tab:'def', name:'방어율',       maxLv:120, defGroup:1,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
-      nxt:  function(lv) { return Math.min(60, (lv + 1) * 0.5).toFixed(1); } },
+      cur:  function(lv) { return (lv * 0.5)._tf1(); },
+      nxt:  function(lv) { return Math.min(60, (lv + 1) * 0.5)._tf1(); } },
     defAbs:     { tab:'def', name:'절대 방어',    maxLv:999, defGroup:1,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return Math.floor(Math.pow(1.25, lv)) + ''; },
       nxt:  function(lv) { return Math.floor(Math.pow(1.25, lv + 1)) + ''; } },
     reflectDmg: { tab:'def', name:'반사 데미지',  maxLv:198, defGroup:2,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
-      nxt:  function(lv) { return Math.min(99, (lv + 1) * 0.5).toFixed(1); } },
+      cur:  function(lv) { return (lv * 0.5)._tf1(); },
+      nxt:  function(lv) { return Math.min(99, (lv + 1) * 0.5)._tf1(); } },
     vampChance: { tab:'def', name:'흡혈',          maxLv:99,  defGroup:3,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
+      cur:  function(lv) { return (lv * 0.5)._tf1(); },
+      nxt:  function(lv) { return ((lv + 1) * 0.5)._tf1(); } },
     knockChance:{ tab:'def', name:'넉백 확률',    maxLv:99,  defGroup:4,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1); },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1); } },
+      cur:  function(lv) { return (lv * 0.5)._tf1(); },
+      nxt:  function(lv) { return ((lv + 1) * 0.5)._tf1(); } },
     shieldHP:   { tab:'def', name:'쉴드 HP',      maxLv:99,  defGroup:5,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return '' + (lv * 10); },
@@ -6149,16 +6153,16 @@ if (dailyPopup) {
       nxt:  function(lv) { return (lv + 1) + '%'; } },
     enhCritChance: { tab:'atk', name:'강화 치명타 확률', maxLv:20, atkGroup:7,
       cost: function(lv) { return 20 + lv * 10; },
-      cur:  function(lv) { return (lv * 0.5).toFixed(1) + '%'; },
-      nxt:  function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; } },
+      cur:  function(lv) { return (lv * 0.5)._tf1() + '%'; },
+      nxt:  function(lv) { return ((lv + 1) * 0.5)._tf1() + '%'; } },
     enhCritMult:   { tab:'atk', name:'강화 치명타 계수', maxLv:999, atkGroup:7,
       cost: function(lv) { return 30 + lv * 15; },
-      cur:  function(lv) { return (1.5 + lv * 0.1).toFixed(1) + 'x'; },
-      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1).toFixed(1) + 'x'; } },
+      cur:  function(lv) { return (1.5 + lv * 0.1)._tf1() + 'x'; },
+      nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1)._tf1() + 'x'; } },
     goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
       cost: function(lv) { return 5 + lv * 4; },
-      cur:  function(lv) { return (1 + lv * 0.1).toFixed(1); },
-      nxt:  function(lv) { return (1 + (lv + 1) * 0.1).toFixed(1); } },
+      cur:  function(lv) { return (1 + lv * 0.1)._tf1(); },
+      nxt:  function(lv) { return (1 + (lv + 1) * 0.1)._tf1(); } },
   };
 
   var wsActiveTab = 'atk';
@@ -7117,7 +7121,7 @@ window.formatNumber = function(n) {
   } else {
     var scaled = num / Math.pow(1000, idx);
     // 소수점 둘째자리까지, 불필요한 trailing zeros 제거
-    out = scaled.toFixed(2).replace(/\.?0+$/, '') + suffixes[idx];
+    out = scaled._tf2().replace(/\.?0+$/, '') + suffixes[idx];
   }
   return neg ? '-' + out : out;
 };
@@ -7661,38 +7665,38 @@ var WS = _ext.items;
 var NEW_ITEMS = {
   // 공격 탭 2단계 (tier 2, wave 150골드)
   wsRange:       { tab:'atk', name:'공격 범위',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return ''+lv*8;},                    nxt:function(lv){return ''+(lv+1)*8;} },
-  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.01).toFixed(2);},     nxt:function(lv){return (1+(lv+1)*0.01).toFixed(2);} },
+  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.01)._tf2();},     nxt:function(lv){return (1+(lv+1)*0.01)._tf2();} },
   // 공격 탭 3단계
-  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, atkGroup:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, atkGroup:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
   multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, atkGroup:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
   // 공격 탭 4단계
-  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, atkGroup:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
-  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, atkGroup:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
+  rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, atkGroup:4, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
+  rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, atkGroup:4, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (1+lv*0.1)._tf1();},       nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
   // 공격 탭 5단계
-  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5).toFixed(1);},         nxt:function(lv){return ((lv+1)*0.5).toFixed(1);} },
+  bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
   bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, atkGroup:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
-  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return (1+lv*0.1).toFixed(1);},       nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
+  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return (1+lv*0.1)._tf1();},       nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
 
   // 방어 탭 2단계
   defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                  nxt:function(lv){return ''+(lv+1);} },
   thornDamage:     { tab:'def', name:'가시 피해',        tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 3단계
-  knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8).toFixed(1);},     nxt:function(lv){return ((lv+1)*0.8).toFixed(1);} },
+  knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8)._tf1();},     nxt:function(lv){return ((lv+1)*0.8)._tf1();} },
   knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 4단계
-  orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (1+lv*0.1).toFixed(1);},   nxt:function(lv){return (1+(lv+1)*0.1).toFixed(1);} },
+  orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (1+lv*0.1)._tf1();},   nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
   orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 5단계
-  mineChance:      { tab:'def', name:'에너지 지뢰 확률', tier:5, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.3).toFixed(1);},    nxt:function(lv){return ((lv+1)*0.3).toFixed(1);} },
-  mineDamage:      { tab:'def', name:'에너지 지뢰 피해', tier:5, maxLv:99, cost:function(lv){return 16+Math.floor(lv*2.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},  nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
-  mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (0.5+lv*0.02).toFixed(2);},nxt:function(lv){return (0.5+(lv+1)*0.02).toFixed(2);} },
-  deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1).toFixed(1);},     nxt:function(lv){return ((lv+1)*0.1).toFixed(1);} },
+  mineChance:      { tab:'def', name:'에너지 지뢰 확률', tier:5, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.3)._tf1();},    nxt:function(lv){return ((lv+1)*0.3)._tf1();} },
+  mineDamage:      { tab:'def', name:'에너지 지뢰 피해', tier:5, maxLv:99, cost:function(lv){return 16+Math.floor(lv*2.8);}, cur:function(lv){return (1+lv*0.05)._tf2();},  nxt:function(lv){return (1+(lv+1)*0.05)._tf2();} },
+  mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (0.5+lv*0.02)._tf2();},nxt:function(lv){return (0.5+(lv+1)*0.02)._tf2();} },
+  deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1)._tf1();},     nxt:function(lv){return ((lv+1)*0.1)._tf1();} },
 
   // 특수 탭 1단계 확장
-  cashBonus:       { tab:'utl', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.05).toFixed(2);} },
+  cashBonus:       { tab:'utl', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05)._tf2();},   nxt:function(lv){return (1+(lv+1)*0.05)._tf2();} },
   cashPerWave:     { tab:'utl', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
   // 특수 탭 2단계
-  coinsPerKill:    { tab:'utl', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02).toFixed(2);},   nxt:function(lv){return (1+(lv+1)*0.02).toFixed(2);} },
+  coinsPerKill:    { tab:'utl', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02)._tf2();},   nxt:function(lv){return (1+(lv+1)*0.02)._tf2();} },
   coinsPerWave:    { tab:'utl', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
   // 특수 탭 4단계
 };
@@ -7857,7 +7861,7 @@ var ULTIMATE_WEAPONS = [
   { id:'chrono_field',  name:'크로노 필드',  icon:'◷', color:'#3b82f6', unlockCost:5,
     desc:'적 이동속도를 감소시키는 시간 왜곡 필드',
     stats:[
-      { key:'durationLv', name:'지속시간', fmt:function(lv){return (8+lv*0.5).toFixed(1)+'s';} },
+      { key:'durationLv', name:'지속시간', fmt:function(lv){return (8+lv*0.5)._tf1()+'s';} },
       { key:'slowLv',     name:'감속률',   fmt:function(lv){return (20+lv)+'%';} },
       { key:'cooldownLv', name:'쿨타임',   fmt:function(lv){return Math.max(30,(170-lv*3))+'s';} },
     ]},
@@ -9105,19 +9109,19 @@ window._showCoinBonusPopup = function() {
   var wsGoldEl = document.getElementById('cb-ws-gold-val');
   var prismEl = document.getElementById('cb-prism-val');
 
-  if (wsEl)     wsEl.textContent  = '×' + wsBonus.toFixed(2);
-  if (wsGoldEl) { wsGoldEl.textContent = '×' + wsGoldGain.toFixed(2); wsGoldEl.className = wsGoldGain > 1 ? 'cb-val active' : 'cb-val inactive'; }
-  if (tierEl)   tierEl.textContent = '×' + tierMult.toFixed(2);
-  if (prismEl)  { prismEl.textContent = '×' + prismGold.toFixed(2); prismEl.className = prismGold > 1 ? 'cb-val active' : 'cb-val inactive'; }
+  if (wsEl)     wsEl.textContent  = '×' + wsBonus._tf2();
+  if (wsGoldEl) { wsGoldEl.textContent = '×' + wsGoldGain._tf2(); wsGoldEl.className = wsGoldGain > 1 ? 'cb-val active' : 'cb-val inactive'; }
+  if (tierEl)   tierEl.textContent = '×' + tierMult._tf2();
+  if (prismEl)  { prismEl.textContent = '×' + prismGold._tf2(); prismEl.className = prismGold > 1 ? 'cb-val active' : 'cb-val inactive'; }
   if (adEl) {
     adEl.textContent = adActive ? '×1.50' : '비활성';
     adEl.className   = adActive ? 'cb-val active' : 'cb-val inactive';
   }
-  if (totEl)  totEl.textContent = '×' + total.toFixed(2);
+  if (totEl)  totEl.textContent = '×' + total._tf2();
 
   // 홈 화면 총 보너스 텍스트도 업데이트
   var homeTot = document.getElementById('home-total-bonus');
-  if (homeTot) homeTot.textContent = '◈ ×' + total.toFixed(2);
+  if (homeTot) homeTot.textContent = '◈ ×' + total._tf2();
 
   var popup = document.getElementById('coin-bonus-popup');
   if (popup) popup.style.display = 'flex';
@@ -9133,7 +9137,7 @@ if (homeEl) {
       var tierMult = _getTierMult();
       var total    = wsBonus * tierMult * (adActive ? 1.5 : 1.0);
       var el = document.getElementById('home-total-bonus');
-      if (el) el.textContent = '◈ ×' + total.toFixed(2);
+      if (el) el.textContent = '◈ ×' + total._tf2();
     }
   }).observe(homeEl, { attributes:true, attributeFilter:['style'] });
 }
@@ -10266,7 +10270,7 @@ function _patchUpgrades() {
     UPGRADES.splice(critIdx + 1, 0, {
       key: 'critMult', tab: 'atk', icon: '×!', name: '치명타<br>계수', baseCost: 10, unlock: 'crit',
       cost:   function() { return Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0)); },
-      stat:   function() { return (window.G ? (G.critMult || 1.5).toFixed(1) : '1.5'); },
+      stat:   function() { return (window.G ? (G.critMult || 1.5)._tf1() : '1.5'); },
       canBuy: function() {
         var c = Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0));
         return !!(window.G && coreChips >= c);
@@ -10728,9 +10732,9 @@ function _newMkEnemy(etype) {
     e.atk   = etype === 'boss_hyper' ? 10 : etype === 'boss_elite' ? 5 : 2;
   } else {
     var base = TYPE_BASE[etype] || TYPE_BASE.basic;
-    e.hp    = parseFloat((base.hp * hpScale * tc.enemyMult).toFixed(1));
+    e.hp    = parseFloat((base.hp * hpScale * tc.enemyMult)._tf1());
     e.maxHp = e.hp;
-    e.spd   = parseFloat((base.spd * spdScale).toFixed(2));
+    e.spd   = parseFloat((base.spd * spdScale)._tf2());
     e.gold  = Math.ceil(base.gold * killBase * tc.goldMult);
     e.r     = base.r;
   }
@@ -10824,16 +10828,16 @@ function _applyWsCostPatches() {
     items.damage.nxt = function(lv) { return Math.round(5 * Math.pow(1.20, (_p().dmgLv||0) + lv + 1)); };
   }
   if (items.atkspd) {
-    items.atkspd.cur = function(lv) { return 'x' + (1 + (_p().spdLv||0)*0.05 + lv*0.05).toFixed(2); };
-    items.atkspd.nxt = function(lv) { return 'x' + (1 + (_p().spdLv||0)*0.05 + (lv+1)*0.05).toFixed(2); };
+    items.atkspd.cur = function(lv) { return 'x' + (1 + (_p().spdLv||0)*0.05 + lv*0.05)._tf2(); };
+    items.atkspd.nxt = function(lv) { return 'x' + (1 + (_p().spdLv||0)*0.05 + (lv+1)*0.05)._tf2(); };
   }
   if (items.critChance) {
-    items.critChance.cur = function(lv) { return (lv * 0.5).toFixed(1) + '%'; };
-    items.critChance.nxt = function(lv) { return ((lv + 1) * 0.5).toFixed(1) + '%'; };
+    items.critChance.cur = function(lv) { return (lv * 0.5)._tf1() + '%'; };
+    items.critChance.nxt = function(lv) { return ((lv + 1) * 0.5)._tf1() + '%'; };
   }
   if (items.critMult) {
-    items.critMult.cur = function(lv) { return 'x' + (1.5 + lv * 0.1).toFixed(2); };
-    items.critMult.nxt = function(lv) { return 'x' + (1.5 + (lv + 1) * 0.1).toFixed(2); };
+    items.critMult.cur = function(lv) { return 'x' + (1.5 + lv * 0.1)._tf2(); };
+    items.critMult.nxt = function(lv) { return 'x' + (1.5 + (lv + 1) * 0.1)._tf2(); };
   }
   if (items.maxHp) {
     items.maxHp.cur = function(lv) { return Math.round(25 * Math.pow(1.20, (_p().hpLv||0) + lv)); };
@@ -10848,16 +10852,16 @@ function _applyWsCostPatches() {
     items.defAbs.nxt = function(lv) { return '' + (lv + 1); };
   }
   if (items.hpRegen) {
-    items.hpRegen.cur = function(lv) { return (lv * 0.05).toFixed(2) + '/s'; };
-    items.hpRegen.nxt = function(lv) { return ((lv + 1) * 0.05).toFixed(2) + '/s'; };
+    items.hpRegen.cur = function(lv) { return (lv * 0.05)._tf2() + '/s'; };
+    items.hpRegen.nxt = function(lv) { return ((lv + 1) * 0.05)._tf2() + '/s'; };
   }
   if (items.vampChance) {
-    items.vampChance.cur = function(lv) { return (lv * 0.1).toFixed(1) + '%'; };
-    items.vampChance.nxt = function(lv) { return ((lv + 1) * 0.1).toFixed(1) + '%'; };
+    items.vampChance.cur = function(lv) { return (lv * 0.1)._tf1() + '%'; };
+    items.vampChance.nxt = function(lv) { return ((lv + 1) * 0.1)._tf1() + '%'; };
   }
   if (items.goldGain) {
-    items.goldGain.cur = function(lv) { return 'x' + (1 + lv * 0.1).toFixed(1); };
-    items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1).toFixed(1); };
+    items.goldGain.cur = function(lv) { return 'x' + (1 + lv * 0.1)._tf1(); };
+    items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1)._tf1(); };
   }
 }
 
@@ -12651,7 +12655,7 @@ function _showStatsPopup() {
   var _finalSpdMult=_totalSpdMult*_rSpdMult;
   var _baseAtkMs=window.BASE_ATKMS||1200;
   var _finalAtkMs=Math.max(200,Math.round(_baseAtkMs/_finalSpdMult));
-  var _atkPerSec=(1000/_finalAtkMs).toFixed(2);
+  var _atkPerSec=(1000/_finalAtkMs)._tf2();
 
   var h='';
   // ── 최종 스탯 (클릭 가능) ──
@@ -12661,31 +12665,31 @@ function _showStatsPopup() {
   h+=_clickRow('최종 체력',_fn(allHp),'#10b981','detail-hp');
   h+=_clickRow('최종 절대 방어',_fn(allDefAbs),'#3b82f6','detail-def');
   h+=_clickRow('최종 공격속도',_atkPerSec+'/s ('+_finalAtkMs+'ms)','#f59e0b','detail-spd');
-  h+=_row('방어율 (회피)',evadeRate.toFixed(1)+'%','#3b82f6');
+  h+=_row('방어율 (회피)',evadeRate._tf1()+'%','#3b82f6');
   h+=_clickRow('최대 치명타 피해',_fn(maxCritDmg),'#cc44ff','detail-crit');
-  h+=_clickRow('① 일반 치명타',normalCritChance.toFixed(1)+'% / ×'+normalCritMult.toFixed(2),'#cc44ff','detail-ncrit');
-  h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult.toFixed(2):'미장착','#a855f7');
-  h+=_row('③ 모듈 치명타',modCritChance>0?modCritChance.toFixed(1)+'% / ×'+(modCritMult||0).toFixed(2):'미장착','#22ddaa');
-  h+=_row('④ 모듈Lv 치명타 확률',modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'-','#00ccaa');
-  h+=_row('④ 모듈Lv 치명타 계수',modLvCritMult>0?'×'+modLvCritMult.toFixed(2):'-','#00ccaa');
-  h+=_row('체력 재생',((ws.hpRegen||0)*0.05).toFixed(2)+'/s','#10b981');
-  h+=_row('흡혈',((ws.vampChance||0)*0.1).toFixed(1)+'%','#ef4444');
+  h+=_clickRow('① 일반 치명타',normalCritChance._tf1()+'% / ×'+normalCritMult._tf2(),'#cc44ff','detail-ncrit');
+  h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult._tf2():'미장착','#a855f7');
+  h+=_row('③ 모듈 치명타',modCritChance>0?modCritChance._tf1()+'% / ×'+(modCritMult||0)._tf2():'미장착','#22ddaa');
+  h+=_row('④ 모듈Lv 치명타 확률',modLvCritChance>0?modLvCritChance._tf1()+'%':'-','#00ccaa');
+  h+=_row('④ 모듈Lv 치명타 계수',modLvCritMult>0?'×'+modLvCritMult._tf2():'-','#00ccaa');
+  h+=_row('체력 재생',((ws.hpRegen||0)*0.05)._tf2()+'/s','#10b981');
+  h+=_row('흡혈',((ws.vampChance||0)*0.1)._tf1()+'%','#ef4444');
 
   // ── 강화소 ── (강화소 화면 표시 공식과 동일)
   h+=_section('강화소');
   var _dl=ws.damage||0;   h+=_row('공격력 Lv.'+_dl, Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+_dl)));
-  var _sl=ws.atkspd||0;   h+=_row('공격속도 Lv.'+_sl, 'x'+(1+(PERM.spdLv||0)*0.05+_sl*0.05).toFixed(2));
+  var _sl=ws.atkspd||0;   h+=_row('공격속도 Lv.'+_sl, 'x'+(1+(PERM.spdLv||0)*0.05+_sl*0.05)._tf2());
   var _hl=ws.maxHp||0;    h+=_row('최대 체력 Lv.'+_hl, Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+_hl)));
-  var _ccl=ws.critChance||0; h+=_row('치명타 확률 Lv.'+_ccl, (_ccl*0.5).toFixed(1)+'%');
-  var _cml=ws.critMult||0;  h+=_row('치명타 배율 Lv.'+_cml, 'x'+(1.5+_cml*0.1).toFixed(2));
+  var _ccl=ws.critChance||0; h+=_row('치명타 확률 Lv.'+_ccl, (_ccl*0.5)._tf1()+'%');
+  var _cml=ws.critMult||0;  h+=_row('치명타 배율 Lv.'+_cml, 'x'+(1.5+_cml*0.1)._tf2());
   var _drl=ws.defRate||0;  h+=_row('방어율 Lv.'+_drl, _drl+'%');
   var _dal=ws.defAbs||0;   h+=_row('절대 방어 Lv.'+_dal, _dal);
-  var _hrl=ws.hpRegen||0;  h+=_row('체력 재생 Lv.'+_hrl, (_hrl*0.05).toFixed(2)+'/s');
-  var _kbl=ws.knockbackChance||0; h+=_row('넉백 확률 Lv.'+_kbl, (_kbl*0.5).toFixed(1)+'%');
-  var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5).toFixed(1)+'%');
-  var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1).toFixed(1)+'%');
+  var _hrl=ws.hpRegen||0;  h+=_row('체력 재생 Lv.'+_hrl, (_hrl*0.05)._tf2()+'/s');
+  var _kbl=ws.knockbackChance||0; h+=_row('넉백 확률 Lv.'+_kbl, (_kbl*0.5)._tf1()+'%');
+  var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5)._tf1()+'%');
+  var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1)._tf1()+'%');
   var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, (_shl*10));
-  var _ggl=ws.goldGain||0;  h+=_row('골드 획득 Lv.'+_ggl, 'x'+(1+_ggl*0.1).toFixed(1));
+  var _ggl=ws.goldGain||0;  h+=_row('골드 획득 Lv.'+_ggl, 'x'+(1+_ggl*0.1)._tf1());
 
   // ── 코어랩 연구 ──
   h+=_section('코어랩 연구');
@@ -12696,18 +12700,18 @@ function _showStatsPopup() {
     ['연구 속도','lab_speed',function(l){return '-'+(l*2)+'%';}],
     ['공격력','r_damage',function(l){return '+'+(l*2)+'%';}],
     ['속도','r_spd',function(l){return '+'+(l*2)+'%';}],
-    ['치명타','r_crit',function(l){return '+'+(l*0.5).toFixed(1)+'%';}],
+    ['치명타','r_crit',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['분열탄','r_multishot',function(l){return '+'+l;}],
     ['치명타 계수','r_crit_mult',function(l){return '+'+(l*5)+'%';}],
     ['사거리','r_range',function(l){return '+'+(l*2)+'%';}],
     ['관통','r_pierce',function(l){return '+'+l;}],
-    ['넉백','r_knockback',function(l){return '+'+(l*0.5).toFixed(1)+'%';}],
+    ['넉백','r_knockback',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['체력','r_health',function(l){return '+'+(l*3)+'%';}],
-    ['재생','r_regen',function(l){return '+'+(l*0.1).toFixed(1)+'/s';}],
+    ['재생','r_regen',function(l){return '+'+(l*0.1)._tf1()+'/s';}],
     ['방어','r_defense',function(l){return '+'+(l*2)+'%';}],
     ['지뢰','r_mine',function(l){return '+'+(l*5)+'%';}],
     ['반사','r_reflect',function(l){return '+'+(l*2)+'%';}],
-    ['흡혈','r_vamp',function(l){return '+'+(l*0.5).toFixed(1)+'%';}],
+    ['흡혈','r_vamp',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['쉴드','r_shield',function(l){return '+'+(l*5)+'%';}],
     ['시작 골드','start_cash',function(l){return '+'+(l*50);}],
     ['웨이브 골드','r_wave_cash',function(l){return '+'+(l*2)+'%';}],
@@ -12769,12 +12773,12 @@ function _showStatsPopup() {
 
   // ── 스킨 보너스 ──
   h+=_section('스킨 보너스');
-  h+=_row('탐사선 공격력','x'+(sm.shipAtk||1).toFixed(2));
-  h+=_row('탐사선 방어력','x'+(sm.shipDef||1).toFixed(2));
-  h+=_row('탐사선 체력','x'+(sm.shipHp||1).toFixed(2));
-  h+=_row('배경 공격력','x'+(sm.bgAtk||1).toFixed(2));
-  h+=_row('배경 방어력','x'+(sm.bgDef||1).toFixed(2));
-  h+=_row('배경 체력','x'+(sm.bgHp||1).toFixed(2));
+  h+=_row('탐사선 공격력','x'+(sm.shipAtk||1)._tf2());
+  h+=_row('탐사선 방어력','x'+(sm.shipDef||1)._tf2());
+  h+=_row('탐사선 체력','x'+(sm.shipHp||1)._tf2());
+  h+=_row('배경 공격력','x'+(sm.bgAtk||1)._tf2());
+  h+=_row('배경 방어력','x'+(sm.bgDef||1)._tf2());
+  h+=_row('배경 체력','x'+(sm.bgHp||1)._tf2());
 
   // ── 행성별 최고 웨이브 ──
   h+=_section('행성별 최고 웨이브');
@@ -12809,13 +12813,13 @@ function _showStatsPopup() {
       title:'공격력 상세',color:'#ef4444',
       rows:[
         ['기본 (강화소)', _fn(Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0))))],
-        ['코어랩 연구', rDmgLv>0?'×'+(1+rDmgLv*0.02).toFixed(2):'-'],
-        ['속성 배율', '×'+(em.atk||1).toFixed(2)],
-        ['탐사선 스킨', '×'+(sm.shipAtk||1).toFixed(2)],
-        ['배경 스킨', '×'+(sm.bgAtk||1).toFixed(2)],
-        ['프리즘 화력증폭', _prismB.atk>0?'×'+(1+_prismB.atk/100).toFixed(2):'-'],
-        ['모듈 등급 효과', _modB.atk>0?'×'+(1+_modB.atk/100).toFixed(2):'-'],
-        ['모듈 Lv 공격력', _modLv.atk>0?'×'+(1+_modLv.atk/100).toFixed(2):'-'],
+        ['코어랩 연구', rDmgLv>0?'×'+(1+rDmgLv*0.02)._tf2():'-'],
+        ['속성 배율', '×'+(em.atk||1)._tf2()],
+        ['탐사선 스킨', '×'+(sm.shipAtk||1)._tf2()],
+        ['배경 스킨', '×'+(sm.bgAtk||1)._tf2()],
+        ['프리즘 화력증폭', _prismB.atk>0?'×'+(1+_prismB.atk/100)._tf2():'-'],
+        ['모듈 등급 효과', _modB.atk>0?'×'+(1+_modB.atk/100)._tf2():'-'],
+        ['모듈 Lv 공격력', _modLv.atk>0?'×'+(1+_modLv.atk/100)._tf2():'-'],
         ['─────────',''],
         ['최종 공격력', _fn(allDmg)]
       ]
@@ -12824,13 +12828,13 @@ function _showStatsPopup() {
       title:'체력 상세',color:'#10b981',
       rows:[
         ['기본 (강화소)', _fn(Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0))))],
-        ['코어랩 연구', rHpLv>0?'×'+(1+rHpLv*0.02).toFixed(2):'-'],
-        ['속성 배율', '×'+(em.hp||1).toFixed(2)],
-        ['탐사선 스킨', '×'+(sm.shipHp||1).toFixed(2)],
-        ['배경 스킨', '×'+(sm.bgHp||1).toFixed(2)],
-        ['프리즘 코어생명력', _prismB.hp>0?'×'+(1+_prismB.hp/100).toFixed(2):'-'],
-        ['모듈 등급 효과', _modB.hp>0?'×'+(1+_modB.hp/100).toFixed(2):'-'],
-        ['모듈 Lv 체력', _modLv.hp>0?'×'+(1+_modLv.hp/100).toFixed(2):'-'],
+        ['코어랩 연구', rHpLv>0?'×'+(1+rHpLv*0.02)._tf2():'-'],
+        ['속성 배율', '×'+(em.hp||1)._tf2()],
+        ['탐사선 스킨', '×'+(sm.shipHp||1)._tf2()],
+        ['배경 스킨', '×'+(sm.bgHp||1)._tf2()],
+        ['프리즘 코어생명력', _prismB.hp>0?'×'+(1+_prismB.hp/100)._tf2():'-'],
+        ['모듈 등급 효과', _modB.hp>0?'×'+(1+_modB.hp/100)._tf2():'-'],
+        ['모듈 Lv 체력', _modLv.hp>0?'×'+(1+_modLv.hp/100)._tf2():'-'],
         ['─────────',''],
         ['최종 체력', _fn(allHp)]
       ]
@@ -12839,13 +12843,13 @@ function _showStatsPopup() {
       title:'절대 방어 상세',color:'#3b82f6',
       rows:[
         ['기본 (강화소)', _fn(ws.defAbs||0)],
-        ['코어랩 연구', rDefLv>0?'×'+(1+rDefLv*0.02).toFixed(2):'-'],
-        ['속성 배율', '×'+(em.def||1).toFixed(2)],
-        ['탐사선 스킨', '×'+(sm.shipDef||1).toFixed(2)],
-        ['배경 스킨', '×'+(sm.bgDef||1).toFixed(2)],
-        ['프리즘 장갑코팅', _prismB.def>0?'×'+(1+_prismB.def/100).toFixed(2):'-'],
-        ['모듈 절대 방어', _modB.def>0?'×'+(1+_modB.def/100).toFixed(2):'-'],
-        ['모듈 Lv 절대 방어', _modLv.def>0?'×'+(1+_modLv.def/100).toFixed(2):'-'],
+        ['코어랩 연구', rDefLv>0?'×'+(1+rDefLv*0.02)._tf2():'-'],
+        ['속성 배율', '×'+(em.def||1)._tf2()],
+        ['탐사선 스킨', '×'+(sm.shipDef||1)._tf2()],
+        ['배경 스킨', '×'+(sm.bgDef||1)._tf2()],
+        ['프리즘 장갑코팅', _prismB.def>0?'×'+(1+_prismB.def/100)._tf2():'-'],
+        ['모듈 절대 방어', _modB.def>0?'×'+(1+_modB.def/100)._tf2():'-'],
+        ['모듈 Lv 절대 방어', _modLv.def>0?'×'+(1+_modLv.def/100)._tf2():'-'],
         ['─────────',''],
         ['최종 절대 방어', _fn(allDefAbs)]
       ]
@@ -12861,18 +12865,18 @@ function _showStatsPopup() {
         var _totalCritPct=_wsCritPct+_prismCritRate+_rCritPct;
         var r=[];
         r.push(['[ 확률 ]','']);
-        r.push(['강화소 치명타 확률',_wsCrit>0?'Lv.'+_wsCrit+'/100 (+'+_wsCritPct.toFixed(1)+'% / 최대 50%)':'-']);
-        r.push(['프리즘 약점 분석',_prismCritRate>0?'+'+_prismCritRate.toFixed(1)+'% (최대 15%)':'-']);
-        r.push(['코어랩 치명타 연구',_rCritLv>0?'Lv.'+_rCritLv+'/70 (+'+_rCritPct.toFixed(1)+'% / 최대 35%)':'-']);
+        r.push(['강화소 치명타 확률',_wsCrit>0?'Lv.'+_wsCrit+'/100 (+'+_wsCritPct._tf1()+'% / 최대 50%)':'-']);
+        r.push(['프리즘 약점 분석',_prismCritRate>0?'+'+_prismCritRate._tf1()+'% (최대 15%)':'-']);
+        r.push(['코어랩 치명타 연구',_rCritLv>0?'Lv.'+_rCritLv+'/70 (+'+_rCritPct._tf1()+'% / 최대 35%)':'-']);
         r.push(['─────────','']);
-        r.push(['합산 치명타 확률',Math.min(_totalCritPct,100).toFixed(1)+'% (최대 100%)']);
+        r.push(['합산 치명타 확률',Math.min(_totalCritPct,100)._tf1()+'% (최대 100%)']);
         r.push(['','']);
         r.push(['[ 배율 ]','']);
         r.push(['기본 배율','×1.50']);
-        r.push(['강화소 치명타 계수',(ws.critMult||0)>0?'+'+(ws.critMult||0)+'단계 (+'+((ws.critMult||0)*0.1).toFixed(1)+')':'-']);
+        r.push(['강화소 치명타 계수',(ws.critMult||0)>0?'+'+(ws.critMult||0)+'단계 (+'+((ws.critMult||0)*0.1)._tf1()+')':'-']);
         r.push(['프리즘 급소배율',(_prismB.critDmg||0)>0?'+'+_prismB.critDmg+'x':'-']);
         r.push(['─────────','']);
-        r.push(['최종 배율','×'+normalCritMult.toFixed(2)]);
+        r.push(['최종 배율','×'+normalCritMult._tf2()]);
         return r;
       })()
     },
@@ -12881,13 +12885,13 @@ function _showStatsPopup() {
       rows:[
         ['기본 발사 간격', _baseAtkMs+'ms'],
         ['─────────',''],
-        ['강화소 영구 (spdLv)', (PERM.spdLv||0)>0?'Lv.'+(PERM.spdLv||0)+' (+'+((PERM.spdLv||0)*0.05).toFixed(2)+')':'-'],
-        ['강화소 일시 (atkspd)', (ws.atkspd||0)>0?'Lv.'+(ws.atkspd||0)+' (+'+((ws.atkspd||0)*0.05).toFixed(2)+')':'-'],
-        ['= 기본 배율', '×'+_baseSpdMult.toFixed(2)],
+        ['강화소 영구 (spdLv)', (PERM.spdLv||0)>0?'Lv.'+(PERM.spdLv||0)+' (+'+((PERM.spdLv||0)*0.05)._tf2()+')':'-'],
+        ['강화소 일시 (atkspd)', (ws.atkspd||0)>0?'Lv.'+(ws.atkspd||0)+' (+'+((ws.atkspd||0)*0.05)._tf2()+')':'-'],
+        ['= 기본 배율', '×'+_baseSpdMult._tf2()],
         ['',''],
-        ['코어랩 속도 연구', _rSpdLv>0?'Lv.'+_rSpdLv+' (×'+_rSpdMult.toFixed(2)+')':'-'],
-        ['프리즘 레이저가속', _prismSpdVal>0?'+'+_prismSpdVal.toFixed(2):'-'],
-        ['= 최종 속도 배율', '×'+_finalSpdMult.toFixed(2)],
+        ['코어랩 속도 연구', _rSpdLv>0?'Lv.'+_rSpdLv+' (×'+_rSpdMult._tf2()+')':'-'],
+        ['프리즘 레이저가속', _prismSpdVal>0?'+'+_prismSpdVal._tf2():'-'],
+        ['= 최종 속도 배율', '×'+_finalSpdMult._tf2()],
         ['─────────',''],
         ['최종 발사 간격', _finalAtkMs+'ms'],
         ['초당 공격 횟수', _atkPerSec+'/s'],
@@ -12900,27 +12904,27 @@ function _showStatsPopup() {
       rows:[
         ['최종 공격력', _fn(allDmg)],
         ['',''],
-        ['① 일반 치명타','── 확률: '+normalCritChance.toFixed(1)+'%'],
+        ['① 일반 치명타','── 확률: '+normalCritChance._tf1()+'%'],
         ['  기본 배율', '×1.5'],
-        ['  강화소 치명타 계수', '+'+(ws.critMult||0)+'단계 (×'+(0.1*(ws.critMult||0)).toFixed(1)+')'],
+        ['  강화소 치명타 계수', '+'+(ws.critMult||0)+'단계 (×'+(0.1*(ws.critMult||0))._tf1()+')'],
         ['  프리즘 급소배율', _prismB.critDmg>0?'+'+_prismB.critDmg+'x':'-'],
-        ['  = 일반 배율', '×'+normalCritMult.toFixed(2)],
+        ['  = 일반 배율', '×'+normalCritMult._tf2()],
         ['',''],
         ['② 강화 치명타','── 확률: '+(enhCritChance>0?enhCritChance+'%':'미장착')],
-        ['  프리즘 강화 치명타', enhCritMult>0?'×'+enhCritMult.toFixed(2):'-'],
+        ['  프리즘 강화 치명타', enhCritMult>0?'×'+enhCritMult._tf2():'-'],
         ['  ※ 일반 발동 시에만 2차 판정',''],
         ['',''],
-        ['③ 모듈 치명타','── 확률: '+(modCritChance>0?modCritChance.toFixed(1)+'%':'미장착')],
-        ['  모듈 등급 배율', modCritMult>0?'×'+modCritMult.toFixed(2):'-'],
+        ['③ 모듈 치명타','── 확률: '+(modCritChance>0?modCritChance._tf1()+'%':'미장착')],
+        ['  모듈 등급 배율', modCritMult>0?'×'+modCritMult._tf2():'-'],
         ['  ※ 독립 판정 (일반/강화와 별개)',''],
         ['',''],
         ['④ 모듈Lv 치명타','── 독립 판정'],
-        ['  모듈 Lv 치명타 확률', modLvCritChance>0?modLvCritChance.toFixed(1)+'%':'-'],
-        ['  모듈 Lv 치명타 계수', modLvCritMult>0?'×'+modLvCritMult.toFixed(2):'-'],
+        ['  모듈 Lv 치명타 확률', modLvCritChance>0?modLvCritChance._tf1()+'%':'-'],
+        ['  모듈 Lv 치명타 계수', modLvCritMult>0?'×'+modLvCritMult._tf2():'-'],
         ['  ※ 독립 판정 (①②③과 모두 별개)',''],
         ['─────────',''],
         ['전부 발동 시 최대 피해', _fn(maxCritDmg)],
-        ['계산식', _fn(allDmg)+' × '+normalCritMult.toFixed(2)+(enhCritMult>0?' × '+enhCritMult.toFixed(2):'')+(modCritMult>0?' × '+modCritMult.toFixed(2):'')+(modLvCritMult>0?' × '+modLvCritMult.toFixed(2):'')],
+        ['계산식', _fn(allDmg)+' × '+normalCritMult._tf2()+(enhCritMult>0?' × '+enhCritMult._tf2():'')+(modCritMult>0?' × '+modCritMult._tf2():'')+(modLvCritMult>0?' × '+modLvCritMult._tf2():'')],
       ]
     }
   };
@@ -13695,16 +13699,16 @@ window.update = function(dt) {
 var FREE_UPG_ITEMS = {
   freeAtkUpgrade: { tab:'utl', name:'무료 공격 업글', tier:3, maxLv:99,
     cost:function(lv){return 20+Math.floor(lv*3.5);},
-    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
-    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+    cur:function(lv){return (lv*0.5)._tf1()+'%';},
+    nxt:function(lv){return ((lv+1)*0.5)._tf1()+'%';} },
   freeDefUpgrade: { tab:'utl', name:'무료 방어 업글', tier:3, maxLv:99,
     cost:function(lv){return 20+Math.floor(lv*3.5);},
-    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
-    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+    cur:function(lv){return (lv*0.5)._tf1()+'%';},
+    nxt:function(lv){return ((lv+1)*0.5)._tf1()+'%';} },
   freeUtlUpgrade: { tab:'utl', name:'무료 유틸 업글', tier:3, maxLv:99,
     cost:function(lv){return 20+Math.floor(lv*3.5);},
-    cur:function(lv){return (lv*0.5).toFixed(1)+'%';},
-    nxt:function(lv){return ((lv+1)*0.5).toFixed(1)+'%';} },
+    cur:function(lv){return (lv*0.5)._tf1()+'%';},
+    nxt:function(lv){return ((lv+1)*0.5)._tf1()+'%';} },
 };
 
 // 자기 자신은 무료 업그레이드 대상에서 제외
@@ -14487,9 +14491,9 @@ function _hookSideEvent(){
 ══════════════════════════════════════════ */
 function _numFmt(n){
   if(typeof window.formatNumber==='function') return window.formatNumber(n);
-  if(n>=1e9) return (n/1e9).toFixed(1)+'B';
-  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
-  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  if(n>=1e9) return (n/1e9)._tf1()+'B';
+  if(n>=1e6) return (n/1e6)._tf1()+'M';
+  if(n>=1e3) return (n/1e3)._tf1()+'K';
   return String(Math.floor(n));
 }
 
@@ -15483,7 +15487,7 @@ window.showCoinBonusPopup = function () {
   var total=1, rowsHtml='';
   items.forEach(function(it){
     if(it.active)total*=it.value;
-    var vt=it.active?'x'+it.value.toFixed(2):'\uBE44\uD65C\uC131';
+    var vt=it.active?'x'+it.value._tf2():'\uBE44\uD65C\uC131';
     var vc=it.active?'#00ffff':'#556677';
     var lc=it.active?'#c0d8e8':'#445566';
     rowsHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #0a1a2a;"><span style="font-size:12px;color:'+lc+';">'+it.label+'</span><span style="font-size:12px;font-weight:bold;color:'+vc+';">'+vt+'</span></div>';
@@ -15491,11 +15495,11 @@ window.showCoinBonusPopup = function () {
   popup.innerHTML='<div style="background:#0a1a2a;border:1px solid #0a3344;border-radius:12px;width:300px;max-width:92%;font-family:Courier New,monospace;overflow:hidden;">'+
     '<div style="text-align:center;padding:16px 16px 12px;"><div style="font-size:24px;color:#f59e0b;margin-bottom:6px;">◈</div><div style="font-size:14px;color:#f59e0b;letter-spacing:2px;font-weight:bold;">모든 골드 보너스</div></div>'+
     '<div style="padding:0 20px;">'+rowsHtml+'</div>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-top:1px solid #1a2a3a;margin-top:4px;"><span style="font-size:13px;color:#c0d8e8;font-weight:bold;">총 보너스</span><span style="font-size:15px;font-weight:bold;color:#f59e0b;">x'+total.toFixed(2)+'</span></div></div>';
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-top:1px solid #1a2a3a;margin-top:4px;"><span style="font-size:13px;color:#c0d8e8;font-weight:bold;">총 보너스</span><span style="font-size:15px;font-weight:bold;color:#f59e0b;">x'+total._tf2()+'</span></div></div>';
   document.body.appendChild(popup);
   popup.addEventListener('click',function(e){if(e.target===popup)popup.remove();});
   var homeTot=document.getElementById('home-total-bonus');
-  if(homeTot)homeTot.textContent='\u25c8 \u00d7'+total.toFixed(2);
+  if(homeTot)homeTot.textContent='\u25c8 \u00d7'+total._tf2();
 };
 window._showCoinBonusPopup = window.showCoinBonusPopup;
 </script>
@@ -15807,8 +15811,8 @@ if (_WS_ITEMS) {
   _WS_ITEMS.energyAbsorb = {
     tab:'def', name:'에너지 흡수', tier:2, maxLv:100,
     cost:function(lv){ return (lv+1)*10; },
-    cur:function(lv){ return (lv*0.1).toFixed(1)+'%'; },
-    nxt:function(lv){ return ((lv+1)*0.1).toFixed(1)+'%'; }
+    cur:function(lv){ return (lv*0.1)._tf1()+'%'; },
+    nxt:function(lv){ return ((lv+1)*0.1)._tf1()+'%'; }
   };
 }
 
@@ -15864,7 +15868,7 @@ if (typeof _origUpdate_abs === 'function') {
       var heal = dmgPerFrame * rate;
       G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + heal);
       var prev = parseFloat(localStorage.getItem('stat_healed') || '0');
-      localStorage.setItem('stat_healed', (prev + heal).toFixed(1));
+      localStorage.setItem('stat_healed', (prev + heal)._tf1());
     }
   };
 }
@@ -15882,7 +15886,7 @@ if (typeof _origFireT === 'function') {
         localStorage.setItem('stat_crit_cnt', cnt + 1);
         var dmg = G.tower.dmg * 2; // 치명타 데미지 추정
         var prev = parseFloat(localStorage.getItem('stat_crit_dmg')||'0');
-        localStorage.setItem('stat_crit_dmg', (prev + dmg).toFixed(1));
+        localStorage.setItem('stat_crit_dmg', (prev + dmg)._tf1());
       }
     }
   };
@@ -16024,7 +16028,7 @@ function _injectAbsorbTotal() {
     banner.style.cssText = 'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#0a1a2a;border:1px solid #00ff88;padding:4px 12px;font-family:monospace;font-size:10px;color:#00ff88;z-index:250;border-radius:6px;pointer-events:none;display:none;';
     document.body.appendChild(banner);
   }
-  var rate = (window._getAbsorbRate() * 100).toFixed(1);
+  var rate = (window._getAbsorbRate() * 100)._tf1();
   if (parseFloat(rate) > 0) {
     banner.textContent = '현재 총 흡수율: ' + rate + '%';
     banner.style.display = 'block';
@@ -16260,7 +16264,7 @@ var _SKIN_PATTERNS = {
   },
   cross: function(c,s,p,col,col2,v) {
     var n=v?6:4, r2=v?s*0.04:s*0.05, h='<circle cx="'+c+'" cy="'+c+'" r="'+(s*(v?0.24:0.28))+'" fill="none" stroke="'+col+'" stroke-width="'+(s*0.008)+'" opacity="0.4"/>';
-    for(var i=0;i<n;i++){var a=Math.PI*2/n*i-Math.PI/2;var px=c+s*0.38*Math.cos(a),py=c+s*0.38*Math.sin(a);h+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r2+'" fill="none" stroke="'+col2+'" stroke-width="'+(s*0.013)+'"/><line x1="'+c+'" y1="'+c+'" x2="'+px.toFixed(1)+'" y2="'+py.toFixed(1)+'" stroke="'+col+'" stroke-width="'+(s*0.005)+'" opacity="0.3"/>';}
+    for(var i=0;i<n;i++){var a=Math.PI*2/n*i-Math.PI/2;var px=c+s*0.38*Math.cos(a),py=c+s*0.38*Math.sin(a);h+='<circle cx="'+px._tf1()+'" cy="'+py._tf1()+'" r="'+r2+'" fill="none" stroke="'+col2+'" stroke-width="'+(s*0.013)+'"/><line x1="'+c+'" y1="'+c+'" x2="'+px._tf1()+'" y2="'+py._tf1()+'" stroke="'+col+'" stroke-width="'+(s*0.005)+'" opacity="0.3"/>';}
     return h;
   },
   blade: function(c,s,p,col,col2,v) {
@@ -16271,7 +16275,7 @@ var _SKIN_PATTERNS = {
   },
   star5: function(c,s,p,col,col2,v) {
     var n=v?7:5, inner=v?s*0.2:s*0.17, outer=s*0.38, pts=[];
-    for(var i=0;i<n;i++){var a1=Math.PI*2/n*i-Math.PI/2,a2=a1+Math.PI/n;pts.push((c+outer*Math.cos(a1)).toFixed(1)+','+(c+outer*Math.sin(a1)).toFixed(1));pts.push((c+inner*Math.cos(a2)).toFixed(1)+','+(c+inner*Math.sin(a2)).toFixed(1));}
+    for(var i=0;i<n;i++){var a1=Math.PI*2/n*i-Math.PI/2,a2=a1+Math.PI/n;pts.push((c+outer*Math.cos(a1))._tf1()+','+(c+outer*Math.sin(a1))._tf1());pts.push((c+inner*Math.cos(a2))._tf1()+','+(c+inner*Math.sin(a2))._tf1());}
     return '<polygon points="'+pts.join(' ')+'" fill="'+col+'" fill-opacity="0.08" stroke="'+col+'" stroke-width="'+(s*0.013)+'"/><circle cx="'+c+'" cy="'+c+'" r="'+inner+'" fill="none" stroke="'+col2+'" stroke-width="'+(s*0.008)+'" opacity="0.5"/>';
   },
   wave: function(c,s,p,col,col2,v) {
@@ -16301,12 +16305,12 @@ var _SKIN_PATTERNS = {
     var n=v?8:6, r1=s*0.18, r2=s*0.28;
     var h='<circle cx="'+c+'" cy="'+c+'" r="'+r2+'" fill="none" stroke="'+col+'" stroke-width="'+(s*0.008)+'" opacity="0.4"/>';
     h+='<circle cx="'+c+'" cy="'+c+'" r="'+r1+'" fill="none" stroke="'+col+'" stroke-width="'+(s*0.008)+'" opacity="0.3"/>';
-    for(var i=0;i<n;i++){var a=Math.PI*2/n*i-Math.PI/2;var x1=(c+r1*Math.cos(a)).toFixed(1),y1=(c+r1*Math.sin(a)).toFixed(1);var x2=(c+r2*Math.cos(a)).toFixed(1),y2=(c+r2*Math.sin(a)).toFixed(1);h+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col2+'" stroke-width="'+(s*0.015)+'"/>';}
+    for(var i=0;i<n;i++){var a=Math.PI*2/n*i-Math.PI/2;var x1=(c+r1*Math.cos(a))._tf1(),y1=(c+r1*Math.sin(a))._tf1();var x2=(c+r2*Math.cos(a))._tf1(),y2=(c+r2*Math.sin(a))._tf1();h+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col2+'" stroke-width="'+(s*0.015)+'"/>';}
     return h;
   },
   star10: function(c,s,p,col,col2,v) {
     var n=v?8:10, inner=v?s*0.22:s*0.18, pts=[];
-    for(var i=0;i<n;i++){var a=Math.PI*2/n*i-Math.PI/2;var r=(i%2===0)?s*0.38:inner;pts.push((c+r*Math.cos(a)).toFixed(1)+','+(c+r*Math.sin(a)).toFixed(1));}
+    for(var i=0;i<n;i++){var a=Math.PI*2/n*i-Math.PI/2;var r=(i%2===0)?s*0.38:inner;pts.push((c+r*Math.cos(a))._tf1()+','+(c+r*Math.sin(a))._tf1());}
     var h='<polygon points="'+pts.join(' ')+'" fill="'+col+'" fill-opacity="0.08" stroke="'+col+'" stroke-width="'+(s*0.013)+'"/>';
     h+=v?'<circle cx="'+c+'" cy="'+c+'" r="'+(s*0.15)+'" fill="none" stroke="'+col2+'" stroke-width="'+(s*0.008)+'" opacity="0.4"/>':'<polygon points="'+_hexPts(c,s*0.22,30)+'" fill="none" stroke="'+col2+'" stroke-width="'+(s*0.006)+'" opacity="0.3"/>';
     return h;
@@ -16314,7 +16318,7 @@ var _SKIN_PATTERNS = {
   eye: function(c,s,p,col,col2,v) {
     var eps=v?[[c-s*0.18,c-s*0.18],[c+s*0.18,c-s*0.18],[c-s*0.18,c+s*0.18],[c+s*0.18,c+s*0.18]]:[[c,c-s*0.22],[c+s*0.19,c+s*0.11],[c-s*0.19,c+s*0.11]];
     var h='<path d="M'+c+','+(c-s*0.38)+' C'+(c+s*0.4)+','+(c-s*0.15)+' '+(c+s*0.4)+','+(c+s*0.15)+' '+c+','+(c+s*0.38)+' C'+(c-s*0.15)+','+(c+s*0.2)+' '+(c-s*0.15)+','+(c-s*0.2)+' '+c+','+(c-s*0.38)+'Z" fill="'+col+'" fill-opacity="0.05" stroke="'+col+'" stroke-width="'+(s*0.012)+'"/>';
-    eps.forEach(function(ep){h+='<circle cx="'+ep[0].toFixed(1)+'" cy="'+ep[1].toFixed(1)+'" r="'+(s*(v?0.035:0.05))+'" fill="'+col2+'" fill-opacity="0.15" stroke="'+col2+'" stroke-width="'+(s*0.012)+'"/>';});
+    eps.forEach(function(ep){h+='<circle cx="'+ep[0]._tf1()+'" cy="'+ep[1]._tf1()+'" r="'+(s*(v?0.035:0.05))+'" fill="'+col2+'" fill-opacity="0.15" stroke="'+col2+'" stroke-width="'+(s*0.012)+'"/>';});
     return h;
   },
   spiral: function(c,s,p,col,col2,v) {
@@ -16326,7 +16330,7 @@ var _SKIN_PATTERNS = {
 
 function _hexPts(c,r,offset) {
   var pts=[];
-  for(var i=0;i<6;i++){var a=Math.PI/180*(60*i-90+(offset||0));pts.push((c+r*Math.cos(a)).toFixed(1)+','+(c+r*Math.sin(a)).toFixed(1));}
+  for(var i=0;i<6;i++){var a=Math.PI/180*(60*i-90+(offset||0));pts.push((c+r*Math.cos(a))._tf1()+','+(c+r*Math.sin(a))._tf1());}
   return pts.join(' ');
 }
 
@@ -16413,7 +16417,7 @@ function renderSkinGrid() {
     if (bonusEl) {
       var m = _getSkinMultipliers();
       bonusEl.innerHTML = '보유 스킨: <span style="color:#00ffff;">' + m.shipCount + '/' + (IRIS_SKINS.length - 1) + '</span>' +
-        '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.shipAtk.toFixed(2) + '</span>  방어력 <span style="color:#3b82f6;">x' + m.shipDef.toFixed(2) + '</span>  체력 <span style="color:#10b981;">x' + m.shipHp.toFixed(2) + '</span></span>';
+        '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.shipAtk._tf2() + '</span>  방어력 <span style="color:#3b82f6;">x' + m.shipDef._tf2() + '</span>  체력 <span style="color:#10b981;">x' + m.shipHp._tf2() + '</span></span>';
     }
     IRIS_SKINS.forEach(function(skin) {
       var isSelected = skin.id === currentSkin;
@@ -16429,7 +16433,7 @@ function renderSkinGrid() {
     if (bonusEl) {
       var m = _getSkinMultipliers();
       bonusEl.innerHTML = '보유 배경: <span style="color:#00ffff;">' + m.bgCount + '/' + (BG_SKINS.length - 1) + '</span>' +
-        '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.bgAtk.toFixed(2) + '</span>  방어력 <span style="color:#3b82f6;">x' + m.bgDef.toFixed(2) + '</span>  체력 <span style="color:#10b981;">x' + m.bgHp.toFixed(2) + '</span></span>';
+        '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.bgAtk._tf2() + '</span>  방어력 <span style="color:#3b82f6;">x' + m.bgDef._tf2() + '</span>  체력 <span style="color:#10b981;">x' + m.bgHp._tf2() + '</span></span>';
     }
     BG_SKINS.forEach(function(bg) {
       var isSelected = bg.id === currentBgSkin;
@@ -16903,8 +16907,8 @@ window._renderElementTab = function(container) {
     var maxed = st.maxLv && lv >= st.maxLv;
     var cost = maxed ? 0 : st.cost(lv);
     var afford = cores >= cost;
-    var curMult = st.key === 'critRate' ? '+'+(lv*st.perLv*100).toFixed(1)+'%' : 'x'+(1+lv*st.perLv).toFixed(2);
-    var nxtMult = st.key === 'critRate' ? '+'+((lv+1)*st.perLv*100).toFixed(1)+'%' : 'x'+(1+(lv+1)*st.perLv).toFixed(2);
+    var curMult = st.key === 'critRate' ? '+'+(lv*st.perLv*100)._tf1()+'%' : 'x'+(1+lv*st.perLv)._tf2();
+    var nxtMult = st.key === 'critRate' ? '+'+((lv+1)*st.perLv*100)._tf1()+'%' : 'x'+(1+(lv+1)*st.perLv)._tf2();
     var lvText = st.maxLv ? 'Lv.'+lv+' / '+st.maxLv : 'Lv.'+lv;
 
     stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'+
@@ -17656,7 +17660,7 @@ function _showModLevelPopup() {
       h+='<span style="font-size:10px;color:'+tierColors[ti]+';font-family:monospace;min-width:28px;text-align:right;">'+tierNames[ti]+'</span>';
       h+='<div style="flex:1;height:16px;background:#060e18;border-radius:3px;overflow:hidden;position:relative;">';
       h+='<div style="height:100%;background:'+tierColors[ti]+';width:'+barW+'%;border-radius:3px;opacity:0.7;"></div>';
-      h+='<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#f1f5f9;font-family:monospace;font-weight:bold;">'+pct.toFixed(2)+'%</span>';
+      h+='<span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#f1f5f9;font-family:monospace;font-weight:bold;">'+pct._tf2()+'%</span>';
       h+='</div></div>';
     }
     h+='</div>';
