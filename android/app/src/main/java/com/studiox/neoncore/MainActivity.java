@@ -27,12 +27,6 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 풀스크린 (상태바 + 네비게이션바 숨김)
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        WindowInsetsControllerCompat insetsCtrl = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        insetsCtrl.hide(WindowInsetsCompat.Type.systemBars());
-        insetsCtrl.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-
         WebView webView = getBridge().getWebView();
         webView.addJavascriptInterface(new NeonBridge(), "NeonBridge");
 
@@ -60,6 +54,18 @@ public class MainActivity extends BridgeActivity {
                     "if(window._handleBackButton) window._handleBackButton();", null));
             }
         });
+    }
+
+    // 풀스크린 (상태바 + 네비게이션바 숨김)
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+            WindowInsetsControllerCompat ctrl = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+            ctrl.hide(WindowInsetsCompat.Type.systemBars());
+            ctrl.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        }
     }
 
     // Android 12 이하: 기본 뒤로가기(webView.goBack) 방지

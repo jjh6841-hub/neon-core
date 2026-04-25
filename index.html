@@ -2868,12 +2868,11 @@ function resizeCanvas() {
     w = Math.floor(ah * 9 / 16);
   }
   CW = w; CH = h;
-  var dpr = window.devicePixelRatio || 1;
-  canvas.width  = Math.round(w * dpr);
-  canvas.height = Math.round(h * dpr);
+  window._dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(w * window._dpr);
+  canvas.height = Math.round(h * window._dpr);
   canvas.style.width  = w + 'px';
   canvas.style.height = h + 'px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (G) {
     G.cx = w / 2;
     G.tower.range = Math.min(w, h) * 0.45;
@@ -4052,6 +4051,10 @@ function triggerGameOver() {
    RENDER
 ═══════════════════════════════════════════════════════════════ */
 function render() {
+  // ── 0. 고해상도 DPR 스케일 (매 프레임) ──
+  var _d = window._dpr || 1;
+  ctx.setTransform(_d, 0, 0, _d, 0, 0);
+
   // ── 1. Background (full canvas, before shake) ─────────────────
   if (!window._cachedBgColor) {
     try {
