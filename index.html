@@ -10619,17 +10619,21 @@ setTimeout(function() {
 
 /* 스펙 기준 maxLv 매핑 (WS_ITEMS 키 기준) */
 var NEW_MAX = {
-  damage:    99,
-  atkspd:    50,
+  damage:    999,
+  atkspd:    20,
   critChance:100,
-  critMult:  30,
-  maxHp:     99,
-  defense:   50,
-  hpRegen:   50,
-  lifeSteal: 30,
+  critMult:  999,
+  maxHp:     999,
+  defense:   80,
+  hpRegen:   999,
+  lifeSteal: 150,
   goldGain:  99,
   enhCritChance: 30,
-  enhCritMult:   20,
+  enhCritMult:   999,
+  defAbs:    999,
+  reflectDmg:99,
+  knockChance:60,
+  shieldHP:  50,
 };
 
 /* 지수 비용 공식: lv < 기존max → 기존 함수, 이후 1.4^n → 50 넘으면 1.6^n */
