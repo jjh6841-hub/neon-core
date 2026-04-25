@@ -2174,12 +2174,6 @@ function _showOfflinePopup(data) {
       var hgm=document.getElementById('home-gem'); if(hgm) hgm.textContent=PERM.gems||0;
       syncShopUI && syncShopUI();
     } catch(_){}
-    if (window.showRewardPopup) {
-      var rw = [];
-      if (data.gold) rw.push({icon:'◈',label:'골드',amount:data.gold,color:'#f59e0b'});
-      if (data.gems) rw.push({icon:'❖',label:'보석',amount:data.gems,color:'#00ffff'});
-      showRewardPopup(rw, '오프라인 보상');
-    }
     // 버튼 비활성화 갱신
     _updateOfflineBtn();
   });
