@@ -6080,9 +6080,12 @@ if (dailyPopup) {
   }
 
   function refreshHomeData() {
-    /* bestWave: PERM은 기존 script의 전역 변수 */
+    /* 현재 선택된 행성의 최고 웨이브 표시 */
     try {
-      document.getElementById('home-best-wave').textContent = (PERM.bestWave || 0);
+      var _tierIdx = curTier + 1;
+      var _bw = parseInt(localStorage.getItem('tier'+_tierIdx+'_best')||'0',10);
+      if (_tierIdx === 1 && (PERM.bestWave||0) > _bw) _bw = PERM.bestWave||0;
+      document.getElementById('home-best-wave').textContent = _bw;
     } catch (e) {}
     // bestWave 갱신 후 잠금 상태 재계산
     while (curTier > 0 && !isTierUnlocked(curTier)) curTier--;
