@@ -2413,16 +2413,21 @@ function syncFromFirebase() {
     if (!doc.exists) return;
     var cloud = doc.data().perm;
     if (!cloud) return;
-    // 클라우드 데이터가 더 진행된 경우 복원
+    // 클라우드 데이터가 더 진행된 경우 전체 복원
     var localBest = PERM.bestWave || 0;
     var cloudBest = cloud.bestWave || 0;
     var cloudGold = cloud.gold || 0;
-    var cloudGems = cloud.gems || 0;
     if (cloudBest > localBest || (cloudBest === localBest && cloudGold > (PERM.gold||0))) {
-      // 클라우드 데이터로 복원
       Object.keys(cloud).forEach(function(k) { PERM[k] = cloud[k]; });
+    }
+    // 관리자 재화 수정 반영: 클라우드 값이 더 높으면 항상 동기화
+    var _syncKeys = ['gold','gems','prismFragments','crystals','prismSlotCount'];
+    var _changed = false;
+    _syncKeys.forEach(function(k) {
+      if ((cloud[k]||0) > (PERM[k]||0)) { PERM[k] = cloud[k]; _changed = true; }
+    });
+    if (_changed) {
       try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
-      // HUD 갱신
       try {
         var hg = document.getElementById('home-gold'); if(hg) hg.textContent = PERM.gold||0;
         var hgm = document.getElementById('home-gem'); if(hgm) hgm.textContent = PERM.gems||0;
