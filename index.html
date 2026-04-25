@@ -3566,7 +3566,7 @@ function update(dt) {
       var ddx = b.x - e.x, ddy = b.y - e.y;
       var _hit = ddx * ddx + ddy * ddy < (e.r + 5) * (e.r + 5);
       // 터널링 방지: 이전→현재 경로상 충돌 체크
-      if (!_hit && mv > e.r) {
+      if (!_hit) {
         var _ldx = b.x - _bPrevX, _ldy = b.y - _bPrevY;
         var _edx = _bPrevX - e.x, _edy = _bPrevY - e.y;
         var _a = _ldx*_ldx + _ldy*_ldy;
@@ -4098,6 +4098,8 @@ function drawShootFlash(ctx) {
 }
 
 function onWaveComplete() {
+  // 잔여 탄환 제거 (프레임 멈춤 방지)
+  G.bullets = [];
   // 웨이브 클리어 골드 보상
   var _wcTier = parseInt(localStorage.getItem('td_tier')||'1',10);
   // 웨이브 클리어 골드 (행성 배율은 적 생성 시 이미 적용됨, 클리어 보상에는 별도 적용 안 함)
@@ -5365,7 +5367,8 @@ function doUpgrade(key) {
   // 임무 진행: 강화 업그레이드
   if (window._missionProgress) window._missionProgress('upgrade', 1);
   checkAchievements();
-  syncUI();
+  // MAX 달성 시 카드 재정렬
+  if (upg.maxLv && !_canUpg(key, upg.maxLv)) { buildCards(); } else { syncUI(); }
 }
 
 function applyPendingHighlight() {
