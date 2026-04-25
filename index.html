@@ -8221,8 +8221,11 @@ function _buildLabPopupList() {
           if (!labData[slotKey]) labData[slotKey] = { bought: true };
           var labSpeedMult = 1 - Math.min(0.8, (labData.research && labData.research.lab_speed || 0) * 0.02);
           labData[slotKey].researchId = research.id;
-          labData[slotKey].endTime    = Date.now() + Math.floor(time * 1000 * labSpeedMult);
+          var _resDelay = Math.floor(time * 1000 * labSpeedMult);
+          labData[slotKey].endTime    = Date.now() + _resDelay;
           _saveLab(labData);
+          // 알림 예약 (앱 종료 시에도 알림)
+          try { if(window.NeonBridge && window.NeonBridge.scheduleNotification) window.NeonBridge.scheduleNotification(_resDelay, 'NEON CORE', research.name+' 연구가 완료되었습니다! 지금 확인해보세요.'); } catch(_){}
           document.getElementById('lab-popup').style.display = 'none';
           _syncLabHUD();
           _buildLabSlots();

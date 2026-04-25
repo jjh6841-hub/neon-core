@@ -1,9 +1,18 @@
 package com.studiox.neoncore;
 
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
+import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -20,6 +29,50 @@ public class MainActivity extends BridgeActivity {
                 finishAffinity();
                 System.exit(0);
             });
+        }
+
+        @JavascriptInterface
+        public void scheduleNotification(long delayMs, String title, String message) {
+            Context ctx = getApplicationContext();
+            Intent intent = new Intent(ctx, LabNotificationReceiver.class);
+            intent.putExtra("title", title);
+            intent.putExtra("message", message);
+            PendingIntent pi = PendingIntent.getBroadcast(ctx, (int)(System.currentTimeMillis() % Integer.MAX_VALUE),
+                intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+            am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + delayMs, pi);
+        }
+    }
+
+    public static class LabNotificationReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String title = intent.getStringExtra("title");
+            String message = intent.getStringExtra("message");
+            if (title == null) title = "NEON CORE";
+            if (message == null) message = "연구가 완료되었습니다!";
+
+            String channelId = "neoncore_lab";
+            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel ch = new NotificationChannel(channelId, "코어랩 연구", NotificationManager.IMPORTANCE_DEFAULT);
+                ch.setDescription("코어랩 연구 완료 알림");
+                nm.createNotificationChannel(ch);
+            }
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+            Intent openIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            if (openIntent != null) {
+                PendingIntent contentIntent = PendingIntent.getActivity(context, 0, openIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                builder.setContentIntent(contentIntent);
+            }
+            nm.notify((int)(System.currentTimeMillis() % Integer.MAX_VALUE), builder.build());
         }
     }
 
