@@ -3287,10 +3287,13 @@ function startGame() {
   if (_wb) { _wb.style.transition = 'none'; _wb.style.width = '0%'; _wb.offsetHeight; _wb.style.transition = 'width 0.3s'; }
   applyPermStats();
 
-  // 선행 배치: 최고기록 비례 시작 웨이브 (1웨이브 이후 적용)
+  // 선행 배치: 최고기록 비례 시작 웨이브 (즉시 적용)
   if (G.introBonus && PERM.bestWave > 1) {
     var skipTo = Math.floor(PERM.bestWave * G.introBonus);
-    if (skipTo > 1) G._introSkipTarget = skipTo;
+    if (skipTo > 1) {
+      G.wave = skipTo;
+      G.floatTexts.push({ x: G.cx || CW/2, y: (G.cy || CH*0.6) - 40, text: '선행 배치: W' + skipTo + ' 시작', color: '#cc44ff', timer: 0 });
+    }
   }
 
   // 배경 스킨 색상 캐시
@@ -3526,15 +3529,10 @@ function update(dt) {
   if (G.phase === 'between') {
     G.betweenTimer -= dt;
     if (G.betweenTimer <= 0) {
-      if (G._introSkipTarget && G._introSkipTarget > G.wave + 1) {
-        G.wave = G._introSkipTarget;
-        G._introSkipTarget = null;
-      } else {
+      G.wave++;
+      if (G.waveSkipChance && Math.random() < G.waveSkipChance) {
         G.wave++;
-        if (G.waveSkipChance && Math.random() < G.waveSkipChance) {
-          G.wave++;
-          G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: 'WAVE SKIP!', color: '#cc44ff', timer: 0 });
-        }
+        G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: 'WAVE SKIP!', color: '#cc44ff', timer: 0 });
       }
       startWave();
     }
