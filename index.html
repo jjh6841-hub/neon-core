@@ -3544,7 +3544,8 @@ function update(dt) {
   // ── Move bullets ──
   var _baseBSpd = Math.min(CW, CH) * 0.022;
   var _spdLv = _totalLv('spd');
-  const bSpd = _baseBSpd * (1 + _spdLv * 0.035); // 공격속도 레벨당 +0.035 탄환 속도
+  var _rapidMult = G._rapidActive ? 1.5 : 1;
+  const bSpd = _baseBSpd * (1 + _spdLv * 0.035) * _rapidMult; // 연사 시 x1.5 곱연산
   for (let i = G.bullets.length - 1; i >= 0; i--) {
     const b = G.bullets[i];
     const mv = bSpd * (dt / 16.667);
