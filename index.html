@@ -5802,6 +5802,7 @@ document.addEventListener('touchend', function(e) {
               renderNavTabs('home');
               renderLeftIcons();
               fixIconPositions();
+              if (window._injectGoalUI) window._injectGoalUI();
               if (window._startHomeBg) window._startHomeBg();
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
@@ -11386,6 +11387,8 @@ function _injectGoalUI() {
   wrapper.parentNode.insertBefore(bar, wrapper);
   _spUpdateHomeBtn();
 }
+
+window._injectGoalUI = _injectGoalUI;
 
 function _spUpdateHomeBtn() {
   var bar = document.getElementById('sp-home-btn');
