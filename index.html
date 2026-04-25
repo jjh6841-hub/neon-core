@@ -1576,7 +1576,7 @@ canvas {
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:90px 0 8px 0;">NEON CORE</div>
 
     <!-- 메인 아이콘 (터치 시 스킨 화면) -->
-    <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1; cursor:pointer;" onclick="if(_isContentUnlocked(100)){if(window.showScreen)showScreen('skin');}else{if(window.showToastMsg)showToastMsg('스킨 — 에이온 웨이브 100 클리어 시 해금','#334455');}"></div>
+    <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1; cursor:pointer;" onclick="if(window.showScreen)showScreen('skin');"></div>
 
     <!-- 정보 카드 (row 1:1: 골드 보너스 | 행성) -->
     <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-bottom:6px;">
@@ -5599,6 +5599,19 @@ window.togglePause = togglePause;
       // BGM 복구
       if (_bgmWasPlaying && PERM && PERM.settings && PERM.settings.music) {
         AudioManager.playBGM();
+      }
+      // 포그라운드 복귀 시 오프라인 보상 자동 팝업 (Android 백그라운드 복귀 대응)
+      // 전투 중이 아닐 때만 표시
+      if (!window.G || !G.phase || G.phase === 'gameover') {
+        setTimeout(function() {
+          try {
+            var _rd = _calcOfflineReward();
+            if (_rd && (_rd.gold > 0 || _rd.gems > 0)) {
+              _showOfflinePopup(_rd);
+            }
+            _updateOfflineBtn();
+          } catch(_){}
+        }, 500);
       }
     }
   });
