@@ -12969,7 +12969,7 @@ function _buildAccountScreen() {
   sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:9900;overflow:hidden;';
   sc.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + var(--sat)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
-      '<button id="account-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
+      '<button id="account-back" style="background:none;border:none;color:#00dddd;font-size:12px;font-family:\'Courier New\',monospace;cursor:pointer;-webkit-appearance:none;">◀ 뒤로</button>'+
       '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">계정 관리</span>'+
       '<div style="width:60px;"></div>'+
     '</div>'+
@@ -13050,7 +13050,9 @@ function _openAccount() {
 function _closeAccount() {
   var sc=document.getElementById('screen-account');
   if(sc) sc.style.display='none';
-  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
+  // 설정 화면으로 복귀
+  var settingsEl=document.getElementById('settings-screen');
+  if(settingsEl) settingsEl.classList.add('show');
 }
 
 /* ════════════════════════════════════════════════════════
@@ -18733,11 +18735,12 @@ if (_gemAdBtn) {
       return;
     }
 
-    // 계정 (bottom-nav 복구 포함)
+    // 계정 → 설정 화면으로 복귀
     var accEl = document.getElementById('screen-account');
     if (accEl && (accEl.style.display === 'flex' || accEl.style.display === 'block')) {
       accEl.style.display = 'none';
-      var bn3 = document.getElementById('bottom-nav'); if (bn3) bn3.style.display = 'flex';
+      var stEl = document.getElementById('settings-screen');
+      if (stEl) stEl.classList.add('show');
       return;
     }
 
