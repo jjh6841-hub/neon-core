@@ -8307,8 +8307,17 @@ setInterval(function() {
       if (_labNotified[nk]) continue;
       if (now >= sd.endTime) {
         _labNotified[nk] = true;
-        var rObj = ALL_RESEARCH.filter(function(r) { return r.id === sd.researchId; })[0];
-        var rName = rObj ? rObj.name : sd.researchId;
+        var _sid = sd.researchId;
+        var rObj = ALL_RESEARCH.filter(function(r) { return r.id === _sid; })[0];
+        var rName = rObj ? rObj.name : _sid;
+        // 즉시 수령 처리
+        if(!lab.research) lab.research = {};
+        lab.research[_sid] = (lab.research[_sid]||0) + 1;
+        localStorage.setItem('res_'+_sid, lab.research[_sid]);
+        lab['slot'+i].researchId = null;
+        lab['slot'+i].endTime = null;
+        _saveLab(lab);
+        try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
         if (window.showToastMsg) showToastMsg('연구 완료: ' + rName, '#00ff88');
         _buildLabSlots();
       }
