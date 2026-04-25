@@ -2525,7 +2525,7 @@ function syncFromFirebase() {
       Object.keys(cloud).forEach(function(k) { PERM[k] = cloud[k]; });
     }
     // 관리자 재화 수정 반영: 클라우드 값이 더 높으면 항상 동기화
-    var _syncKeys = ['gold','gems','prismFragments','prismSlotCount'];
+    var _syncKeys = ['gold','gems','prismFragments','prismSlotCount','bestWave'];
     var _changed = false;
     _syncKeys.forEach(function(k) {
       if ((cloud[k]||0) > (PERM[k]||0)) { PERM[k] = cloud[k]; _changed = true; }
