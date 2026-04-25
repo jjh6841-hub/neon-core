@@ -473,7 +473,6 @@ function renderModal() {
     { key:'gems',            label:'보석 ❖',              val:p.gems||0 },
     { key:'prismFragments',  label:'프리즘 파편',          val:p.prismFragments||0 },
     { key:'prismSlotCount',  label:'프리즘 슬롯 수',       val:p.prismSlotCount||1 },
-    { key:'crystals',        label:'코어 크리스탈 ▲',      val:p.crystals||0 },
   ];
   currencies.forEach(function(c){
     html += '<div class="modal-row"><label>'+c.label+'</label><input type="number" data-field="'+c.key+'" value="'+c.val+'"></div>';
