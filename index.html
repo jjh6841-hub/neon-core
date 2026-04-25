@@ -8175,13 +8175,28 @@ function _buildLabPopupList() {
     var card = document.createElement('div');
     card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;' +
       (maxed ? 'opacity:0.4;' : '');
+    // 현재 능력치 텍스트
+    var _statText = '';
+    var _effectMap = {
+      'r_damage':'+2%/Lv 공격력','r_spd':'+2%/Lv 공속','r_crit':'+0.5%/Lv 치명타',
+      'r_multishot':'+1%/Lv 분열','r_crit_mult':'+0.02/Lv 치명타 계수','r_range':'+8/Lv 사거리',
+      'r_pierce':'+1/Lv 관통','r_knockback':'+0.5%/Lv 넉백',
+      'r_health':'+2%/Lv 체력','r_regen':'+0.05/Lv 재생','r_defense':'+2%/Lv 방어',
+      'r_mine':'+1%/Lv 지뢰','r_reflect':'+0.5%/Lv 반사','r_vamp':'+0.1%/Lv 흡혈','r_shield':'+5%/Lv 쉴드',
+      'start_cash':'+10/Lv 시작골드','r_wave_cash':'+2%/Lv 웨이브골드','r_gold_gain':'+1%/Lv 골드획득',
+      'game_speed':'+0.5x/Lv 배속','atk_discount':'-1%/Lv 공격비용','def_discount':'-1%/Lv 방어비용','lab_speed':'-2%/Lv 연구시간',
+      'r_elem_atk':'+2%/Lv 속성공격','r_elem_def':'+2%/Lv 속성방어','r_elem_hp':'+2%/Lv 속성체력'
+    };
+    _statText = _effectMap[r.id] || '';
+
     var status = maxed ? '<span style="color:#00ff88;font-family:monospace;font-size:10px;">Max</span>'
       : inProg  ? '<span style="color:#f59e0b;font-family:monospace;font-size:10px;">진행중</span>'
       : '<button data-start-res="' + r.id + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:4px 8px;cursor:pointer;">시작</button>';
     card.innerHTML =
-      '<div style="display:flex;flex-direction:column;gap:2px;">' +
+      '<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;">' +
         '<span style="font-size:11px;color:#f1f5f9;font-family:monospace;">' + r.name + ' <span style="color:#4a6a7a;font-size:9px;">Lv.' + lv + ' / ' + maxLvText + '</span></span>' +
         '<span style="font-size:9px;color:#556677;font-family:monospace;">' + r.desc + '</span>' +
+        (_statText ? '<span style="font-size:9px;color:#00ff88;font-family:monospace;">' + _statText + '</span>' : '') +
         (maxed ? '' : '<span style="font-size:10px;font-family:monospace;margin-top:2px;"><span style="color:#5bc0de;">⏱ ' + _fmtTime(_rTime) + '</span> · <span style="color:#f59e0b;font-weight:bold;">◈' + _rCost.toLocaleString() + '</span></span>') +
       '</div>' + status;
     if (!maxed && !inProg) {
