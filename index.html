@@ -5353,12 +5353,16 @@ function buildAchieveUI() {
           (progPct > 0 ? '<div style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,#00ffff,#0088aa);border-radius:6px;width:' + progPct + '%;transition:width 0.3s;"></div>' : '') +
           '<div style="position:absolute;width:100%;text-align:center;font-size:11px;line-height:20px;font-family:\'Courier New\',monospace;color:#ffffff;">' + progStr + '</div></div>';
     var rewardHTML;
+    var _rwParts = [];
+    if (ach.gems > 0) _rwParts.push('<span style="color:#00ffff;">❖' + ach.gems + '</span>');
+    if (ach._accessCodes > 0) _rwParts.push('<span style="color:#bb44ff;">⌘' + ach._accessCodes + '</span>');
+    var _rwLabel = _rwParts.length ? _rwParts.join(' ') : '-';
     if (claimed) {
       rewardHTML = '<span class="ach-reward" style="color:#334455;">수령 완료</span>';
     } else if (ready) {
-      rewardHTML = '<button data-ach-claim="' + ach.key + '" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:\'Courier New\',monospace;font-size:10px;padding:6px 10px;cursor:pointer;-webkit-appearance:none;white-space:nowrap;">❖' + ach.gems + ' 수령</button>';
+      rewardHTML = '<button data-ach-claim="' + ach.key + '" style="background:#030b10;border:1px solid '+(ach._accessCodes>0?'#bb44ff':'#00ffff')+';color:#fff;font-family:\'Courier New\',monospace;font-size:10px;padding:6px 10px;cursor:pointer;-webkit-appearance:none;white-space:nowrap;">' + _rwLabel + ' 수령</button>';
     } else {
-      rewardHTML = '<span class="ach-reward">❖' + ach.gems + '</span>';
+      rewardHTML = '<span class="ach-reward">' + _rwLabel + '</span>';
     }
     div.innerHTML =
       '<div class="ach-info">' +
