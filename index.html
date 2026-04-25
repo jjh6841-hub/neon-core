@@ -1240,6 +1240,17 @@ canvas {
 
   <div style="padding:0 16px;display:flex;flex-direction:column;gap:0;width:100%;max-width:340px;">
 
+    <!-- 닉네임 섹션 -->
+    <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;overflow:hidden;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'Courier New',monospace;font-size:12px;color:#00ffff;">닉네임</span>
+          <span id="settings-nickname" style="font-family:'Courier New',monospace;font-size:13px;color:#f1f5f9;font-weight:bold;"></span>
+        </div>
+        <button id="btn-nickname-change" style="background:#030b10;border:1px solid #00ffff44;color:#00ffff;font-family:'Courier New',monospace;font-size:10px;padding:6px 10px;cursor:pointer;-webkit-appearance:none;">변경</button>
+      </div>
+    </div>
+
     <!-- 사운드 섹션 -->
     <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;overflow:hidden;margin-bottom:12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1a2a3a;">
@@ -5479,7 +5490,71 @@ function syncSettingsUI() {
   var rw = document.getElementById('account-reward');
   if (st) { st.textContent = linked ? '연동됨' : '미연동'; st.style.color = linked ? '#00ff88' : '#ef4444'; }
   if (rw) rw.style.display = linked ? 'none' : '';
+  // 닉네임 표시
+  var _nnEl = document.getElementById('settings-nickname');
+  if (_nnEl) _nnEl.textContent = PERM.nickname || '미설정';
+  var _nnBtn = document.getElementById('btn-nickname-change');
+  if (_nnBtn && !_nnBtn._inited) {
+    _nnBtn._inited = true;
+    _nnBtn.addEventListener('click', _openNicknamePopup);
+  }
 }
+
+function _openNicknamePopup() {
+  var old = document.getElementById('nickname-popup');
+  if (old) old.remove();
+  var changeCount = parseInt(localStorage.getItem('nickname_changes')||'0',10);
+  var cost = changeCount >= 1 ? 30 : 0;
+  var costText = cost > 0 ? '(❖ '+cost+' 소모)' : '(무료)';
+
+  var ov = document.createElement('div');
+  ov.id = 'nickname-popup';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.95);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+  ov.innerHTML =
+    '<div style="background:#0a0a1a;border:1px solid #00ffff44;padding:24px;max-width:300px;width:90%;text-align:center;">' +
+      '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:4px;">닉네임 변경</div>' +
+      '<div style="color:#556677;font-size:9px;margin-bottom:14px;">' + costText + '</div>' +
+      '<input id="nn-input" type="text" maxlength="12" placeholder="닉네임 입력" value="'+(PERM.nickname||'')+'" style="width:100%;background:#030b10;border:1px solid #0a3344;color:#f1f5f9;font-family:monospace;font-size:14px;padding:10px;text-align:center;box-sizing:border-box;outline:none;-webkit-appearance:none;">' +
+      '<div style="color:#334455;font-size:8px;margin:6px 0 4px;">한글 최대 6자 / 영어 최대 12자 / 특수문자 불가</div>' +
+      '<div id="nn-msg" style="color:#ef4444;font-size:10px;min-height:16px;margin-bottom:10px;"></div>' +
+      '<div style="display:flex;gap:8px;">' +
+        '<button id="nn-cancel" style="flex:1;padding:10px;background:#030b10;border:1px solid #334455;color:#556677;font-family:monospace;font-size:11px;cursor:pointer;">취소</button>' +
+        '<button id="nn-confirm" style="flex:1;padding:10px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;cursor:pointer;">확인</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', function(e) { if(e.target===ov) ov.remove(); });
+  document.getElementById('nn-cancel').addEventListener('click', function() { ov.remove(); });
+  document.getElementById('nn-confirm').addEventListener('click', function() {
+    var input = document.getElementById('nn-input').value.trim();
+    var msg = document.getElementById('nn-msg');
+    if (!input) { msg.textContent = '닉네임을 입력해주세요.'; return; }
+    // 특수문자 체크 (한글, 영어, 숫자만)
+    if (!/^[가-힣a-zA-Z0-9]+$/.test(input)) { msg.textContent = '특수문자는 사용할 수 없습니다.'; return; }
+    // 글자수 체크: 한글은 2바이트 계산
+    var byteLen = 0;
+    for (var ci=0;ci<input.length;ci++) { byteLen += input.charCodeAt(ci) > 127 ? 2 : 1; }
+    if (byteLen > 12) { msg.textContent = '닉네임이 너무 깁니다. (한글 6자/영어 12자)'; return; }
+    // 보석 체크
+    if (cost > 0 && (PERM.gems||0) < cost) { msg.textContent = '보석이 부족합니다. (보유: ❖'+(PERM.gems||0)+')'; return; }
+    // 현재 닉네임과 동일
+    if (input === PERM.nickname) { msg.textContent = '현재 닉네임과 동일합니다.'; return; }
+    // 중복 체크 (Firestore)
+    msg.style.color = '#f59e0b'; msg.textContent = '확인 중...';
+    window._fbDb.collection('users').where('perm.nickname','==',input).get().then(function(snap) {
+      var isDup = false;
+      snap.forEach(function(doc) { if(doc.id !== window._fbUid) isDup = true; });
+      if (isDup) { msg.style.color='#ef4444'; msg.textContent = '이미 사용 중인 닉네임입니다.'; return; }
+      // 변경 적용
+      if (cost > 0) { PERM.gems -= cost; }
+      PERM.nickname = input;
+      savePerm();
+      localStorage.setItem('nickname_changes', changeCount + 1);
+      ov.remove();
+      syncSettingsUI();
+      if (window.showToastMsg) showToastMsg('닉네임 변경: ' + input, '#00ff88');
+    }).catch(function() { msg.style.color='#ef4444'; msg.textContent = '서버 오류. 다시 시도해주세요.'; });
+  });
 
 function toggleSetting(key) {
   if (key === 'lang') {

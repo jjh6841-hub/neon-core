@@ -161,6 +161,7 @@ tr { cursor:pointer; }
     <thead>
       <tr>
         <th>유저 ID</th>
+        <th>닉네임</th>
         <th>연동</th>
         <th>상태</th>
         <th>골드</th>
@@ -396,6 +397,7 @@ function renderUsers(list) {
     }
     tr.innerHTML =
       '<td class="uid-cell">' + u.id + '</td>' +
+      '<td style="color:#f1f5f9;font-size:11px;">' + (p.nickname||'<span style="color:#334455;">-</span>') + '</td>' +
       '<td><span class="'+(isLinked?'badge-linked':'badge-unlinked')+'">'+(isLinked?'연동':'미연동')+'</span></td>' +
       '<td>' + (banLabel || '<span style="color:#334455;font-size:9px;">-</span>') + '</td>' +
       '<td class="gold">' + (p.gold||0).toLocaleString() + '</td>' +
