@@ -10796,6 +10796,11 @@ function _applyWsCostPatches() {
     items[k].cost = function(lv) { return Math.floor(base * Math.pow(1.35, lv)); };
   });
 
+  // 무한 레벨 항목 강제 적용
+  ['damage','critMult','enhCritMult','maxHp','hpRegen','defAbs'].forEach(function(k){
+    if(items[k]) items[k].maxLv = 999;
+  });
+
   // §7 표시 함수: applyPermStats 중간 계산값 표시
   var _p = function() { return window.PERM || {}; };
   if (items.damage) {
