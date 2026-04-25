@@ -2464,8 +2464,27 @@ function loadPerm() {
       }
     }
   } catch (_) {}
-  // 기본 닉네임 생성 (없으면)
-  if (!PERM.nickname) {
+  // 기본 닉네임 생성 (없으면) — Firestore 중복 체크
+  if (!PERM.nickname && window._fbDb) {
+    (function _genNick() {
+      var _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      var _rand = '';
+      for (var _ni=0;_ni<5;_ni++) _rand += _chars.charAt(Math.floor(Math.random()*26));
+      var _nick = 'KR_' + _rand;
+      window._fbDb.collection('users').where('perm.nickname','==',_nick).get().then(function(snap) {
+        if (snap.empty) {
+          PERM.nickname = _nick;
+          try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_){}
+          try { savePerm(); } catch(_){}
+        } else {
+          _genNick(); // 중복 → 재생성
+        }
+      }).catch(function() {
+        PERM.nickname = _nick; // 오프라인이면 그냥 사용
+        try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_){}
+      });
+    })();
+  } else if (!PERM.nickname) {
     var _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     var _rand = '';
     for (var _ni=0;_ni<5;_ni++) _rand += _chars.charAt(Math.floor(Math.random()*26));
