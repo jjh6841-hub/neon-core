@@ -2693,7 +2693,7 @@ var UPGRADES = [
     cost()   { return upgCost('multiChance',10); },
     stat()   { return ((G.upgLvl.multiChance||0)*0.5)._tf1()+'%'; },
     canBuy() { return coreChips>=upgCost('multiChance',10); },
-    apply()  { var c=upgCost('multiChance',10); coreChips-=c; G.upgLvl.multiChance=(G.upgLvl.multiChance||0)+1; G.multiChance=Math.min(0.5,(G.upgLvl.multiChance||0)*0.005); },
+    apply()  { var c=upgCost('multiChance',10); coreChips-=c; G.upgLvl.multiChance=(G.upgLvl.multiChance||0)+1; G.multiChance=Math.min(0.5,((PERM.ws&&PERM.ws.multiChance||0)+(G.upgLvl.multiChance||0))*0.005); },
   },
   { key:'multi',   tab:'atk', icon:'+',  name:'분열탄수', baseCost:10, unlock:'multi',
     cost()   { return upgCost('multi',10); },
@@ -2705,7 +2705,7 @@ var UPGRADES = [
     cost()   { return 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
     stat()   { return ((G.upgLvl.rapidChance||0)*0.5)._tf1()+'%'; },
     canBuy() { return (G.upgLvl.rapidChance||0) < 80 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidChance||0); coreChips-=c; G.upgLvl.rapidChance=(G.upgLvl.rapidChance||0)+1; G.rapidChance=Math.min(0.40,(G.upgLvl.rapidChance||0)*0.005); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidChance||0); coreChips-=c; G.upgLvl.rapidChance=(G.upgLvl.rapidChance||0)+1; G.rapidChance=Math.min(0.40,((PERM.ws&&PERM.ws.rapidChance||0)+(G.upgLvl.rapidChance||0))*0.005); },
   },
   { key:'rapidDuration', tab:'atk', icon:'T', name:'연사지속', baseCost:50, unlock:'rapidChance', maxLvl:100,
     cost()   { return 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
@@ -2717,19 +2717,19 @@ var UPGRADES = [
     cost()   { return 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
     stat()   { var v=((G.upgLvl.bounceChance||0)+1)*0.5; return Math.min(v,70)._tf1()+'%'; },
     canBuy() { return (G.upgLvl.bounceChance||0) < 140 && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceChance||0); coreChips-=c; G.upgLvl.bounceChance=(G.upgLvl.bounceChance||0)+1; G.bounceChance=Math.min(0.70,((G.upgLvl.bounceChance||0)+1)*0.005); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceChance||0); coreChips-=c; G.upgLvl.bounceChance=(G.upgLvl.bounceChance||0)+1; G.bounceChance=Math.min(0.70,((PERM.ws&&PERM.ws.bounceChance||0)+(G.upgLvl.bounceChance||0))*0.005); },
   },
   { key:'bounceTargets', tab:'atk', icon:'T', name:'도약탄수', baseCost:50, unlock:'bounceChance', maxLvl:6,
     cost()   { return 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
     stat()   { return Math.min(8, 2 + (G.upgLvl.bounceTargets||0)) + ''; },
     canBuy() { return (G.upgLvl.bounceTargets||0) < 6 && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceTargets||0); coreChips-=c; G.upgLvl.bounceTargets=(G.upgLvl.bounceTargets||0)+1; G.bounceTargets=Math.min(8, 2+(G.upgLvl.bounceTargets||0)); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceTargets||0); coreChips-=c; G.upgLvl.bounceTargets=(G.upgLvl.bounceTargets||0)+1; G.bounceTargets=Math.min(8, 1+(PERM.ws&&PERM.ws.bounceTargets||0)+(G.upgLvl.bounceTargets||0)); },
   },
-  { key:'bounceRange', tab:'atk', icon:'◎', name:'도약탄<br>범위', baseCost:50, unlock:'bounceChance', maxLv:30,
+  { key:'bounceRange', tab:'atk', icon:'◎', name:'도약탄<br>범위', baseCost:50, unlock:'bounceChance', maxLv:20,
     cost()   { return upgCost('bounceRange',12); },
-    stat()   { return 'x'+(1+(G.upgLvl.bounceRange||0)*0.1)._tf1(); },
+    stat()   { return ((PERM.ws&&PERM.ws.bounceRange||0) + (G.upgLvl.bounceRange||0)) * 4 + 'px'; },
     canBuy() { return coreChips>=upgCost('bounceRange',12); },
-    apply()  { var c=upgCost('bounceRange',12); coreChips-=c; G.upgLvl.bounceRange=(G.upgLvl.bounceRange||0)+1; G.bounceRange=1+(G.upgLvl.bounceRange||0)*0.1; },
+    apply()  { var c=upgCost('bounceRange',12); coreChips-=c; G.upgLvl.bounceRange=(G.upgLvl.bounceRange||0)+1; G.bounceRange=((PERM.ws&&PERM.ws.bounceRange||0)+(G.upgLvl.bounceRange||0))*4; },
   },
   { key:'enemyDefReduce', tab:'atk', icon:'▼', name:'적 방어력<br>감소', baseCost:15, unlock:'enemyDefReduce', maxLv:74,
     cost()   { return upgCost('enemyDefReduce',15); },
@@ -7876,7 +7876,7 @@ var NEW_ITEMS = {
   // 공격 탭 5단계
   bounceChance:  { tab:'atk', name:'도약탄 확률', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 20+Math.floor(lv*3.5);}, cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
   bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, atkGroup:5, maxLv:9,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
-  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:99, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return (1+lv*0.1)._tf1();},       nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
+  bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:20, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return lv*4+'px';},       nxt:function(lv){return (lv+1)*4+'px';} },
 
   // 방어 탭 2단계
   defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                  nxt:function(lv){return ''+(lv+1);} },
@@ -13670,7 +13670,7 @@ window.createState = function() {
   g.rapidDuration  = (ws.rapidDuration || 0) * 0.1; // 초 단위
   g.bounceChance   = (ws.bounceChance  || 0) * 0.005;
   g.bounceTargets  = 1 + (ws.bounceTargets || 0);
-  g.bounceRange    = 80 + (ws.bounceRange  || 0) * 8;
+  g.bounceRange    = (ws.bounceRange  || 0) * 4;
   g._rapidActive   = false;
   g._rapidTimer    = 0;
   return g;
