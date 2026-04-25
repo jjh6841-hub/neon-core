@@ -2144,7 +2144,7 @@ function _showOfflinePopup(data) {
   if (data.gems > 0) rwHTML += '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#00ffff;font-size:14px;">❖</span><span style="color:#00ffff;font-size:18px;font-weight:bold;">'+data.gems+'</span></div>';
   ov.innerHTML =
     '<div style="background:#0a0a1a;border:1px solid #f59e0b44;padding:28px 24px;max-width:300px;width:90%;text-align:center;">' +
-      '<div style="color:#f59e0b;font-size:18px;margin-bottom:6px;">☽</div>' +
+      '<div style="margin-bottom:6px;"><svg width="24" height="24" viewBox="0 0 20 20"><line x1="5" y1="2" x2="15" y2="2" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="18" x2="15" y2="18" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><path d="M6,3 L6,7 L10,11 L14,7 L14,3" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><path d="M6,17 L6,13 L10,9 L14,13 L14,17" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><circle cx="10" cy="10" r="1.2" fill="#f59e0b" opacity="0.6"/></svg></div>' +
       '<div style="color:#f59e0b;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:14px;">오프라인 보상</div>' +
       '<div style="color:#556677;font-size:10px;margin-bottom:16px;">부재 시간: '+data.timeStr+'</div>' +
       '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:14px;margin-bottom:18px;display:flex;flex-direction:column;gap:8px;align-items:center;">'+rwHTML+'</div>' +
@@ -2178,11 +2178,12 @@ function _initOfflineReward() {
   var btn = document.getElementById('btn-offline-reward');
   if (!btn) return;
   var data = _calcOfflineReward();
-  if (data && (data.gold > 0 || data.gems > 0)) {
-    btn.style.borderColor = '#f59e0b';
-    btn.style.color = '#f59e0b';
-    btn.textContent = '☽';
-    // 빨간 점 뱃지
+  var _hasReward = data && (data.gold > 0 || data.gems > 0);
+  btn.style.borderColor = _hasReward ? '#f59e0b' : '#1a2a3a';
+  // SVG 색상 변경
+  var _svgs = btn.querySelectorAll('line,path,circle');
+  for(var si=0;si<_svgs.length;si++) { _svgs[si].setAttribute('stroke', _hasReward?'#f59e0b':'#334455'); if(_svgs[si].tagName==='circle') _svgs[si].setAttribute('fill', _hasReward?'#f59e0b':'#334455'); }
+  if (_hasReward) {
     if (!btn.querySelector('.offl-badge')) {
       var badge = document.createElement('div');
       badge.className = 'offl-badge';
@@ -2191,8 +2192,6 @@ function _initOfflineReward() {
       btn.appendChild(badge);
     }
   } else {
-    btn.style.borderColor = '#1a2a3a';
-    btn.style.color = '#334455';
     var badge2 = btn.querySelector('.offl-badge');
     if (badge2) badge2.remove();
   }
