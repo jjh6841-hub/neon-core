@@ -3549,6 +3549,7 @@ function update(dt) {
   for (let i = G.bullets.length - 1; i >= 0; i--) {
     const b = G.bullets[i];
     const mv = bSpd * (dt / 16.667);
+    var _bPrevX = b.x, _bPrevY = b.y;
     b.x += b.dx * mv;
     b.y += b.dy * mv;
 
@@ -3560,9 +3561,21 @@ function update(dt) {
     let removeBullet = false;
     for (let j = G.enemies.length - 1; j >= 0; j--) {
       const e = G.enemies[j];
-      if (b.hitSet && b.hitSet.has(e)) continue; // already hit by this piercing bullet
-      const ddx = b.x - e.x, ddy = b.y - e.y;
-      if (ddx * ddx + ddy * ddy < (e.r + 5) * (e.r + 5)) {
+      if (b.hitSet && b.hitSet.has(e)) continue;
+      // 현재 위치 체크
+      var ddx = b.x - e.x, ddy = b.y - e.y;
+      var _hit = ddx * ddx + ddy * ddy < (e.r + 5) * (e.r + 5);
+      // 터널링 방지: 이전→현재 경로상 충돌 체크
+      if (!_hit && mv > e.r) {
+        var _ldx = b.x - _bPrevX, _ldy = b.y - _bPrevY;
+        var _edx = _bPrevX - e.x, _edy = _bPrevY - e.y;
+        var _a = _ldx*_ldx + _ldy*_ldy;
+        var _b2 = 2*(_edx*_ldx + _edy*_ldy);
+        var _c = _edx*_edx + _edy*_edy - (e.r+5)*(e.r+5);
+        var _disc = _b2*_b2 - 4*_a*_c;
+        if (_disc >= 0 && _a > 0) { var _t = (-_b2 - Math.sqrt(_disc))/(2*_a); if (_t >= 0 && _t <= 1) _hit = true; }
+      }
+      if (_hit) {
         if (b.hitSet) b.hitSet.add(e);
         let dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
         // 거리 피해: 타워에서 먼 적일수록 데미지 증가
@@ -3989,8 +4002,11 @@ function fireTower() {
     const offset = (s - (shots - 1) / 2) * spread;
     const angle  = baseAngle + offset;
     const isCrit = G.critChance > 0 && Math.random() < G.critChance;
+    // 근접 적 관통 방지: 적 방향으로 10px 전진하여 발사
+    var _bStartX = G.cx + Math.cos(angle) * 10;
+    var _bStartY = G.cy + Math.sin(angle) * 10;
     G.bullets.push({
-      x: G.cx, y: G.cy,
+      x: _bStartX, y: _bStartY,
       dx: Math.cos(angle), dy: Math.sin(angle),
       crit: isCrit,
       pierceLeft: G.pierce,
