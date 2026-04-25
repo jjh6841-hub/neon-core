@@ -1422,8 +1422,8 @@ canvas {
         <span style="color:#f59e0b;font-size:12px;">◈ </span><span id="r-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span>
       </div>
       <span style="color:#0a3344;font-size:14px;font-weight:bold;">+</span>
-      <div id="r-ad-gold-wrap" style="text-align:center;min-width:60px;cursor:pointer;padding:4px;border:1px solid #0a2233;background:#060f18;" onclick="window._showAdDoublePopup&&window._showAdDoublePopup()">
-        <div style="font-size:9px;color:#334455;margin-bottom:3px;">광고 골드</div>
+      <div id="r-ad-gold-wrap" style="text-align:center;min-width:60px;padding:4px;border:1px solid #0a2233;background:#060f18;">
+        <div style="font-size:9px;color:#334455;margin-bottom:3px;">추가 골드</div>
         <span style="color:#f59e0b;font-size:12px;">◈ </span><span id="r-ad-gold" style="color:#f59e0b;font-size:16px;font-weight:bold;">0</span>
       </div>
       <span style="color:#0a3344;font-size:14px;font-weight:bold;">=</span>
@@ -3143,6 +3143,7 @@ function createState() {
     betweenTimer: 0,
     killCount:    0,   // enemies killed this run
     goldEarned:   0,   // gold earned this run
+    goldBaseEarned: 0, // base gold (1x, before multipliers)
     upgLvl:       {},  // in-game upgrade purchase counts
 
     tower: {
@@ -3674,8 +3675,9 @@ function update(dt) {
           PERM.totalKills++;
           _infKill(e.type);
           var _eGold = e.gold || 1;
+          var _eBase = Math.round(_eGold * 0.5);
           _eGold = Math.round(_eGold * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
-          if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; PERM.gold += _eGold; G.floatTexts.push({x:e.x,y:e.y+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
+          if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; G.goldBaseEarned += _eBase; PERM.gold += _eGold; G.floatTexts.push({x:e.x,y:e.y+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
           // 분열 적: 죽으면 기본 드론 2개 소환
           if (e.type === 'split' && !e._isSplitChild) {
             for (var _si=0;_si<2;_si++) {
@@ -3731,8 +3733,9 @@ function update(dt) {
                   PERM.totalKills++;
                   _infKill(ek.type);
                   var _ekG = ek.gold || 1;
+                  var _ekBase = Math.round(_ekG * 0.5);
                   _ekG = Math.round(_ekG * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
-                  if (_ekG > 0) { G.gold += _ekG; G.goldEarned += _ekG; PERM.gold += _ekG; }
+                  if (_ekG > 0) { G.gold += _ekG; G.goldEarned += _ekG; G.goldBaseEarned += _ekBase; PERM.gold += _ekG; }
                   if (ek.boss) { PERM.bossKills++; }
                   if (ekChip > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekChip + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
                   for (let dp2 = 0; dp2 < 4; dp2++) {
@@ -4060,8 +4063,9 @@ function fireTower() {
         if (_bGem2 > 0) { PERM.gems=(PERM.gems||0)+_bGem2; G.gems=(G.gems||0)+_bGem2; }
         G.killCount++; PERM.totalKills++;
         if (typeof _infKill==='function') _infKill(target.type);
+        var _eG2Base = Math.round((target.gold||1)*0.5);
         var _eG2 = Math.round((target.gold||1)*(G.goldBonus||1)*(G.goldMult||1)*0.5);
-        if (_eG2>0){G.gold+=_eG2;G.goldEarned+=_eG2;PERM.gold+=_eG2;G.floatTexts.push({x:target.x,y:target.y+12,text:'+'+_eG2+' ◈',color:'#f59e0b',timer:0});}
+        if (_eG2>0){G.gold+=_eG2;G.goldEarned+=_eG2;G.goldBaseEarned+=_eG2Base;PERM.gold+=_eG2;G.floatTexts.push({x:target.x,y:target.y+12,text:'+'+_eG2+' ◈',color:'#f59e0b',timer:0});}
         if(target.boss){PERM.bossKills++;if(target.bossGrade==='galaxy'){var _gT=parseInt(localStorage.getItem('td_tier')||'1',10);localStorage.setItem('galaxy_t'+_gT,'true');try{checkAchievements();}catch(_){}}}
         if(target.type==='split'&&!target._isSplitChild){for(var _si3=0;_si3<2;_si3++){var _sc2=createEnemy('basic',target.x+(Math.random()-0.5)*16,target.y+(Math.random()-0.5)*16);_sc2.hp=Math.ceil(target.maxHp*0.5);_sc2.maxHp=_sc2.hp;_sc2.gold=0;_sc2._isSplitChild=true;G.enemies.push(_sc2);}}
         if(target.type==='spawner'){for(var _ski2=G.enemies.length-1;_ski2>=0;_ski2--){if(G.enemies[_ski2]._fromSpawner){G.enemies.splice(_ski2,1);}}}
@@ -4171,7 +4175,7 @@ function onWaveComplete() {
   // 웨이브 클리어 골드 (행성 배율은 적 생성 시 이미 적용됨, 클리어 보상에는 별도 적용 안 함)
   var _wcBaseGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
   var _wcGold = Math.round(_wcBaseGold * (G.goldBonus||1) * (G.goldMult||1));
-  G.gold += _wcGold; G.goldEarned += _wcGold; PERM.gold += _wcGold;
+  G.gold += _wcGold; G.goldEarned += _wcGold; G.goldBaseEarned += _wcBaseGold; PERM.gold += _wcGold;
   AudioManager.playSfx('wave_clear');
   triggerShake(3);
   G.borderFlash = 0.6;
@@ -4380,7 +4384,10 @@ function triggerGameOver() {
   document.getElementById('r-wave').textContent  = clearedWave;
   document.getElementById('r-kills').textContent = G.killCount;
   document.getElementById('r-best').textContent  = PERM.bestWave;
-  document.getElementById('r-gold').textContent  = G.goldEarned;
+  document.getElementById('r-gold').textContent  = G.goldBaseEarned || 0;
+  var _extraGold = (G.goldEarned || 0) - (G.goldBaseEarned || 0);
+  document.getElementById('r-ad-gold').textContent = _extraGold > 0 ? _extraGold : 0;
+  document.getElementById('r-total-gold').textContent = G.goldEarned || 0;
 
   // Gem row — 이벤트/광고로 획득한 보석 표시
   var gemRow = document.getElementById('r-gem-row');
@@ -7717,8 +7724,9 @@ function _updateOrbs(dt) {
           var _oc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _oc;
           G.killCount++; PERM.totalKills++; _infKill(e.type);
           var _eG = e.gold || 1;
+          var _eGb = _eG;
           _eG = Math.round(_eG * (G.goldBonus||1) * (G.goldMult||1));
-          if (_eG > 0) { G.gold += _eG; G.goldEarned += _eG; PERM.gold += _eG; }
+          if (_eG > 0) { G.gold += _eG; G.goldEarned += _eG; G.goldBaseEarned += _eGb; PERM.gold += _eG; }
           if (e.boss) { PERM.bossKills++; }
           try { spawnDeathParticles(e.x, e.y, '#00ffff', 5); } catch(_) {}
           G.enemies.splice(ei, 1);
@@ -7759,9 +7767,9 @@ function _updateMines(dt) {
             if (ek.hp <= 0) {
               var _mc = ek.boss ? 0 : Math.ceil((ek.gold||1)*0.1); coreChips += _mc;
               G.killCount++; PERM.totalKills++; _infKill(ek.type);
-              var _mkG = ek.gold || 1; var _mkTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
+              var _mkG = ek.gold || 1; var _mkGb = _mkG; var _mkTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
               _mkG = Math.round(_mkG * _mkTGM * (G.goldBonus||1) * (G.goldMult||1));
-              if (_mkG > 0) { G.gold += _mkG; G.goldEarned += _mkG; PERM.gold += _mkG; }
+              if (_mkG > 0) { G.gold += _mkG; G.goldEarned += _mkG; G.goldBaseEarned += _mkGb; PERM.gold += _mkG; }
               if (ek.boss) { PERM.bossKills++; }
               try { spawnDeathParticles(ek.x, ek.y, '#00ff88', 5); } catch(_) {}
               G.enemies.splice(eki, 1);
@@ -7785,9 +7793,9 @@ function _updateThorn(dt) {
       if (te.hp <= 0) {
         var _tc = te.boss ? 0 : Math.ceil((te.gold||1)*0.1); coreChips += _tc;
         G.killCount++; PERM.totalKills++; _infKill(te.type);
-        var _teG = te.gold || 1;
+        var _teG = te.gold || 1; var _teGb = _teG;
         _teG = Math.round(_teG * (G.goldBonus||1) * (G.goldMult||1));
-        if (_teG > 0) { G.gold += _teG; G.goldEarned += _teG; PERM.gold += _teG; }
+        if (_teG > 0) { G.gold += _teG; G.goldEarned += _teG; G.goldBaseEarned += _teGb; PERM.gold += _teG; }
         if (te.boss) { PERM.bossKills++; }
         try { spawnDeathParticles(te.x, te.y, '#ff8888', 4); } catch(_) {}
         G.enemies.splice(ti, 1);
@@ -7834,9 +7842,9 @@ function _triggerDeathWave() {
     if (G.enemies[i].hp <= 0) {
       var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1); coreChips += _dwc;
       G.killCount++; PERM.totalKills++; _infKill(G.enemies[i].type);
-      var _dwG = G.enemies[i].gold || 1;
+      var _dwG = G.enemies[i].gold || 1; var _dwGb = _dwG;
       _dwG = Math.round(_dwG * (G.goldBonus||1) * (G.goldMult||1));
-      if (_dwG > 0) { G.gold += _dwG; G.goldEarned += _dwG; PERM.gold += _dwG; }
+      if (_dwG > 0) { G.gold += _dwG; G.goldEarned += _dwG; G.goldBaseEarned += _dwGb; PERM.gold += _dwG; }
       if (G.enemies[i].boss) { PERM.bossKills++; }
       try { spawnDeathParticles(G.enemies[i].x, G.enemies[i].y, '#ef4444', 8); } catch(_) {}
       G.enemies.splice(i, 1); killed++;
@@ -7858,9 +7866,9 @@ function _triggerPlasma() {
       if (e.hp <= 0) {
         var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1); coreChips += _psc;
         G.killCount++; PERM.totalKills++; _infKill(e.type);
-        var _psG = e.gold || 1;
+        var _psG = e.gold || 1; var _psGb = _psG;
         _psG = Math.round(_psG * (G.goldBonus||1) * (G.goldMult||1));
-        if (_psG > 0) { G.gold += _psG; G.goldEarned += _psG; PERM.gold += _psG; }
+        if (_psG > 0) { G.gold += _psG; G.goldEarned += _psG; G.goldBaseEarned += _psGb; PERM.gold += _psG; }
         if (e.boss) { PERM.bossKills++; }
         try { spawnDeathParticles(e.x, e.y, '#f59e0b', 8); } catch(_) {}
         G.enemies.splice(i, 1);
@@ -9502,16 +9510,11 @@ if (resultsEl) {
   new MutationObserver(function() {
     if (resultsEl.style.display !== 'none' && resultsEl.classList.contains('show')) {
       _adDoubleUsed = false;
-      // r-gold 값 가져오기
+      // triggerGameOver에서 이미 r-gold, r-ad-gold, r-total-gold 설정됨
+      // _lastBaseGold = 총 골드 (광고 2배 계산용)
       setTimeout(function() {
-        var goldEl = document.getElementById('r-gold');
-        _lastBaseGold = goldEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(goldEl.textContent) : (parseInt(goldEl.textContent, 10) || 0)) : 0;
-        var adEl = document.getElementById('r-ad-gold');
-        if (adEl) adEl.textContent = '0';
         var totEl = document.getElementById('r-total-gold');
-        if (totEl) totEl.textContent = _lastBaseGold;
-        var dbl = document.getElementById('r-ad-gold-wrap');
-        if (dbl) dbl.style.opacity = '1';
+        _lastBaseGold = totEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(totEl.textContent) : (parseInt(totEl.textContent, 10) || 0)) : 0;
       }, 50);
     }
   }).observe(resultsEl, { attributes:true, attributeFilter:['class','style'] });
@@ -9519,8 +9522,8 @@ if (resultsEl) {
 
 window._showAdDoublePopup = function() {
   if (_adDoubleUsed) return;
-  var goldEl = document.getElementById('r-gold');
-  _lastBaseGold = goldEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(goldEl.textContent) : (parseInt(goldEl.textContent, 10) || 0)) : 0;
+  var totEl = document.getElementById('r-total-gold');
+  _lastBaseGold = totEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(totEl.textContent) : (parseInt(totEl.textContent, 10) || 0)) : 0;
   var amEl = document.getElementById('addbl-amount');
   var dbEl = document.getElementById('addbl-doubled');
   if (amEl) amEl.textContent = _lastBaseGold;
@@ -9537,9 +9540,10 @@ if (watchBtn) {
     var extraGold = _lastBaseGold;
     // 광고 mock → 골드 지급
     if (window.PERM) { window.PERM.gold += extraGold; logCurrency('gold', extraGold, '광고 골드 2배'); if (window.savePerm) window.savePerm(); }
-    // 결과 화면 광고 골드 표시
+    // 결과 화면 추가 골드에 합산
     var adEl = document.getElementById('r-ad-gold');
-    if (adEl) adEl.textContent = extraGold;
+    var prevExtra = adEl ? (parseInt(adEl.textContent, 10) || 0) : 0;
+    if (adEl) adEl.textContent = prevExtra + extraGold;
     var totEl = document.getElementById('r-total-gold');
     if (totEl) totEl.textContent = _lastBaseGold + extraGold;
     var dbl = document.getElementById('r-ad-gold-wrap');
