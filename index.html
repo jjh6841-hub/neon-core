@@ -2711,7 +2711,7 @@ var UPGRADES = [
     cost()   { return 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
     stat()   { return ((G.upgLvl.rapidDuration||0)*0.1)._tf1()+'s'; },
     canBuy() { return (G.upgLvl.rapidDuration||0) < 100 && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=Math.min(5,(G.upgLvl.rapidDuration||0)*0.1); },
+    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=(G.upgLvl.rapidDuration||0)*0.1; },
   },
   { key:'bounceChance', tab:'atk', icon:'B', name:'도약탄<br>확률', baseCost:50, unlock:'bounceChance', maxLvl:140,
     cost()   { return 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
@@ -13660,14 +13660,12 @@ window.createState = function() {
   var g = _origCS_mech.apply(this, arguments);
   var ws = PERM.ws || {};
   g.rapidChance    = (ws.rapidChance   || 0) * 0.005;
-  g.rapidBurstN    = 3 + Math.floor((ws.rapidDuration || 0) * 0.3);
+  g.rapidDuration  = (ws.rapidDuration || 0) * 0.1; // 초 단위
   g.bounceChance   = (ws.bounceChance  || 0) * 0.005;
   g.bounceTargets  = 1 + (ws.bounceTargets || 0);
   g.bounceRange    = 80 + (ws.bounceRange  || 0) * 8;
-  g._burstActive   = false;
-  g._burstCount    = 0;
-  g._burstTimer    = 0;
-  g._burstInterval = 110; // ms between burst shots
+  g._rapidActive   = false;
+  g._rapidTimer    = 0;
   return g;
 };
 
@@ -13694,11 +13692,11 @@ window.fireTower = function() {
     }
   }
 
-  // ② 연사 트리거
-  if (G.rapidChance > 0 && !G._burstActive && Math.random() < G.rapidChance) {
-    G._burstActive  = true;
-    G._burstCount   = G.rapidBurstN;
-    G._burstTimer   = 0;
+  // ② 연사 트리거 (공격속도 x2)
+  if (G.rapidChance > 0 && !G._rapidActive && G.rapidDuration > 0 && Math.random() < G.rapidChance) {
+    G._rapidActive = true;
+    G._rapidTimer  = G.rapidDuration * 1000; // ms
+    G.tower.atkMs  = Math.max(100, Math.round(G.tower.atkMs / 2)); // 공격속도 x2
   }
 };
 
@@ -13715,14 +13713,15 @@ window.update = function(dt) {
 
   if (!G || G.phase !== 'playing') return;
 
-  // ① 연사 처리
-  if (G._burstActive) {
-    G._burstTimer += dt;
-    if (G._burstTimer >= G._burstInterval) {
-      G._burstTimer -= G._burstInterval;
-      _mechBurstShot();
-      G._burstCount--;
-      if (G._burstCount <= 0) G._burstActive = false;
+  // ① 연사 처리 (공격속도 x2 해제)
+  if (G._rapidActive) {
+    G._rapidTimer -= dt;
+    if (G._rapidTimer <= 0) {
+      G._rapidActive = false;
+      // 공격속도 원복
+      var _ws = PERM.ws || {};
+      var _totalSpdLv = (PERM.spdLv||0) + (_ws.atkspd||0) + (G.upgLvl.spd||0);
+      G.tower.atkMs = Math.max(200, Math.round((window.BASE_ATKMS||1200) / (1 + _totalSpdLv * 0.05)));
     }
   }
 
