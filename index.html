@@ -3924,7 +3924,7 @@ function mkEnemy(etype) {
   } else if (etype === 'tank') {
     hp = baseHp*4; spd = baseSpd*0.5; r = Math.round(baseR*1.6); gold = baseGold*3;
   } else if (etype === 'rusher') {
-    hp = baseHp*0.5; spd = baseSpd*2.5; r = Math.round(baseR*0.7); gold = baseGold*2;
+    hp = baseHp*0.5; spd = baseSpd*2.5; r = Math.round(baseR*0.9); gold = baseGold*2;
   } else if (etype === 'sniper') {
     hp = baseHp*0.8; spd = baseSpd*0.8; r = baseR; gold = baseGold*4;
   } else if (etype === 'shield') {
@@ -3980,7 +3980,7 @@ function fireTower() {
   }
   if (!target) return;
   const baseAngle = Math.atan2(target.y - G.cy, target.x - G.cx);
-  const shots     = Math.max(1, G.multiShot);
+  const shots     = 1; // 분열탄은 별도 확률로 처리 (fireTower 확장)
   const spread    = 0.18; // radians between bullets
   for (let s = 0; s < shots; s++) {
     const offset = (s - (shots - 1) / 2) * spread;
@@ -6192,16 +6192,12 @@ function showNavToast(msg, tabId) {
 function showNavLockTooltip(text) { showNavToast(text); }
 
 function getNewUnlocks() {
-  var best = PERM.bestWave || 0;
   var unlocked = [];
   try {
     var saved = JSON.parse(localStorage.getItem('td_nav_unlocked') || '{}');
     for (var i = 0; i < navTabs.length; i++) {
       var tab = navTabs[i];
-      var isUnlocked = tab.unlock === 'spectra'
-        ? parseInt(localStorage.getItem('tier2_best') || '0', 10) >= 50
-        : (tab.unlock > 0 && best >= tab.unlock);
-      if (isUnlocked && !saved[tab.id]) {
+      if (_isContentUnlocked(tab.unlock) && tab.unlock !== 0 && !saved[tab.id]) {
         saved[tab.id] = true;
         unlocked.push(tab.label);
       }
@@ -13878,7 +13874,7 @@ window.fireTower = function() {
     }
     if (!t) return;
     var baseAng = Math.atan2(t.y - G.cy, t.x - G.cx);
-    var spread = 0.22, n = G.multiTargets;
+    var spread = 0.22, n = (G.multiShot||1) + (G.multiTargets||0) - 1;
     for (var si = 0; si < n; si++) {
       var ang = baseAng + (si - (n - 1) / 2) * spread;
       var isCrit = G.critChance > 0 && Math.random() < G.critChance;
