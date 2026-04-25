@@ -7764,10 +7764,11 @@ function _buildLabSlots() {
   var container = document.getElementById('lab-slots'); if (!container) return;
   container.innerHTML = '';
   var lab = _loadLab();
+  var _greekLabels = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ','Ⅶ','Ⅷ','Ⅸ','Ⅹ'];
 
-  // 슬롯 리스트 (1줄 1개)
+  // 슬롯 리스트
   var gridEl = document.createElement('div');
-  gridEl.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:16px;';
+  gridEl.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:16px;';
 
   for (var i = 0; i < LAB_SLOT_COUNT; i++) {
     var slotKey = 'slot' + i;
@@ -7780,26 +7781,25 @@ function _buildLabSlots() {
     var inProgress = researchId && !done;
     var res = researchId ? ALL_RESEARCH.filter(function(r){return r.id===researchId;})[0] : null;
 
-    var _slotBorder = needBuy ? '#1a2233' : inProgress ? '#0a5577' : done ? '#00ff8866' : '#0a334488';
-    var _slotBg = needBuy ? '#060c16' : inProgress ? '#0a1822' : done ? '#081a14' : '#0a1520';
-    var _slotGlow = done ? 'box-shadow:0 0 12px #00ff8822,inset 0 0 20px #00ff8808;' : inProgress ? 'box-shadow:0 0 10px #00ffff15,inset 0 0 15px #00ffff08;' : '';
-    var _borderLeft = needBuy ? 'border-left:3px solid #1a2a3a;' : done ? 'border-left:3px solid #00ff88;' : inProgress ? 'border-left:3px solid #00ddff;' : 'border-left:3px solid #334455;';
+    var _slotBorder = needBuy ? '#111825' : inProgress ? '#0a5577' : done ? '#00ff8855' : '#0a334466';
+    var _slotBg = needBuy ? '#060a12' : inProgress ? '#080e1a' : done ? '#061210' : '#070d16';
+    var _slotGlow = done ? 'box-shadow:0 0 15px #00ff8818;' : inProgress ? 'box-shadow:0 0 12px #00ffff10;' : '';
     var cell = document.createElement('div');
-    cell.style.cssText = 'background:'+_slotBg+';border:1px solid '+_slotBorder+';'+_borderLeft+'padding:12px 14px;display:flex;flex-direction:row;align-items:center;gap:12px;min-height:58px;cursor:pointer;position:relative;'+_slotGlow;
+    cell.style.cssText = 'background:'+_slotBg+';border:1px solid '+_slotBorder+';padding:14px;display:flex;flex-direction:row;align-items:center;gap:14px;min-height:62px;cursor:pointer;position:relative;'+_slotGlow;
 
-    // 슬롯 번호 뱃지
-    var _numColor = needBuy ? '#1a2a3a' : done ? '#00ff88' : inProgress ? '#00ddff' : '#556677';
-    var _numBg = needBuy ? '#0a0e16' : done ? '#00ff8815' : inProgress ? '#00ddff12' : '#0a1520';
-    var _numBadge = '<div style="width:28px;height:28px;border-radius:50%;border:1.5px solid '+_numColor+';background:'+_numBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;color:'+_numColor+';font-family:monospace;font-weight:bold;">'+(i+1)+'</div>';
+    // 그리스 문자 뱃지
+    var _gk = _greekLabels[i] || (i+1);
+    var _numColor = needBuy ? '#1a2233' : done ? '#00ff88' : inProgress ? '#00ddff' : '#445566';
+    var _numBorder = needBuy ? '#111825' : done ? '#00ff8844' : inProgress ? '#00ddff33' : '#1a2a3a';
+    var _numBadge = '<div style="width:32px;height:32px;border:1.5px solid '+_numBorder+';background:#060a12;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:'+_numColor+';font-family:serif;font-weight:bold;font-style:italic;letter-spacing:1px;">'+_gk+'</div>';
 
     if (needBuy) {
-      var _unlockBtn = '<button class="lab-unlock-btn" style="background:#0a1520;border:1px solid #00ffff44;border-radius:4px;padding:7px 0;font-size:10px;color:#00ffff;font-family:monospace;font-weight:bold;text-align:center;cursor:pointer;-webkit-appearance:none;white-space:nowrap;width:90px;min-width:90px;max-width:90px;">해금 ❖' + LAB_SLOT_COST[i] + '</button>';
       cell.style.cursor = 'default';
       cell.innerHTML = _numBadge +
         '<div style="flex:1;">' +
-          '<div style="font-size:10px;color:#445566;font-family:monospace;display:flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#445566" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#445566" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#445566"/></svg> 슬롯 잠김</div>' +
-          '<div style="font-size:8px;color:#2a3a4a;font-family:monospace;margin-top:2px;">보석으로 해금</div>' +
-        '</div>' + _unlockBtn;
+          '<div style="font-size:10px;color:#334455;font-family:monospace;display:flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#334455" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#334455" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#334455"/></svg> 연구실 잠김</div>' +
+        '</div>' +
+        '<button class="lab-unlock-btn" style="background:#060a12;border:1px solid #00ffff33;padding:8px 0;font-size:10px;color:#00ffff;font-family:monospace;text-align:center;cursor:pointer;-webkit-appearance:none;width:90px;min-width:90px;max-width:90px;display:flex;flex-direction:column;align-items:center;gap:2px;"><span>해금</span><span style="font-size:9px;color:#00ffff88;">❖ '+LAB_SLOT_COST[i]+'</span></button>';
       (function(idx, cost, el) {
         el.querySelector('.lab-unlock-btn').addEventListener('click', function(e) {
           e.stopPropagation();
@@ -7825,10 +7825,10 @@ function _buildLabSlots() {
       // 빈 슬롯 - 연구 선택
       cell.innerHTML = _numBadge +
         '<div style="flex:1;">' +
-          '<div style="font-size:11px;color:#667788;font-family:monospace;">대기 중</div>' +
-          '<div style="font-size:8px;color:#334455;font-family:monospace;margin-top:2px;">터치하여 연구 시작</div>' +
+          '<div style="font-size:11px;color:#556677;font-family:monospace;">대기 중</div>' +
+          '<div style="font-size:8px;color:#2a3a4a;font-family:monospace;margin-top:3px;">터치하여 연구 시작</div>' +
         '</div>' +
-        '<div style="background:#061020;border:1px solid #00ddff44;border-radius:4px;padding:6px 0;font-size:10px;color:#00ddff;font-family:monospace;text-align:center;width:90px;min-width:90px;max-width:90px;">연구 선택</div>';
+        '<div style="background:#060a12;border:1px solid #00ddff33;padding:8px 0;font-size:10px;color:#00ddff;font-family:monospace;text-align:center;width:90px;min-width:90px;max-width:90px;">연구 선택</div>';
       (function(idx, el) {
         el.addEventListener('click', function() {
           _labSelectSlot = idx;
@@ -7846,14 +7846,14 @@ function _buildLabSlots() {
       var rushCost = Math.max(1, Math.ceil(remaining / 60));
       cell.innerHTML = _numBadge +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:11px;color:#00ffff;font-family:monospace;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 6px rgba(0,255,255,0.2);">' + (res ? res.name : '?') + '</div>' +
-          '<div style="width:100%;height:5px;background:#0a1520;margin:5px 0;border-radius:3px;overflow:hidden;border:1px solid #0a2233;"><div style="height:100%;background:linear-gradient(90deg,#006688,#00ddff);width:' + pct + '%;border-radius:2px;transition:width 0.5s;"></div></div>' +
+          '<div style="font-size:11px;color:#00ddff;font-family:monospace;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (res ? res.name : '?') + '</div>' +
+          '<div style="width:100%;height:4px;background:#0a1018;margin:6px 0;overflow:hidden;border:1px solid #0a1a2a;"><div style="height:100%;background:linear-gradient(90deg,#004466,#00bbdd);width:' + pct + '%;transition:width 0.5s;"></div></div>' +
           '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-            '<span style="font-size:8px;color:#557788;font-family:monospace;">' + pct + '%</span>' +
+            '<span style="font-size:8px;color:#445566;font-family:monospace;">' + pct + '%</span>' +
             '<span style="font-size:11px;color:#f1f5f9;font-family:monospace;font-weight:bold;">' + _fmtTime(remaining) + '</span>' +
           '</div>' +
         '</div>' +
-        '<div style="background:#0a0e1a;border:1px solid #cc44ff44;border-radius:4px;padding:6px 0;font-size:10px;color:#cc44ff;font-family:monospace;text-align:center;width:90px;min-width:90px;max-width:90px;cursor:pointer;flex-shrink:0;">Rush ❖' + rushCost + '</div>';
+        '<div style="background:#060a12;border:1px solid #cc44ff33;padding:8px 0;font-size:10px;color:#cc44ff;font-family:monospace;text-align:center;width:90px;min-width:90px;max-width:90px;cursor:pointer;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;"><span>Rush</span><span style="font-size:9px;color:#cc44ff88;">❖ ' + rushCost + '</span></div>';
       (function(idx, slotD, rc) {
         cell.addEventListener('click', function() {
           var rem2 = Math.max(0, Math.ceil((slotD.endTime - Date.now()) / 1000));
@@ -7875,10 +7875,10 @@ function _buildLabSlots() {
       // 연구 완료 - 수령
       cell.innerHTML = _numBadge +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:11px;color:#00ff88;font-family:monospace;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 6px rgba(0,255,136,0.3);">' + (res ? res.name : '?') + '</div>' +
-          '<div style="font-size:9px;color:#10b981;font-family:monospace;margin-top:3px;">연구 완료!</div>' +
+          '<div style="font-size:11px;color:#00ff88;font-family:monospace;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (res ? res.name : '?') + '</div>' +
+          '<div style="font-size:9px;color:#10b981;font-family:monospace;margin-top:3px;">연구 완료</div>' +
         '</div>' +
-        '<div style="background:#0a2018;border:1px solid #00ff88;border-radius:4px;padding:7px 0;font-size:11px;color:#00ff88;font-family:monospace;font-weight:bold;text-align:center;width:90px;min-width:90px;max-width:90px;">수령</div>';
+        '<div style="background:#06120e;border:1px solid #00ff8866;padding:8px 0;font-size:11px;color:#00ff88;font-family:monospace;font-weight:bold;text-align:center;width:90px;min-width:90px;max-width:90px;">수령</div>';
       (function(idx, slotD) {
         cell.addEventListener('click', function() {
           var ld = _loadLab();
