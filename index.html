@@ -3745,6 +3745,11 @@ function update(dt) {
         if (_rem > 0 && window._absorbPrismShield) _rem = window._absorbPrismShield(_rem);
         if (_rem <= 0) { addFx(e.x, e.y, e.r * 2, '#0088ff'); continue; }
         G.tower.hp = Math.max(0, G.tower.hp - _rem);
+        // 반사 데미지: 받은 피해의 reflectPct%를 적에게 반환
+        if (G.reflectPct > 0 && _rem > 0) {
+          var _reflDmg = Math.round(_rem * G.reflectPct);
+          if (_reflDmg > 0) { e.hp -= _reflDmg; e.hitFlash = 2; addFx(e.x, e.y, e.r * 1.5, '#cc44ff'); }
+        }
         G.flashAlpha = 1;
         triggerShake(4);
         addFx(e.x, e.y, e.r * 2, '#f87171');
@@ -10986,7 +10991,7 @@ function _patchApplyPermStats() {
     t.hpRegen  = _getHpRegen(ws.hpRegen || 0);
     G.defenseAbs = ws.defAbs   || 0;                                  // 절대 피해 차감 (flat)
     G.lifeSteal  = (ws.vampChance || 0) * 0.1;                       // 0.1%/lv
-    G.reflectPct = (ws.reflectDmg || 0) * 0.005;                     // 0.5%/lv
+    G.reflectPct = (ws.reflectDmg || 0) * 0.01;                      // 1%/lv
     G.knockbackChance = (ws.knockChance || 0) * 0.005;               // 0.5%/lv
     G.goldMult = 1 + (ws.goldGain || 0) * 0.1;                       // 10%/lv (UI와 일치)
     G.gemMult  = 1;
