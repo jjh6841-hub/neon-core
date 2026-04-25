@@ -16453,7 +16453,7 @@ function renderSkinGrid() {
       card.innerHTML = preview +
         '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';">' + bg.name + '</div>' +
         '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#334455;">' + bg.desc + '</div>';
-      card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); renderSkinGrid(); if(window._startHomeBg) _startHomeBg(); };
+      card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); window._cachedBgColor = null; renderSkinGrid(); if(window._startHomeBg) _startHomeBg(); };
       grid.appendChild(card);
     });
   }
