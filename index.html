@@ -1737,14 +1737,17 @@ canvas {
         if(cb) cb(true); return;
       }
 
-      // 티커 표시 (30분, 10분, 5분 전)
+      // 티커 표시 (30분, 10분, 5분, 2분 전)
       var mins = Math.ceil(remain / 60000);
-      var ticks = [[30,'30분'],[10,'10분'],[5,'5분']];
+      var ticks = [[30,'30분'],[10,'10분'],[5,'5분'],[2,'2분']];
       for (var ti=0; ti<ticks.length; ti++) {
         var t = ticks[ti];
         if (mins <= t[0] && !window._mtShown[t[0]]) {
           window._mtShown[t[0]] = true;
-          window._showMaintenanceTicker(t[1] + ' 후 업데이트 예정입니다. 안전한 저장을 위해 종료 부탁드립니다.');
+          var tickMsg = t[0] <= 2
+            ? '이제 곧 업데이트가 시작됩니다. 즉시 종료해주세요!'
+            : t[1] + ' 후 업데이트 예정입니다. 안전한 저장을 위해 종료 부탁드립니다.';
+          window._showMaintenanceTicker(tickMsg);
         }
       }
       if(cb) cb(false);
