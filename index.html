@@ -5184,11 +5184,19 @@ function buildCards() {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
     pane.innerHTML = '';
-    for (const upg of UPGRADES) {
-      if (upg.tab !== tabKey) continue;
-      if (!isUnlocked(upg.unlock)) continue;
-      // 방어 탭: 강화에서 해금된 그룹만 표시
-      if (tabKey === 'def' && _defKeyToGroup[upg.key] !== undefined && _defKeyToGroup[upg.key] > _defUn) continue;
+    // MAX 카드를 우측(뒤)으로 정렬
+    var _tabUpgs = UPGRADES.filter(function(u){
+      if (u.tab !== tabKey) return false;
+      if (!isUnlocked(u.unlock)) return false;
+      if (tabKey === 'def' && _defKeyToGroup[u.key] !== undefined && _defKeyToGroup[u.key] > _defUn) return false;
+      return true;
+    });
+    _tabUpgs.sort(function(a,b){
+      var aMax = a.maxLv && (G.upgLvl[a.key]||0) >= a.maxLv ? 1 : (a.canBuy && !a.canBuy() ? 0 : 0);
+      var bMax = b.maxLv && (G.upgLvl[b.key]||0) >= b.maxLv ? 1 : (b.canBuy && !b.canBuy() ? 0 : 0);
+      return aMax - bMax;
+    });
+    for (const upg of _tabUpgs) {
       const btn = document.createElement('button');
       btn.id        = 'upg-card-' + upg.key;
       btn.className = 'upg-card upgrade-btn';
@@ -6446,11 +6454,11 @@ if (dailyPopup) {
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'atk'; });
       keys.sort(function(a,b){ return (WS_ITEMS[a].atkGroup||0)-(WS_ITEMS[b].atkGroup||0); });
 
-      // 해금된 아이템 표시
-      keys.forEach(function(key) {
-        var cfg = WS_ITEMS[key];
-        var grp = cfg.atkGroup !== undefined ? cfg.atkGroup : 99;
-        if (grp <= atkUnlocks) appendCard(container, key, ws);
+      // 해금된 아이템 표시 (MAX는 하단으로)
+      var _atkKeys = keys.filter(function(key){ var c=WS_ITEMS[key]; return (c.atkGroup!==undefined?c.atkGroup:99)<=atkUnlocks; });
+      _atkKeys.sort(function(a,b){ var ma=(ws[a]||0)>=WS_ITEMS[a].maxLv?1:0, mb=(ws[b]||0)>=WS_ITEMS[b].maxLv?1:0; return ma-mb || (WS_ITEMS[a].atkGroup||0)-(WS_ITEMS[b].atkGroup||0); });
+      _atkKeys.forEach(function(key) {
+        appendCard(container, key, ws);
       });
 
       // 다음 잠금 해제 버튼 표시
@@ -6495,10 +6503,10 @@ if (dailyPopup) {
       ];
       var defUnlocks = PERM.ws_def_unlocks || 0;
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'def'; });
-      keys.forEach(function(key) {
-        var cfg = WS_ITEMS[key];
-        var grp = cfg.defGroup !== undefined ? cfg.defGroup : 99;
-        if (grp <= defUnlocks) appendCard(container, key, ws);
+      var _defKeys = keys.filter(function(key){ var c=WS_ITEMS[key]; return (c.defGroup!==undefined?c.defGroup:99)<=defUnlocks; });
+      _defKeys.sort(function(a,b){ var ma=(ws[a]||0)>=WS_ITEMS[a].maxLv?1:0, mb=(ws[b]||0)>=WS_ITEMS[b].maxLv?1:0; return ma-mb || (WS_ITEMS[a].defGroup||0)-(WS_ITEMS[b].defGroup||0); });
+      _defKeys.forEach(function(key) {
+        appendCard(container, key, ws);
       });
       var nextGroup = defUnlocks + 1;
       var nextDef = DEF_UNLOCK_GROUPS.filter(function(g){ return g.group === nextGroup; })[0];
@@ -6531,6 +6539,7 @@ if (dailyPopup) {
       }
     } else {
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === tab; });
+      keys.sort(function(a,b){ var ma=(ws[a]||0)>=WS_ITEMS[a].maxLv?1:0, mb=(ws[b]||0)>=WS_ITEMS[b].maxLv?1:0; return ma-mb; });
       keys.forEach(function(key) { appendCard(container, key, ws); });
     }
   }
