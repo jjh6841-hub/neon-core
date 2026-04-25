@@ -12506,7 +12506,7 @@ function _renderCardTab() {
         var p=_getPrism(pr.id);
         var owned=p.lv>0;
         inner+='<button data-select-prism="'+pr.id+'" style="background:#060810;border:1px solid '+catCol+'33;color:#f1f5f9;font-family:monospace;font-size:9px;padding:6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;opacity:'+(owned?1:0.6)+';">'+
-          '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;transform:scale(0.38);transform-origin:center;">'+_prismIcon(pr.id,owned?catCol:'#556677')+'</div>'+
+          '<div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;transform:scale(0.55);transform-origin:center;">'+_prismIcon(pr.id,owned?catCol:'#556677')+'</div>'+
           '<div style="font-size:8px;font-weight:bold;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">'+pr.name+'</div>'+
           '<div style="color:'+catCol+';font-size:7px;">Lv.'+p.lv+'</div></button>';
       });
