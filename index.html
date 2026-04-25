@@ -7936,7 +7936,7 @@ var NEW_ITEMS = {
   dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, atkGroup:2, maxLv:30, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.05)._tf2();},     nxt:function(lv){return (1+(lv+1)*0.05)._tf2();} },
   // 공격 탭 3단계
   multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, atkGroup:3, maxLv:100, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
-  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, atkGroup:3, maxLv:5,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
+  multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, atkGroup:3, maxLv:5,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 공격 탭 4단계
   rapidChance:   { tab:'atk', name:'연사 확률',   tier:4, atkGroup:4, maxLv:60, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
   rapidDuration: { tab:'atk', name:'연사 지속',   tier:4, atkGroup:4, maxLv:30, cost:function(lv){return 20+Math.floor(lv*3);},   cur:function(lv){return (lv*0.2)._tf1()+'초';},       nxt:function(lv){return ((lv+1)*0.2)._tf1()+'초';} },
