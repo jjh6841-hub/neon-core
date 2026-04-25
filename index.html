@@ -6410,7 +6410,7 @@ if (dailyPopup) {
               '<div style="color:#94a3b8;font-size:10px;margin-bottom:10px;line-height:1.6;">' + desc + '</div>' +
               '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">' +
                 '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 레벨</span><span style="color:#00ffff;">' + _lv + '</span></div>' +
-                '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">최대 레벨</span><span style="color:#f59e0b;">' + _cfg.maxLv + '</span></div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">최대 레벨</span><span style="color:#f59e0b;">' + (_cfg.maxLv >= 999 ? '∞' : _cfg.maxLv) + '</span></div>' +
                 '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">현재 수치</span><span style="color:#00ff88;">' + curVal + '</span></div>' +
                 (_maxed ? '' : '<div style="display:flex;justify-content:space-between;font-size:10px;"><span style="color:#556677;">다음 수치</span><span style="color:#f59e0b;">' + nxtVal + '</span></div>') +
               '</div>' +
@@ -7901,18 +7901,18 @@ var RESEARCH_LIST = {
     { id:'lab_speed',    name:'연구 속도',   desc:'연구 시간 단축',            time:7200,  cost:8000,  maxLv:30 },
   ],
   attack: [
-    { id:'r_damage',     name:'공격력 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:99 },
+    { id:'r_damage',     name:'공격력 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:999 },
     { id:'r_spd',        name:'속도 연구',     desc:'공격속도 향상',            time:12600, cost:5000,  maxLv:99 },
     { id:'r_crit',       name:'치명타 연구',   desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:70 },
     { id:'r_multishot',  name:'분열탄 연구',   desc:'분열탄 효과 향상',         time:21600, cost:11000, maxLv:30 },
-    { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:30 },
+    { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:999 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
     { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
   ],
   defense: [
-    { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:99 },
-    { id:'r_regen',      name:'재생 연구',     desc:'체력 재생 향상',           time:3147,  cost:1240,  maxLv:50 },
+    { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:999 },
+    { id:'r_regen',      name:'재생 연구',     desc:'체력 재생 향상',           time:3147,  cost:1240,  maxLv:999 },
     { id:'r_defense',    name:'방어 연구',     desc:'방어력 향상',              time:8820,  cost:4180,  maxLv:30 },
     { id:'r_mine',       name:'지뢰 연구',     desc:'에너지 지뢰 피해 향상',   time:11400, cost:37120, maxLv:20 },
     { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 향상',         time:14400, cost:12000, maxLv:30 },
@@ -8171,7 +8171,7 @@ function _buildLabPopupList() {
     for (var s = 0; s < LAB_SLOT_COUNT; s++) {
       if ((lab['slot'+s] || {}).researchId === r.id) { inProg = true; break; }
     }
-    var maxLvText = r.maxLv >= 99 ? '∞' : r.maxLv;
+    var maxLvText = r.maxLv >= 999 ? '∞' : r.maxLv;
     var card = document.createElement('div');
     card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;' +
       (maxed ? 'opacity:0.4;' : '');
