@@ -2126,7 +2126,7 @@ function _checkDailyAttend() {
 /* ── 오프라인 보상 시스템 ── */
 function _calcOfflineReward() {
   var lastOnline = parseInt(localStorage.getItem('last_online')||'0',10);
-  if (!lastOnline) { localStorage.setItem('last_online', Date.now()); return null; }
+  if (!lastOnline) { localStorage.setItem('last_online', Date.now()); localStorage.setItem('gem_epoch', Date.now()); return null; }
   var elapsed = Date.now() - lastOnline;
   var mins = Math.floor(elapsed / 60000);
   if (mins < 5) return null; // 5분 미만 무시
@@ -2137,12 +2137,15 @@ function _calcOfflineReward() {
   var planetMult = [1,1,1.5,2,3,5][_tier] || 1;
   var goldPerMin = bestWave * 0.1 * planetMult;
   var gold = Math.floor(goldPerMin * mins);
-  var gems = Math.floor(elapsed / (2*3600000)); // 2시간당 1보석
+  // 보석: gem_epoch 기준으로 2시간당 1보석 (중간 수령해도 이어서 계산)
+  var gemEpoch = parseInt(localStorage.getItem('gem_epoch')||'0',10) || lastOnline;
+  var gemElapsed = Date.now() - gemEpoch;
+  var gems = Math.floor(gemElapsed / (2*3600000)); // 2시간당 1보석
   gems = Math.min(gems, 4); // 최대 4보석
   var hours = Math.floor(mins/60);
   var remMins = mins % 60;
   var timeStr = hours > 0 ? hours+'시간 '+remMins+'분' : remMins+'분';
-  return { gold:gold, gems:gems, mins:mins, timeStr:timeStr };
+  return { gold:gold, gems:gems, mins:mins, timeStr:timeStr, _gemsClaimed:gems };
 }
 
 function _showOfflinePopup(data) {
@@ -2171,6 +2174,11 @@ function _showOfflinePopup(data) {
     if (data.gems) logCurrency('gems', data.gems, '오프라인 보상');
     savePerm();
     localStorage.setItem('last_online', Date.now());
+    // 보석 에포크: 수령한 보석 시간(2시간 단위)만큼만 전진, 나머지는 유지
+    if (data.gems > 0) {
+      var _ge = parseInt(localStorage.getItem('gem_epoch')||'0',10) || parseInt(localStorage.getItem('last_online')||'0',10);
+      localStorage.setItem('gem_epoch', _ge + data.gems * 2 * 3600000);
+    }
     ov.remove();
     try {
       var hg=document.getElementById('home-gold'); if(hg) hg.textContent=PERM.gold||0;
