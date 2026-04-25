@@ -44,9 +44,17 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    // 포그라운드 상태 추적
+    private static boolean isForeground = false;
+    @Override protected void onResume() { super.onResume(); isForeground = true; }
+    @Override protected void onPause()  { super.onPause();  isForeground = false; }
+
     public static class LabNotificationReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            // 앱이 포그라운드면 알림 스킵 (인앱 토스트로 처리)
+            if (isForeground) return;
+
             String title = intent.getStringExtra("title");
             String message = intent.getStringExtra("message");
             if (title == null) title = "NEON CORE";
