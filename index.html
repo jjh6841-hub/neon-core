@@ -9132,7 +9132,7 @@ function _renderMissions() {
       if (!miss || localStorage.getItem('daily_claimed_'+mId)==='true') return;
       localStorage.setItem('daily_claimed_'+mId,'true');
       // 시즌 패스 포인트 +1 (일일 임무)
-      if (typeof _spAddPoints === 'function') _spAddPoints(1);
+      if (window._spAddPoints) window._spAddPoints(1);
       var _rwItems = [];
       if (window.PERM) {
         PERM.gold = (PERM.gold||0) + miss.reward.gold;
@@ -9169,7 +9169,7 @@ function _renderMissions() {
         }
       });
       // 시즌 패스 포인트 (일일 임무당 +1)
-      if (_dailyClaimed > 0 && typeof _spAddPoints === 'function') _spAddPoints(_dailyClaimed);
+      if (_dailyClaimed > 0 && window._spAddPoints) window._spAddPoints(_dailyClaimed);
       if (window.G) { G.gold = PERM.gold; G.gems = PERM.gems; }
       if(window.savePerm) savePerm();
       _updateDailyAllProgress();
@@ -9779,7 +9779,7 @@ setTimeout(_updateBadge, 500);
           if(localStorage.getItem('wk_claimed_'+mid)==='true') return;
           localStorage.setItem('wk_claimed_'+mid,'true');
           // 시즌 패스 포인트 +3 (주간 임무)
-          if (typeof _spAddPoints === 'function') _spAddPoints(3);
+          if (window._spAddPoints) window._spAddPoints(3);
           if(window.PERM){ PERM.gold=(PERM.gold||0)+wm.reward.gold; }
           if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
           if(window.savePerm) savePerm();
@@ -9812,7 +9812,7 @@ setTimeout(_updateBadge, 500);
         }
       });
       // 시즌 패스 포인트 (주간 임무당 +3)
-      if (_wkClaimed > 0 && typeof _spAddPoints === 'function') _spAddPoints(_wkClaimed * 3);
+      if (_wkClaimed > 0 && window._spAddPoints) window._spAddPoints(_wkClaimed * 3);
       if(window.G){ G.gold=PERM.gold; G.gems=PERM.gems; }
       if(window.savePerm) savePerm();
       var ge2=document.getElementById('miss-gold-display'); if(ge2&&window.PERM) ge2.textContent=PERM.gold||0;
@@ -10802,6 +10802,7 @@ function _spAddPoints(pts) {
   var cur = parseInt(localStorage.getItem('sp_points') || '0', 10);
   localStorage.setItem('sp_points', cur + pts);
 }
+window._spAddPoints = _spAddPoints;
 
 function _spGetTimeRemaining() {
   var now = new Date();
