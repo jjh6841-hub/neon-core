@@ -17927,7 +17927,27 @@ function _renderModuleContent() {
           '<div style="font-size:6px;color:#94a3b8;">'+_modEffLabel(equippedMod.typeId,eff)+'</div>' +
         '</div>';
       (function(mod) {
-        slot.addEventListener('click', function() { _showModuleDetail(mod, true); });
+        slot.addEventListener('click', function() {
+          if (_modMode) {
+            // 합성/분해 모드: 인벤토리와 동일하게 선택/해제
+            var uid = mod.uid, ms = mod.sub||0;
+            if (_modSelected.indexOf(uid) !== -1) {
+              _modSelected = _modSelected.filter(function(u){return u!==uid;});
+              if (_modMode==='synth' && _modSelected.length===0) _modSynthFilter = {type:null,tier:null,sub:null};
+              _renderModuleContent(); return;
+            }
+            if (_modMode === 'synth') {
+              if (_modSelected.length >= 3) return;
+              if (!_modSynthFilter.type) { _modSynthFilter = {type:mod.typeId, tier:mod.tier, sub:ms}; }
+              else if (_modSynthFilter.type!==mod.typeId||_modSynthFilter.tier!==mod.tier||_modSynthFilter.sub!==ms) return;
+              _modSelected.push(uid);
+            } else {
+              _modSelected.push(uid);
+            }
+            _renderModuleContent(); return;
+          }
+          _showModuleDetail(mod, true);
+        });
       })(equippedMod);
     } else {
       slot.innerHTML =
