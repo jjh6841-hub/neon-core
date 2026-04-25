@@ -5212,22 +5212,27 @@ function buildCards() {
       return true;
     });
     _tabUpgs.sort(function(a,b){
-      var aMax = a.maxLv && (G.upgLvl[a.key]||0) >= a.maxLv ? 1 : (a.canBuy && !a.canBuy() ? 0 : 0);
-      var bMax = b.maxLv && (G.upgLvl[b.key]||0) >= b.maxLv ? 1 : (b.canBuy && !b.canBuy() ? 0 : 0);
+      var aMax = !_canUpg(a.key, a.maxLv) ? 1 : 0;
+      var bMax = !_canUpg(b.key, b.maxLv) ? 1 : 0;
       return aMax - bMax;
     });
     for (const upg of _tabUpgs) {
+      var _isMax = !_canUpg(upg.key, upg.maxLv);
       const btn = document.createElement('button');
       btn.id        = 'upg-card-' + upg.key;
       btn.className = 'upg-card upgrade-btn';
+      if (_isMax) btn.style.opacity = '0.5';
       const statText = G ? upg.stat() : '-';
       var _nameLines=upg.name.split('<br>');
       var _longName=_nameLines.some(function(l){return l.replace(/<[^>]*>/g,'').length>4;});
+      var _costHTML = _isMax
+        ? '<span class="card-cost" id="cc-' + upg.key + '" style="color:#cc44ff;font-weight:bold;">MAX</span>'
+        : '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
       btn.innerHTML =
         '<span class="card-icon">'  + upg.icon + '</span>' +
         '<span class="card-name"' + (_longName?' style="font-size:7px!important;"':'') + '>'  + upg.name + '</span>' +
         '<span class="card-stat" id="cs-' + upg.key + '">' + statText + '</span>' +
-        '<span class="card-cost" id="cc-' + upg.key + '"><span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost) + '</span>';
+        _costHTML;
       (function(_upg, _btn) {
         _btn.addEventListener('click', function(ev) {
           ev.preventDefault();
@@ -5312,10 +5317,15 @@ function syncUI() {
   for (const upg of UPGRADES) {
     const card = document.getElementById('upg-card-' + upg.key);
     if (!card || !isUnlocked(upg.unlock)) continue;
+    var _isMax = !_canUpg(upg.key, upg.maxLv);
     const statEl = document.getElementById('cs-' + upg.key);
     if (statEl) statEl.textContent = upg.stat();
     const costEl = document.getElementById('cc-' + upg.key);
-    if (costEl) costEl.innerHTML = '<span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost);
+    if (costEl) {
+      if (_isMax) { costEl.innerHTML = '<span style="color:#cc44ff;font-weight:bold;">MAX</span>'; }
+      else { costEl.innerHTML = '<span style="color:#ff6600;">⊕</span>' + (typeof upg.cost === 'function' ? upg.cost() : upg.cost); }
+    }
+    card.style.opacity = _isMax ? '0.5' : '';
     card.classList.toggle('no-gold', !upg.canBuy());
   }
 }
