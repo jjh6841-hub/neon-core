@@ -3542,7 +3542,9 @@ function update(dt) {
   }
 
   // ── Move bullets ──
-  const bSpd = Math.min(CW, CH) * 0.022; // px per frame @60fps
+  var _baseBSpd = Math.min(CW, CH) * 0.022;
+  var _atkSpdMult = G.tower.atkMs ? (1200 / Math.max(200, G.tower.atkMs)) : 1;
+  const bSpd = _baseBSpd * Math.max(1, _atkSpdMult * 0.7); // 공격속도 비례 탄환 속도
   for (let i = G.bullets.length - 1; i >= 0; i--) {
     const b = G.bullets[i];
     const mv = bSpd * (dt / 16.667);
