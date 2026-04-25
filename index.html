@@ -11789,7 +11789,7 @@ var PRISMS = [
   {id:'p_atk_spd',    cat:'atk',    name:'속사 모듈',       desc:'발사 속도 증가',        lvEff:[0.2,0.4,0.6,0.8,1.0], unit:''},
   {id:'p_crit_rate',  cat:'atk',    name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
   {id:'p_crit_dmg',   cat:'atk',    name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
-  {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장',          lvEff:[2,4,6,8,10], unit:'%'},
+  {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장',          lvEff:[8,16,24,32,40], unit:'px'},
   {id:'p_crit_rate2', cat:'atk',    name:'강화 치명타 확률', desc:'치명타 확률 추가 증가', lvEff:[2,4,6,8,10], unit:'%'},
   {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[1.5,1.75,2.0,2.25,2.5], unit:'x'},
   {id:'p_splash',     cat:'atk',    name:'연쇄 타격',       desc:'적 처치 시 주변 스플래시', lvEff:[10,20,30,40,50], unit:'%'},
@@ -11949,7 +11949,7 @@ function _applyPrismEffects() {
       case 'p_damage':     t.dmg = Math.round(t.dmg * (1 + val/100)); break;              // #4 곱연산 50%씩
       case 'p_max_hp':     t.maxHp = Math.round(t.maxHp * (1 + val/100)); t.hp = t.maxHp; break; // #5 곱연산 20%씩
       case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
-      case 'p_range':      t.range = t.range + val * 3; break;
+      case 'p_range':      t.range = t.range + val; break;
       case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break; // 강화소 값에 합산
       case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||0) > 0 ? G.enhCritMult + (val - 1.5) : val; break; // 강화소 기본값에 프리즘 추가분 합산
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
