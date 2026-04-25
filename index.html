@@ -3552,13 +3552,8 @@ function update(dt) {
   // ── Tower fires ──
   G.tower.lastAtk += dt;
   if (G.tower.lastAtk >= G.tower.atkMs) {
-    var _hadTarget = fireTower();
-    if (_hadTarget) {
-      G.tower.lastAtk = G.tower.lastAtk % G.tower.atkMs;
-    } else {
-      // 타겟 없으면 타이머 충전 유지 → 적 진입 시 즉시 발사
-      G.tower.lastAtk = G.tower.atkMs;
-    }
+    G.tower.lastAtk = G.tower.lastAtk % G.tower.atkMs;
+    fireTower();
   }
 
   // ── Move bullets ──
@@ -4038,7 +4033,7 @@ function fireTower() {
     const d = Math.sqrt(dx * dx + dy * dy);
     if (d < minD) { minD = d; target = e; }
   }
-  if (!target) return false;
+  if (!target) { G.tower.lastAtk = G.tower.atkMs; return; }
   const baseAngle = Math.atan2(target.y - G.cy, target.x - G.cx);
   const isCrit = G.critChance > 0 && Math.random() < G.critChance;
 
@@ -4088,7 +4083,6 @@ function fireTower() {
   if (!G.shootFlash) G.shootFlash = { alpha: 0, angle: 0 };
   G.shootFlash.alpha = 1.0;
   G.shootFlash.angle = baseAngle;
-  return true;
 }
 
 function addFx(x, y, maxR, color) {
