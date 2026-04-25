@@ -2225,6 +2225,9 @@ function _initOfflineReward() {
   });
 }
 
+// 오프라인 버튼 상태 주기적 갱신 (30초마다)
+setInterval(function(){ _updateOfflineBtn(); }, 30000);
+
 // last_online은 보상 수령 시에만 갱신 (온라인에서도 보상 누적)
 
 function checkDailyReward() {
