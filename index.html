@@ -2183,18 +2183,8 @@ function _initOfflineReward() {
   // SVG 색상 변경
   var _svgs = btn.querySelectorAll('line,path,circle');
   for(var si=0;si<_svgs.length;si++) { _svgs[si].setAttribute('stroke', _hasReward?'#f59e0b':'#334455'); if(_svgs[si].tagName==='circle') _svgs[si].setAttribute('fill', _hasReward?'#f59e0b':'#334455'); }
-  if (_hasReward) {
-    if (!btn.querySelector('.offl-badge')) {
-      var badge = document.createElement('div');
-      badge.className = 'offl-badge';
-      badge.style.cssText = 'position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:#ef4444;border-radius:50%;';
-      btn.style.position = 'relative';
-      btn.appendChild(badge);
-    }
-  } else {
-    var badge2 = btn.querySelector('.offl-badge');
-    if (badge2) badge2.remove();
-  }
+  var _oldBadge = btn.querySelector('.offl-badge');
+  if (_oldBadge) _oldBadge.remove();
   btn.addEventListener('click', function() {
     var d = _calcOfflineReward();
     if (d && (d.gold > 0 || d.gems > 0)) {
