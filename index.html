@@ -12502,8 +12502,12 @@ function _renderCardTab() {
     var pop=document.createElement('div');
     pop.id='prism-select-popup';
     pop.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
-    var inner='<div style="background:#0a1020;border:1px solid #10b981;max-width:320px;width:100%;max-height:80vh;overflow-y:auto;padding:14px;">'+
-      '<div style="color:#10b981;font-family:monospace;font-size:12px;font-weight:bold;margin-bottom:10px;text-align:center;">프리즘 선택 (파편 30 소모)</div>';
+    var inner='<div style="background:#0a1020;border:1px solid #10b981;max-width:320px;width:100%;max-height:80vh;display:flex;flex-direction:column;">'+
+      '<div style="display:flex;align-items:center;justify-content:center;padding:12px 14px;border-bottom:1px solid #10b98122;flex-shrink:0;position:relative;">'+
+        '<div style="color:#10b981;font-family:monospace;font-size:12px;font-weight:bold;text-align:center;">프리즘 선택 (파편 30 소모)</div>'+
+        '<button id="prism-select-close" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#778899;font-size:18px;cursor:pointer;padding:4px 8px;font-family:monospace;">✕</button>'+
+      '</div>'+
+      '<div style="overflow-y:auto;padding:10px 14px 14px;">';
     ['atk','def','eco','spc'].forEach(function(cat){
       var catPrisms=PRISMS.filter(function(pr){return pr.cat===cat;});
       if(!catPrisms.length) return;
@@ -12520,11 +12524,11 @@ function _renderCardTab() {
       });
       inner+='</div>';
     });
-    inner+='<button id="prism-select-cancel" style="width:100%;margin-top:10px;background:#030b10;border:1px solid #334455;color:#778899;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">취소</button></div>';
+    inner+='</div></div>';
     pop.innerHTML=inner;
     pop.addEventListener('click',function(e){if(e.target===pop) pop.remove();});
     document.body.appendChild(pop);
-    document.getElementById('prism-select-cancel').addEventListener('click',function(){pop.remove();});
+    document.getElementById('prism-select-close').addEventListener('click',function(){pop.remove();});
     var sBtns=pop.querySelectorAll('[data-select-prism]');
     for(var si2=0;si2<sBtns.length;si2++){
       (function(btn){
