@@ -2201,9 +2201,16 @@ function _updateOfflineBtn() {
 // 오프라인 보상 버튼 초기화 (1회만)
 function _initOfflineReward() {
   var btn = document.getElementById('btn-offline-reward');
-  if (!btn || btn._offlineInited) return;
-  btn._offlineInited = true;
+  if (!btn) return;
   _updateOfflineBtn();
+  // 첫 실행 시 자동 팝업
+  if (!btn._offlineInited) {
+    btn._offlineInited = true;
+    var _autoData = _calcOfflineReward();
+    if (_autoData && (_autoData.gold > 0 || _autoData.gems > 0)) {
+      setTimeout(function() { _showOfflinePopup(_autoData); }, 200);
+    }
+  } else return;
   btn.addEventListener('click', function() {
     var d = _calcOfflineReward();
     if (d && (d.gold > 0 || d.gems > 0)) {
@@ -5923,7 +5930,7 @@ document.addEventListener('touchend', function(e) {
               if (window._startHomeBg) window._startHomeBg();
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
-              setTimeout(function() { _initOfflineReward(); var _od=_calcOfflineReward(); if(_od&&(_od.gold>0||_od.gems>0)) _showOfflinePopup(_od); }, 800);
+              setTimeout(function() { _initOfflineReward(); }, 800);
             }, 400);
           }
           titleScreen.addEventListener('click', goToHome);
