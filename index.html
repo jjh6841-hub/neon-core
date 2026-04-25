@@ -2544,9 +2544,13 @@ function syncFromFirebase() {
     if (_resetTs && _resetTs !== _lastReset) {
       localStorage.setItem('_navResetTs', _resetTs);
       localStorage.removeItem('td_nav_unlocked');
-      // tierBest를 클라우드 값으로 강제 덮어쓰기
+      // PERM + tierBest를 클라우드 값으로 강제 덮어쓰기
+      Object.keys(cloud).forEach(function(k) { PERM[k] = cloud[k]; });
+      try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
       var _cTB = doc.data().tierBest;
       if (_cTB) { for(var _ri=1;_ri<=5;_ri++) localStorage.setItem('tier'+_ri+'_best', _cTB['tier'+_ri]||0); }
+      // 속성 탭 해금도 리셋
+      if (PERM.ws) { delete PERM.ws.tab_ult_u; try{localStorage.setItem('td_perm',JSON.stringify(PERM));}catch(_){} }
     } else {
       // 행성별 최고 웨이브 복원 (높은 값만)
       var cTierBest = doc.data().tierBest;
