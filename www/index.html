@@ -2416,6 +2416,8 @@ window.showRewardPopup = function(items, title) {
 var canvas = document.getElementById('gameCanvas');
 var ctx    = canvas.getContext('2d');
 var areaEl = document.getElementById('canvas-area');
+// Android/모바일 감지: shadowBlur 아티팩트 방지
+var _isMobileGfx = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 
 var CW = 360, CH = 640; // logical canvas dimensions
 
@@ -4189,9 +4191,8 @@ function drawShootFlash(ctx) {
   ctx.save();
   ctx.globalAlpha = G.shootFlash.alpha * 0.8;
   ctx.strokeStyle = '#00ffff';
-  ctx.lineWidth = 2;
-  ctx.shadowBlur = 8;
-  ctx.shadowColor = '#00ffff';
+  ctx.lineWidth = _isMobileGfx ? 3 : 2;
+  if (!_isMobileGfx) { ctx.shadowBlur = 8; ctx.shadowColor = '#00ffff'; }
   ctx.beginPath();
   ctx.moveTo(G.cx, G.cy);
   ctx.lineTo(G.cx + Math.cos(angle) * flashLen, G.cy + Math.sin(angle) * flashLen);
@@ -4456,8 +4457,14 @@ function render() {
   // ── 0. 고해상도 DPR 스케일 (매 프레임) ──
   var _d = window._dpr || 1;
   ctx.setTransform(_d, 0, 0, _d, 0, 0);
+  // 프레임 시작 시 canvas 상태 완전 초기화 (Android 호환)
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.setLineDash([]);
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
 
   // ── 1. Background (full canvas, before shake) ─────────────────
   if (!window._cachedBgColor) {
@@ -4499,13 +4506,14 @@ function render() {
 
   // Attack range circle (인트로 중 숨김)
   if (G.introTimer < 0) {
+  ctx.save();
   ctx.beginPath();
   ctx.arc(G.cx, G.cy, G.tower.range, 0, Math.PI * 2);
   ctx.setLineDash([5, 5]);
   ctx.strokeStyle = 'rgba(0,255,255,0.25)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.restore();
   }
 
   // Targeting line to nearest in-range enemy
@@ -4914,9 +4922,9 @@ function render() {
         ctx.arc(G.cx, G.cy, 30+p3*30, 0, Math.PI*2);
         ctx.strokeStyle = _ac;
         ctx.globalAlpha = 0.6-p3;
-        ctx.shadowColor = _ac;
-        ctx.shadowBlur = 25;
-        ctx.lineWidth = 2;
+        if (!_isMobileGfx) { ctx.shadowColor = _ac; ctx.shadowBlur = 25; }
+        else { ctx.lineWidth = 6; }
+        ctx.lineWidth = _isMobileGfx ? 6 : 2;
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
@@ -4936,7 +4944,7 @@ function render() {
         ctx.closePath();
         ctx.fillStyle = _fl;
         ctx.fill();
-        ctx.shadowColor = _ac; ctx.shadowBlur = 18*ease;
+        if (!_isMobileGfx) { ctx.shadowColor = _ac; ctx.shadowBlur = 18*ease; }
         ctx.strokeStyle = _ac; ctx.lineWidth = 2;
         ctx.stroke();
         ctx.shadowBlur = 0;
@@ -4977,7 +4985,7 @@ function render() {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = 'bold 14px "Courier New", monospace';
       ctx.fillStyle = _ac;
-      ctx.shadowColor = _ac; ctx.shadowBlur = 12;
+      if (!_isMobileGfx) { ctx.shadowColor = _ac; ctx.shadowBlur = 12; }
       ctx.fillText('CORE ONLINE', G.cx, G.cy - 50);
       ctx.shadowBlur = 0;
     }
@@ -5063,7 +5071,19 @@ function render() {
       ctx.closePath();
       ctx.fillStyle = '#001a22'; ctx.fill();
       ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
-      if (!flashHit && !buffed) { ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12; }
+      if (!flashHit && !buffed) {
+        if (_isMobileGfx) {
+          // 모바일: shadowBlur 대신 확대 반투명 stroke로 글로우
+          ctx.save();
+          ctx.globalAlpha = 0.25;
+          ctx.strokeStyle = _towerAccent;
+          ctx.lineWidth = 8;
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12;
+        }
+      }
       ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
     }
     // 프리즘 쉴드 시각효과 (타워 감싸는 쉴드)
