@@ -1558,7 +1558,7 @@ canvas {
     <div id="neon-core-title" style="font-family:'Courier New',monospace; font-size:28px; font-weight:bold; color:#00ffff; letter-spacing:6px; text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff; text-align:center; margin:90px 0 8px 0;">NEON CORE</div>
 
     <!-- 메인 아이콘 (터치 시 스킨 화면) -->
-    <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1; cursor:pointer;" onclick="if(window.showScreen)showScreen('skin');"></div>
+    <div id="home-icon" style="display:flex; justify-content:center; align-items:center; flex:1; cursor:pointer;" onclick="if(_isContentUnlocked(100)){if(window.showScreen)showScreen('skin');}else{if(window.showToastMsg)showToastMsg('스킨 — 에이온 웨이브 100 클리어 시 해금','#334455');}"></div>
 
     <!-- 정보 카드 (row 1:1: 골드 보너스 | 행성) -->
     <div style="display:flex; flex-direction:row; gap:8px; width:100%; margin-bottom:6px;">
@@ -2206,7 +2206,7 @@ function _initOfflineReward() {
 
 function checkDailyReward() {
   _checkDailyAttend();
-  if (!PERM.bestWave || PERM.bestWave < 50) return;
+  if (!_isContentUnlocked(50)) return;
   var today = new Date().toDateString();
   var lastLogin = localStorage.getItem('td_daily_login');
   if (lastLogin === today) return;
@@ -4210,15 +4210,11 @@ function triggerGameOver() {
   renderNavTabs('home');
   var unlockRow = document.getElementById('r-unlock-row');
   var newUnlocks = getNewUnlocks();
+  // 결과화면에서는 표시하지 않음 — 홈 복귀 시 연출
+  unlockRow.style.display = 'none';
   if (newUnlocks.length > 0) {
-    unlockRow.innerHTML = newUnlocks.map(function(l) { return '■ [' + l + '] 해금됨!'; }).join('<br>');
-    unlockRow.style.display = '';
-    // 잠금 해제 슬라이드 팝업 표시
-    if (window.showUnlockSlide) {
-      newUnlocks.forEach(function(label, i) {
-        setTimeout(function() {
-          window.showUnlockSlide({ name: label, desc: '새 콘텐츠가 해금되었습니다!' });
-        }, 600 + i * 3800);
+    window._pendingUnlocks = newUnlocks;
+    if (false) { // 결과화면 해금 표시 비활성화
       });
     }
   } else {
@@ -5492,7 +5488,37 @@ function openShop() {
 
   syncShopUI();
   renderNavTabs('home');
+  renderLeftIcons();
   if (window._startHomeBg) window._startHomeBg();
+  // 해금 연출 (전투 후 홈 복귀 시)
+  setTimeout(function() { _showPendingUnlocks(); }, 600);
+}
+
+// 해금 연출 애니메이션 (하나씩 순차 표시)
+function _showPendingUnlocks() {
+  if (!window._pendingUnlocks || window._pendingUnlocks.length === 0) return;
+  var queue = window._pendingUnlocks.slice();
+  window._pendingUnlocks = [];
+  function _showNext() {
+    if (queue.length === 0) return;
+    var label = queue.shift();
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(3,11,16,0.92);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;animation:fadeIn 0.3s;';
+    ov.innerHTML =
+      '<div style="background:#0a0a1a;border:1px solid #00ffff;padding:28px 24px;max-width:300px;width:90%;text-align:center;">' +
+        '<div style="color:#00ffff;font-size:22px;margin-bottom:8px;">🔓</div>' +
+        '<div style="color:#00ffff;font-size:11px;letter-spacing:2px;margin-bottom:6px;">NEW CONTENT UNLOCKED</div>' +
+        '<div style="color:#ffffff;font-size:16px;font-weight:bold;letter-spacing:3px;margin-bottom:16px;">' + label + '</div>' +
+        '<div style="color:#556677;font-size:9px;margin-bottom:18px;">' + label + ' 콘텐츠가 해금되었습니다!</div>' +
+        '<button style="width:100%;padding:10px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;letter-spacing:1px;-webkit-appearance:none;">확인</button>' +
+      '</div>';
+    document.body.appendChild(ov);
+    ov.querySelector('button').addEventListener('click', function() {
+      ov.remove();
+      setTimeout(_showNext, 200);
+    });
+  }
+  _showNext();
 }
 
 function syncShopUI() {
@@ -5799,14 +5825,32 @@ document.addEventListener('touchend', function(e) {
 
 // ── Tab navigation system ──
 var navTabs = [
-  { id: 'battle',   label: '\uC804\uD22C',    icon: '\u2694', screen: 'home',     unlock: 0 },
-  { id: 'workshop', label: '\uAC15\uD654\uC18C',    icon: 'svg_workshop', screen: 'workshop', unlock: 0 },
-  { id: 'module',   label: '\uD504\uB9AC\uC998',    icon: 'svg_module', screen: 'module',   unlock: 10 },
-  { id: 'research', label: '\uCF54\uC5B4\uB7A9',  icon: 'svg_research', screen: 'lab',      unlock: 10 },
-  { id: 'corelab',  label: '\uD504\uB85C\uD1A0\uCF5C',  icon: '\u232C', screen: 'corelab',  unlock: 30 },
-  { id: 'mods',     label: '\uBAA8\uB4C8',    icon: 'svg_mods', screen: 'mods',     unlock: 10 },
-  { id: 'store',    label: '\uC2A4\uD1A0\uC5B4',  icon: 'svg_store', screen: 'store',    unlock: 0 }
+  { id: 'battle',   label: '전투',    icon: '\u2694', screen: 'home',     unlock: 0 },
+  { id: 'workshop', label: '강화소',    icon: 'svg_workshop', screen: 'workshop', unlock: 0 },
+  { id: 'module',   label: '프리즘',    icon: 'svg_module', screen: 'module',   unlock: 10 },
+  { id: 'research', label: '코어랩',  icon: 'svg_research', screen: 'lab',      unlock: 30 },
+  { id: 'corelab',  label: '프로토콜',  icon: '\u232C', screen: 'corelab',  unlock: {tier:2, wave:50} },
+  { id: 'mods',     label: '모듈',    icon: 'svg_mods', screen: 'mods',     unlock: {tier:2, wave:100} },
+  { id: 'store',    label: '스토어',  icon: 'svg_store', screen: 'store',    unlock: 0 }
 ];
+
+// 통합 해금 체크 함수
+function _isContentUnlocked(cond) {
+  if (!cond || cond === 0) return true;
+  if (typeof cond === 'number') return (PERM.bestWave || 0) >= cond;
+  if (cond.tier && cond.wave) {
+    var tierBest = parseInt(localStorage.getItem('tier'+cond.tier+'_best')||'0',10);
+    return tierBest >= cond.wave;
+  }
+  return false;
+}
+function _unlockCondText(cond) {
+  if (!cond || cond === 0) return '';
+  var planets = {1:'에이온',2:'스펙트라',3:'넥사르',4:'피라온',5:'오메가'};
+  if (typeof cond === 'number') return '에이온 웨이브 '+cond+' 클리어';
+  if (cond.tier && cond.wave) return (planets[cond.tier]||'행성'+cond.tier)+' 웨이브 '+cond.wave+' 클리어';
+  return '';
+}
 
 var _navToastTime = {};
 
@@ -5820,9 +5864,7 @@ function renderNavTabs(currentScreen) {
   var w = PERM.bestWave || 0;
 
   navTabs.forEach(function(tab, index) {
-    var unlocked = tab.unlock === 'spectra'
-      ? parseInt(localStorage.getItem('tier2_best') || '0', 10) >= 50
-      : w >= tab.unlock;
+    var unlocked = _isContentUnlocked(tab.unlock);
     var active = currentScreen === tab.screen;
     var iconColor, labelColor, bg, bb;
 
@@ -5899,10 +5941,7 @@ function renderNavTabs(currentScreen) {
     } else {
       (function(t) {
         btn.onclick = function() {
-          var msg = t.unlock === 'spectra'
-            ? t.label + ' \u2014 \uC2A4\uD399\uD2B8\uB77C \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08'
-            : t.label + ' \u2014 \uC6E8\uC774\uBE0C ' + t.unlock + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
-          showNavToast(msg, t.id);
+          showNavToast(t.label + ' — ' + _unlockCondText(t.unlock) + ' 시 해금', t.id);
         };
       })(tab);
     }
@@ -10469,11 +10508,20 @@ var _iv = setInterval(function() {
 
 /* ─ 잠금 설정 ─ */
 var TAB_LOCKS = {
-  ult: { label:'속성', goldCost:100,  gemCost:0, acCost:0, permKey:'tab_ult_u', color:'#00ff88' },
+  ult: { label:'속성', unlockCond:{tier:2,wave:70}, permKey:'tab_ult_u', color:'#00ff88' },
 };
 
 function _isUnlocked(tab) {
-  return !!(window.PERM && window.PERM.ws && window.PERM.ws[TAB_LOCKS[tab].permKey]);
+  var cfg = TAB_LOCKS[tab];
+  if (!cfg) return true;
+  // 이미 해금한 기록이 있으면 유지
+  if (window.PERM && window.PERM.ws && window.PERM.ws[cfg.permKey]) return true;
+  // 조건 달성 시 자동 해금
+  if (_isContentUnlocked(cfg.unlockCond)) {
+    if (window.PERM) { if(!PERM.ws) PERM.ws={}; PERM.ws[cfg.permKey]=1; try{savePerm();}catch(_){} }
+    return true;
+  }
+  return false;
 }
 
 /* ─ 팝업 ─ */
@@ -10506,10 +10554,10 @@ function _showPopup(tab) {
   document.getElementById('tlp-icon').textContent  = tab === 'utl' ? '★' : '⌘';
   document.getElementById('tlp-icon').style.color  = cfg.color;
   document.getElementById('tlp-title').textContent = cfg.label + ' 탭 해금';
-  var costStr = cfg.acCost > 0 ? ('⌘ ' + cfg.acCost + ' 접근 코드') : cfg.goldCost > 0 ? ('◈ ' + cfg.goldCost + ' 골드') : ('❖ ' + cfg.gemCost + ' 보석');
-  document.getElementById('tlp-desc').textContent  = cfg.label + ' 업그레이드 탭을 영구 해금합니다.\n해금 비용: ' + costStr;
+  var condStr = cfg.unlockCond ? _unlockCondText(cfg.unlockCond) : '';
+  document.getElementById('tlp-desc').textContent  = cfg.label + ' 탭은 ' + condStr + ' 시 해금됩니다.';
   var btn = document.getElementById('tlp-unlock');
-  btn.textContent = costStr + ' — 해금하기';
+  btn.textContent = '확인';
   btn.style.border = '1px solid ' + borderC + '55';
   btn.style.color  = borderC;
   btn.onclick = function() { _doUnlock(tab); };
@@ -15294,11 +15342,11 @@ document.addEventListener('click', function (e) {
 <script>
 /* ── 좌측 아이콘 시스템 ── */
 var LEFT_ICONS = [
-  { id: 'achievement',  label: '\uC5C5\uC801',      icon: '\u2605', screen: 'achievements',  unlockWave: 0,  color: '#00ffff' },
-  { id: 'event',        label: '\uC774\uBCA4\uD2B8',    icon: '\u25C8', screen: 'signal-market', unlockWave: 10, color: '#ffc800' },
-  { id: 'explore',      label: '\uD0D0\uC0AC',      icon: 'EXP',    screen: 'explore',       unlockWave: 0, color: '#ff8822' },
-  { id: 'tournament',   label: '\uD1A0\uB108\uBA3C\uD2B8',  icon: '\u229E', screen: 'tournament',    unlockWave: 30, color: '#bb44ff' },
-  { id: 'guild',        label: '\uAE38\uB4DC',          icon: 'GLD',    screen: 'guild',         unlockWave: 999999, comingSoon: true, color: '#ff6644' }
+  { id: 'achievement',  label: '업적',      icon: '\u2605', screen: 'achievements',  unlockCond: 0,  color: '#00ffff' },
+  { id: 'event',        label: '이벤트',    icon: '\u25C8', screen: 'signal-market', unlockCond: 50, color: '#ffc800' },
+  { id: 'explore',      label: '탐사',      icon: 'EXP',    screen: 'explore',       unlockCond: {tier:2,wave:70}, color: '#ff8822' },
+  { id: 'tournament',   label: '토너먼트',  icon: '\u229E', screen: 'tournament',    unlockCond: 100, color: '#bb44ff' },
+  { id: 'guild',        label: '길드',          icon: 'GLD',    screen: 'guild',         unlockCond: 999999, comingSoon: true, color: '#ff6644' }
 ];
 
 // lastLeftToast removed — uses showNavToast per-tab cooldown
@@ -15336,7 +15384,7 @@ function renderLeftIcons() {
 
   for (var i = 0; i < LEFT_ICONS.length; i++) {
     (function(icon) {
-      var unlocked = w >= icon.unlockWave;
+      var unlocked = _isContentUnlocked(icon.unlockCond);
       var unlockedColor = icon.color || '#00ffff';
       var customIcon = _getLeftIcon(icon.id, unlocked, unlockedColor);
 
@@ -15363,11 +15411,9 @@ function renderLeftIcons() {
         btn.onclick = function() {
           var msg;
           if (icon.comingSoon) {
-            msg = icon.label + ' \u2014 \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4';
-          } else if (icon.unlockWave === 999) {
-            msg = icon.label + ' \u2014 2\uD2F0\uC5B4 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08';
+            msg = icon.label + ' — 준비 중입니다';
           } else {
-            msg = icon.label + ' \u2014 \uC6E8\uC774\uBE0C ' + icon.unlockWave + ' \uB2EC\uC131 \uC2DC \uD574\uAE08';
+            msg = icon.label + ' — ' + _unlockCondText(icon.unlockCond) + ' 시 해금';
           }
           showNavToast(msg, icon.id);
         };
@@ -15385,10 +15431,10 @@ function renderLeftIcons() {
   if (rankBtn) {
     rankBtn.addEventListener('click', function() {
       var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
-      if (w >= 70) {
+      if (_isContentUnlocked(70)) {
         showScreen('ranking');
       } else {
-        showNavToast('\uB7AD\uD0B9 \u2014 \uC6E8\uC774\uBE0C 70 \uB2EC\uC131 \uC2DC \uD574\uAE08', 'ranking');
+        showNavToast('랭킹 — ' + _unlockCondText(70) + ' 시 해금', 'ranking');
       }
     });
   }
@@ -15398,7 +15444,7 @@ function renderLeftIcons() {
     var lk = document.getElementById('ranking-lock-icon');
     if (!rb) return;
     var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
-    var unlocked = w >= 70;
+    var unlocked = _isContentUnlocked(70);
     rb.style.color = unlocked ? '#00ffff' : '#334455';
     rb.style.borderColor = unlocked ? '#00ffff' : '#0a1520';
     if (lk) lk.style.display = unlocked ? 'none' : '';
