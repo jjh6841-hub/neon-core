@@ -5776,6 +5776,7 @@ document.addEventListener('touchend', function(e) {
               renderNavTabs('home');
               renderLeftIcons();
               fixIconPositions();
+              if (window._startHomeBg) window._startHomeBg();
               setTimeout(function() { home.style.opacity = '1'; }, 50);
               setTimeout(function() { checkDailyReward(); }, 500);
               setTimeout(function() { _initOfflineReward(); var _od=_calcOfflineReward(); if(_od&&(_od.gold>0||_od.gems>0)) _showOfflinePopup(_od); }, 800);
