@@ -368,6 +368,7 @@ async function loadUsers() {
 }
 
 function renderUsers(list) {
+  list = list.filter(function(u){ return !u.data.deleted; });
   var tbody = document.getElementById('user-list');
   tbody.innerHTML = '';
   list.forEach(function(u){
@@ -976,12 +977,12 @@ document.getElementById('del-ok').addEventListener('click', async function(){
   if (!deleteTargetId) return;
   var uid = deleteTargetId;
   try {
-    // 백업 후 삭제
+    // 백업 후 톰스톤 교체 (savePerm 재생성 방지)
     var doc = await db.collection('users').doc(uid).get();
     if (doc.exists) {
       await db.collection('deleted_users').doc(uid).set(Object.assign({}, doc.data(), { deletedAt: new Date().toISOString() }));
     }
-    await db.collection('users').doc(uid).delete();
+    await db.collection('users').doc(uid).set({ deleted: true, deletedAt: new Date().toISOString() });
     showToast('유저 삭제 완료 (복구 가능): ' + uid);
   } catch(e) {
     showToast('삭제 실패: ' + e.message);

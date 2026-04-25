@@ -1680,16 +1680,19 @@ canvas {
     if (!window._fbDb || !window._fbUid) { window._banChecked=true; if(cb) cb(false); return; }
     window._fbDb.collection('users').doc(window._fbUid).get().then(function(doc) {
       window._banChecked = true;
-      if (!doc.exists) {
-        // 유저 문서가 삭제됨 → 로컬 데이터가 있으면 초기화
-        if (localStorage.getItem('td_perm')) {
-          localStorage.clear();
-          var newUid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
-          localStorage.setItem('td_uid', newUid);
-          window._fbUid = newUid;
-          location.reload();
-        }
-        if(cb) cb(false); return;
+      if (!doc.exists) { if(cb) cb(false); return; }
+      // 톰스톤 감지 → 유저 삭제됨
+      if (doc.data().deleted) {
+        window._userDeleted = true;
+        // 톰스톤 문서 제거
+        window._fbDb.collection('users').doc(window._fbUid).delete().catch(function(){});
+        // 로컬 데이터 전체 초기화 + 새 UID
+        localStorage.clear();
+        var newUid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+        localStorage.setItem('td_uid', newUid);
+        window._fbUid = newUid;
+        location.reload();
+        return;
       }
       var ban = doc.data().ban;
       if (!ban || !ban.active) { window._isBanned=false; if(cb) cb(false); return; }
@@ -2357,6 +2360,7 @@ function savePerm() {
     }
     _prevPermGems = curGems;
   } catch(_){}
+  if (window._userDeleted) return; // 삭제된 유저 저장 차단
   try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
   // Firestore 동기화
   try {
