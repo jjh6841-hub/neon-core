@@ -1680,7 +1680,17 @@ canvas {
     if (!window._fbDb || !window._fbUid) { window._banChecked=true; if(cb) cb(false); return; }
     window._fbDb.collection('users').doc(window._fbUid).get().then(function(doc) {
       window._banChecked = true;
-      if (!doc.exists) { if(cb) cb(false); return; }
+      if (!doc.exists) {
+        // 유저 문서가 삭제됨 → 로컬 데이터가 있으면 초기화
+        if (localStorage.getItem('td_perm')) {
+          localStorage.clear();
+          var newUid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+          localStorage.setItem('td_uid', newUid);
+          window._fbUid = newUid;
+          location.reload();
+        }
+        if(cb) cb(false); return;
+      }
       var ban = doc.data().ban;
       if (!ban || !ban.active) { window._isBanned=false; if(cb) cb(false); return; }
       if (!ban.permanent && ban.until && new Date(ban.until) <= new Date()) {
