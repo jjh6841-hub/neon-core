@@ -2538,13 +2538,24 @@ function syncFromFirebase() {
         syncShopUI && syncShopUI();
       } catch(_) {}
     }
-    // 행성별 최고 웨이브 복원
-    var cTierBest = doc.data().tierBest;
-    if (cTierBest) {
-      for (var _ti = 1; _ti <= 5; _ti++) {
-        var cv = cTierBest['tier'+_ti] || 0;
-        var lv = parseInt(localStorage.getItem('tier'+_ti+'_best')||'0',10);
-        if (cv > lv) localStorage.setItem('tier'+_ti+'_best', cv);
+    // 관리자 해금 리셋 감지
+    var _resetTs = doc.data().navUnlockReset;
+    var _lastReset = localStorage.getItem('_navResetTs')||'';
+    if (_resetTs && _resetTs !== _lastReset) {
+      localStorage.setItem('_navResetTs', _resetTs);
+      localStorage.removeItem('td_nav_unlocked');
+      // tierBest를 클라우드 값으로 강제 덮어쓰기
+      var _cTB = doc.data().tierBest;
+      if (_cTB) { for(var _ri=1;_ri<=5;_ri++) localStorage.setItem('tier'+_ri+'_best', _cTB['tier'+_ri]||0); }
+    } else {
+      // 행성별 최고 웨이브 복원 (높은 값만)
+      var cTierBest = doc.data().tierBest;
+      if (cTierBest) {
+        for (var _ti = 1; _ti <= 5; _ti++) {
+          var cv = cTierBest['tier'+_ti] || 0;
+          var lv = parseInt(localStorage.getItem('tier'+_ti+'_best')||'0',10);
+          if (cv > lv) localStorage.setItem('tier'+_ti+'_best', cv);
+        }
       }
     }
     // 요일탐사 데이터 복원

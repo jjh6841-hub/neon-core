@@ -675,6 +675,13 @@ document.getElementById('modal-save').addEventListener('click', async function()
   document.querySelectorAll('#modal-tab-info input[data-tier]').forEach(function(inp){
     updates['tierBest.'+inp.dataset.tier] = parseInt(inp.value)||0;
   });
+  // bestWave = tier1 값으로 동기화 + 해금 기록 리셋
+  var _t1 = 0;
+  document.querySelectorAll('#modal-tab-info input[data-tier]').forEach(function(inp){
+    if(inp.dataset.tier==='tier1') _t1 = parseInt(inp.value)||0;
+  });
+  updates['perm.bestWave'] = _t1;
+  updates['navUnlockReset'] = new Date().toISOString();
 
   // 요일탐사
   document.querySelectorAll('#modal-tab-info input[data-exp]').forEach(function(inp){
