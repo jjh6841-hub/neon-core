@@ -13732,12 +13732,13 @@ window.update = function(dt) {
     }
   }
 
-  // ② 도약탄 처리: 스냅샷과 비교하여 죽은 적 위치에서 인근 적에게 탄 생성
+  // ② 도약탄 처리: 죽은 적 위치에서 인근 적에게 같은 데미지로 도약
   if (prevEnemies && G.bounceChance > 0) {
     for (var pi = 0; pi < prevEnemies.length; pi++) {
       var pe = prevEnemies[pi];
       if (G.enemies.indexOf(pe) === -1 && Math.random() < G.bounceChance) {
-        _mechSpawnBounce(pe.x, pe.y, G.bounceTargets, G.bounceRange);
+        var _bDmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
+        _mechBounceDmg(pe.x, pe.y, G.bounceTargets, G.bounceRange, _bDmg);
       }
     }
   }
@@ -13766,7 +13767,7 @@ function _mechBurstShot() {
 }
 
 /* ── 도약탄 생성 ── */
-function _mechSpawnBounce(fromX, fromY, count, range) {
+function _mechBounceDmg(fromX, fromY, count, range, dmg) {
   if (!G || !G.enemies.length) return;
   var nearby = [];
   for (var i = 0; i < G.enemies.length; i++) {
@@ -13782,14 +13783,14 @@ function _mechSpawnBounce(fromX, fromY, count, range) {
   var n = Math.min(count, nearby.length);
   for (var ti = 0; ti < n; ti++) {
     var tgt = nearby[ti];
-    var ang = Math.atan2(tgt.y - fromY, tgt.x - fromX);
-    G.bullets.push({
-      x: fromX, y: fromY,
-      dx: Math.cos(ang), dy: Math.sin(ang),
-      crit: false,
-      pierceLeft: 0,
-      hitSet: null,
-    });
+    // 실드/저항 적용
+    var _bd = dmg;
+    if (tgt.type === 'shield') _bd = Math.ceil(_bd * 0.5);
+    if (tgt.type === 'resist') { var _cap = Math.ceil(tgt.maxHp * 0.3); if (_bd > _cap) _bd = _cap; }
+    tgt.hp -= _bd;
+    tgt.hitFlash = 2;
+    // 도약 이펙트 라인
+    addFx(tgt.x, tgt.y, 8, '#f59e0b');
   }
 }
 
