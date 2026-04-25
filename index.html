@@ -2654,8 +2654,8 @@ function upgCost(key, base) {
   return raw;
 }
 // 소수점 절삭 (반올림 없이 내림) — Number prototype
-Number.prototype._tf2 = function() { var m=100; return (Math.floor(this*m)/m).toFixed(2); };
-Number.prototype._tf1 = function() { var m=10;  return (Math.floor(this*m)/m).toFixed(1); };
+Number.prototype._tf2 = function() { var m=100; return (Math.floor(this*m+0.0001)/m).toFixed(2); };
+Number.prototype._tf1 = function() { var m=10;  return (Math.floor(this*m+0.0001)/m).toFixed(1); };
 
 var UPGRADES = [
   // ─ 공격 탭 ─
