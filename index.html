@@ -2868,10 +2868,12 @@ function resizeCanvas() {
     w = Math.floor(ah * 9 / 16);
   }
   CW = w; CH = h;
-  canvas.width  = w;
-  canvas.height = h;
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width  = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
   canvas.style.width  = w + 'px';
   canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (G) {
     G.cx = w / 2;
     G.tower.range = Math.min(w, h) * 0.45;

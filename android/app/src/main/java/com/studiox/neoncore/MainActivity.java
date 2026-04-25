@@ -6,7 +6,9 @@ import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -25,10 +27,16 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 풀스크린 (상태바 + 네비게이션바 숨김)
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat insetsCtrl = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        insetsCtrl.hide(WindowInsetsCompat.Type.systemBars());
+        insetsCtrl.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+
         WebView webView = getBridge().getWebView();
         webView.addJavascriptInterface(new NeonBridge(), "NeonBridge");
 
-        // 시스템 바 inset CSS 변수 주입
+        // 시스템 바 inset CSS 변수 주입 (풀스크린이므로 0px)
         ViewCompat.setOnApplyWindowInsetsListener(webView, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             float density = getResources().getDisplayMetrics().density;
