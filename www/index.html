@@ -3533,8 +3533,19 @@ function update(dt) {
     if (G.betweenTimer <= 0) {
       G.wave++;
       if (G.waveSkipChance && Math.random() < G.waveSkipChance) {
-        G.wave++;
-        G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: 'WAVE SKIP!', color: '#cc44ff', timer: 0 });
+        // 다음 웨이브가 50/100 단위이거나 엘리트/하이퍼/갤럭시 보스면 스킵 불가
+        var _nw = G.wave + 1;
+        var _nwBoss = (_nw === 10000) ? 'galaxy' : (_nw % 100 === 0) ? 'hyper' : (_nw % 50 === 0) ? 'elite' : null;
+        if (!_nwBoss) {
+          // 스킵되는 웨이브의 골드 + 코어칩 1.2배 보상
+          var _skipBaseGold = Math.min(50, 5 + Math.floor(_nw / 100) * 5);
+          var _skipGold = Math.round(_skipBaseGold * (G.goldBonus||1) * (G.goldMult||1) * 1.1);
+          G.gold += _skipGold; G.goldEarned += _skipGold; G.goldBaseEarned += _skipBaseGold; PERM.gold += _skipGold;
+          var _skipChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 1.1 * 10) / 10;
+          coreChips += _skipChips;
+          G.wave++;
+          G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: '차원 도약! +' + _skipGold + '◈ +' + _skipChips + '⊕', color: '#cc44ff', timer: 0 });
+        }
       }
       startWave();
     }
