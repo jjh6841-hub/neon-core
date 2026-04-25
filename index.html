@@ -1584,10 +1584,10 @@ canvas {
     </div>
 
     <!-- 전투 시작 + 오프라인 보상 -->
-    <div style="display:flex;gap:0;margin-top:16px;margin-bottom:calc(76px + var(--sab));align-items:center;">
-      <button id="btn-offline-reward" style="width:44px;height:52px;background:#030b10;border:1px solid #f59e0b33;color:#f59e0b;font-family:'Courier New',monospace;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;padding:0;"><svg width="20" height="20" viewBox="0 0 20 20" style="display:block;"><line x1="5" y1="2" x2="15" y2="2" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="18" x2="15" y2="18" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><path d="M6,3 L6,7 L10,11 L14,7 L14,3" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><path d="M6,17 L6,13 L10,9 L14,13 L14,17" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><circle cx="10" cy="10" r="1.2" fill="#f59e0b" opacity="0.6"/></svg></button>
+    <div style="display:flex;gap:2px;margin-top:16px;margin-bottom:calc(76px + var(--sab));align-items:center;">
+      <button id="btn-offline-reward" style="width:36px;height:52px;background:#030b10;border:1px solid #f59e0b33;color:#f59e0b;font-family:'Courier New',monospace;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;padding:0;"><svg width="18" height="18" viewBox="0 0 20 20" style="display:block;"><line x1="5" y1="2" x2="15" y2="2" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="18" x2="15" y2="18" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/><path d="M6,3 L6,7 L10,11 L14,7 L14,3" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><path d="M6,17 L6,13 L10,9 L14,13 L14,17" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/><circle cx="10" cy="10" r="1.2" fill="#f59e0b" opacity="0.6"/></svg></button>
       <button id="btn-start-game" style="flex:1;height:52px;background:#030b10;border:2px solid #cc44ff;color:#ffffff;font-size:18px;font-family:'Courier New',monospace;font-weight:bold;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #cc44ff;white-space:nowrap;text-align:center;">전투 준비</button>
-      <div style="width:44px;flex-shrink:0;"></div>
+      <div style="width:36px;flex-shrink:0;"></div>
     </div>
 
   </div>
@@ -6999,22 +6999,20 @@ if (dailyPopup) {
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="lab-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:8px 0 6px; flex-shrink:0;">
-    <span style="color:#00ffff; font-family:'Courier New',monospace; font-size:11px; letter-spacing:3px;">코어랩</span>
-  </div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">코어랩</div>
   <!-- 슬롯 목록 -->
   <div id="lab-slots" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px; padding-bottom:calc(10px + var(--sab));"></div>
 </div>
 <!-- 연구 선택 팝업 -->
 <div id="lab-popup" style="display:none; position:fixed; inset:0; background:rgba(3,11,16,0.97); z-index:2000; flex-direction:column; overflow:hidden;">
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid #0a3344; background:#040c14; flex-shrink:0;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); background:#040c14; flex-shrink:0;">
     <div style="display:flex;align-items:center;gap:8px;">
-      <span style="color:#f59e0b;font-size:12px;font-family:monospace;">◈ <span id="labpop-gold">0</span></span>
-      <span style="color:#00ffff;font-size:12px;font-family:monospace;">❖ <span id="labpop-gem">0</span></span>
+      <span style="color:#f59e0b;font-size:13px;font-family:monospace;">◈ <span id="labpop-gold">0</span></span>
+      <span style="color:#00ffff;font-size:13px;font-family:monospace;">❖ <span id="labpop-gem">0</span></span>
     </div>
-    <span style="color:#00ffff; font-family:monospace; font-size:11px; letter-spacing:3px;">연구 선택</span>
-    <button id="lab-popup-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
+    <button id="lab-popup-close" style="background:none;border:none;color:#00ffff;font-size:14px;font-family:'Courier New',monospace;cursor:pointer;-webkit-appearance:none;">✕</button>
   </div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">연구 선택</div>
   <div id="lab-popup-filter" style="display:flex; gap:4px; padding:6px 12px; border-bottom:1px solid #0a2233; flex-shrink:0; background:#040c14; overflow-x:auto;">
     <button class="lab-filter" data-cat="all"      style="background:#0a1a2a; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">전체</button>
     <button class="lab-filter" data-cat="main"    style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">메타</button>
@@ -8095,7 +8093,18 @@ function _buildLabSlots() {
             savePerm();
             var ld = _loadLab();
             if(!ld['slot'+idx]) ld['slot'+idx] = {};
-            ld['slot'+idx].endTime = Date.now() - 1;
+            // 즉시 완료 → 바로 수령 처리
+            var _sid = ld['slot'+idx].researchId;
+            if(_sid) {
+              if(!ld.research) ld.research = {};
+              ld.research[_sid] = (ld.research[_sid]||0) + 1;
+              localStorage.setItem('res_'+_sid, ld.research[_sid]);
+              try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
+              var _rn = (ALL_RESEARCH.filter(function(r){return r.id===_sid;})[0]||{}).name || _sid;
+              try { if(window.showToastMsg) showToastMsg('연구 완료: '+_rn); } catch(_){}
+            }
+            ld['slot'+idx].researchId = null;
+            ld['slot'+idx].endTime = null;
             _saveLab(ld);
             _syncLabHUD();
             _buildLabSlots();
