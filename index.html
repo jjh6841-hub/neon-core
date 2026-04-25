@@ -1858,7 +1858,7 @@ var AudioManager = {
       return;
     }
     try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
       this.bgmGain = this.ctx.createGain();
       this.sfxGain = this.ctx.createGain();
       this.bgmGain.connect(this.ctx.destination);
