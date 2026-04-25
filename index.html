@@ -2464,6 +2464,14 @@ function loadPerm() {
       }
     }
   } catch (_) {}
+  // 기본 닉네임 생성 (없으면)
+  if (!PERM.nickname) {
+    var _chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var _rand = '';
+    for (var _ni=0;_ni<5;_ni++) _rand += _chars.charAt(Math.floor(Math.random()*26));
+    PERM.nickname = 'KR_' + _rand;
+    try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_){}
+  }
 }
 var _prevPermGems = 0;
 
