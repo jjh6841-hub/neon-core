@@ -4104,9 +4104,9 @@ function render() {
   if (G.introTimer < 0) {
   ctx.beginPath();
   ctx.arc(G.cx, G.cy, G.tower.range, 0, Math.PI * 2);
-  ctx.setLineDash([6, 6]);
-  ctx.strokeStyle = 'rgba(0,255,255,0.10)';
-  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 5]);
+  ctx.strokeStyle = 'rgba(0,255,255,0.25)';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
   ctx.setLineDash([]);
   }
@@ -4153,154 +4153,175 @@ function render() {
     ctx.translate(e.x, e.y);
 
     if (e.boss) {
-      // Octagon — grade-based colors
+      // 드레드노트 — 팔각 전함 + 내부 코어 + 회전 링
       var _bg = e.bossGrade === 'hyper' ? '#ff0044' : e.bossGrade === 'elite' ? '#ff8822' : '#ff9900';
       var _bs = e.bossGrade === 'hyper' ? '#ff3366' : e.bossGrade === 'elite' ? '#ffaa44' : '#ffcc00';
       if (e.enraged) { _bg = e.bossGrade === 'hyper' ? '#ff2255' : '#ffbb33'; _bs = '#ffdd44'; }
       if (slowed) { _bg = '#1e3a8a'; _bs = '#93c5fd'; }
+      var _bt = (G.ticks||0)*0.02;
+      // 회전 외곽 링
+      ctx.save(); ctx.rotate(_bt);
+      ctx.beginPath(); ctx.arc(0,0,e.r+4,0,Math.PI*2);
+      ctx.strokeStyle = _bs; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.3;
+      ctx.setLineDash([4,8]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.restore();
+      // 본체
       ctx.beginPath();
       for (var oi = 0; oi < 8; oi++) {
-        var oa = (Math.PI * 2 / 8) * oi - Math.PI / 8;
-        var opx = Math.cos(oa) * e.r, opy = Math.sin(oa) * e.r;
-        if (oi === 0) ctx.moveTo(opx, opy); else ctx.lineTo(opx, opy);
+        var oa = (Math.PI*2/8)*oi - Math.PI/8;
+        var opx = Math.cos(oa)*e.r, opy = Math.sin(oa)*e.r;
+        if (oi===0) ctx.moveTo(opx,opy); else ctx.lineTo(opx,opy);
       }
-      ctx.closePath();
-      ctx.fillStyle = _bg;
-      ctx.fill();
-      ctx.strokeStyle = _bs;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      // Boss name label
+      ctx.closePath(); ctx.fillStyle = _bg; ctx.fill();
+      ctx.strokeStyle = _bs; ctx.lineWidth = 2; ctx.stroke();
+      // 내부 코어
+      ctx.beginPath(); ctx.arc(0,0,e.r*0.35,0,Math.PI*2);
+      ctx.fillStyle = _bs; ctx.globalAlpha = 0.5; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0,0,e.r*0.15,0,Math.PI*2);
+      ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+      // 에너지 라인 4개
+      for(var el2=0;el2<4;el2++){var ea2=Math.PI/2*el2+_bt*0.5;ctx.beginPath();ctx.moveTo(Math.cos(ea2)*e.r*0.4,Math.sin(ea2)*e.r*0.4);ctx.lineTo(Math.cos(ea2)*e.r*0.85,Math.sin(ea2)*e.r*0.85);ctx.strokeStyle=_bs;ctx.lineWidth=1;ctx.globalAlpha=0.4;ctx.stroke();ctx.globalAlpha=1;}
+      // 보스 이름
       var _bn = e.bossGrade === 'hyper' ? '[ HYPER CORE ]' : e.bossGrade === 'elite' ? '[ ELITE CORE ]' : '[ CORE UNIT ]';
       var _bc = e.bossGrade === 'hyper' ? '#ff0044' : e.bossGrade === 'elite' ? '#ff8822' : '#ff4444';
       ctx.fillStyle = _bc;
-      ctx.font = 'bold ' + Math.max(8, Math.floor(e.r * 0.35)) + 'px "Courier New", monospace';
+      ctx.font = 'bold '+Math.max(8,Math.floor(e.r*0.35))+'px "Courier New",monospace';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(_bn, 0, -e.r - 8);
+      ctx.fillText(_bn, 0, -e.r-10);
     } else if (e.type === 'tank') {
-      // Heavy armored hexagon with inner plate
+      // 중장갑 전함 — 이중 헥사곤 + 장갑판
       var tankColor = slowed ? '#1e3a8a' : '#ff6600';
       var tankStroke = slowed ? '#93c5fd' : '#ff8833';
+      // 외곽 헥사곤
       ctx.beginPath();
-      for (var hi = 0; hi < 6; hi++) {
-        var ha = (Math.PI * 2 / 6) * hi - Math.PI / 6;
-        var hx = Math.cos(ha) * e.r, hy = Math.sin(ha) * e.r;
-        if (hi === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
-      }
-      ctx.closePath();
-      ctx.fillStyle = tankColor; ctx.fill();
-      ctx.strokeStyle = tankStroke; ctx.lineWidth = 2; ctx.stroke();
-      // Inner armor plate
+      for(var hi=0;hi<6;hi++){var ha=(Math.PI*2/6)*hi-Math.PI/6;if(hi===0)ctx.moveTo(Math.cos(ha)*e.r,Math.sin(ha)*e.r);else ctx.lineTo(Math.cos(ha)*e.r,Math.sin(ha)*e.r);}
+      ctx.closePath(); ctx.fillStyle = tankColor; ctx.fill();
+      ctx.strokeStyle = tankStroke; ctx.lineWidth = 2.5; ctx.stroke();
+      // 내부 장갑판
       ctx.beginPath();
-      for (var hi2 = 0; hi2 < 6; hi2++) {
-        var ha2 = (Math.PI * 2 / 6) * hi2 - Math.PI / 6;
-        var hx2 = Math.cos(ha2) * e.r * 0.55, hy2 = Math.sin(ha2) * e.r * 0.55;
-        if (hi2 === 0) ctx.moveTo(hx2, hy2); else ctx.lineTo(hx2, hy2);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = tankStroke; ctx.lineWidth = 1; ctx.globalAlpha = 0.5; ctx.stroke(); ctx.globalAlpha = 1;
-      // Core dot
-      ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI*2); ctx.fillStyle = tankStroke; ctx.fill();
+      for(var hi2=0;hi2<6;hi2++){var ha2=(Math.PI*2/6)*hi2;if(hi2===0)ctx.moveTo(Math.cos(ha2)*e.r*0.55,Math.sin(ha2)*e.r*0.55);else ctx.lineTo(Math.cos(ha2)*e.r*0.55,Math.sin(ha2)*e.r*0.55);}
+      ctx.closePath(); ctx.fillStyle = tankStroke; ctx.globalAlpha = 0.2; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.strokeStyle = tankStroke; ctx.lineWidth = 1; ctx.stroke();
+      // 코어
+      ctx.beginPath(); ctx.arc(0,0,e.r*0.2,0,Math.PI*2); ctx.fillStyle = tankStroke; ctx.fill();
+      // 장갑 라인
+      ctx.strokeStyle = tankStroke; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.3;
+      ctx.beginPath(); ctx.moveTo(-e.r*0.8,0); ctx.lineTo(e.r*0.8,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,-e.r*0.8); ctx.lineTo(0,e.r*0.8); ctx.stroke();
+      ctx.globalAlpha = 1;
     } else if (e.type === 'rusher') {
-      // Streamlined arrow with engine trail
-      var rdx = G.cx - e.x, rdy = G.cy - e.y;
+      // 고속 인터셉터 — 유선형 전투기 + 엔진 플레임
+      var rdx = G.cx-e.x, rdy = G.cy-e.y;
       var ra = Math.atan2(rdy, rdx);
       ctx.rotate(ra);
-      var rl = e.r * 1.8, rw = e.r * 0.7;
+      var rl = e.r*1.8, rw = e.r*0.7;
       var rushColor = slowed ? '#1d4ed8' : '#ff0055';
       var rushStroke = slowed ? '#93c5fd' : '#ff3377';
-      // Engine trail
-      ctx.globalAlpha = 0.15;
-      ctx.fillStyle = rushColor;
-      ctx.fillRect(-rl/2 - 10, -rw*0.3, 10, rw*0.6);
-      ctx.globalAlpha = 0.08;
-      ctx.fillRect(-rl/2 - 18, -rw*0.2, 8, rw*0.4);
+      // 엔진 플레임
+      var _ft = (G.ticks||0)*0.3;
+      var flameLen = 6+Math.sin(_ft)*3;
+      ctx.globalAlpha = 0.6; ctx.fillStyle = slowed ? '#60a5fa' : '#ff6600';
+      ctx.beginPath(); ctx.moveTo(-rl/2,0); ctx.lineTo(-rl/2-flameLen,-rw*0.25); ctx.lineTo(-rl/2-flameLen*0.7,0); ctx.lineTo(-rl/2-flameLen,rw*0.25); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 0.3; ctx.fillStyle = slowed ? '#93c5fd' : '#ffaa00';
+      ctx.beginPath(); ctx.moveTo(-rl/2,0); ctx.lineTo(-rl/2-flameLen*1.3,-rw*0.12); ctx.lineTo(-rl/2-flameLen,0); ctx.lineTo(-rl/2-flameLen*1.3,rw*0.12); ctx.closePath(); ctx.fill();
       ctx.globalAlpha = 1;
-      // Main body
+      // 본체
       ctx.beginPath();
-      ctx.moveTo(rl/2, 0);
-      ctx.lineTo(rl*0.1, -rw);
-      ctx.lineTo(-rl/2, -rw*0.6);
-      ctx.lineTo(-rl/2, rw*0.6);
-      ctx.lineTo(rl*0.1, rw);
-      ctx.closePath();
-      ctx.fillStyle = rushColor; ctx.fill();
+      ctx.moveTo(rl/2,0); ctx.lineTo(rl*0.15,-rw); ctx.lineTo(-rl*0.3,-rw*0.7);
+      ctx.lineTo(-rl/2,-rw*0.4); ctx.lineTo(-rl/2,rw*0.4);
+      ctx.lineTo(-rl*0.3,rw*0.7); ctx.lineTo(rl*0.15,rw);
+      ctx.closePath(); ctx.fillStyle = rushColor; ctx.fill();
       ctx.strokeStyle = rushStroke; ctx.lineWidth = 1; ctx.stroke();
-      // Speed line
-      ctx.beginPath(); ctx.moveTo(rl*0.3, 0); ctx.lineTo(-rl*0.2, 0);
-      ctx.strokeStyle = rushStroke; ctx.globalAlpha = 0.4; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
+      // 윙 라인
+      ctx.strokeStyle = rushStroke; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.5;
+      ctx.beginPath(); ctx.moveTo(rl*0.1,-rw*0.3); ctx.lineTo(-rl*0.3,-rw*0.3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rl*0.1,rw*0.3); ctx.lineTo(-rl*0.3,rw*0.3); ctx.stroke();
+      ctx.globalAlpha = 1;
       ctx.rotate(-ra);
     } else if (e.type === 'sniper') {
-      // Targeting drone with crosshair
+      // 스텔스 드론 — 다이아몬드 + 스캔 링
       var snpColor = slowed ? '#1d4ed8' : '#aa00ff';
       var snpStroke = slowed ? '#93c5fd' : '#cc44ff';
+      var _st = (G.ticks||0)*0.04;
+      // 본체 다이아몬드
       ctx.beginPath();
-      ctx.moveTo(0, -e.r * 1.4);
-      ctx.lineTo(e.r * 0.6, 0);
-      ctx.lineTo(0, e.r * 1.4);
-      ctx.lineTo(-e.r * 0.6, 0);
-      ctx.closePath();
-      ctx.fillStyle = snpColor; ctx.fill();
+      ctx.moveTo(0,-e.r*1.3); ctx.lineTo(e.r*0.7,0); ctx.lineTo(0,e.r*1.3); ctx.lineTo(-e.r*0.7,0);
+      ctx.closePath(); ctx.fillStyle = snpColor; ctx.fill();
       ctx.strokeStyle = snpStroke; ctx.lineWidth = 1; ctx.stroke();
-      // Targeting ring
-      ctx.beginPath(); ctx.arc(0, 0, e.r*0.45, 0, Math.PI*2);
-      ctx.strokeStyle = snpStroke; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
-      // Center dot
-      ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI*2); ctx.fillStyle = snpStroke; ctx.fill();
+      // 회전 스캔 링
+      ctx.save(); ctx.rotate(_st);
+      ctx.beginPath(); ctx.arc(0,0,e.r*0.5,0,Math.PI*0.8);
+      ctx.strokeStyle = snpStroke; ctx.lineWidth = 1; ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.restore();
+      ctx.save(); ctx.rotate(_st+Math.PI);
+      ctx.beginPath(); ctx.arc(0,0,e.r*0.5,0,Math.PI*0.8);
+      ctx.strokeStyle = snpStroke; ctx.lineWidth = 1; ctx.globalAlpha = 0.6; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.restore();
+      // 조준점
+      ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI*2); ctx.fillStyle = snpStroke; ctx.fill();
     } else if (e.type === 'shield') {
-      // Shield unit: diamond with barrier ring
-      ctx.rotate(Math.PI / 4);
-      var sz = e.r * 1.3;
-      ctx.fillStyle = slowed ? '#1d4ed8' : '#7c3aed';
-      ctx.fillRect(-sz/2, -sz/2, sz, sz);
-      ctx.strokeStyle = slowed ? '#93c5fd' : '#a78bfa';
-      ctx.lineWidth = 1; ctx.strokeRect(-sz/2, -sz/2, sz, sz);
-      ctx.rotate(-Math.PI / 4);
-      // Shield ring
-      ctx.beginPath(); ctx.arc(0, 0, e.r+2, 0, Math.PI*2);
-      ctx.strokeStyle = slowed ? '#93c5fd' : '#c084fc'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.4;
-      ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      // 배리어 함선 — 오각형 + 에너지 실드
+      var shColor = slowed ? '#1d4ed8' : '#7c3aed';
+      var shStroke = slowed ? '#93c5fd' : '#a78bfa';
+      var _sht = (G.ticks||0)*0.025;
+      // 본체 오각형
+      ctx.beginPath();
+      for(var si=0;si<5;si++){var sa=(Math.PI*2/5)*si-Math.PI/2;if(si===0)ctx.moveTo(Math.cos(sa)*e.r,Math.sin(sa)*e.r);else ctx.lineTo(Math.cos(sa)*e.r,Math.sin(sa)*e.r);}
+      ctx.closePath(); ctx.fillStyle = shColor; ctx.fill();
+      ctx.strokeStyle = shStroke; ctx.lineWidth = 1.5; ctx.stroke();
+      // 코어
+      ctx.beginPath(); ctx.arc(0,0,e.r*0.25,0,Math.PI*2); ctx.fillStyle = shStroke; ctx.globalAlpha = 0.4; ctx.fill(); ctx.globalAlpha = 1;
+      // 에너지 실드 링 (회전)
+      ctx.save(); ctx.rotate(_sht);
+      ctx.beginPath(); ctx.arc(0,0,e.r+3,0,Math.PI*2);
+      ctx.strokeStyle = slowed?'#93c5fd':'#c084fc'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.35;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+      ctx.restore();
     } else if (e.type === 'split') {
-      // Split unit: two overlapping triangles (star)
+      // 클러스터 드론 — 6각별 + 분열 코어
       var spColor = slowed ? '#1d4ed8' : '#ec4899';
       var spStroke = slowed ? '#93c5fd' : '#f472b6';
+      // 6각별
       ctx.beginPath();
-      for (var si2 = 0; si2 < 3; si2++) {
-        var sa2 = (Math.PI*2/3)*si2 - Math.PI/2;
-        var sx2 = Math.cos(sa2)*e.r*1.1, sy2 = Math.sin(sa2)*e.r*1.1;
-        if (si2===0) ctx.moveTo(sx2,sy2); else ctx.lineTo(sx2,sy2);
-      }
-      ctx.closePath(); ctx.fillStyle = spColor; ctx.fill(); ctx.strokeStyle = spStroke; ctx.lineWidth = 1; ctx.stroke();
-      ctx.beginPath();
-      for (var si3 = 0; si3 < 3; si3++) {
-        var sa3 = (Math.PI*2/3)*si3 + Math.PI/6;
-        var sx3 = Math.cos(sa3)*e.r*0.8, sy3 = Math.sin(sa3)*e.r*0.8;
-        if (si3===0) ctx.moveTo(sx3,sy3); else ctx.lineTo(sx3,sy3);
-      }
-      ctx.closePath(); ctx.fillStyle = spColor; ctx.globalAlpha = 0.5; ctx.fill(); ctx.globalAlpha = 1;
+      for(var si2=0;si2<6;si2++){var sa2=(Math.PI*2/6)*si2-Math.PI/2;var outr=si2%2===0?e.r*1.15:e.r*0.55;if(si2===0)ctx.moveTo(Math.cos(sa2)*outr,Math.sin(sa2)*outr);else ctx.lineTo(Math.cos(sa2)*outr,Math.sin(sa2)*outr);}
+      ctx.closePath(); ctx.fillStyle = spColor; ctx.fill();
+      ctx.strokeStyle = spStroke; ctx.lineWidth = 1; ctx.stroke();
+      // 분열 코어 3개
+      for(var dc=0;dc<3;dc++){var dca=Math.PI*2/3*dc-Math.PI/2;var dcx=Math.cos(dca)*e.r*0.35,dcy=Math.sin(dca)*e.r*0.35;ctx.beginPath();ctx.arc(dcx,dcy,2,0,Math.PI*2);ctx.fillStyle=spStroke;ctx.globalAlpha=0.7;ctx.fill();ctx.globalAlpha=1;}
     } else if (e.type === 'regen') {
-      // Regen unit: circle with healing pulse
+      // 수리 드론 — 원형 + 나노 파동 + 회전 십자
       var regenColor = slowed ? '#1d4ed8' : '#10b981';
       var regenStroke = slowed ? '#93c5fd' : '#34d399';
-      ctx.beginPath(); ctx.arc(0, 0, e.r, 0, Math.PI*2);
+      var _rgt = (G.ticks||0)*0.03;
+      // 나노 파동 (외곽)
+      ctx.beginPath(); ctx.arc(0,0,e.r+3+Math.sin(_rgt*2)*2,0,Math.PI*2);
+      ctx.strokeStyle = regenStroke; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.2; ctx.stroke(); ctx.globalAlpha = 1;
+      // 본체
+      ctx.beginPath(); ctx.arc(0,0,e.r,0,Math.PI*2);
       ctx.fillStyle = regenColor; ctx.fill();
       ctx.strokeStyle = regenStroke; ctx.lineWidth = 1.5; ctx.stroke();
-      // Cross symbol
-      ctx.fillStyle = regenStroke; ctx.globalAlpha = 0.6;
-      ctx.fillRect(-1, -e.r*0.5, 2, e.r); ctx.fillRect(-e.r*0.5, -1, e.r, 2);
-      ctx.globalAlpha = 1;
+      // 회전 십자
+      ctx.save(); ctx.rotate(_rgt);
+      ctx.strokeStyle = regenStroke; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+      ctx.beginPath(); ctx.moveTo(0,-e.r*0.55); ctx.lineTo(0,e.r*0.55); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-e.r*0.55,0); ctx.lineTo(e.r*0.55,0); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.restore();
     } else {
-      // Basic - sleek diamond with inner glow
-      ctx.rotate(Math.PI / 4);
-      var sz = e.r * 1.3;
+      // 일반 — 우주 드론 (마름모 + 내부 회로)
+      var _et = (G.ticks||0)*0.015;
+      ctx.rotate(Math.PI/4+_et*0.5);
+      var sz = e.r*1.3;
       ctx.fillStyle = slowed ? '#1d4ed8' : '#ef4444';
-      ctx.fillRect(-sz/2, -sz/2, sz, sz);
+      ctx.fillRect(-sz/2,-sz/2,sz,sz);
       ctx.strokeStyle = slowed ? '#93c5fd' : '#ff6666';
-      ctx.lineWidth = 1; ctx.strokeRect(-sz/2, -sz/2, sz, sz);
-      // Inner glow
-      ctx.fillStyle = slowed ? '#3b82f6' : '#ff8888'; ctx.globalAlpha = 0.3;
-      ctx.fillRect(-sz*0.2, -sz*0.2, sz*0.4, sz*0.4); ctx.globalAlpha = 1;
-      ctx.rotate(-Math.PI / 4);
+      ctx.lineWidth = 1; ctx.strokeRect(-sz/2,-sz/2,sz,sz);
+      // 내부 회로 패턴
+      ctx.strokeStyle = slowed ? '#3b82f6' : '#ff8888'; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.4;
+      ctx.strokeRect(-sz*0.22,-sz*0.22,sz*0.44,sz*0.44);
+      ctx.globalAlpha = 1;
+      // 코어 점
+      ctx.beginPath(); ctx.arc(0,0,1.5,0,Math.PI*2); ctx.fillStyle = slowed?'#93c5fd':'#ffaaaa'; ctx.fill();
+      ctx.rotate(-(Math.PI/4+_et*0.5));
     }
 
     // Hit flash (white overlay for 2 frames)
@@ -11869,7 +11890,7 @@ function _renderCardTab() {
             _setFragments(_getFragments()-30);
             _addPrismDrop(pid);
             window.savePerm&&window.savePerm();
-            if(window.showToastMsg) showToastMsg('◈ '+pName+' 획득!', '#cc44ff');
+            if(window.showToastMsg) showToastMsg(pName+' 획득!', '#cc44ff');
             pop.remove();
             _renderCardTab();
           });
@@ -12722,16 +12743,16 @@ function _showEncyclopedia() {
       ['속성','화염·심해·번개·대지·질풍·암흑 6종. 각 속성에 공격·방어·HP·치명타 보너스 제공.'],
     ]},
     enemy:{ label:'적', enemies:[
-      { id:'basic',      name:'기본 유닛',     color:'#ff4444', boss:false, desc:'표준 적. 기본 체력과 이동 속도를 가짐. 처치 시 골드 x1.' },
-      { id:'rusher',     name:'러시 유닛',     color:'#ffaa00', boss:false, desc:'이동 속도가 2배 빠르다. 체력은 낮지만 순식간에 코어에 도달한다. 처치 시 골드 x2.' },
-      { id:'tank',       name:'아머 코어',     color:'#ff8800', boss:false, desc:'이동 속도 50%, 체력 5배. 느리지만 매우 단단하다. 처치 시 골드 x4.' },
-      { id:'sniper',     name:'스나이퍼 유닛', color:'#00ffff', boss:false, desc:'사거리 밖에서 투사체를 발사한다. 코어에 접근하지 않아도 공격 가능. 처치 시 골드 x2.' },
-      { id:'shield',     name:'실드 유닛',     color:'#aa44ff', boss:false, desc:'받는 피해를 50% 감소시키는 실드를 보유. 처치 시 골드 x3.' },
-      { id:'split',      name:'분열 유닛',     color:'#ff44aa', boss:false, desc:'처치 시 체력 절반의 기본 유닛 2개로 분열한다. 처치 시 골드 x1.' },
-      { id:'regen',      name:'재생 유닛',     color:'#44ff88', boss:false, desc:'초당 최대 체력의 2%를 회복한다. 처치 시 골드 x3.' },
-      { id:'boss',       name:'코어 보스',     color:'#ff4444', boss:true,  desc:'10스테이지마다 등장. 기본 적의 체력 5배, 이동 속도 60%. 처치 시 골드 x5.' },
-      { id:'boss_elite', name:'엘리트 코어',   color:'#ff8822', boss:true,  desc:'50스테이지마다 등장하는 강화 보스. 체력 15배, 이동 속도 50%. 등장 시 위협 신호 감지 경고 표시. 처치 시 골드 x15.' },
-      { id:'boss_hyper', name:'하이퍼 코어',   color:'#ff0044', boss:true,  desc:'100스테이지마다 등장하는 최강 보스. 체력 40배, 이동 속도 40%. 등장 시 극한 위협 감지 경고 표시. 처치 시 골드 x30.' },
+      { id:'basic',      name:'우주 드론',       color:'#ff4444', boss:false, desc:'표준 전투 드론. 회전하는 마름모 형태에 내부 회로 패턴을 가짐. 처치 시 골드 x1.' },
+      { id:'rusher',     name:'인터셉터',       color:'#ffaa00', boss:false, desc:'유선형 고속 전투기. 엔진 플레임을 뿜으며 2배 속도로 접근. 체력은 낮지만 위협적. 처치 시 골드 x2.' },
+      { id:'tank',       name:'중장갑 전함',     color:'#ff8800', boss:false, desc:'이중 헥사곤 장갑판을 가진 전함. 이동 속도 50%, 체력 5배. 처치 시 골드 x4.' },
+      { id:'sniper',     name:'스텔스 드론',     color:'#00ffff', boss:false, desc:'회전 스캔 링으로 원거리 조준. 사거리 밖에서 투사체 발사. 처치 시 골드 x2.' },
+      { id:'shield',     name:'배리어 함선',     color:'#aa44ff', boss:false, desc:'회전하는 에너지 실드를 전개한 오각형 함선. 피해 50% 감소. 처치 시 골드 x3.' },
+      { id:'split',      name:'클러스터 드론',   color:'#ff44aa', boss:false, desc:'6각별 형태의 분열 드론. 3개의 코어를 가지며, 처치 시 2개로 분열. 처치 시 골드 x1.' },
+      { id:'regen',      name:'수리 드론',       color:'#44ff88', boss:false, desc:'나노 파동을 방출하며 회전 십자로 자가 수복. 초당 최대 체력 2% 회복. 처치 시 골드 x3.' },
+      { id:'boss',       name:'코어 드레드노트', color:'#ff4444', boss:true,  desc:'10스테이지마다 등장하는 팔각 전함. 회전 링과 에너지 라인을 가진 코어 유닛. 체력 5배. 처치 시 골드 x5.' },
+      { id:'boss_elite', name:'엘리트 드레드노트', color:'#ff8822', boss:true,  desc:'50스테이지마다 등장. 강화 코어가 빛나는 대형 전함. 체력 15배. 처치 시 골드 x15.' },
+      { id:'boss_hyper', name:'하이퍼 드레드노트', color:'#ff0044', boss:true,  desc:'100스테이지마다 등장하는 최강 전함. 붉은 코어 에너지가 맥동. 체력 40배. 처치 시 골드 x30.' },
     ]}
   };
   var curTab='atk';
@@ -15936,7 +15957,7 @@ var BG_SKINS = [
 var currentBgSkin = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
 var _skinSubTab = 'ship';
 
-var currentSkin = localStorage.getItem('neoncore_skin') || 'iris8';
+var currentSkin = localStorage.getItem('neoncore_skin') || 'iris0';
 
 function _skinAccent(col) {
   var m = {'#00ffff':'#cc44ff','#cc44ff':'#00ffff','#ff6644':'#ffcc44','#44ff88':'#44ccff','#8844ff':'#ff44bb','#44ddff':'#88ffcc'};
