@@ -3550,7 +3550,30 @@ function update(dt) {
   const bSpd = _baseBSpd * (1 + _spdLv * 0.035) * _rapidMult; // 연사 시 x1.5 곱연산
   for (let i = G.bullets.length - 1; i >= 0; i--) {
     const b = G.bullets[i];
-    const mv = bSpd * (dt / 16.667);
+    var mv = bSpd * (dt / 16.667);
+    // 한 프레임 최대 이동 제한 (적 최소 크기의 2배)
+    if (mv > 14) {
+      // 서브스텝: 큰 이동을 작은 단위로 분할
+      var _steps = Math.ceil(mv / 14);
+      var _stepMv = mv / _steps;
+      var _bulletHit = false;
+      for (var _si2 = 0; _si2 < _steps && !_bulletHit; _si2++) {
+        var _bPrevX = b.x, _bPrevY = b.y;
+        b.x += b.dx * _stepMv;
+        b.y += b.dy * _stepMv;
+        for (let j = G.enemies.length - 1; j >= 0; j--) {
+          const e = G.enemies[j];
+          if (b.hitSet && b.hitSet.has(e)) continue;
+          if (e.type === 'stealth' && !e.stealthVisible) continue;
+          var ddx = b.x - e.x, ddy = b.y - e.y;
+          if (ddx * ddx + ddy * ddy < (e.r + 8) * (e.r + 8)) {
+            // 명중 — 아래 메인 루프에서 처리하도록 위치 고정
+            _bulletHit = true; break;
+          }
+        }
+      }
+      if (b.x < -80 || b.x > CW + 80 || b.y < -80 || b.y > CH + 80) { G.bullets.splice(i, 1); continue; }
+    } else {
     var _bPrevX = b.x, _bPrevY = b.y;
     b.x += b.dx * mv;
     b.y += b.dy * mv;
@@ -3559,6 +3582,7 @@ function update(dt) {
       G.bullets.splice(i, 1);
       continue;
     }
+    } // else 닫기
 
     let removeBullet = false;
     for (let j = G.enemies.length - 1; j >= 0; j--) {
@@ -4000,9 +4024,9 @@ function fireTower() {
   const baseAngle = Math.atan2(target.y - G.cy, target.x - G.cx);
   const isCrit = G.critChance > 0 && Math.random() < G.critChance;
 
-  // 근접 적 (30px 내): 탄환 없이 즉시 데미지
+  // 근접 적 (타워 히트범위+여유): 탄환 없이 즉시 데미지
   var _tDist = Math.sqrt((target.x-G.cx)*(target.x-G.cx)+(target.y-G.cy)*(target.y-G.cy));
-  if (_tDist < 30) {
+  if (_tDist < 40) {
     var _dmg = G.tower.buffMs > 0 ? G.tower.dmg * 2 : G.tower.dmg;
     if (G.dmgPerMeter && G.dmgPerMeter > 1) { _dmg = Math.round(_dmg * (1 + (G.dmgPerMeter-1) * Math.min(1, _tDist/(G.tower.range||162)))); }
     if (isCrit) _dmg = Math.round(_dmg * (G.critMult || 1.5));
