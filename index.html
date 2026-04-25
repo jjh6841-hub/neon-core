@@ -4038,6 +4038,24 @@ function fireTower() {
     if (target.type === 'vampire' && target.hp > 0) target.hp = Math.min(target.maxHp, target.hp + _dmg*0.3);
     target.hitFlash = 2;
     addFx(target.x, target.y, target.r*1.5, isCrit?'#ffff00':'#00ffff');
+    // 근접 즉시 데미지 사망 처리
+    if (target.hp <= 0) {
+      var _idx = G.enemies.indexOf(target);
+      if (_idx !== -1) {
+        // 보석 보상
+        var _bGem2 = target.bossGrade==='galaxy'?200:target.bossGrade==='hyper'?5:target.bossGrade==='elite'?2:0;
+        if (_bGem2 > 0) { PERM.gems=(PERM.gems||0)+_bGem2; G.gems=(G.gems||0)+_bGem2; }
+        G.killCount++; PERM.totalKills++;
+        if (typeof _infKill==='function') _infKill(target.type);
+        var _eG2 = Math.round((target.gold||1)*(G.goldBonus||1)*(G.goldMult||1));
+        if (_eG2>0){G.gold+=_eG2;G.goldEarned+=_eG2;PERM.gold+=_eG2;G.floatTexts.push({x:target.x,y:target.y+12,text:'+'+_eG2+' ◈',color:'#f59e0b',timer:0});}
+        if(target.boss){PERM.bossKills++;if(target.bossGrade==='galaxy'){var _gT=parseInt(localStorage.getItem('td_tier')||'1',10);localStorage.setItem('galaxy_t'+_gT,'true');try{checkAchievements();}catch(_){}}}
+        if(target.type==='split'&&!target._isSplitChild){for(var _si3=0;_si3<2;_si3++){var _sc2=createEnemy('basic',target.x+(Math.random()-0.5)*16,target.y+(Math.random()-0.5)*16);_sc2.hp=Math.ceil(target.maxHp*0.5);_sc2.maxHp=_sc2.hp;_sc2.gold=0;_sc2._isSplitChild=true;G.enemies.push(_sc2);}}
+        if(target.type==='spawner'){for(var _ski2=G.enemies.length-1;_ski2>=0;_ski2--){if(G.enemies[_ski2]._fromSpawner){G.enemies.splice(_ski2,1);}}}
+        addFx(target.x, target.y, target.r*2.8, target.boss?'#f97316':'#ef4444');
+        G.enemies.splice(_idx, 1);
+      }
+    }
   } else {
     // 원거리: 탄환 발사
     G.bullets.push({
