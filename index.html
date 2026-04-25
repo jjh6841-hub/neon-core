@@ -5005,30 +5005,12 @@ function buildCards() {
   // 강화 탭 해금 상태 확인
   var _atkUn = PERM.ws_atk_unlocks || 0;
   var _defUn = PERM.ws_def_unlocks || 0;
-  var _utlTabOpen = !!(PERM.unlocks && PERM.unlocks.tab_utl_u);
   // 강화 탭 그룹과 전투 업그레이드 unlock 키 매핑
   var _defKeyToGroup = { maxhp:0, hpRegen:0, defRate:1, defAbs:1, reflect:2, vamp:3, knockback:4 };
   for (const tabKey of ['atk', 'def', 'utl']) {
     const pane = document.getElementById('pane-' + tabKey);
     if (!pane) continue;
     pane.innerHTML = '';
-    // 유틸 탭 해금 안 되면 잠금 안내 표시
-    if (tabKey === 'utl' && !_utlTabOpen) {
-      pane.innerHTML = '';
-      // #tab-content 기준으로 중앙 배치되는 오버레이
-      var _utlLock = document.getElementById('utl-lock-overlay');
-      if (!_utlLock) {
-        _utlLock = document.createElement('div');
-        _utlLock.id = 'utl-lock-overlay';
-        _utlLock.style.cssText = 'display:none;position:absolute;left:0;right:0;top:0;bottom:0;z-index:2;flex-direction:column;align-items:center;justify-content:center;gap:6px;pointer-events:none;';
-        _utlLock.innerHTML =
-          '<div style="color:#556677;font-family:monospace;font-size:11px;text-align:center;">유틸리티 잠금</div>' +
-          '<div style="color:#445566;font-family:monospace;font-size:9px;text-align:center;">강화소에서 해금할 수 있습니다</div>';
-        var _tc = document.getElementById('tab-content');
-        if (_tc) { _tc.style.position = 'relative'; _tc.appendChild(_utlLock); }
-      }
-      continue;
-    }
     for (const upg of UPGRADES) {
       if (upg.tab !== tabKey) continue;
       if (!isUnlocked(upg.unlock)) continue;
@@ -5116,20 +5098,11 @@ function _showUpgDetail(upg) {
 
 function setActiveTab(tabKey) {
   activeTab = tabKey;
-  var _utlOpen = !!(PERM.unlocks && PERM.unlocks.tab_utl_u);
   for (const k of ['atk', 'def', 'utl']) {
     const tb = document.getElementById('tab-' + k);
     const pn = document.getElementById('pane-' + k);
-    if (tb) {
-      tb.classList.toggle('active', k === tabKey);
-      if (k === 'utl') { tb.style.display = ''; tb.style.opacity = '1'; if (!_utlOpen && k !== tabKey) tb.style.color = '#4a6a7a'; }
-    }
+    if (tb) tb.classList.toggle('active', k === tabKey);
     if (pn) pn.classList.toggle('active', k === tabKey);
-  }
-  // 유틸 잠금 오버레이 표시/숨김
-  var _utlLock = document.getElementById('utl-lock-overlay');
-  if (_utlLock) {
-    _utlLock.style.display = (tabKey === 'utl' && !_utlOpen) ? 'flex' : 'none';
   }
 }
 
@@ -7691,7 +7664,7 @@ function _appendExtCard(container, key, ws) {
   var card = document.createElement('div');
   card.style.cssText =
     'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
+    'padding:11px 8px 10px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:6px;min-width:0;overflow:visible;';
 
   var btnHTML2 = maxed
     ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
@@ -7701,10 +7674,9 @@ function _appendExtCard(container, key, ws) {
 
   var valueHTML2 = maxed
     ? '<span style="font-size:14px;color:#00ffff;font-family:monospace;font-weight:bold;">' + cfg.cur(lv) + '</span>'
-    : '<span style="font-family:monospace;white-space:nowrap;">' +
-        '<span style="font-size:11px;color:#445566;">' + cfg.cur(lv) + '</span>' +
-        '<span style="font-size:11px;color:#334455;"> → </span>' +
-        '<span style="font-size:14px;color:#00ffff;font-weight:bold;">' + cfg.nxt(lv) + '</span>' +
+    : '<span style="font-family:monospace;display:flex;flex-direction:column;line-height:1.3;">' +
+        '<span style="font-size:9px;color:#445566;">' + cfg.cur(lv) + ' <span style="color:#334455;">▼</span></span>' +
+        '<span style="font-size:11px;color:#00ffff;font-weight:bold;">' + cfg.nxt(lv) + '</span>' +
       '</span>';
 
   card.innerHTML =
@@ -10340,7 +10312,6 @@ var _iv = setInterval(function() {
 
 /* ─ 잠금 설정 ─ */
 var TAB_LOCKS = {
-  utl: { label:'유틸', goldCost:100, gemCost:0,  permKey:'tab_utl_u', color:'#f59e0b' },
   ult: { label:'속성', goldCost:100,  gemCost:0, acCost:0, permKey:'tab_ult_u', color:'#00ff88' },
 };
 
