@@ -2201,7 +2201,14 @@ function _initOfflineReward() {
     if (d && (d.gold > 0 || d.gems > 0)) {
       _showOfflinePopup(d);
     } else {
-      if (window.showToastMsg) showToastMsg('오프라인 보상이 없습니다', '#334455');
+      var _lo = parseInt(localStorage.getItem('last_online')||'0',10);
+      var _elapsed = _lo ? Math.floor((Date.now()-_lo)/60000) : 0;
+      var _remain = 5 - _elapsed;
+      if (_remain > 0) {
+        if (window.showToastMsg) showToastMsg(_remain+'분 후 보상이 쌓입니다', '#f59e0b');
+      } else {
+        if (window.showToastMsg) showToastMsg('보상이 아직 없습니다', '#334455');
+      }
     }
   });
 }
