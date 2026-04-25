@@ -6378,7 +6378,7 @@ if (dailyPopup) {
       '<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">' +
         '<div style="display:flex;align-items:center;gap:6px;">' +
           '<span style="font-size:11px;color:#7aacac;font-family:\'Courier New\',monospace;white-space:nowrap;">' + cfg.name + '</span>' +
-          '<span style="font-size:10px;color:#556677;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : (cfg.maxLv >= 999 ? ' / ∞' : ' / ' + cfg.maxLv)) + '</span>' +
+          '<span style="font-size:10px;color:#556677;font-family:\'Courier New\',monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
         '</div>' +
         (valueHTML ? '<div>' + valueHTML + '</div>' : '') +
       '</div>' +
@@ -7788,7 +7788,7 @@ function _appendExtCard(container, key, ws) {
     '<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">' +
       '<div style="display:flex;align-items:center;gap:6px;">' +
         '<span style="font-size:11px;color:#7aacac;font-family:monospace;white-space:nowrap;">' + cfg.name + '</span>' +
-        '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : (cfg.maxLv >= 999 ? ' / ∞' : ' / ' + cfg.maxLv)) + '</span>' +
+        '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
       '</div>' +
       '<div>' + valueHTML2 + '</div>' +
     '</div>' +
