@@ -2575,7 +2575,7 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('enhCritChance',12); },
     apply()  { var c=upgCost('enhCritChance',12); coreChips-=c; G.upgLvl.enhCritChance=(G.upgLvl.enhCritChance||0)+1; G.enhCritChance=Math.min(0.9,(G.enhCritChance||0)+0.005); },
   },
-  { key:'enhCritMult', tab:'atk', icon:'×!!', name:'강화치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
+  { key:'enhCritMult', tab:'atk', icon:'!!', name:'강화치명타<br>계수', baseCost:15, unlock:'enhCrit', maxLv:15,
     cost()   { return upgCost('enhCritMult',15); },
     stat()   { var m=G.enhCritMult||0; return m>0?m.toFixed(1)+'x':'1.5x'; },
     canBuy() { return coreChips>=upgCost('enhCritMult',15); },
