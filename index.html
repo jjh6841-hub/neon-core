@@ -2685,9 +2685,9 @@ var UPGRADES = [
   },
   { key:'dmgPerMeter', tab:'atk', icon:'↗', name:'거리피해', baseCost:8, unlock:'rng', maxLv:30,
     cost()   { return upgCost('dmgPerMeter',8); },
-    stat()   { return 'x'+(1+(G.upgLvl.dmgPerMeter||0)*0.01)._tf2(); },
+    stat()   { return 'x'+(1+(G.upgLvl.dmgPerMeter||0)*0.05)._tf2(); },
     canBuy() { return coreChips>=upgCost('dmgPerMeter',8); },
-    apply()  { var c=upgCost('dmgPerMeter',8); coreChips-=c; G.upgLvl.dmgPerMeter=(G.upgLvl.dmgPerMeter||0)+1; G.dmgPerMeter=1+(G.upgLvl.dmgPerMeter||0)*0.01; },
+    apply()  { var c=upgCost('dmgPerMeter',8); coreChips-=c; G.upgLvl.dmgPerMeter=(G.upgLvl.dmgPerMeter||0)+1; G.dmgPerMeter=1+(G.upgLvl.dmgPerMeter||0)*0.05; },
   },
   { key:'multiChance', tab:'atk', icon:'%', name:'분열탄<br>확률', baseCost:10, unlock:'multi', maxLv:30,
     cost()   { return upgCost('multiChance',10); },
@@ -7866,7 +7866,7 @@ var WS = _ext.items;
 var NEW_ITEMS = {
   // 공격 탭 2단계 (tier 2, wave 150골드)
   wsRange:       { tab:'atk', name:'공격 범위',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.6);},  cur:function(lv){return ''+lv*8;},                    nxt:function(lv){return ''+(lv+1)*8;} },
-  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, atkGroup:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.01)._tf2();},     nxt:function(lv){return (1+(lv+1)*0.01)._tf2();} },
+  dmgPerMeter:   { tab:'atk', name:'거리 피해',   tier:2, atkGroup:2, maxLv:30, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.05)._tf2();},     nxt:function(lv){return (1+(lv+1)*0.05)._tf2();} },
   // 공격 탭 3단계
   multiChance:   { tab:'atk', name:'분열탄 확률', tier:3, atkGroup:3, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (lv*0.5)._tf1();},         nxt:function(lv){return ((lv+1)*0.5)._tf1();} },
   multiTargets:  { tab:'atk', name:'분열탄 수',   tier:3, atkGroup:3, maxLv:9,  cost:function(lv){return 30+lv*15;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
