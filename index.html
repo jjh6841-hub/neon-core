@@ -4213,11 +4213,6 @@ function triggerGameOver() {
   unlockRow.style.display = 'none';
   if (newUnlocks.length > 0) {
     window._pendingUnlocks = newUnlocks;
-    if (false) { // 결과화면 해금 표시 비활성화
-      });
-    }
-  } else {
-    unlockRow.style.display = 'none';
   }
 
   var bnav = document.getElementById('bottom-nav');
