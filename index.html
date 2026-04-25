@@ -3415,13 +3415,29 @@ function update(dt) {
           var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
-          // 전투 중 보석 드랍 비활성화 (이벤트/광고로만 획득)
+          // 보스 보석 보상 (엘리트 2, 하이퍼 5, 갤럭시 50 — 일반 보스는 없음)
+          var _bGem = e.bossGrade==='galaxy'?200:e.bossGrade==='hyper'?5:e.bossGrade==='elite'?2:0;
+          if (_bGem > 0) { PERM.gems = (PERM.gems||0) + _bGem; G.gems = (G.gems||0) + _bGem; G.floatTexts.push({x:e.x,y:e.y-12,text:'+'+_bGem+' \u2756',color:'#00ffff',timer:0}); }
           G.killCount++;
           PERM.totalKills++;
           _infKill(e.type);
           var _eGold = e.gold || 1;
           _eGold = Math.round(_eGold * (G.goldBonus||1) * (G.goldMult||1));
           if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; PERM.gold += _eGold; G.floatTexts.push({x:e.x,y:e.y+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
+          // 분열 적: 죽으면 기본 드론 2개 소환
+          if (e.type === 'split' && !e._isSplitChild) {
+            for (var _si=0;_si<2;_si++) {
+              var _sc = createEnemy('basic', e.x+(Math.random()-0.5)*16, e.y+(Math.random()-0.5)*16);
+              _sc.hp = Math.ceil(e.maxHp*0.5); _sc.maxHp = _sc.hp; _sc.gold = 0; _sc._isSplitChild = true;
+              G.enemies.push(_sc);
+            }
+          }
+          // 소환 모함: 죽으면 소환체 소멸
+          if (e.type === 'spawner') {
+            for (var _ski=G.enemies.length-1;_ski>=0;_ski--) {
+              if (G.enemies[_ski]._fromSpawner) { addFx(G.enemies[_ski].x,G.enemies[_ski].y,6,'#aa66ff'); G.enemies.splice(_ski,1); if(_ski<=j)j--; }
+            }
+          }
           if (e.boss) {
             PERM.bossKills++;
             // 갤럭시 보스 처치 → 행성 정복 기록
@@ -7187,7 +7203,7 @@ window.createState = function() {
   var g = _origCreate.apply(this, arguments);
   var ws = PERM.ws || {};
   // Defense extended
-  g.knockbackChance = (ws.knockbackChance || 0) * 0.008;
+  g.knockbackChance = (ws.knockChance || 0) * 0.005;
   g.knockbackForce  = (ws.knockbackForce  || 0) * 0.1;
   g.orbSpeed        = 1 + (ws.orbSpeed    || 0) * 0.1;
   g.orbCount        = ws.orbCount || 0;
