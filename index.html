@@ -8309,8 +8309,7 @@ setInterval(function() {
         _labNotified[nk] = true;
         var rObj = ALL_RESEARCH.filter(function(r) { return r.id === sd.researchId; })[0];
         var rName = rObj ? rObj.name : sd.researchId;
-        if (window.showToastMsg) showToastMsg('연구 완료: ' + rName);
-        if (window.showRewardPopup) showRewardPopup([{icon:'◈', label:rName, amount:1, color:'#00ff88'}], '연구 완료');
+        if (window.showToastMsg) showToastMsg('연구 완료: ' + rName, '#00ff88');
         _buildLabSlots();
       }
     }
