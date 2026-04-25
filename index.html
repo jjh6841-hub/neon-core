@@ -3303,6 +3303,8 @@ function startGame() {
   buildCards();
   setActiveTab('atk');
   syncUI();
+  // 프리즘 적용 후 한 번 더 갱신 (프리즘 효과가 stat에 반영되도록)
+  setTimeout(function(){ syncUI(); }, 100);
   applyPendingHighlight();
 
 
