@@ -2657,6 +2657,11 @@ function upgCost(key, base) {
 Number.prototype._tf2 = function() { var m=100; return (Math.floor(this*m+0.0001)/m).toFixed(2); };
 Number.prototype._tf1 = function() { var m=10;  return (Math.floor(this*m+0.0001)/m).toFixed(1); };
 
+// 체력 회복 레벨별 누적값
+var _HP_REGEN_TABLE = [0, 0.05, 0.09, 0.14, 0.2, 0.27, 0.35, 0.5, 0.8, 1.1, 1.4];
+(function() { var lastInc = 0.3; for (var i = 11; i <= 999; i++) { lastInc *= 1.2; _HP_REGEN_TABLE.push(parseFloat((_HP_REGEN_TABLE[i-1]+lastInc).toFixed(4))); } })();
+function _getHpRegen(lv) { return _HP_REGEN_TABLE[Math.min(lv, _HP_REGEN_TABLE.length-1)] || 0; }
+
 var UPGRADES = [
   // ─ 공격 탭 ─
   { key:'dmg',     tab:'atk', icon:'/',  name:'공격력',   baseCost:5,  unlock:null,
@@ -2760,7 +2765,7 @@ var UPGRADES = [
     cost()   { return upgCost('hpRegen',8); },
     stat()   { return G.regenRate._tf2()+'/s'; },
     canBuy() { return coreChips>=upgCost('hpRegen',8); },
-    apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate=(G.regenRate||0)+0.05; },
+    apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate=_getHpRegen((PERM.ws&&PERM.ws.hpRegen||0)+(G.upgLvl.hpRegen||0)); },
   },
   { key:'defRate', tab:'def', icon:'%',  name:'방어율',   baseCost:8,  unlock:null,
     cost()   { return upgCost('defRate',8); },
@@ -3197,7 +3202,7 @@ function applyPermStats() {
   t.critChance = (ws.critChance || 0) * 0.005;
   t.critMult   = 1.5 + (ws.critMult   || 0) * 0.1;
   t.defense    = Math.min(0.50, (ws.defRate || 0) * 0.01);  // 회피율 1%/lv, 50% 캡
-  t.hpRegen    = (ws.hpRegen    || 0) * 0.05;
+  t.hpRegen    = _getHpRegen(ws.hpRegen || 0);
   G.defenseAbs = ws.defAbs || 0;                             // 절대 방어
   G.enemyDefReduce = (ws.enemyDefReduce || 0);               // 적 방어력 감소 (강화소 기본값)
   // 강화 치명타 (강화소 기본값, 프리즘과 합연산됨)
@@ -6322,8 +6327,8 @@ if (dailyPopup) {
       nxt:  function(lv) { return '' + ((lv + 1) * 5); } },
     hpRegen:    { tab:'def', name:'체력 회복',    maxLv:999, defGroup:0,
       cost: function(lv) { return 10 + lv * 5; },
-      cur:  function(lv) { return (lv * 0.05)._tf2(); },
-      nxt:  function(lv) { return ((lv + 1) * 0.05)._tf2(); } },
+      cur:  function(lv) { return _getHpRegen(lv)._tf2(); },
+      nxt:  function(lv) { return _getHpRegen(lv+1)._tf2(); } },
     defRate:    { tab:'def', name:'방어율',       maxLv:120, defGroup:1,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return (lv * 0.5)._tf1(); },
@@ -10978,7 +10983,7 @@ function _patchApplyPermStats() {
     G.critMult   = t.critMult;
     // §7 방어/재생/골드 (키를 WS_ITEMS와 일치시킴)
     t.defense  = Math.min(0.9, (ws.defRate   || 0) * 0.01);          // 1%/lv, 90% 캡
-    t.hpRegen  = (ws.hpRegen   || 0) * 0.05;                         // 0.05/s/lv
+    t.hpRegen  = _getHpRegen(ws.hpRegen || 0);
     G.defenseAbs = ws.defAbs   || 0;                                  // 절대 피해 차감 (flat)
     G.lifeSteal  = (ws.vampChance || 0) * 0.1;                       // 0.1%/lv
     G.reflectPct = (ws.reflectDmg || 0) * 0.005;                     // 0.5%/lv
@@ -11062,8 +11067,8 @@ function _applyWsCostPatches() {
     items.defAbs.nxt = function(lv) { return '' + (lv + 1); };
   }
   if (items.hpRegen) {
-    items.hpRegen.cur = function(lv) { return (lv * 0.05)._tf2() + '/s'; };
-    items.hpRegen.nxt = function(lv) { return ((lv + 1) * 0.05)._tf2() + '/s'; };
+    items.hpRegen.cur = function(lv) { return _getHpRegen(lv)._tf2() + '/s'; };
+    items.hpRegen.nxt = function(lv) { return _getHpRegen(lv+1)._tf2() + '/s'; };
   }
   if (items.vampChance) {
     items.vampChance.cur = function(lv) { return (lv * 0.1)._tf1() + '%'; };
