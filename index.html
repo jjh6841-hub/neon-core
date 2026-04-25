@@ -2169,21 +2169,30 @@ function _showOfflinePopup(data) {
       if (data.gems) rw.push({icon:'❖',label:'보석',amount:data.gems,color:'#00ffff'});
       showRewardPopup(rw, '오프라인 보상');
     }
+    // 버튼 비활성화 갱신
+    _updateOfflineBtn();
   });
 }
 
-// 오프라인 보상 버튼 + 홈 진입 시 자동 체크
-function _initOfflineReward() {
+// 오프라인 버튼 상태만 갱신
+function _updateOfflineBtn() {
   var btn = document.getElementById('btn-offline-reward');
   if (!btn) return;
   var data = _calcOfflineReward();
   var _hasReward = data && (data.gold > 0 || data.gems > 0);
   btn.style.borderColor = _hasReward ? '#f59e0b' : '#1a2a3a';
-  // SVG 색상 변경
   var _svgs = btn.querySelectorAll('line,path,circle');
   for(var si=0;si<_svgs.length;si++) { _svgs[si].setAttribute('stroke', _hasReward?'#f59e0b':'#334455'); if(_svgs[si].tagName==='circle') _svgs[si].setAttribute('fill', _hasReward?'#f59e0b':'#334455'); }
   var _oldBadge = btn.querySelector('.offl-badge');
   if (_oldBadge) _oldBadge.remove();
+}
+
+// 오프라인 보상 버튼 초기화 (1회만)
+function _initOfflineReward() {
+  var btn = document.getElementById('btn-offline-reward');
+  if (!btn || btn._offlineInited) return;
+  btn._offlineInited = true;
+  _updateOfflineBtn();
   btn.addEventListener('click', function() {
     var d = _calcOfflineReward();
     if (d && (d.gold > 0 || d.gems > 0)) {
