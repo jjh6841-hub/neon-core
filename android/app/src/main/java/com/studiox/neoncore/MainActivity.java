@@ -46,12 +46,12 @@ public class MainActivity extends BridgeActivity {
             return WindowInsetsCompat.CONSUMED;
         });
 
-        // Android 백 버튼 → JS handleBackButton() 호출 (Android 13+ predictive back)
+        // Android 백 버튼 → JS handleBackButton() 즉시 호출 (Android 13+)
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                webView.post(() -> webView.evaluateJavascript(
-                    "if(window._handleBackButton) window._handleBackButton();", null));
+                webView.evaluateJavascript(
+                    "if(window._handleBackButton) window._handleBackButton();", null);
             }
         });
     }
@@ -68,14 +68,14 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    // Android 12 이하: 기본 뒤로가기(webView.goBack) 방지
+    // Android 12 이하: 기본 뒤로가기(webView.goBack) 방지 — 즉시 호출
     @SuppressWarnings("deprecation")
     @Override
     public void onBackPressed() {
         WebView webView = getBridge().getWebView();
         if (webView != null) {
-            webView.post(() -> webView.evaluateJavascript(
-                "if(window._handleBackButton) window._handleBackButton();", null));
+            webView.evaluateJavascript(
+                "if(window._handleBackButton) window._handleBackButton();", null);
         }
     }
 }

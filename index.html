@@ -18630,11 +18630,11 @@ if (_gemAdBtn) {
     var settingsEl = document.getElementById('settings-screen');
     if (settingsEl && settingsEl.classList.contains('show')) { settingsEl.classList.remove('show'); return; }
 
-    // 업적 (show 클래스 + display 모두 제거 → 홈으로 복귀)
+    // 업적 (show 클래스 제거 → 홈으로 복귀)
     var achEl = document.getElementById('achieve-screen');
     if (achEl && (achEl.classList.contains('show') || achEl.style.display === 'flex')) {
       achEl.classList.remove('show');
-      achEl.style.display = 'none';
+      achEl.style.display = '';
       if (window.showScreen) showScreen('home');
       return;
     }
