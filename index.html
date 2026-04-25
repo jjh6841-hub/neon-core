@@ -3083,13 +3083,15 @@ function startGame() {
   // 탐사선 스킨 이미지 사전 로드
   try {
     var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
-    if ((!window._towerSkinImg || window._towerSkinId !== _sid) && window.getNeonCoreIcon) {
-      var _svgStr = window.getNeonCoreIcon(80, _sid);
+    var _preDpr = window.devicePixelRatio || 1;
+    var _preKey = _sid + '_' + _preDpr;
+    if ((!window._towerSkinImg || window._towerSkinId !== _preKey) && window.getNeonCoreIcon) {
+      var _svgStr = window.getNeonCoreIcon(Math.round(80 * _preDpr), _sid);
       if (_svgStr) {
         var _img = new Image();
         _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
         window._towerSkinImg = _img;
-        window._towerSkinId = _sid;
+        window._towerSkinId = _preKey;
       }
     }
   } catch(_){}
@@ -4496,15 +4498,18 @@ function render() {
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
     // 탐사선 스킨 SVG → 캐시 Image로 렌더링
-    if (!window._towerSkinImg || window._towerSkinId !== (localStorage.getItem('neoncore_skin')||'iris0')) {
+    var _skinDpr = window._dpr || 1;
+    var _skinKey = (localStorage.getItem('neoncore_skin')||'iris0') + '_' + _skinDpr;
+    if (!window._towerSkinImg || window._towerSkinId !== _skinKey) {
       try {
         var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
-        var _svgStr = window.getNeonCoreIcon ? window.getNeonCoreIcon(80, _sid) : null;
+        var _svgSize = Math.round(80 * _skinDpr);
+        var _svgStr = window.getNeonCoreIcon ? window.getNeonCoreIcon(_svgSize, _sid) : null;
         if (_svgStr) {
           var _img = new Image();
           _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
           window._towerSkinImg = _img;
-          window._towerSkinId = _sid;
+          window._towerSkinId = _skinKey;
         }
       } catch(_) {}
     }
