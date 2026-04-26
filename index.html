@@ -1886,7 +1886,7 @@ var AudioManager = {
       this.bgmGain.connect(this.ctx.destination);
       this.sfxGain.connect(this.ctx.destination);
       this.bgmGain.gain.value = 0.3;
-      this.sfxGain.gain.value = 0.5;
+      this.sfxGain.gain.value = 0.25;
       if (this.ctx.state === 'suspended') { this.ctx.resume(); }
     } catch(e) {}
   },
@@ -2180,7 +2180,7 @@ var AudioManager = {
       this.stopBGM();
     }
   },
-  toggleSFX: function(on) { if(this.sfxGain) this.sfxGain.gain.value = on ? 0.5 : 0; },
+  toggleSFX: function(on) { if(this.sfxGain) this.sfxGain.gain.value = on ? 0.25 : 0; },
 };
 
 // ── Daily Reward (25일 사이클, 5일마다 보너스, 25일차 3배) ──
@@ -8683,8 +8683,6 @@ var RESEARCH_LIST = {
     { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:999 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
-    { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
-    { id:'r_knockforce', name:'넉백 거리 연구', desc:'넉백 거리 향상',           time:14400, cost:11000, maxLv:5 },
   ],
   defense: [
     { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:999 },
@@ -8694,6 +8692,8 @@ var RESEARCH_LIST = {
     { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 향상',         time:14400, cost:12000, maxLv:30 },
     { id:'r_vamp',       name:'흡혈 연구',     desc:'흡혈 확률 향상',           time:18000, cost:15000, maxLv:30 },
     { id:'r_shield',     name:'쉴드 연구',     desc:'쉴드 HP 향상',             time:21600, cost:20000, maxLv:20 },
+    { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
+    { id:'r_knockforce', name:'넉백 거리 연구', desc:'넉백 거리 향상',           time:14400, cost:11000, maxLv:5 },
   ],
   utility: [
     { id:'start_cash',   name:'시작 골드',   desc:'게임 시작 시 +골드',        time:6300,  cost:2940,  maxLv:20 },
@@ -19503,7 +19503,7 @@ if (typeof _origShowMod === 'function') {
 /* ════════════════════════════════════════════════════════
    §1 — 떠다니는 보석 이벤트 (15분마다, +2 보석)
 ════════════════════════════════════════════════════════ */
-var GEM_EVENT_INTERVAL = 15 * 60 * 1000; // 플레이 시작 후 15분
+var GEM_EVENT_INTERVAL = 3 * 60 * 1000; // 플레이 시작 후 3분
 var GEM_EVENT_REWARD   = 2;
 var _gemEventActive    = false;
 var _gemEventUsed      = false; // 이번 전투에서 이미 출현했는지
