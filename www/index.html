@@ -3902,10 +3902,13 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          var _rawChip = e.boss ? 0 : (e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult ? 0.5 : 0));
-          G._chipFrac = (G._chipFrac||0) + _rawChip;
-          var chipEarned = Math.floor(G._chipFrac);
-          G._chipFrac -= chipEarned;
+          var _baseChip = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1);
+          var _bonusRate = (G._prismChipKillBonus||0) + (G._augChipMult ? 0.5 : 0);
+          var _bonusRaw = _baseChip * _bonusRate;
+          G._chipFrac = (G._chipFrac||0) + _bonusRaw;
+          var _bonusInt = Math.floor(G._chipFrac);
+          G._chipFrac -= _bonusInt;
+          var chipEarned = _baseChip + _bonusInt;
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           G.killCount++;
