@@ -2204,6 +2204,8 @@ function _calcOfflineReward() {
   var gold = Math.floor(goldPerMin * mins);
   // 보석: gem_epoch 기준으로 2시간당 1보석 (중간 수령해도 이어서 계산)
   var gemEpoch = parseInt(localStorage.getItem('gem_epoch')||'0',10) || lastOnline;
+  // gem_epoch이 미래면 현재 시간으로 교정
+  if (gemEpoch > Date.now()) { gemEpoch = Date.now(); localStorage.setItem('gem_epoch', gemEpoch); }
   var gemElapsed = Date.now() - gemEpoch;
   var gems = Math.max(0, Math.floor(gemElapsed / (2*3600000))); // 2시간당 1보석, 음수 방지
   gems = Math.min(gems, 4); // 최대 4보석
@@ -2233,10 +2235,8 @@ function _showOfflinePopup(data) {
     '</div>';
   document.body.appendChild(ov);
   document.getElementById('offline-claim').addEventListener('click', function() {
-    PERM.gold = (PERM.gold||0) + data.gold;
-    PERM.gems = (PERM.gems||0) + data.gems;
-    if (data.gold) logCurrency('gold', data.gold, '오프라인 보상');
-    if (data.gems) logCurrency('gems', data.gems, '오프라인 보상');
+    if (data.gold > 0) { PERM.gold = (PERM.gold||0) + data.gold; logCurrency('gold', data.gold, '오프라인 보상'); }
+    if (data.gems > 0) { PERM.gems = (PERM.gems||0) + data.gems; logCurrency('gems', data.gems, '오프라인 보상'); }
     savePerm();
     localStorage.setItem('last_online', Date.now());
     // 보석 에포크: 수령한 보석 시간(2시간 단위)만큼만 전진, 현재 시간 초과 방지
