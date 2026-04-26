@@ -16091,9 +16091,13 @@ window.showCoinBonusPopup = function () {
   var rW=parseInt(localStorage.getItem('res_r_wave_cash')||'0',10);
   var labVal=1; if(rG>0)labVal*=(1+rG*0.02); if(rW>0)labVal*=(1+rW*0.02);
   var labOn=labVal>1, tierOn=tierMult>1;
+  var prismGold=1;
+  try{var eq=(window.PERM&&window.PERM.prismEquipped)||[];if(eq.indexOf('p_kill_cash')!==-1){var pv=(window.PERM.prisms&&window.PERM.prisms.p_kill_cash)||{};if(pv.lv>0)prismGold*=(1+[20,40,60,80,100,120][pv.lv-1]/100);}}catch(_){}
+  var prismOn=prismGold>1;
   var items=[
     {label:'\uAC15\uD654\uC18C \u00b7 \uACE8\uB4DC \uAC15\uD654',value:wsVal,active:wsOn},
     {label:'\uCF54\uC5B4\uB7A9 \u00b7 \uACE8\uB4DC \uC5F0\uAD6C',value:labVal,active:labOn},
+    {label:'\uD504\uB9AC\uC998 \u00b7 \uC804\uB9AC\uD488 \uC218\uC9D1',value:prismGold,active:prismOn},
     {label:'\uD589\uC131 \uBCF4\uB108\uC2A4',value:tierMult,active:tierOn},
     {label:'\uAD11\uACE0 \uACE8\uB4DC \uBCF4\uB108\uC2A4',value:1.5,active:adActive}
   ];
