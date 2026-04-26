@@ -3665,7 +3665,7 @@ function update(dt) {
       G.floatTexts.push({ x: G.cx, y: G.cy - 30, text: 'PULSE!', color: '#00aaff', timer: 0 });
       // 파장 이펙트: 확장 링
       if (!G._pulseEffects) G._pulseEffects = [];
-      G._pulseEffects.push({ x: G.cx, y: G.cy, maxR: G.tower.range, t: 0 });
+      G._pulseEffects.push({ x: G.cx, y: G.cy, maxR: G.pulseRange, t: 0 });
     }
   }
 
@@ -3756,7 +3756,7 @@ function update(dt) {
           for (var _sei = 0; _sei < _skipEnemies.length; _sei++) {
             var _seGold = (_enemyGoldMap[_skipEnemies[_sei]] || 1);
             _skipKillGold += Math.round(_seGold * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
-            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1));
+            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0)));
           }
           var _skipWaveGold = Math.round(Math.min(50, 5 + Math.floor(_nw / 100) * 5) * (G.goldBonus||1) * (G.goldMult||1));
           var _skipWaveChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
@@ -3913,7 +3913,8 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1));
+          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
+          if (G._augChipMult && chipEarned > 0) chipEarned = Math.ceil(chipEarned * 1.5);
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           // 보스 보석 보상 (엘리트 2, 하이퍼 5, 갤럭시 50 — 일반 보스는 없음)
@@ -3975,7 +3976,8 @@ function update(dt) {
               if (edx * edx + edy * edy < G.explodeR * G.explodeR) {
                 ek.hp -= exDmg;
                 if (ek.hp <= 0) {
-                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1));
+                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
+                  if (G._augChipMult && ekChip > 0) ekChip = Math.ceil(ekChip * 1.5);
                   coreChips += ekChip;
                   G.killCount++;
                   PERM.totalKills++;
@@ -4708,14 +4710,27 @@ function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
   if (!window._cachedBgColor) {
     try {
-      // 행성별 전투 배경색
       var _bTier = parseInt(localStorage.getItem('td_tier')||'1',10);
       var _tierBg = {1:'#030b10',2:'#040a0e',3:'#030820',4:'#100515',5:'#0a0805'};
       window._cachedBgColor = _tierBg[_bTier] || '#030b10';
+      // 행성별 배경 그라데이션 캐시
+      var _tierGlow = {1:null, 2:'#0a3322', 3:'#0a1840', 4:'#200a20', 5:'#1a1005'};
+      window._cachedBgGlow = _tierGlow[_bTier] || null;
     } catch(_){ window._cachedBgColor = '#030b10'; }
   }
   ctx.fillStyle = window._cachedBgColor;
   ctx.fillRect(0, 0, CW, CH);
+  // 행성별 은은한 배경 글로우 (정적)
+  if (window._cachedBgGlow) {
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    var _bgGrd = ctx.createRadialGradient(CW*0.5, CH*0.3, 0, CW*0.5, CH*0.3, CW*0.8);
+    _bgGrd.addColorStop(0, window._cachedBgGlow);
+    _bgGrd.addColorStop(1, 'transparent');
+    ctx.fillStyle = _bgGrd;
+    ctx.fillRect(0, 0, CW, CH);
+    ctx.restore();
+  }
 
   // ── Screen shake wrapper ──────────────────────────────────────
   ctx.save();
@@ -17422,21 +17437,21 @@ function renderSkinGrid() {
       } else if (motionType === 'vortex') {
         var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.003;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.5){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.35;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=6;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
       } else if (motionType === 'wave') {
-        // 오로라: 부드러운 수평 웨이브 (밤하늘 오로라)
-        var aCols = ['#22cc77','#33ffaa','#44ddbb','#55eedd','#33bb88'];
-        for(var b=0;b<6;b++){
-          var baseY = H*(0.08+b*0.07);
-          var amp = 15 + Math.sin(t*0.03+b*1.5)*8;
-          var freq = 0.003 + b*0.0005;
-          var spd = 0.03 + b*0.008;
-          var alpha = 0.12 + Math.sin(t*0.05+b*0.9)*0.06;
+        // 오로라: 신비로운 밤하늘 웨이브
+        var aCols = ['#22cc77','#33ffaa','#44ddbb','#88ffee','#33bb88','#66ffcc'];
+        for(var b=0;b<8;b++){
+          var baseY = H*(0.05+b*0.065);
+          var amp = 18 + Math.sin(t*0.15+b*1.2)*10;
+          var freq = 0.004 + b*0.0008;
+          var spd = 0.12 + b*0.025;
+          var alpha = 0.15 + Math.sin(t*0.2+b*0.7)*0.08;
           var grd = ctx.createLinearGradient(0, baseY-amp*3, 0, baseY+amp*4);
           var ac = aCols[b%aCols.length];
           grd.addColorStop(0, 'transparent');
-          grd.addColorStop(0.2, ac+'10');
-          grd.addColorStop(0.4, ac+'20');
-          grd.addColorStop(0.6, ac+'15');
-          grd.addColorStop(0.8, ac+'08');
+          grd.addColorStop(0.15, ac+'18');
+          grd.addColorStop(0.35, ac+'30');
+          grd.addColorStop(0.55, ac+'20');
+          grd.addColorStop(0.8, ac+'0a');
           grd.addColorStop(1, 'transparent');
           ctx.globalAlpha = alpha;
           ctx.fillStyle = grd;
