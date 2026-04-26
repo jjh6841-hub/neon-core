@@ -2043,11 +2043,21 @@ var AudioManager = {
           var o = self.ctx.createOscillator(), g = self.ctx.createGain();
           o.type = 'sine';
           o.frequency.value = bass[bar];
-          g.gain.setValueAtTime(isBattle ? 0.15 : 0.12, t);
+          g.gain.setValueAtTime(isBattle ? 0.18 : 0.12, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + beat * 0.9);
           o.connect(g); g.connect(self.bgmGain);
           o.start(t); o.stop(t + beat);
           oEnded(o);
+          // 전투: 서브 옥타브 레이어 (깊은 울림)
+          if (isBattle) {
+            var o3 = self.ctx.createOscillator(), g3 = self.ctx.createGain();
+            o3.type = 'sine'; o3.frequency.value = bass[bar] * 0.5;
+            g3.gain.setValueAtTime(0.10, t);
+            g3.gain.exponentialRampToValueAtTime(0.001, t + beat * 0.8);
+            o3.connect(g3); g3.connect(self.bgmGain);
+            o3.start(t); o3.stop(t + beat);
+            oEnded(o3);
+          }
         }
 
         /* Synth bass */
@@ -2056,8 +2066,8 @@ var AudioManager = {
           var f = self.ctx.createBiquadFilter();
           o.type = 'sawtooth';
           o.frequency.value = bass[bar] * 2;
-          f.type = 'lowpass'; f.frequency.value = isBattle ? 600 : 400; f.Q.value = 8;
-          g.gain.setValueAtTime(isBattle ? 0.09 : 0.07, t);
+          f.type = 'lowpass'; f.frequency.value = isBattle ? 800 : 400; f.Q.value = isBattle ? 12 : 8;
+          g.gain.setValueAtTime(isBattle ? 0.11 : 0.07, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 2);
           o.connect(f); f.connect(g); g.connect(self.bgmGain);
           o.start(t); o.stop(t + s16 * 2.5);
@@ -2067,16 +2077,28 @@ var AudioManager = {
         /* Arpeggio */
         var o = self.ctx.createOscillator(), g = self.ctx.createGain();
         var f = self.ctx.createBiquadFilter();
-        o.type = 'square';
+        o.type = isBattle ? 'sawtooth' : 'square';
         o.frequency.value = arpSeq[bar][b % 8];
         f.type = 'lowpass';
-        f.frequency.value = (isBattle ? 1600 : 1200) + (b / 16) * 1800;
-        f.Q.value = 2;
+        f.frequency.value = (isBattle ? 2000 : 1200) + (b / 16) * 1800;
+        f.Q.value = isBattle ? 4 : 2;
         g.gain.setValueAtTime(P.arpVol, t);
         g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 0.7);
         o.connect(f); f.connect(g); g.connect(self.bgmGain);
         o.start(t); o.stop(t + s16 * 0.85);
         oEnded(o);
+        // 전투: 옥타브 아래 아르페지오 레이어 (웅장함)
+        if (isBattle && b % 4 === 0) {
+          var o4 = self.ctx.createOscillator(), g4 = self.ctx.createGain();
+          var f4 = self.ctx.createBiquadFilter();
+          o4.type = 'triangle'; o4.frequency.value = arpSeq[bar][b % 8] * 0.5;
+          f4.type = 'lowpass'; f4.frequency.value = 1000;
+          g4.gain.setValueAtTime(P.arpVol * 0.6, t);
+          g4.gain.exponentialRampToValueAtTime(0.001, t + s16 * 1.5);
+          o4.connect(f4); f4.connect(g4); g4.connect(self.bgmGain);
+          o4.start(t); o4.stop(t + s16 * 2);
+          oEnded(o4);
+        }
 
         step++;
       } catch(e) {}
@@ -2199,8 +2221,8 @@ function _calcOfflineReward() {
   var bestWave = PERM.bestWave || 0;
   if (bestWave < 1) return null;
   var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
-  var planetMult = [1,1,2,3,4,5][_tier] || 1;
-  var goldPerMin = bestWave * 0.1 * planetMult;
+  var _offGoldRate = [0,0.1,0.15,0.2,0.3,0.5][_tier] || 0.1;
+  var goldPerMin = bestWave * _offGoldRate;
   var gold = Math.floor(goldPerMin * mins);
   // 보석: gem_epoch 기준으로 2시간당 1보석 (중간 수령해도 이어서 계산)
   var gemEpoch = parseInt(localStorage.getItem('gem_epoch')||'0',10) || lastOnline;
@@ -2941,6 +2963,18 @@ var UPGRADES = [
     canBuy() { return _canUpg('shieldHP',50) && coreChips>=upgCost('shieldHP',12); },
     apply()  { var c=upgCost('shieldHP',12); coreChips-=c; G.upgLvl.shieldHP=(G.upgLvl.shieldHP||0)+1; var _sLv=(PERM.ws&&PERM.ws.shieldHP||0)+(G.upgLvl.shieldHP||0); var _sPct=Math.min(50,_sLv)*0.01; if(G.tower){G.tower.shdMax=Math.round(G.tower.maxHp*_sPct);G.tower.shdCur=Math.min(G.tower.shdCur||0,G.tower.shdMax);} },
   },
+  { key:'pulseSize', tab:'def', icon:'◎', name:'파장 크기',  baseCost:15, unlock:null, maxLv:10,
+    cost()   { return upgCost('pulseSize',15); },
+    stat()   { return ((G.upgLvl.pulseSize||0)*10) + 'px'; },
+    canBuy() { return _canUpg('pulseSize',10) && coreChips>=upgCost('pulseSize',15); },
+    apply()  { var c=upgCost('pulseSize',15); coreChips-=c; G.upgLvl.pulseSize=(G.upgLvl.pulseSize||0)+1; G.pulseRange=(G.upgLvl.pulseSize||0)*10; },
+  },
+  { key:'pulseCd', tab:'def', icon:'⏱', name:'파장 주기',  baseCost:12, unlock:null, maxLv:21,
+    cost()   { return upgCost('pulseCd',12); },
+    stat()   { var lv=G.upgLvl.pulseCd||0; return lv===0?'-':Math.max(20,60-lv*2)+'초'; },
+    canBuy() { return (G.upgLvl.pulseSize||0)>0 && _canUpg('pulseCd',21) && coreChips>=upgCost('pulseCd',12); },
+    apply()  { var c=upgCost('pulseCd',12); coreChips-=c; G.upgLvl.pulseCd=(G.upgLvl.pulseCd||0)+1; G.pulseCd=Math.max(20,60-(G.upgLvl.pulseCd||0)*2)*1000; },
+  },
   // ─ 특수 탭 ─
   { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
     cost()   { return upgCost('explode',15); },
@@ -3573,6 +3607,28 @@ function update(dt) {
       G.pShieldCdTimer = 0;
       G.pShieldCur = G.pShieldMax;
       G.floatTexts.push({ x: G.cx, y: G.cy - 50, text: 'SHIELD!', color: '#0088ff', timer: 0 });
+    }
+  }
+
+  // 파장 (타워 중심 밀어내기)
+  if (G.pulseRange > 0 && G.pulseCd > 0 && G.phase === 'playing') {
+    G._pulseTimer = (G._pulseTimer || G.pulseCd) - dt;
+    if (G._pulseTimer <= 0) {
+      G._pulseTimer = G.pulseCd;
+      var _pr = G.pulseRange;
+      for (var _pi = 0; _pi < G.enemies.length; _pi++) {
+        var _pe = G.enemies[_pi];
+        var _pdx = _pe.x - G.cx, _pdy = _pe.y - G.cy;
+        var _pd = Math.sqrt(_pdx*_pdx + _pdy*_pdy);
+        if (_pd < G.tower.range && _pd > 1) {
+          var _pf = _pr;
+          if (_pe.boss) _pf *= (_pe.bossGrade==='galaxy'?0.01:_pe.bossGrade==='hyper'?0.1:_pe.bossGrade==='elite'?0.3:0.5);
+          _pe.x += (_pdx/_pd) * _pf;
+          _pe.y += (_pdy/_pd) * _pf;
+        }
+      }
+      G.floatTexts.push({ x: G.cx, y: G.cy - 30, text: 'PULSE!', color: '#00aaff', timer: 0 });
+      G.effects.push({ x: G.cx, y: G.cy, r: G.tower.range, t: 0 });
     }
   }
 
@@ -17922,7 +17978,7 @@ var AUGMENTS = [
   { id:'aug_dmg',   name:'레이저 과부하', desc:'공격력 +30%',            cost:3, icon:'▲', color:'#ff4444' },
   { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',           cost:3, icon:'◆', color:'#00ff88' },
   { id:'aug_chips', name:'자원 스캐너',   desc:'코어칩 획득 +50%',       cost:3, icon:'◈', color:'#f59e0b' },
-  { id:'aug_regen', name:'나노 수복',     desc:'초당 최대체력 3% 재생',  cost:2, icon:'✦', color:'#00dddd' },
+  { id:'aug_regen', name:'나노 수복',     desc:'10초당 최대체력 3% 재생',  cost:2, icon:'✦', color:'#00dddd' },
   { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',        cost:3, icon:'◎', color:'#cc44ff' },
   { id:'aug_start', name:'선행 보급',     desc:'시작 코어칩 +300',       cost:2, icon:'▣', color:'#3b82f6' },
 ];
@@ -18086,8 +18142,8 @@ if (typeof _augUpd === 'function') {
     }
     if (window.G && G._augRegenPct && G.tower && G.phase === 'playing') {
       G._augRegenT = (G._augRegenT || 0) + dt;
-      if (G._augRegenT >= 1000) {
-        G._augRegenT -= 1000;
+      if (G._augRegenT >= 10000) {
+        G._augRegenT -= 10000;
         G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + Math.floor(G.tower.maxHp * G._augRegenPct));
       }
     }
@@ -18096,11 +18152,7 @@ if (typeof _augUpd === 'function') {
 var _augSW = window.startWave;
 if (typeof _augSW === 'function') {
   window.startWave = function() {
-    var pre = (typeof coreChips !== 'undefined') ? coreChips : 0;
     _augSW.apply(this, arguments);
-    if (window.G && G._augChipMult && typeof coreChips !== 'undefined' && coreChips > pre) {
-      coreChips += Math.floor((coreChips - pre) * 0.5);
-    }
   };
 }
 
