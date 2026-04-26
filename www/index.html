@@ -3909,7 +3909,7 @@ function update(dt) {
           var _bonusInt = Math.floor(G._chipFrac);
           G._chipFrac -= _bonusInt;
           var chipEarned = _baseChip + _bonusInt;
-          coreChips += chipEarned;
+          coreChips = Math.round((coreChips + chipEarned) * 100) / 100;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           G.killCount++;
           PERM.totalKills++;
@@ -5681,7 +5681,7 @@ function renderHUD() {
   var gemsEl = document.getElementById('hud-gems-battle');
   if (gemsEl) gemsEl.textContent = G.gems;
   var chipsEl = document.getElementById('hud-chips');
-  if (chipsEl) chipsEl.textContent = Math.floor(coreChips);
+  if (chipsEl) chipsEl.textContent = Math.round(coreChips * 100) / 100;
 
   // ── Buff timer (canvas) ──
   if (G.tower.buffMs > 0) {
