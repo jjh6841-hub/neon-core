@@ -7034,6 +7034,7 @@ if (dailyPopup) {
       ];
       var defUnlocks = PERM.ws_def_unlocks || 0;
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'def'; });
+      console.log('[WS DEBUG] def keys:', keys.join(','), 'defUnlocks:', defUnlocks, 'has knockbackForce:', !!WS_ITEMS.knockbackForce);
       var _defKeys = keys.filter(function(key){ var c=WS_ITEMS[key]; return (c.defGroup!==undefined?c.defGroup:99)<=defUnlocks; });
       _defKeys.sort(function(a,b){ var ma=(ws[a]||0)>=WS_ITEMS[a].maxLv?1:0, mb=(ws[b]||0)>=WS_ITEMS[b].maxLv?1:0; return ma-mb || (WS_ITEMS[a].defGroup||0)-(WS_ITEMS[b].defGroup||0); });
       _defKeys.forEach(function(key) {
