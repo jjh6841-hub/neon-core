@@ -2718,18 +2718,15 @@ function syncFromFirebase() {
         syncShopUI && syncShopUI();
       } catch(_) {}
     }
-    // 관리자 해금 리셋 감지
+    // 관리자 해금 리셋 감지 (해금 상태만 리셋, PERM 덮어쓰기 안 함)
     var _resetTs = doc.data().navUnlockReset;
     var _lastReset = localStorage.getItem('_navResetTs')||'';
     if (_resetTs && _resetTs !== _lastReset) {
       localStorage.setItem('_navResetTs', _resetTs);
       localStorage.removeItem('td_nav_unlocked');
-      // PERM 진행 데이터만 클라우드 반영 (재화는 보호)
-      var _protectKeys = {gold:1,gems:1,prismFragments:1,prismSlotCount:1};
-      Object.keys(cloud).forEach(function(k) { if (!_protectKeys[k]) PERM[k] = cloud[k]; });
-      try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
+      // tierBest만 클라우드에서 동기화 (높은 값만)
       var _cTB = doc.data().tierBest;
-      if (_cTB) { for(var _ri=1;_ri<=5;_ri++) localStorage.setItem('tier'+_ri+'_best', _cTB['tier'+_ri]||0); }
+      if (_cTB) { for(var _ri=1;_ri<=5;_ri++) { var _cv=_cTB['tier'+_ri]||0; var _lv=parseInt(localStorage.getItem('tier'+_ri+'_best')||'0',10); if(_cv>_lv) localStorage.setItem('tier'+_ri+'_best', _cv); } }
       // 속성 탭 해금도 리셋
       if (PERM.ws) { delete PERM.ws.tab_ult_u; try{localStorage.setItem('td_perm',JSON.stringify(PERM));}catch(_){} }
     } else {
