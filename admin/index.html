@@ -619,12 +619,12 @@ function renderModal() {
     var ph='';
     for(var pi=0;pi<totalPages;pi++) ph+='<button data-srcpg="'+pi+'" style="background:'+(pi===_srcPage?'#0a3344':'#030b10')+';border:1px solid #0a3344;color:'+(pi===_srcPage?'#00ffff':'#556677')+';font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;">'+(pi+1)+'</button>';
     pg.innerHTML=ph;
-    pg.querySelectorAll('[data-srcpg]').forEach(function(b){b.onclick=function(){_srcPage=parseInt(b.dataset.srcpg);renderSrcPage();};});
+    pg.querySelectorAll('[data-srcpg]').forEach(function(b){b.onclick=function(e){e.preventDefault();_srcPage=parseInt(b.dataset.srcpg);renderSrcPage();};});
   }
   if(sources.length>0) renderSrcPage();
 
   // 상세 로그 페이지네이션 렌더
-  var DET_PER=200, _detPage=0, _detFilter='all';
+  var DET_PER=100, _detPage=0, _detFilter='all';
   function getFilteredLogs(){
     if(_detFilter==='all') return logs;
     return logs.filter(function(l){return l.t===_detFilter;});
@@ -652,7 +652,7 @@ function renderModal() {
     var ph='';
     for(var pi=0;pi<totalPages;pi++) ph+='<button data-detpg="'+pi+'" style="background:'+(pi===_detPage?'#0a3344':'#030b10')+';border:1px solid #0a3344;color:'+(pi===_detPage?'#00ffff':'#556677')+';font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;">'+(pi+1)+'</button>';
     pg.innerHTML=ph;
-    pg.querySelectorAll('[data-detpg]').forEach(function(b){b.onclick=function(){_detPage=parseInt(b.dataset.detpg);renderDetPage();};});
+    pg.querySelectorAll('[data-detpg]').forEach(function(b){b.onclick=function(e){e.preventDefault();_detPage=parseInt(b.dataset.detpg);renderDetPage();};});
   }
   if(logs.length>0) renderDetPage();
 

@@ -3745,7 +3745,7 @@ function update(dt) {
           for (var _sei = 0; _sei < _skipEnemies.length; _sei++) {
             var _seGold = (_enemyGoldMap[_skipEnemies[_sei]] || 1);
             _skipKillGold += Math.round(_seGold * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
-            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0)));
+            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult?0.5:0)));
           }
           var _skipWaveGold = Math.round(Math.min(50, 5 + Math.floor(_nw / 100) * 5) * (G.goldBonus||1) * (G.goldMult||1));
           var _skipWaveChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
@@ -3902,7 +3902,7 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          var _rawChip = e.boss ? 0 : (e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1);
+          var _rawChip = e.boss ? 0 : (e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult ? 0.5 : 0));
           G._chipFrac = (G._chipFrac||0) + _rawChip;
           var chipEarned = Math.floor(G._chipFrac);
           G._chipFrac -= chipEarned;
@@ -3964,7 +3964,7 @@ function update(dt) {
               if (edx * edx + edy * edy < G.explodeR * G.explodeR) {
                 ek.hp -= exDmg;
                 if (ek.hp <= 0) {
-                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
+                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult ? 0.5 : 0)));
                   if (G._augChipMult && ekChip > 0) {
                     G._augChipFrac = (G._augChipFrac||0) + ekChip * 0.5;
                     var _ekBonus = Math.floor(G._augChipFrac);
@@ -4323,7 +4323,7 @@ function fireTower() {
       var _idx = G.enemies.indexOf(target);
       if (_idx !== -1) {
         // 보석 보상
-        var _mChip = target.boss ? 0 : Math.ceil((target.gold||1)*0.1*(1+(G._prismChipKillBonus||0)));
+        var _mChip = target.boss ? 0 : Math.ceil((target.gold||1)*0.1*(1+(G._prismChipKillBonus||0)+(G._augChipMult?0.5:0)));
         if (_mChip > 0) { coreChips += _mChip; }
         G.killCount++; PERM.totalKills++;
         if (typeof _infKill==='function') _infKill(target.type);
@@ -8193,7 +8193,7 @@ function _updateOrbs(dt) {
       if (edx * edx + edy * edy < (e.r + 7) * (e.r + 7)) {
         e.hp -= orbDmg * (dt / 300);
         if (e.hp <= 0) {
-          var _oc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1*(1+(G._prismChipKillBonus||0))); coreChips += _oc;
+          var _oc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1*(1+(G._prismChipKillBonus||0)+(G._augChipMult?0.5:0))); coreChips += _oc;
           G.killCount++; PERM.totalKills++; _infKill(e.type);
           var _eG = e.gold || 1;
           var _eGb = _eG;
@@ -8312,7 +8312,7 @@ function _triggerDeathWave() {
   for (var i = G.enemies.length - 1; i >= 0; i--) {
     G.enemies[i].hp -= dmg;
     if (G.enemies[i].hp <= 0) {
-      var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1*(1+(G._prismChipKillBonus||0))); coreChips += _dwc;
+      var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1*(1+(G._prismChipKillBonus||0)+(G._augChipMult?0.5:0))); coreChips += _dwc;
       G.killCount++; PERM.totalKills++; _infKill(G.enemies[i].type);
       var _dwG = G.enemies[i].gold || 1; var _dwGb = _dwG;
       _dwG = Math.round(_dwG * (G.goldBonus||1) * (G.goldMult||1));
@@ -8336,7 +8336,7 @@ function _triggerPlasma() {
     if (Math.abs(-ex * sin + ey * cos) < bw + e.r) {
       e.hp -= G.tower.dmg * 4;
       if (e.hp <= 0) {
-        var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1*(1+(G._prismChipKillBonus||0))); coreChips += _psc;
+        var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1*(1+(G._prismChipKillBonus||0)+(G._augChipMult?0.5:0))); coreChips += _psc;
         G.killCount++; PERM.totalKills++; _infKill(e.type);
         var _psG = e.gold || 1; var _psGb = _psG;
         _psG = Math.round(_psG * (G.goldBonus||1) * (G.goldMult||1));
