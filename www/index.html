@@ -2744,7 +2744,7 @@ var _UPG_WS_MAP = {
   multi:'multiTargets', rapidChance:'rapidChance', rapidDuration:'rapidDuration',
   bounceChance:'bounceChance', bounceTargets:'bounceTargets', bounceRange:'bounceRange',
   enemyDefReduce:'enemyDefReduce', enhCritChance:'enhCritChance', enhCritMult:'enhCritMult',
-  defRate:'defRate', vamp:'vampChance', reflect:'reflectDmg', knockback:'knockChance', shieldHP:'shieldHP',
+  defRate:'defRate', vamp:'vampChance', reflect:'reflectDmg', knockback:'knockChance', knockForce:'knockbackForce', shieldHP:'shieldHP',
   maxhp:'maxHp', hpRegen:'hpRegen', defAbs:'defAbs',
 };
 function _totalLv(upgKey) {
@@ -2892,6 +2892,12 @@ var UPGRADES = [
     stat()   { return ((G.knockbackChance||0)*100)._tf1()+'%'; },
     canBuy() { return _canUpg('knockback',60) && coreChips>=upgCost('knockback',10); },
     apply()  { var c=upgCost('knockback',10); coreChips-=c; G.upgLvl.knockback=(G.upgLvl.knockback||0)+1; G.knockbackChance=Math.min(0.30,((PERM.ws&&PERM.ws.knockChance||0)+(G.upgLvl.knockback||0))*0.005); },
+  },
+  { key:'knockForce', tab:'def', icon:'⇥', name:'넉백거리',  baseCost:12, unlock:'knockback', maxLv:10,
+    cost()   { return upgCost('knockForce',12); },
+    stat()   { return ((_totalLv('knockForce')+parseInt(localStorage.getItem('res_r_knockforce')||'0',10))*2) + 'px'; },
+    canBuy() { return _canUpg('knockForce',10) && coreChips>=upgCost('knockForce',12); },
+    apply()  { var c=upgCost('knockForce',12); coreChips-=c; G.upgLvl.knockForce=(G.upgLvl.knockForce||0)+1; G.knockbackForce=(_totalLv('knockForce')+parseInt(localStorage.getItem('res_r_knockforce')||'0',10))*2; },
   },
   { key:'shieldHP', tab:'def', icon:'◇', name:'쉴드HP', baseCost:12, unlock:'shield', maxLv:50,
     cost()   { return upgCost('shieldHP',12); },
@@ -7839,7 +7845,7 @@ window.createState = function() {
   var ws = PERM.ws || {};
   // Defense extended
   g.knockbackChance = (ws.knockChance || 0) * 0.005;
-  g.knockbackForce  = (ws.knockbackForce  || 0) * 0.1;
+  g.knockbackForce  = ((ws.knockbackForce || 0) + parseInt(localStorage.getItem('res_r_knockforce')||'0',10)) * 2;
   g.orbSpeed        = 1 + (ws.orbSpeed    || 0) * 0.1;
   g.orbCount        = ws.orbCount || 0;
   g.orbAngle        = 0;
@@ -8239,7 +8245,7 @@ var NEW_ITEMS = {
   thornDamage:     { tab:'def', name:'가시 피해',        tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 3단계
   knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8)._tf1();},     nxt:function(lv){return ((lv+1)*0.8)._tf1();} },
-  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
+  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, maxLv:10, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (lv*2)+'px';},              nxt:function(lv){return ((lv+1)*2)+'px';} },
   // 방어 탭 4단계
   orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (1+lv*0.1)._tf1();},   nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
   orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
@@ -8464,6 +8470,7 @@ var RESEARCH_LIST = {
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
     { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
+    { id:'r_knockforce', name:'넉백 거리 연구', desc:'넉백 거리 향상',           time:14400, cost:11000, maxLv:5 },
   ],
   defense: [
     { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:999 },
@@ -8748,7 +8755,7 @@ function _buildLabPopupList() {
     var _effectMap = {
       'r_damage':'+2%/Lv 공격력','r_spd':'+2%/Lv 공속','r_crit':'+0.5%/Lv 치명타',
       'r_multishot':'+1%/Lv 분열','r_crit_mult':'+0.02/Lv 치명타 계수','r_range':'+8/Lv 사거리',
-      'r_pierce':'+1/Lv 관통','r_knockback':'+0.5%/Lv 넉백',
+      'r_pierce':'+1/Lv 관통','r_knockback':'+0.5%/Lv 넉백','r_knockforce':'+2px/Lv 넉백 거리',
       'r_health':'+2%/Lv 체력','r_regen':'+0.05/Lv 재생','r_defense':'+2%/Lv 방어',
       'r_mine':'+1%/Lv 지뢰','r_reflect':'+0.5%/Lv 반사','r_vamp':'+0.1%/Lv 흡혈','r_shield':'+5%/Lv 쉴드',
       'start_cash':'+10/Lv 시작골드','r_wave_cash':'+2%/Lv 웨이브골드','r_gold_gain':'+1%/Lv 골드획득',
@@ -13308,6 +13315,7 @@ function _showStatsPopup() {
     ['사거리','r_range',function(l){return '+'+(l*2)+'%';}],
     ['관통','r_pierce',function(l){return '+'+l;}],
     ['넉백','r_knockback',function(l){return '+'+(l*0.5)._tf1()+'%';}],
+    ['넉백 거리','r_knockforce',function(l){return '+'+(l*2)+'px';}],
     ['체력','r_health',function(l){return '+'+(l*3)+'%';}],
     ['재생','r_regen',function(l){return '+'+(l*0.1)._tf1()+'/s';}],
     ['방어','r_defense',function(l){return '+'+(l*2)+'%';}],
@@ -14082,10 +14090,17 @@ window.fireTower = function() {
       if (kd < kMin) { kMin = kd; kTgt = ke; }
     }
     if (kTgt && Math.random() < G.knockbackChance) {
-      var kf = 18 + G.knockbackForce * 12;
+      var kf = (G.knockbackForce || 0);
+      // 보스 등급별 넉백 감소
+      if (kTgt.boss) {
+        var _kbr = kTgt.bossGrade==='galaxy'?0.01:kTgt.bossGrade==='hyper'?0.10:kTgt.bossGrade==='elite'?0.30:0.50;
+        kf = kf * _kbr;
+      }
+      if (kf > 0) {
       var ktd = Math.sqrt((kTgt.x - G.cx) * (kTgt.x - G.cx) + (kTgt.y - G.cy) * (kTgt.y - G.cy)) || 1;
       kTgt.x += ((kTgt.x - G.cx) / ktd) * kf;
       kTgt.y += ((kTgt.y - G.cy) / ktd) * kf;
+      }
     }
   }
 
