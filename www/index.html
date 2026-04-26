@@ -1890,30 +1890,68 @@ var AudioManager = {
       if (this.ctx.state === 'suspended') { this.ctx.resume(); }
     } catch(e) {}
   },
-  playBGM: function() {
+  /* ── 행성별 + 모드별 BGM 프리셋 ── */
+  _bgmPresets: {
+    /* tier: { home:{bpm,bass,arp,pad}, battle:{bpm,bass,arp,pad} } */
+    1: { /* 에이온 — 차분한 사이버펑크 */
+      home:  {bpm:118, bass:[55,87.31,73.42,82.41],
+              arp:[[220,261.63,329.63,440,329.63,261.63,220,164.81],[174.61,220,261.63,349.23,261.63,220,174.61,130.81],[293.66,349.23,440,587.33,440,349.23,293.66,220],[329.63,415.30,493.88,659.26,493.88,415.30,329.63,246.94]],
+              pad:[[110,130.81,164.81],[87.31,110,130.81],[146.83,174.61,220],[164.81,207.65,246.94]], kickVol:0.10, arpVol:0.025, padVol:0.015},
+      battle:{bpm:140, bass:[55,87.31,73.42,82.41],
+              arp:[[220,261.63,329.63,440,329.63,261.63,220,164.81],[174.61,220,261.63,349.23,261.63,220,174.61,130.81],[293.66,349.23,440,587.33,440,349.23,293.66,220],[329.63,415.30,493.88,659.26,493.88,415.30,329.63,246.94]],
+              pad:[[110,130.81,164.81],[87.31,110,130.81],[146.83,174.61,220],[164.81,207.65,246.94]], kickVol:0.18, arpVol:0.04, padVol:0.012}
+    },
+    2: { /* 스펙트라 — 신비로운 일렉트로닉 (Em→C→Am→D) */
+      home:  {bpm:108, bass:[82.41,65.41,55,73.42],
+              arp:[[329.63,392,493.88,659.26,493.88,392,329.63,246.94],[261.63,329.63,392,523.25,392,329.63,261.63,196],[220,261.63,329.63,440,329.63,261.63,220,164.81],[293.66,369.99,440,587.33,440,369.99,293.66,220]],
+              pad:[[164.81,196,246.94],[130.81,164.81,196],[110,130.81,164.81],[146.83,185,220]], kickVol:0.08, arpVol:0.03, padVol:0.02},
+      battle:{bpm:138, bass:[82.41,65.41,55,73.42],
+              arp:[[329.63,392,493.88,659.26,493.88,392,329.63,246.94],[261.63,329.63,392,523.25,392,329.63,261.63,196],[220,261.63,329.63,440,329.63,261.63,220,164.81],[293.66,369.99,440,587.33,440,369.99,293.66,220]],
+              pad:[[164.81,196,246.94],[130.81,164.81,196],[110,130.81,164.81],[146.83,185,220]], kickVol:0.16, arpVol:0.045, padVol:0.014}
+    },
+    3: { /* 넥사르 — 차가운 테크노 (Dm→Bb→C→Am) */
+      home:  {bpm:100, bass:[73.42,58.27,65.41,55],
+              arp:[[293.66,349.23,440,587.33,440,349.23,293.66,220],[233.08,293.66,349.23,466.16,349.23,293.66,233.08,174.61],[261.63,329.63,392,523.25,392,329.63,261.63,196],[220,261.63,329.63,440,329.63,261.63,220,164.81]],
+              pad:[[146.83,174.61,220],[116.54,146.83,174.61],[130.81,164.81,196],[110,130.81,164.81]], kickVol:0.09, arpVol:0.02, padVol:0.022},
+      battle:{bpm:145, bass:[73.42,58.27,65.41,55],
+              arp:[[293.66,349.23,440,587.33,440,349.23,293.66,220],[233.08,293.66,349.23,466.16,349.23,293.66,233.08,174.61],[261.63,329.63,392,523.25,392,329.63,261.63,196],[220,261.63,329.63,440,329.63,261.63,220,164.81]],
+              pad:[[146.83,174.61,220],[116.54,146.83,174.61],[130.81,164.81,196],[110,130.81,164.81]], kickVol:0.20, arpVol:0.05, padVol:0.010}
+    },
+    4: { /* 피라온 — 어둡고 강렬한 (Cm→Ab→Eb→Bb) */
+      home:  {bpm:112, bass:[65.41,51.91,77.78,58.27],
+              arp:[[261.63,311.13,392,523.25,392,311.13,261.63,196],[207.65,261.63,311.13,415.30,311.13,261.63,207.65,155.56],[311.13,369.99,466.16,622.25,466.16,369.99,311.13,233.08],[233.08,293.66,349.23,466.16,349.23,293.66,233.08,174.61]],
+              pad:[[130.81,155.56,196],[103.83,130.81,155.56],[155.56,185,233.08],[116.54,146.83,174.61]], kickVol:0.11, arpVol:0.025, padVol:0.02},
+      battle:{bpm:150, bass:[65.41,51.91,77.78,58.27],
+              arp:[[261.63,311.13,392,523.25,392,311.13,261.63,196],[207.65,261.63,311.13,415.30,311.13,261.63,207.65,155.56],[311.13,369.99,466.16,622.25,466.16,369.99,311.13,233.08],[233.08,293.66,349.23,466.16,349.23,293.66,233.08,174.61]],
+              pad:[[130.81,155.56,196],[103.83,130.81,155.56],[155.56,185,233.08],[116.54,146.83,174.61]], kickVol:0.22, arpVol:0.055, padVol:0.008}
+    },
+    5: { /* 오메가 — 장엄하고 에픽 (Am→Em→F→G) */
+      home:  {bpm:120, bass:[55,82.41,87.31,98],
+              arp:[[220,261.63,329.63,440,329.63,261.63,220,164.81],[329.63,392,493.88,659.26,493.88,392,329.63,246.94],[174.61,220,261.63,349.23,261.63,220,174.61,130.81],[196,246.94,293.66,392,293.66,246.94,196,146.83]],
+              pad:[[110,130.81,164.81],[164.81,196,246.94],[87.31,110,130.81],[98,123.47,146.83]], kickVol:0.12, arpVol:0.03, padVol:0.02},
+      battle:{bpm:155, bass:[55,82.41,87.31,98],
+              arp:[[220,261.63,329.63,440,329.63,261.63,220,164.81],[329.63,392,493.88,659.26,493.88,392,329.63,246.94],[174.61,220,261.63,349.23,261.63,220,174.61,130.81],[196,246.94,293.66,392,293.66,246.94,196,146.83]],
+              pad:[[110,130.81,164.81],[164.81,196,246.94],[87.31,110,130.81],[98,123.47,146.83]], kickVol:0.24, arpVol:0.06, padVol:0.010}
+    }
+  },
+  _bgmMode: 'home',
+  playBGM: function(mode) {
     if (!this.ctx || this.bgmInterval) return;
     var self = this;
-    var bpm = 128;
+    var tier = parseInt(localStorage.getItem('td_tier')||'1',10);
+    if (tier < 1 || tier > 5) tier = 1;
+    var m = mode || this._bgmMode || 'home';
+    this._bgmMode = m;
+    var P = (this._bgmPresets[tier] || this._bgmPresets[1])[m] || this._bgmPresets[1].home;
+
+    var bpm = P.bpm;
     var beat = 60 / bpm;
     var s16 = beat / 4;
     var step = 0;
     var curBar = -1;
     var padNodes = [];
-
-    /* Chord progression: Am → F → Dm → E (dark cyberpunk) */
-    var bass = [55, 87.31, 73.42, 82.41];
-    var arpSeq = [
-      [220,261.63,329.63,440,329.63,261.63,220,164.81],
-      [174.61,220,261.63,349.23,261.63,220,174.61,130.81],
-      [293.66,349.23,440,587.33,440,349.23,293.66,220],
-      [329.63,415.30,493.88,659.26,493.88,415.30,329.63,246.94]
-    ];
-    var padCh = [
-      [110,130.81,164.81],
-      [87.31,110,130.81],
-      [146.83,174.61,220],
-      [164.81,207.65,246.94]
-    ];
+    var isBattle = (m === 'battle');
+    var bass = P.bass, arpSeq = P.arp, padCh = P.pad;
 
     function oEnded(o) {
       o.onended = function(){ var i=self.bgmOscs.indexOf(this); if(i!==-1)self.bgmOscs.splice(i,1); }.bind(o);
@@ -1934,9 +1972,9 @@ var AudioManager = {
           var f = self.ctx.createBiquadFilter();
           o.type = 'sawtooth';
           o.frequency.value = ch[i] + d * 0.4;
-          f.type = 'lowpass'; f.frequency.value = 600;
+          f.type = 'lowpass'; f.frequency.value = isBattle ? 800 : 600;
           g.gain.setValueAtTime(0.001, t);
-          g.gain.linearRampToValueAtTime(0.018, t + 0.8);
+          g.gain.linearRampToValueAtTime(P.padVol, t + 0.8);
           o.connect(f); f.connect(g); g.connect(self.bgmGain);
           o.start(t);
           padNodes.push({ o: o, g: g });
@@ -1953,68 +1991,88 @@ var AudioManager = {
 
         if (bar !== curBar) { curBar = bar; startPad(bar); }
 
-        /* Kick — four on the floor */
+        /* Kick */
         if (b % 4 === 0) {
           var o = self.ctx.createOscillator(), g = self.ctx.createGain();
           o.type = 'sine';
-          o.frequency.setValueAtTime(150, t);
+          o.frequency.setValueAtTime(isBattle ? 180 : 150, t);
           o.frequency.exponentialRampToValueAtTime(30, t + 0.12);
-          g.gain.setValueAtTime(0.14, t);
+          g.gain.setValueAtTime(P.kickVol, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
           o.connect(g); g.connect(self.bgmGain);
           o.start(t); o.stop(t + 0.15);
           oEnded(o);
         }
 
-        /* Hi-hat — 8th notes */
-        if (b % 2 === 0) {
+        /* Snare (battle only — 2,4 beat) */
+        if (isBattle && (b === 4 || b === 12)) {
+          var o = self.ctx.createOscillator(), g = self.ctx.createGain();
+          var f = self.ctx.createBiquadFilter();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(200, t);
+          o.frequency.exponentialRampToValueAtTime(80, t + 0.08);
+          f.type = 'highpass'; f.frequency.value = 2000;
+          g.gain.setValueAtTime(0.10, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+          o.connect(g); var o2 = self.ctx.createOscillator(), g2 = self.ctx.createGain();
+          o2.type = 'square'; o2.frequency.value = 4000+Math.random()*3000;
+          g2.gain.setValueAtTime(0.04, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+          o2.connect(f); f.connect(g2); g2.connect(self.bgmGain);
+          o.connect(g); g.connect(self.bgmGain);
+          o.start(t); o.stop(t + 0.12); o2.start(t); o2.stop(t + 0.08);
+          oEnded(o); oEnded(o2);
+        }
+
+        /* Hi-hat */
+        if (b % 2 === 0 || (isBattle && b % 2 === 1)) {
           var o = self.ctx.createOscillator(), g = self.ctx.createGain();
           var f = self.ctx.createBiquadFilter();
           o.type = 'square';
           o.frequency.value = 6000 + Math.random() * 2000;
           f.type = 'highpass'; f.frequency.value = 7000;
-          g.gain.setValueAtTime(b % 4 === 0 ? 0.025 : 0.015, t);
+          var hVol = b % 4 === 0 ? 0.025 : (b % 2 === 1 ? 0.008 : 0.015);
+          g.gain.setValueAtTime(hVol, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
           o.connect(f); f.connect(g); g.connect(self.bgmGain);
           o.start(t); o.stop(t + 0.05);
           oEnded(o);
         }
 
-        /* Sub bass — sine on each beat */
+        /* Sub bass */
         if (b % 4 === 0) {
           var o = self.ctx.createOscillator(), g = self.ctx.createGain();
           o.type = 'sine';
           o.frequency.value = bass[bar];
-          g.gain.setValueAtTime(0.12, t);
+          g.gain.setValueAtTime(isBattle ? 0.15 : 0.12, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + beat * 0.9);
           o.connect(g); g.connect(self.bgmGain);
           o.start(t); o.stop(t + beat);
           oEnded(o);
         }
 
-        /* Synth bass — sawtooth, filtered, on beat + offbeat */
+        /* Synth bass */
         if (b % 4 === 0 || b % 4 === 3) {
           var o = self.ctx.createOscillator(), g = self.ctx.createGain();
           var f = self.ctx.createBiquadFilter();
           o.type = 'sawtooth';
           o.frequency.value = bass[bar] * 2;
-          f.type = 'lowpass'; f.frequency.value = 400; f.Q.value = 8;
-          g.gain.setValueAtTime(0.07, t);
+          f.type = 'lowpass'; f.frequency.value = isBattle ? 600 : 400; f.Q.value = 8;
+          g.gain.setValueAtTime(isBattle ? 0.09 : 0.07, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 2);
           o.connect(f); f.connect(g); g.connect(self.bgmGain);
           o.start(t); o.stop(t + s16 * 2.5);
           oEnded(o);
         }
 
-        /* Arpeggio — square, filtered, 16th notes */
+        /* Arpeggio */
         var o = self.ctx.createOscillator(), g = self.ctx.createGain();
         var f = self.ctx.createBiquadFilter();
         o.type = 'square';
         o.frequency.value = arpSeq[bar][b % 8];
         f.type = 'lowpass';
-        f.frequency.value = 1200 + (b / 16) * 1800;
+        f.frequency.value = (isBattle ? 1600 : 1200) + (b / 16) * 1800;
         f.Q.value = 2;
-        g.gain.setValueAtTime(0.03, t);
+        g.gain.setValueAtTime(P.arpVol, t);
         g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 0.7);
         o.connect(f); f.connect(g); g.connect(self.bgmGain);
         o.start(t); o.stop(t + s16 * 0.85);
@@ -3395,6 +3453,8 @@ function startWave() {
   G.spawnIntvl  = G.wave <= 50 ? 800 : G.wave <= 100 ? 600 : G.wave <= 200 ? 500 : 400;
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
+  // 보스 웨이브 제한시간 (60초)
+  G.bossTimer   = G.isBossWave ? 60000 : -1;
   // Wave start core chip bonus (2웨이브부터, 고정 2 + 프리즘 코어 수확 보너스)
   if (w >= 2) {
     var _rawBonus = 2 * (1 + (G._prismChipWaveBonus||0));
@@ -3526,6 +3586,16 @@ function update(dt) {
   if (G.bannerTimer >= 0) G.bannerTimer += dt;
   if (G.waveBonusTimer >= 0) G.waveBonusTimer += dt;
   if (G.bossWarningTimer >= 0) G.bossWarningTimer += dt;
+
+  // 보스 웨이브 제한시간 체크
+  if (G.bossTimer > 0 && G.phase === 'playing') {
+    G.bossTimer -= dt;
+    if (G.bossTimer <= 0) {
+      G.bossTimer = 0;
+      triggerGameOver();
+      return;
+    }
+  }
 
   // ── Between-wave countdown ──
   if (G.phase === 'between') {
@@ -4212,6 +4282,8 @@ function drawShootFlash(ctx) {
 }
 
 function onWaveComplete() {
+  // 보스 타이머 클리어
+  G.bossTimer = -1;
   // 잔여 탄환 제거 (프레임 멈춤 방지)
   G.bullets = [];
   // 웨이브 클리어 골드 보상
@@ -4480,9 +4552,10 @@ function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
   if (!window._cachedBgColor) {
     try {
-      var _bid = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
-      var _bm = {bg_default:'#030b10',bg_nebula:'#0a0520',bg_crimson:'#120808',bg_deep:'#031020',bg_void:'#050005',bg_aurora:'#051812',bg_solar:'#0f0a02',bg_ice:'#030a10',bg_storm:'#080812',bg_rust:'#0e0805',bg_matrix:'#000a02',bg_phantom:'#08050e'};
-      window._cachedBgColor = _bm[_bid] || '#030b10';
+      // 행성별 전투 배경색
+      var _bTier = parseInt(localStorage.getItem('td_tier')||'1',10);
+      var _tierBg = {1:'#030b10',2:'#040a0e',3:'#030820',4:'#100515',5:'#0a0805'};
+      window._cachedBgColor = _tierBg[_bTier] || '#030b10';
     } catch(_){ window._cachedBgColor = '#030b10'; }
   }
   ctx.fillStyle = window._cachedBgColor;
@@ -5241,6 +5314,15 @@ function render() {
     var pct = Math.max(0, _boss.hp / _boss.maxHp);
     ctx.fillStyle = _bc;
     ctx.fillRect(barX, 46, barW * pct, 8);
+    // 보스 제한시간 표시
+    if (G.bossTimer > 0) {
+      var _bSec = Math.ceil(G.bossTimer / 1000);
+      var _bCol = _bSec <= 10 ? '#ef4444' : _bSec <= 20 ? '#f59e0b' : '#94a3b8';
+      ctx.font = 'bold 10px "Courier New", monospace';
+      ctx.fillStyle = _bCol;
+      ctx.textAlign = 'center';
+      ctx.fillText('⏱ ' + _bSec + 's', CW / 2, 62);
+    }
     ctx.restore();
   }());
 
@@ -5866,6 +5948,8 @@ function openShop() {
   if (bnav) bnav.style.display = 'flex';
   const home = document.getElementById('screen-home');
   home.style.display = 'flex';
+  // 홈 BGM으로 전환
+  if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('home'); }
 
   syncShopUI();
   renderNavTabs('home');
@@ -5937,6 +6021,10 @@ function startNewGame() {
   document.getElementById('screen-game').style.display = 'flex';
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'none';
+  // 전투 BGM으로 전환
+  if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('battle'); }
+  // 행성별 배경색 캐시 갱신
+  window._cachedBgColor = null;
   loopGen++;
   window.resizeCanvas();
   startGame();
@@ -6191,7 +6279,7 @@ document.addEventListener('touchend', function(e) {
             }
             titleTapped = true;
             AudioManager.init();
-            if (PERM.settings.music) AudioManager.playBGM();
+            if (PERM.settings.music) AudioManager.playBGM('home');
             titleScreen.classList.add('fade-out');
             setTimeout(function() {
               titleScreen.classList.remove('show');
@@ -16987,7 +17075,10 @@ function renderSkinGrid() {
     cv.width = home.offsetWidth;
     cv.height = home.offsetHeight;
 
-    var skinId = window.currentBgSkin || 'bg_default';
+    // 행성별 홈 배경 자동 매핑 (에이온=기본, 스펙트라=오로라, 넥사르=딥블루, 피라온=팬텀, 오메가=솔라)
+    var _homeTier = parseInt(localStorage.getItem('td_tier')||'1',10);
+    var _tierSkinMap = {1:'bg_default',2:'bg_aurora',3:'bg_deep',4:'bg_phantom',5:'bg_solar'};
+    var skinId = _tierSkinMap[_homeTier] || 'bg_default';
     var skinColor = '#030b10';
     var accent = '#00ffff';
     if (window.BG_SKINS) {
