@@ -2165,9 +2165,9 @@ var AudioManager = {
 var DailyRewards = (function() {
   var arr = [];
   for (var i = 1; i <= 25; i++) {
-    if (i === 25)          arr.push({ gold: 90, gem: 30 }); // 3배
-    else if (i % 5 === 0)  arr.push({ gold: 30, gem: 10 }); // 5일 보너스
-    else                   arr.push({ gold: 10, gem: 3 });   // 일반
+    if (i === 25)          arr.push({ gold: 2000, gem: 20 }); // 25일 특별
+    else if (i % 5 === 0)  arr.push({ gold: 1000, gem: 10 }); // 5일 보너스
+    else                   arr.push({ gold: 500, gem: 5 });    // 일반
   }
   return arr;
 })();
@@ -2321,7 +2321,37 @@ function checkDailyReward() {
   if (reward.gold) logCurrency('gold', reward.gold, '출석 ' + newStreak + '일');
   if (reward.gem) logCurrency('gems', reward.gem, '출석 ' + newStreak + '일');
   savePerm();
-  _openAttendPopup(true);
+  // 자동 수령 팝업
+  _showDailyClaimPopup(newStreak, reward);
+}
+
+function _showDailyClaimPopup(day, reward) {
+  var old = document.getElementById('daily-claim-popup');
+  if (old) old.remove();
+  var cycleDay = ((day - 1) % 25) + 1;
+  var ov = document.createElement('div');
+  ov.id = 'daily-claim-popup';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.95);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+  ov.innerHTML =
+    '<div style="background:#0a0a1a;border:1px solid #00ffff44;padding:28px 24px;max-width:300px;width:90%;text-align:center;">' +
+      '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:6px;">출석 보상</div>' +
+      '<div style="color:#94a3b8;font-size:10px;margin-bottom:16px;">DAY ' + cycleDay + ' (총 ' + day + '일째)</div>' +
+      '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:14px;margin-bottom:18px;display:flex;flex-direction:column;gap:8px;align-items:center;">' +
+        (reward.gold > 0 ? '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#f59e0b;font-size:14px;">◈</span><span style="color:#f59e0b;font-size:18px;font-weight:bold;">+' + reward.gold.toLocaleString() + '</span></div>' : '') +
+        (reward.gem > 0 ? '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#00ffff;font-size:14px;">❖</span><span style="color:#00ffff;font-size:18px;font-weight:bold;">+' + reward.gem + '</span></div>' : '') +
+      '</div>' +
+      '<button id="daily-claim-ok" style="width:100%;padding:12px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:13px;cursor:pointer;letter-spacing:1px;-webkit-appearance:none;">확인</button>' +
+    '</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', function(e) { if(e.target===ov) ov.remove(); });
+  document.getElementById('daily-claim-ok').addEventListener('click', function() {
+    ov.remove();
+    try {
+      var hg=document.getElementById('home-gold'); if(hg) hg.textContent=PERM.gold||0;
+      var hgm=document.getElementById('home-gem'); if(hgm) hgm.textContent=PERM.gems||0;
+      syncShopUI && syncShopUI();
+    } catch(_){}
+  });
 }
 
 function _openAttendPopup(justClaimed) {
@@ -2330,13 +2360,18 @@ function _openAttendPopup(justClaimed) {
   var wrap = document.getElementById('attend-grid-wrap');
   if (!wrap) return;
 
-  var streak = parseInt(localStorage.getItem('td_daily_streak') || '0', 10);
+  // 잠금 해제 전이면 streak 무시
+  var unlocked = _isContentUnlocked(50);
+  var streak = unlocked ? parseInt(localStorage.getItem('td_daily_streak') || '0', 10) : 0;
   var cycleDay = streak === 0 ? 0 : ((streak - 1) % 25) + 1;
   var today = new Date().toDateString();
   var claimedToday = localStorage.getItem('td_daily_login') === today;
 
   var html = '<div style="text-align:center;margin-bottom:8px;">' +
-    '<span style="color:#94a3b8;font-size:10px;">출석 ' + streak + '일째</span></div>';
+    (unlocked
+      ? '<span style="color:#94a3b8;font-size:10px;">출석 ' + streak + '일째</span>'
+      : '<span style="color:#556677;font-size:10px;">에이온 웨이브 50 클리어 시 해금</span>') +
+    '</div>';
 
   html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;">';
 
@@ -2345,39 +2380,36 @@ function _openAttendPopup(justClaimed) {
     var r = DailyRewards[i];
     var claimed = day < cycleDay || (day === cycleDay && claimedToday);
     var isToday = day === cycleDay && justClaimed;
-    var locked = day > cycleDay;
+    var locked = !unlocked || day > cycleDay;
     var isBonus = (day % 5 === 0);
     var isFinal = (day === 25);
 
     var borderColor = isFinal ? '#cc44ff' : isBonus ? '#f59e0b' : '#1a3344';
     var bg = '#0a1520';
     if (isToday) { borderColor = '#00ffff'; bg = '#0a2a3a'; }
-    else if (claimed) { borderColor = '#1a2a3a'; bg = '#080e18'; }
+    else if (claimed) { borderColor = '#00ffff22'; bg = '#080e18'; }
 
     var glow = '';
     if (isToday) glow = 'box-shadow:0 0 8px rgba(0,255,255,0.4);';
-    else if (isFinal && !claimed) glow = 'box-shadow:0 0 6px rgba(204,68,255,0.3);';
-    else if (isBonus && !claimed) glow = 'box-shadow:0 0 4px rgba(245,158,11,0.2);';
+    else if (isFinal && !claimed && unlocked) glow = 'box-shadow:0 0 6px rgba(204,68,255,0.3);';
+    else if (isBonus && !claimed && unlocked) glow = 'box-shadow:0 0 4px rgba(245,158,11,0.2);';
 
-    var textColor = claimed ? '#334455' : locked ? '#445566' : '#e2e8f0';
-    var dayColor = isFinal ? '#cc44ff' : isBonus ? '#f59e0b' : claimed ? '#334455' : '#94a3b8';
+    var dayColor = isFinal ? '#cc44ff' : isBonus ? '#f59e0b' : claimed ? '#556677' : '#94a3b8';
 
     html += '<div style="background:' + bg + ';border:1px solid ' + borderColor + ';padding:6px 2px;text-align:center;position:relative;' + glow + '">';
     html += '<div style="font-size:8px;color:' + dayColor + ';margin-bottom:3px;">DAY ' + day + '</div>';
 
+    // 보상 아이콘은 항상 표시 (수령 완료 시 체크 + 아이콘 같이)
+    var rewardIcon = '<span style="color:#f59e0b;font-size:' + (isFinal ? '9' : '8') + 'px;">◈' + r.gold + '</span><br><span style="color:#00ffff;font-size:' + (isFinal ? '9' : '8') + 'px;">❖' + r.gem + '</span>';
     if (claimed) {
-      html += '<div style="font-size:14px;color:#334455;line-height:1;">✓</div>';
+      html += '<div style="line-height:1.4;opacity:0.4;">' + rewardIcon + '</div>';
+      html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;color:#00ffff;opacity:0.6;">✓</div>';
     } else {
-      var rewardIcon = r.gold > 0 && r.gem > 0
-        ? '<span style="color:#f59e0b;font-size:' + (isFinal ? '10' : '9') + 'px;">◈' + r.gold + '</span><br><span style="color:#00ffff;font-size:' + (isFinal ? '10' : '9') + 'px;">❖' + r.gem + '</span>'
-        : r.gold > 0
-          ? '<span style="color:#f59e0b;font-size:9px;">◈' + r.gold + '</span>'
-          : '<span style="color:#00ffff;font-size:9px;">❖' + r.gem + '</span>';
-      html += '<div style="line-height:1.4;color:' + textColor + ';">' + rewardIcon + '</div>';
+      html += '<div style="line-height:1.4;opacity:' + (locked ? '0.3' : '1') + ';">' + rewardIcon + '</div>';
     }
 
     if (isFinal && !claimed) {
-      html += '<div style="font-size:6px;color:#cc44ff;margin-top:1px;">×3</div>';
+      html += '<div style="font-size:6px;color:#cc44ff;margin-top:1px;">SPECIAL</div>';
     } else if (isBonus && !claimed) {
       html += '<div style="font-size:6px;color:#f59e0b;margin-top:1px;">BONUS</div>';
     }
@@ -2385,15 +2417,6 @@ function _openAttendPopup(justClaimed) {
   }
 
   html += '</div>';
-
-  if (justClaimed) {
-    var cr = DailyRewards[cycleDay - 1];
-    html += '<div style="text-align:center;margin-top:10px;padding:8px;border:1px solid #00ffff;background:#0a1a2a;">' +
-      '<div style="color:#00ffff;font-size:11px;margin-bottom:4px;">DAY ' + cycleDay + ' 보상 수령!</div>' +
-      '<span style="color:#f59e0b;font-size:13px;font-weight:bold;">◈+' + cr.gold + '</span>' +
-      '  <span style="color:#00ffff;font-size:13px;font-weight:bold;">❖+' + cr.gem + '</span>' +
-    '</div>';
-  }
 
   wrap.innerHTML = html;
   popup.style.display = 'flex';
