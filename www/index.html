@@ -3658,7 +3658,9 @@ function update(dt) {
         }
       }
       G.floatTexts.push({ x: G.cx, y: G.cy - 30, text: 'PULSE!', color: '#00aaff', timer: 0 });
-      G.effects.push({ x: G.cx, y: G.cy, r: G.tower.range, t: 0 });
+      // 파장 이펙트: 확장 링
+      if (!G._pulseEffects) G._pulseEffects = [];
+      G._pulseEffects.push({ x: G.cx, y: G.cy, maxR: G.tower.range, t: 0 });
     }
   }
 
@@ -3676,6 +3678,13 @@ function update(dt) {
   for (let i = G.effects.length - 1; i >= 0; i--) {
     G.effects[i].t += dt;
     if (G.effects[i].t >= 600) G.effects.splice(i, 1);
+  }
+  // 파장 이펙트 업데이트
+  if (G._pulseEffects) {
+    for (var _pei = G._pulseEffects.length - 1; _pei >= 0; _pei--) {
+      G._pulseEffects[_pei].t += dt;
+      if (G._pulseEffects[_pei].t >= 500) G._pulseEffects.splice(_pei, 1);
+    }
   }
 
   // Float texts (gold pickup)
@@ -5366,6 +5375,30 @@ function render() {
   // Shoot flash (laser muzzle)
   drawShootFlash(ctx);
 
+  // 파장 이펙트 (확장 링)
+  if (G._pulseEffects) {
+    for (var _pri = 0; _pri < G._pulseEffects.length; _pri++) {
+      var pe = G._pulseEffects[_pri];
+      var prog = pe.t / 500;
+      var curR = pe.maxR * prog;
+      ctx.save();
+      ctx.globalAlpha = (1 - prog) * 0.6;
+      ctx.strokeStyle = '#00aaff';
+      ctx.lineWidth = 3 * (1 - prog) + 1;
+      ctx.beginPath();
+      ctx.arc(pe.x, pe.y, curR, 0, Math.PI * 2);
+      ctx.stroke();
+      // 내부 얇은 링
+      ctx.globalAlpha = (1 - prog) * 0.3;
+      ctx.strokeStyle = '#88ddff';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(pe.x, pe.y, curR * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   ctx.restore(); // ← end zoom transform
 
   // ── 3. Wave clear banner (canvas text, no zoom) ───────────────
@@ -6840,10 +6873,22 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return (lv * 0.5)._tf1(); },
       nxt:  function(lv) { return ((lv + 1) * 0.5)._tf1(); } },
+    knockbackForce:{ tab:'def', name:'넉백 거리', maxLv:10, defGroup:4,
+      cost: function(lv) { return 12 + Math.floor(lv * 2); },
+      cur:  function(lv) { return (lv * 2) + 'px'; },
+      nxt:  function(lv) { return ((lv + 1) * 2) + 'px'; } },
     shieldHP:   { tab:'def', name:'쉴드 HP',      maxLv:50,  defGroup:5,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv + 1) + '%'; } },
+    pulseSize:  { tab:'def', name:'파장 크기',    maxLv:10,  defGroup:6,
+      cost: function(lv) { return 15 + Math.floor(lv * 3); },
+      cur:  function(lv) { return (lv * 10) + 'px'; },
+      nxt:  function(lv) { return ((lv + 1) * 10) + 'px'; } },
+    pulseCd:    { tab:'def', name:'파장 주기',    maxLv:21,  defGroup:6,
+      cost: function(lv) { return 12 + Math.floor(lv * 2.5); },
+      cur:  function(lv) { return Math.max(20, 60 - lv * 2) + '초'; },
+      nxt:  function(lv) { return Math.max(20, 60 - (lv + 1) * 2) + '초'; } },
     enemyDefReduce: { tab:'atk', name:'적 방어력 감소', maxLv:74, atkGroup:6,
       cost: function(lv) { return 10 + lv * 6; },
       cur:  function(lv) { return lv + '%'; },
@@ -6978,6 +7023,7 @@ if (dailyPopup) {
         { group:3, name:'흡혈', cost:1500 },   // 흡혈 확률
         { group:4, name:'넉백', cost:3000 },   // 넉백 확률
         { group:5, name:'쉴드', cost:10000 },  // 쉴드 HP
+        { group:6, name:'파장', cost:15000 },  // 파장 크기/주기
       ];
       var defUnlocks = PERM.ws_def_unlocks || 0;
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'def'; });
@@ -7004,7 +7050,7 @@ if (dailyPopup) {
             PERM.gold -= cost;
             PERM.ws_def_unlocks = grp;
             if (!PERM.unlocks) PERM.unlocks = {};
-            var unlockMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield']};
+            var unlockMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield'], 6:['pulse']};
             var ulks = unlockMap[grp];
             if (ulks) ulks.forEach(function(k){ PERM.unlocks[k] = true; });
             if (window.G) G.gold = PERM.gold;
