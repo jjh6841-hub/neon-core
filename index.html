@@ -2883,7 +2883,7 @@ function _achTotalGems() { return parseInt(localStorage.getItem('stat_gems_earne
 // 헬퍼: 전투 증강 사용 횟수
 function _achAugmentCount() { return parseInt(localStorage.getItem('stat_augments')||'0',10); }
 // 헬퍼: 프리즘 Lv5 개수
-function _achPrismLv5Count() { var p=PERM.prisms||{}; var c=0; for(var k in p){if(p[k]&&p[k].lv>=5)c++;} return c; }
+function _achPrismLv5Count() { var p=PERM.prisms||{}; var c=0; for(var k in p){if(p[k]&&p[k].lv>=6)c++;} return c; }
 // 헬퍼: 한 속성의 모든 스탯 최소 레벨
 function _achElemMinLv(elemId) {
   var stats = ['atk','def','hp','critDmg','critRate'];
@@ -3038,12 +3038,12 @@ var ACHIEVEMENTS = [
   { key:'aug100',    icon:'▲', name:'증강 전문가',   desc:'전투 증강 100회 사용',    cond:()=>_achAugmentCount()>=100,   prog:()=>Math.min(_achAugmentCount(),100)+'/100',     gems:15 },
   { key:'aug1000',   icon:'▲', name:'증강 마스터',   desc:'전투 증강 1,000회 사용',  cond:()=>_achAugmentCount()>=1000,  prog:()=>Math.min(_achAugmentCount(),1000)+'/1000',   gems:30 },
 
-  // ── 프리즘 Lv.5 달성 ──
-  { key:'plv5_1',    icon:'◇', name:'프리즘 강화 I',    desc:'프리즘 1개 Lv.5 달성',   cond:()=>_achPrismLv5Count()>=1,   prog:()=>Math.min(_achPrismLv5Count(),1)+'/1',    gems:5 },
-  { key:'plv5_5',    icon:'◇', name:'프리즘 강화 II',   desc:'프리즘 5개 Lv.5 달성',   cond:()=>_achPrismLv5Count()>=5,   prog:()=>Math.min(_achPrismLv5Count(),5)+'/5',    gems:10 },
-  { key:'plv5_10',   icon:'◇', name:'프리즘 강화 III',  desc:'프리즘 10개 Lv.5 달성',  cond:()=>_achPrismLv5Count()>=10,  prog:()=>Math.min(_achPrismLv5Count(),10)+'/10',  gems:20 },
-  { key:'plv5_15',   icon:'◇', name:'프리즘 강화 IV',   desc:'프리즘 15개 Lv.5 달성',  cond:()=>_achPrismLv5Count()>=15,  prog:()=>Math.min(_achPrismLv5Count(),15)+'/15',  gems:30 },
-  { key:'plv5_20',   icon:'◇', name:'프리즘 강화 V',    desc:'프리즘 20개 Lv.5 달성',  cond:()=>_achPrismLv5Count()>=20,  prog:()=>Math.min(_achPrismLv5Count(),20)+'/20',  gems:50 },
+  // ── 프리즘 Lv.6 달성 ──
+  { key:'plv5_1',    icon:'◇', name:'프리즘 강화 I',    desc:'프리즘 1개 Lv.6 달성',   cond:()=>_achPrismLv5Count()>=1,   prog:()=>Math.min(_achPrismLv5Count(),1)+'/1',    gems:5 },
+  { key:'plv5_5',    icon:'◇', name:'프리즘 강화 II',   desc:'프리즘 5개 Lv.6 달성',   cond:()=>_achPrismLv5Count()>=5,   prog:()=>Math.min(_achPrismLv5Count(),5)+'/5',    gems:10 },
+  { key:'plv5_10',   icon:'◇', name:'프리즘 강화 III',  desc:'프리즘 10개 Lv.6 달성',  cond:()=>_achPrismLv5Count()>=10,  prog:()=>Math.min(_achPrismLv5Count(),10)+'/10',  gems:20 },
+  { key:'plv5_15',   icon:'◇', name:'프리즘 강화 IV',   desc:'프리즘 15개 Lv.6 달성',  cond:()=>_achPrismLv5Count()>=15,  prog:()=>Math.min(_achPrismLv5Count(),15)+'/15',  gems:30 },
+  { key:'plv5_20',   icon:'◇', name:'프리즘 강화 V',    desc:'프리즘 20개 Lv.6 달성',  cond:()=>_achPrismLv5Count()>=20,  prog:()=>Math.min(_achPrismLv5Count(),20)+'/20',  gems:50 },
 
   // ── 속성 스탯 마스터 ──
   { key:'elem_lv10',   icon:'⚛', name:'속성 수련생',   desc:'한 속성 모든 스탯 Lv.10 달성',    cond:()=>_achBestElemMinLv()>=10,   prog:()=>_achBestElemMinLv()+'/10',    gems:5 },
@@ -3775,7 +3775,7 @@ function update(dt) {
           } else {
             addFx(e.x, e.y, e.r * 2.8, e.boss ? '#f97316' : '#ef4444');
           }
-          // 연쇄 타격: 적 처치 시 주변 적에게 스플래시 데미지
+          // 광역 타격: 적 처치 시 주변 적에게 스플래시 데미지
           if (G.splashPct && G.splashPct > 0) {
             var _spDmg = Math.round(G.tower.dmg * G.splashPct);
             var _spR = 60;
@@ -11909,42 +11909,42 @@ function _prismIcon(id,c){
 }
 
 var PRISMS = [
-  /* 공격 (6종) */
-  {id:'p_damage',     cat:'atk',    name:'화력 증폭',       desc:'공격력 증가',          lvEff:[50,100,150,200,250], unit:'%'},
-  {id:'p_atk_spd',    cat:'atk',    name:'속사 모듈',       desc:'발사 속도 증가',        lvEff:[0.2,0.4,0.6,0.8,1.0], unit:''},
-  {id:'p_crit_rate',  cat:'atk',    name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15], unit:'%'},
-  {id:'p_crit_dmg',   cat:'atk',    name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0], unit:'x'},
-  {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장',          lvEff:[8,16,24,32,40], unit:'px'},
-  {id:'p_crit_rate2', cat:'atk',    name:'강화 치명타 확률', desc:'치명타 확률 추가 증가', lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[1.5,1.75,2.0,2.25,2.5], unit:'x'},
-  {id:'p_splash',     cat:'atk',    name:'연쇄 타격',       desc:'적 처치 시 주변 스플래시', lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_overload',   cat:'atk',    name:'과부하 코어',     desc:'HP가 낮을수록 공격력 증가', lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_vuln',       cat:'atk',    name:'취약점 노출',     desc:'피해 누적 시 추가 피해',   lvEff:[2,4,6,8,10], unit:'%'},
+  /* 공격 (10종) */
+  {id:'p_damage',     cat:'atk',    name:'화력 증폭',       desc:'공격력 증가',          lvEff:[50,100,150,200,250,300], unit:'%'},
+  {id:'p_atk_spd',    cat:'atk',    name:'속사 모듈',       desc:'발사 속도 증가',        lvEff:[0.2,0.4,0.6,0.8,1.0,1.2], unit:''},
+  {id:'p_crit_rate',  cat:'atk',    name:'약점 분석',       desc:'치명타 발동 확률',     lvEff:[3,6,9,12,15,18], unit:'%'},
+  {id:'p_crit_dmg',   cat:'atk',    name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0,2.4], unit:'x'},
+  {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장',          lvEff:[8,16,24,32,40,48], unit:'px'},
+  {id:'p_crit_rate2', cat:'atk',    name:'강화 치명타 확률', desc:'치명타 확률 추가 증가', lvEff:[2,4,6,8,10,12], unit:'%'},
+  {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[1.5,1.9,2.3,2.7,3.1,3.5], unit:'x'},
+  {id:'p_splash',     cat:'atk',    name:'광역 타격',       desc:'적 처치 시 주변 스플래시', lvEff:[10,20,30,40,50,60], unit:'%'},
+  {id:'p_overload',   cat:'atk',    name:'과부하 코어',     desc:'HP가 낮을수록 공격력 증가', lvEff:[10,20,30,40,50,60], unit:'%'},
+  {id:'p_vuln',       cat:'atk',    name:'취약점 노출',     desc:'피해 누적 시 추가 피해',   lvEff:[5,10,15,20,25,30], unit:'%'},
   /* 방어 (8종) */
-  {id:'p_max_hp',     cat:'def',    name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_hp_regen',   cat:'def',    name:'자가 수복',       desc:'체력 재생 증가',       lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_def',        cat:'def',    name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_shield_cd',  cat:'def',    name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20], unit:'%'},
-  {id:'p_fort',       cat:'def',    name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_last_stand', cat:'def',    name:'최후의 저항',     desc:'HP 20% 이하 시 피해 감소', lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_emergency',  cat:'def',    name:'긴급 수리',       desc:'30초마다 최대 HP% 즉시 회복', lvEff:[2,4,6,8,10], unit:'%'},
-  {id:'p_absorb',     cat:'def',    name:'에너지 흡수',     desc:'흡혈 비율 증가',        lvEff:[1,2,3,4,5], unit:'%'},
+  {id:'p_max_hp',     cat:'def',    name:'코어 생명력',     desc:'최대 체력 증가',       lvEff:[20,40,60,80,100,120], unit:'%'},
+  {id:'p_hp_regen',   cat:'def',    name:'자가 수복',       desc:'체력 재생 증가',       lvEff:[20,40,60,80,100,120], unit:'%'},
+  {id:'p_def',        cat:'def',    name:'장갑 코팅',       desc:'방어력 강화',          lvEff:[20,40,60,80,100,120], unit:'%'},
+  {id:'p_shield_cd',  cat:'def',    name:'보호막 가속',     desc:'최대 체력 비례 보호막 생성', lvEff:[4,8,12,16,20,24], unit:'%'},
+  {id:'p_fort',       cat:'def',    name:'방벽 프로토콜',   desc:'넉백 확률 증가',       lvEff:[2,4,6,8,10,12], unit:'%'},
+  {id:'p_last_stand', cat:'def',    name:'최후의 저항',     desc:'HP 20% 이하 시 피해 감소', lvEff:[10,20,30,40,50,60], unit:'%'},
+  {id:'p_emergency',  cat:'def',    name:'긴급 수리',       desc:'30초마다 최대 HP% 즉시 회복', lvEff:[3,6,9,12,15,18], unit:'%'},
+  {id:'p_absorb',     cat:'def',    name:'에너지 흡수',     desc:'흡혈 비율 증가',        lvEff:[1,2,3,4,5,6], unit:'%'},
   /* 경제 (3종) */
-  {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',           lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_cash',       cat:'eco',    name:'코어 수확',       desc:'웨이브 클리어 코어칩 추가 보상', lvEff:[20,40,60,80,100], unit:'%'},
-  {id:'p_enemy_stat', cat:'eco',    name:'자원 약탈',       desc:'적 처치 코어칩 추가 획득',      lvEff:[20,40,60,80,100], unit:'%'},
-  /* 특수 (4종) */
-  {id:'p_free_upg',   cat:'spc',    name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[1,2,3,4,5], unit:'%'},
-  {id:'p_aura',       cat:'spc',    name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50], unit:'%'},
-  {id:'p_wave_skip',  cat:'spc',    name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[3,6,9,12,15], unit:'%'},
-  {id:'p_intro_sprint',cat:'spc',   name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25], unit:'%'},
-  {id:'p_jam',        cat:'spc',    name:'전파 방해',       desc:'스나이퍼 공격력 감소',  lvEff:[10,20,30,40,50], unit:'%'},
+  {id:'p_kill_cash',  cat:'eco',    name:'전리품 수집',     desc:'전투 골드 추가 획득',           lvEff:[20,40,60,80,100,120], unit:'%'},
+  {id:'p_cash',       cat:'eco',    name:'코어 수확',       desc:'웨이브 클리어 코어칩 추가 보상', lvEff:[20,40,60,80,100,120], unit:'%'},
+  {id:'p_enemy_stat', cat:'eco',    name:'자원 약탈',       desc:'적 처치 코어칩 추가 획득',      lvEff:[20,40,60,80,100,120], unit:'%'},
+  /* 특수 (5종) */
+  {id:'p_free_upg',   cat:'spc',    name:'행운의 강화',     desc:'전투 강화 무료 확률',  lvEff:[5,10,15,20,25,30], unit:'%'},
+  {id:'p_aura',       cat:'spc',    name:'에너지 필드',     desc:'적 이동속도 감소',     lvEff:[10,20,30,40,50,60], unit:'%'},
+  {id:'p_wave_skip',  cat:'spc',    name:'차원 도약',       desc:'웨이브 스킵 확률',     lvEff:[3,6,9,12,15,18], unit:'%'},
+  {id:'p_intro_sprint',cat:'spc',   name:'선행 배치',       desc:'최고기록 비례 시작 웨이브',lvEff:[5,10,15,20,25,30], unit:'%'},
+  {id:'p_jam',        cat:'spc',    name:'전파 방해',       desc:'스나이퍼 공격력 감소',  lvEff:[10,20,30,40,50,60], unit:'%'},
 ];
 var PRISM_CAT_LABEL = {atk:'공격',def:'방어',eco:'경제',spc:'특수'};
 var PRISM_CAT_COLOR = {atk:'#ef4444',def:'#3b82f6',eco:'#f59e0b',spc:'#cc44ff'};
 var PRISM_SINGLE = 20;
-/* 레벨업 필요 중복 수: Lv1→2:3, 2→3:3, 3→4:3, 4→5:5 */
-var PRISM_DUP_NEEDED = [0,3,3,3,5]; /* index = target level -1 */
+/* 레벨업 필요 중복 수: Lv1→2:3, 2→3:3, 3→4:3, 4→5:5, 5→6:5 */
+var PRISM_DUP_NEEDED = [0,3,3,3,5,5]; /* index = target level -1 */
 /* 활성화 슬롯 비용: 1번 무료, 2번 100보석, ... 최대 10슬롯 */
 var PRISM_SLOT_COSTS = [0,100,200,300,400,500,600,700,800,900];
 
@@ -12013,7 +12013,7 @@ function _toggleEquip(id) {
 }
 function _getOverflow(id) {
   var p = _getPrism(id);
-  return p.lv >= 5 ? p.dup : 0;
+  return p.lv >= 6 ? p.dup : 0;
 }
 
 function _addPrismDrop(id) {
@@ -12021,7 +12021,7 @@ function _addPrismDrop(id) {
   if (p.lv === 0) {
     /* 처음 획득 → Lv.1 */
     _setPrism(id, 1, 0);
-  } else if (p.lv < 5) {
+  } else if (p.lv < 6) {
     /* 중복 → dup 증가, 자동 레벨업 체크 */
     var dup = p.dup + 1;
     var lv = p.lv;
@@ -12031,8 +12031,8 @@ function _addPrismDrop(id) {
     }
     _setPrism(id, lv, dup);
   } else {
-    /* Lv.5 — 초과 중복 누적 (분해용) */
-    _setPrism(id, 5, p.dup + 1);
+    /* Lv.6 — 초과 중복 누적 (분해용) */
+    _setPrism(id, 6, p.dup + 1);
   }
 }
 
@@ -12348,11 +12348,11 @@ function _showPrismDetailPopup(pid) {
 
   // 레벨 별
   var stars='';
-  for(var i=0;i<5;i++) stars+='<span style="color:'+(i<pData.lv?catCol:'#1a2a3a')+';font-size:14px;">★</span>';
+  for(var i=0;i<6;i++) stars+='<span style="color:'+(i<pData.lv?catCol:'#1a2a3a')+';font-size:14px;">★</span>';
 
   // 효과 텍스트
   var effRows='';
-  for(var lv=1;lv<=5;lv++){
+  for(var lv=1;lv<=6;lv++){
     var val=pr.lvEff[lv-1];
     var isCur=lv===pData.lv;
     var valStr=pr.unit==='x'?'+'+val+'x':pr.unit==='%'?'+'+val+'%':'+'+val;
@@ -12376,7 +12376,7 @@ function _showPrismDetailPopup(pid) {
 
   if(owned){
     // 중복/분해 정보
-    var maxed=pData.lv>=5;
+    var maxed=pData.lv>=6;
     if(!maxed){
       var dupNeeded=PRISM_DUP_NEEDED[pData.lv]||3;
       box+='<div style="font-size:9px;color:#556677;margin-bottom:10px;">중복: '+pData.dup+'/'+dupNeeded+'</div>';
@@ -12491,7 +12491,7 @@ function _renderCardTab() {
     catPrisms.forEach(function(pr){
       var p=_getPrism(pr.id);
       var owned=p.lv>0;
-      var maxed=p.lv>=5;
+      var maxed=p.lv>=6;
       var isEq=_isEquipped(pr.id);
       var dupNeeded=maxed?0:p.lv===0?1:(PRISM_DUP_NEEDED[p.lv]||3);
       var dupProg=maxed?'MAX':p.lv===0?'-':p.dup+'/'+dupNeeded;
@@ -12501,7 +12501,7 @@ function _renderCardTab() {
       var _iconCol=owned?catCol:'#445566';
       // 레벨 별 표시
       var _stars='';
-      for(var _si=0;_si<5;_si++) _stars+='<span style="color:'+(_si<p.lv?catCol:'#1a2a3a')+';font-size:8px;">★</span>';
+      for(var _si=0;_si<6;_si++) _stars+='<span style="color:'+(_si<p.lv?catCol:'#1a2a3a')+';font-size:8px;">★</span>';
 
       html+='<div data-prism-toggle="'+pr.id+'" style="background:'+(owned?'#0a1020':'#0a0e18')+';border:2px solid '+eqBorder+';padding:5px 3px;display:flex;flex-direction:column;align-items:center;gap:1px;opacity:'+(owned?1:0.55)+';cursor:pointer;position:relative;border-radius:4px;">'+
         // 이름
