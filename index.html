@@ -1972,9 +1972,9 @@ var AudioManager = {
           var f = self.ctx.createBiquadFilter();
           o.type = 'sawtooth';
           o.frequency.value = ch[i] + d * 0.4;
-          f.type = 'lowpass'; f.frequency.value = isBattle ? 800 : 600;
+          f.type = 'lowpass'; f.frequency.value = isBattle ? 1200 : 600;
           g.gain.setValueAtTime(0.001, t);
-          g.gain.linearRampToValueAtTime(P.padVol, t + 0.8);
+          g.gain.linearRampToValueAtTime(isBattle ? P.padVol * 2.5 : P.padVol, t + (isBattle ? 1.2 : 0.8));
           o.connect(f); f.connect(g); g.connect(self.bgmGain);
           o.start(t);
           padNodes.push({ o: o, g: g });
@@ -2023,14 +2023,14 @@ var AudioManager = {
           oEnded(o); oEnded(o2);
         }
 
-        /* Hi-hat */
-        if (b % 2 === 0 || (isBattle && b % 2 === 1)) {
+        /* Hi-hat — 전투 시 8분음표만 (16분 제거), 볼륨 축소 */
+        if (b % 2 === 0) {
           var o = self.ctx.createOscillator(), g = self.ctx.createGain();
           var f = self.ctx.createBiquadFilter();
           o.type = 'square';
           o.frequency.value = 6000 + Math.random() * 2000;
           f.type = 'highpass'; f.frequency.value = 7000;
-          var hVol = b % 4 === 0 ? 0.025 : (b % 2 === 1 ? 0.008 : 0.015);
+          var hVol = isBattle ? (b % 4 === 0 ? 0.015 : 0.008) : (b % 4 === 0 ? 0.025 : 0.015);
           g.gain.setValueAtTime(hVol, t);
           g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
           o.connect(f); f.connect(g); g.connect(self.bgmGain);
@@ -2074,15 +2074,15 @@ var AudioManager = {
           oEnded(o);
         }
 
-        /* Arpeggio */
+        /* Arpeggio — 전투 시 triangle(부드럽게), 볼륨 축소 */
         var o = self.ctx.createOscillator(), g = self.ctx.createGain();
         var f = self.ctx.createBiquadFilter();
-        o.type = isBattle ? 'sawtooth' : 'square';
+        o.type = isBattle ? 'triangle' : 'square';
         o.frequency.value = arpSeq[bar][b % 8];
         f.type = 'lowpass';
-        f.frequency.value = (isBattle ? 2000 : 1200) + (b / 16) * 1800;
-        f.Q.value = isBattle ? 4 : 2;
-        g.gain.setValueAtTime(P.arpVol, t);
+        f.frequency.value = (isBattle ? 1400 : 1200) + (b / 16) * 1200;
+        f.Q.value = isBattle ? 1 : 2;
+        g.gain.setValueAtTime(isBattle ? P.arpVol * 0.5 : P.arpVol, t);
         g.gain.exponentialRampToValueAtTime(0.001, t + s16 * 0.7);
         o.connect(f); f.connect(g); g.connect(self.bgmGain);
         o.start(t); o.stop(t + s16 * 0.85);
@@ -5824,6 +5824,12 @@ function togglePause() {
   isPaused = !isPaused;
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = isPaused ? 'flex' : 'none';
+  // 일시정지 시 BGM 정지/재개
+  if (isPaused) {
+    if (AudioManager && AudioManager.bgmInterval) AudioManager.stopBGM();
+  } else {
+    if (PERM && PERM.settings && PERM.settings.music) AudioManager.playBGM('battle');
+  }
 }
 window.togglePause = togglePause;
 
@@ -5877,6 +5883,7 @@ function resumeGame() {
   isPaused = false;
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
+  if (PERM && PERM.settings && PERM.settings.music && !AudioManager.bgmInterval) AudioManager.playBGM('battle');
 }
 window.resumeGame = resumeGame;
 
@@ -17269,10 +17276,10 @@ function renderSkinGrid() {
     cv.width = home.offsetWidth;
     cv.height = home.offsetHeight;
 
-    // 사용자 선택 배경 스킨 우선, 기본값은 행성별 매핑
+    // 사용자 선택 배경 스킨 우선, 미선택 시 행성별 매핑
     var _userSkin = localStorage.getItem('neoncore_bg_skin');
     var skinId;
-    if (_userSkin && _userSkin !== 'bg_default') {
+    if (_userSkin) {
       skinId = _userSkin;
     } else {
       var _homeTier = parseInt(localStorage.getItem('td_tier')||'1',10);
@@ -17362,29 +17369,38 @@ function renderSkinGrid() {
       } else if (motionType === 'vortex') {
         var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.003;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.5){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.35;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=6;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
       } else if (motionType === 'wave') {
-        // 오로라: 더 밝고 선명한 웨이브 밴드
-        for(var b=0;b<8;b++){
-          var baseY=H*(0.1+b*0.11);
-          var amp=18+b*4;
-          var freq=0.006+b*0.0015;
-          var spd=0.2+b*0.06;
+        // 오로라: 신비로운 다층 커튼 (실제 오로라처럼)
+        var aCols = ['#55ffaa','#33ff77','#22ddaa','#66ffdd','#44cc88','#88ffcc'];
+        for(var b=0;b<12;b++){
+          var baseY=H*(0.05+b*0.075);
+          var amp=12+Math.sin(t*0.1+b)*8;
+          var freq=0.004+b*0.001;
+          var spd=0.08+b*0.02;
+          var shimmer=0.3+Math.sin(t*0.15+b*0.8)*0.2;
           ctx.beginPath();
           ctx.moveTo(0, H);
-          for(var bx=0;bx<=W;bx+=3){
-            var wy=baseY+Math.sin(bx*freq+t*spd+b*1.2)*amp+Math.sin(bx*freq*2.3+t*spd*0.7)*amp*0.4;
+          for(var bx=0;bx<=W;bx+=2){
+            var wy=baseY+Math.sin(bx*freq+t*spd+b*1.5)*amp+Math.sin(bx*freq*3+t*spd*0.4)*amp*0.3;
             ctx.lineTo(bx, wy);
           }
           ctx.lineTo(W, H);
           ctx.closePath();
-          var grd=ctx.createLinearGradient(0, baseY-amp, 0, baseY+amp*2);
-          grd.addColorStop(0, cols[b%2]+'00');
-          grd.addColorStop(0.3, cols[b%2]+'25');
-          grd.addColorStop(0.5, cols[(b+1)%2]+'18');
-          grd.addColorStop(1, cols[b%2]+'00');
-          ctx.globalAlpha=0.7;
+          var grd=ctx.createLinearGradient(0, baseY-amp*2, 0, baseY+amp*3);
+          var ac=aCols[b%aCols.length];
+          grd.addColorStop(0, ac+'00');
+          grd.addColorStop(0.2, ac+'15');
+          grd.addColorStop(0.45, ac+'22');
+          grd.addColorStop(0.6, ac+'10');
+          grd.addColorStop(1, ac+'00');
+          ctx.globalAlpha=shimmer;
           ctx.fillStyle=grd;
           ctx.fill();
         }
+        // 상단 글로우
+        ctx.globalAlpha=0.06;
+        var ag=ctx.createRadialGradient(W*0.5,H*0.15,0,W*0.5,H*0.15,W*0.5);
+        ag.addColorStop(0,'#55ffaa');ag.addColorStop(1,'transparent');
+        ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
       } else if (motionType === 'radiate') {
         var cx2=W/2,cy2=H*0.4;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var dx=pp.x-cx2,dy=pp.y-cy2;var dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)dist=2;pp.x+=dx/dist*0.4;pp.y+=dy/dist*0.4;if(dist>Math.min(W,H)*0.45){pp.x=cx2+(Math.random()-0.5)*30;pp.y=cy2+(Math.random()-0.5)*30;}ctx.globalAlpha=pp.a*(1-Math.min(1,dist/(W*0.45)));ctx.shadowColor=pp.col;ctx.shadowBlur=8;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
       } else if (motionType === 'snow') {
