@@ -4239,7 +4239,7 @@ function mkEnemy(etype) {
   var _planetSpdMult = [1, 1, 1.1, 1.2, 1.3, 1.4][_tier] || 1;
   var w = G ? G.wave : 1;
   var baseHp  = 4 * Math.pow(1.12, w - 1) * _planetHpMult;
-  var baseSpd = Math.min(3.0, 0.8 * (1 + Math.log(Math.max(1,w)) * 0.15)) * _planetSpdMult;
+  var baseSpd = Math.min(2.0, 0.8 + w * 0.003) * _planetSpdMult;
   var baseR   = 9;
   var _planetGoldMult = [1, 1, 2, 3, 4, 5][_tier] || 1;
   var baseGold = Math.round((({basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500}[etype]) || 1) * _planetGoldMult);
