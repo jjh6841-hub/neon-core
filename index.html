@@ -2949,7 +2949,7 @@ var UPGRADES = [
     cost()   { return upgCost('maxhp',7); },
     stat()   { return G.tower.maxHp; },
     canBuy() { return coreChips>=upgCost('maxhp',7); },
-    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; var inc=Math.round(G.tower.maxHp*0.20); G.tower.maxHp+=inc; G.tower.hp+=inc; if(G.pShieldMax>0){var _spct=G.pShieldMax/(G.tower.maxHp-inc); G.pShieldMax=Math.round(G.tower.maxHp*_spct);} },
+    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; var inc=Math.round(G.tower.maxHp*0.20); G.tower.maxHp+=inc; G.tower.hp+=inc; if(G.pShieldMax>0){var _oldMax=G.pShieldMax; var _spct=_oldMax/(G.tower.maxHp-inc); G.pShieldMax=Math.round(G.tower.maxHp*_spct); G.pShieldCur=Math.min(G.pShieldMax, (G.pShieldCur||0)+(G.pShieldMax-_oldMax));} },
   },
   { key:'hpRegen', tab:'def', icon:'♥',  name:'체력회복',  baseCost:8,  unlock:null,
     cost()   { return upgCost('hpRegen',8); },
