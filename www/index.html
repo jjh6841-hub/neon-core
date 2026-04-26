@@ -2952,7 +2952,7 @@ var UPGRADES = [
   },
   { key:'hpRegen', tab:'def', icon:'♥',  name:'체력회복',  baseCost:8,  unlock:null,
     cost()   { return upgCost('hpRegen',8); },
-    stat()   { return G.regenRate._tf2()+'/s'; },
+    stat()   { return ((G.regenRate||0)+((G.tower&&G.tower.hpRegen)||0))._tf2()+'/s'; },
     canBuy() { return coreChips>=upgCost('hpRegen',8); },
     apply()  { var c=upgCost('hpRegen',8); coreChips-=c; G.upgLvl.hpRegen=(G.upgLvl.hpRegen||0)+1; G.regenRate=_getHpRegen((PERM.ws&&PERM.ws.hpRegen||0)+(G.upgLvl.hpRegen||0)); },
   },
