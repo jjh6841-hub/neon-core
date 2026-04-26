@@ -1693,7 +1693,8 @@ canvas {
   window._fbDb = firebase.firestore();
   // 유저 ID 생성/로드
   var uid = localStorage.getItem('td_uid');
-  if (!uid) { uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); localStorage.setItem('td_uid', uid); }
+  if (!uid) { uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); localStorage.setItem('td_uid', uid); console.warn('[NEONCORE] 새 UID 생성:', uid, '이전 td_uid 없음'); }
+  else { console.log('[NEONCORE] 기존 UID 로드:', uid); }
   window._fbUid = uid;
 
   // ── 접속 정지 체크 (콜백 지원) ──
@@ -1705,6 +1706,7 @@ canvas {
       if (!doc.exists) { if(cb) cb(false); return; }
       // 톰스톤 감지 → 유저 삭제됨
       if (doc.data().deleted) {
+        console.error('[NEONCORE] 톰스톤 감지! UID:', window._fbUid, 'doc:', JSON.stringify(doc.data()));
         window._userDeleted = true;
         // 톰스톤 문서 제거
         window._fbDb.collection('users').doc(window._fbUid).delete().catch(function(){});
