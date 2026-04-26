@@ -16478,46 +16478,51 @@ if (typeof _origFireT === 'function') {
 <script>
 (function(){
 
-/* ── 파워 코어: 웨이브 클리어마다 획득 ── */
-var _origWC = window.onWaveComplete;
-if (typeof _origWC === 'function') {
-  window.onWaveComplete = function() {
-    _origWC.apply(this, arguments);
-    if (!window.G) return;
-    var earned = 1 + Math.floor(G.wave / 10);
-    var cur = parseInt(localStorage.getItem('powerCores')||'0',10);
-    localStorage.setItem('powerCores', cur + earned);
-    localStorage.setItem('stat_pc_earned', parseInt(localStorage.getItem('stat_pc_earned')||'0',10) + earned);
-    if (G.floatTexts) G.floatTexts.push({x:G.cx,y:G.cy-40,text:'+'+earned+' 파워코어',timer:0});
-  };
-}
-
-/* ── 접근 코드: 보스 처치 시 획득 ── */
+/* ── 파워 코어: 넥사르(tier3)부터 엘리트 보스 처치 시 획득 ── */
+/* ── 접근 코드: 스펙트라(tier2)부터 하이퍼 보스 처치 시 1개 획득 ── */
+var _acBossUid = 0;
 var _origUpdate_ac = window.update;
 if (typeof _origUpdate_ac === 'function') {
   window.update = function(dt) {
+    // 보스에게 고유 ID 부여 (splice 인덱스 밀림 방지)
+    if (window.G && G.enemies) {
+      for (var i=0; i<G.enemies.length; i++) {
+        if (G.enemies[i].boss && !G.enemies[i]._acUid) G.enemies[i]._acUid = ++_acBossUid;
+      }
+    }
     var before = {};
     if (window.G && G.enemies) {
       for (var i=0; i<G.enemies.length; i++) {
         var e = G.enemies[i];
-        if (e.boss) before[i+'_'+e.r+'_'+(e.bossGrade||'n')] = e.bossGrade||'normal';
+        if (e.boss && e._acUid) before[e._acUid] = e.bossGrade||'normal';
       }
     }
     _origUpdate_ac.apply(this, arguments);
     if (window.G && G.enemies) {
+      var _curTier = parseInt(localStorage.getItem('td_tier')||'1',10);
       var after = {};
       for (var j=0; j<G.enemies.length; j++) {
         var e2 = G.enemies[j];
-        if (e2.boss) after[j+'_'+e2.r+'_'+(e2.bossGrade||'n')] = true;
+        if (e2.boss && e2._acUid) after[e2._acUid] = true;
       }
       Object.keys(before).forEach(function(k) {
         if (!after[k]) {
           var grade = before[k];
-          var earned = grade==='hyper'?3:grade==='elite'?2:1;
-          var cur = parseInt(localStorage.getItem('accessCodes')||'0',10);
-          localStorage.setItem('accessCodes', cur + earned);
-          localStorage.setItem('stat_ac_earned', parseInt(localStorage.getItem('stat_ac_earned')||'0',10) + earned);
-          if (G.floatTexts) G.floatTexts.push({x:G.cx,y:G.cy-20,text:'+'+earned+' 접근코드',color:'#bb44ff',timer:0});
+          // 파워 코어: 넥사르(3)부터, 엘리트 보스 처치 시
+          if (grade === 'elite' && _curTier >= 3) {
+            var pcEarned = _curTier >= 5 ? 7 : _curTier >= 4 ? 4 : 2;
+            var pcCur = parseInt(localStorage.getItem('powerCores')||'0',10);
+            localStorage.setItem('powerCores', pcCur + pcEarned);
+            localStorage.setItem('stat_pc_earned', parseInt(localStorage.getItem('stat_pc_earned')||'0',10) + pcEarned);
+            if (G.floatTexts) G.floatTexts.push({x:G.cx,y:G.cy-40,text:'+'+pcEarned+' 파워코어',color:'#ff8822',timer:0});
+          }
+          // 접근 코드: 스펙트라(2)부터, 하이퍼 보스 처치 시 1개
+          if (grade === 'hyper' && _curTier >= 2) {
+            var acCur = parseInt(localStorage.getItem('accessCodes')||'0',10);
+            localStorage.setItem('accessCodes', acCur + 1);
+            localStorage.setItem('stat_ac_earned', parseInt(localStorage.getItem('stat_ac_earned')||'0',10) + 1);
+            if (G.floatTexts) G.floatTexts.push({x:G.cx,y:G.cy-20,text:'+1 접근코드',color:'#bb44ff',timer:0});
+          }
         }
       });
     }
