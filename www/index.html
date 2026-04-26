@@ -2548,6 +2548,7 @@ var PERM = {
 function loadPerm() {
   try {
     const s = localStorage.getItem('td_perm');
+    console.log('[NEONCORE] loadPerm td_perm 존재:', !!s, s ? '길이:'+s.length : '', s ? '닉:'+JSON.parse(s).nickname+' 골드:'+JSON.parse(s).gold+' 보석:'+JSON.parse(s).gems : '');
     if (s) {
       const d = JSON.parse(s);
       PERM.gold    = d.gold    ?? 10;
@@ -2696,6 +2697,9 @@ function syncFromFirebase() {
     if (!doc.exists) return;
     var cloud = doc.data().perm;
     if (!cloud) return;
+    console.log('[NEONCORE] syncFromFirebase 클라우드:', '닉:'+cloud.nickname, '골드:'+cloud.gold, '보석:'+cloud.gems, 'bw:'+cloud.bestWave);
+    console.log('[NEONCORE] syncFromFirebase 로컬:', '닉:'+PERM.nickname, '골드:'+PERM.gold, '보석:'+PERM.gems, 'bw:'+PERM.bestWave);
+    console.log('[NEONCORE] navUnlockReset:', doc.data().navUnlockReset, '로컬:', localStorage.getItem('_navResetTs'));
     // 클라우드 동기화: 각 재화별로 높은 값 유지 (전체 덮어쓰기 방지)
     var _syncKeys = ['gold','gems','prismFragments','prismSlotCount','bestWave'];
     var _changed = false;
