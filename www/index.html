@@ -9656,8 +9656,7 @@ window._showCoinBonusPopup = function() {
   var prismGold = 1;
   try {
     var eq = PERM.prismEquipped || [];
-    if (eq.indexOf('p_cash') !== -1) { var pv = (PERM.prisms && PERM.prisms.p_cash) || {}; if (pv.lv > 0) prismGold *= (1 + [5,10,15,20,25][pv.lv-1]/100); }
-    if (eq.indexOf('p_coin') !== -1) { var pv2 = (PERM.prisms && PERM.prisms.p_coin) || {}; if (pv2.lv > 0) prismGold *= (1 + [5,10,15,20,25][pv2.lv-1]/100); }
+    if (eq.indexOf('p_kill_cash') !== -1) { var pv3 = (PERM.prisms && PERM.prisms.p_kill_cash) || {}; if (pv3.lv > 0) prismGold *= (1 + [20,40,60,80,100,120][pv3.lv-1]/100); }
   } catch(_) {}
   var total = wsBonus * wsGoldGain * tierMult * prismGold * adMult;
 
@@ -12189,7 +12188,7 @@ function _applyPrismEffects() {
       case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||0) > 0 ? G.enhCritMult + val : 1.5 + val; break; // 기본 1.5x + 프리즘 추가분
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100); break; // #6 곱연산 20%씩 (기본 0이면 0 유지)
-      case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
+      case 'p_crit_rate':  G.critChance = Math.min(1.0, (G.critChance||0) + val/100); break;
       case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
       case 'p_def':        G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + val/100)); break; // 절대 방어 곱연산
       case 'p_cash':       G._prismChipWaveBonus = (G._prismChipWaveBonus||0) + val/100; break; // 웨이브 클리어 코어칩 보너스
@@ -17139,11 +17138,12 @@ function renderSkinGrid() {
     }[skinId] || 'cloud';
 
     // 파티클 초기화
-    var pCount = { bg_nebula:50, bg_crimson:60, bg_deep:45, bg_void:40, bg_aurora:0, bg_solar:45, bg_ice:55, bg_storm:50, bg_rust:50, bg_matrix:60, bg_phantom:40 }[skinId] || 40;
-    if (_homeBgParticles.length === 0 || _homeBgParticles._skin !== skinId) {
+    var pCount = { bg_nebula:50, bg_crimson:60, bg_deep:45, bg_void:40, bg_aurora:0, bg_solar:45, bg_ice:30, bg_storm:50, bg_rust:28, bg_matrix:25, bg_phantom:40 }[skinId] || 40;
+    var W = cv.width, H = cv.height;
+    if (_homeBgParticles.length === 0 || _homeBgParticles._skin !== skinId || _homeBgParticles._w !== W) {
       _homeBgParticles = [];
       _homeBgParticles._skin = skinId;
-      var W = cv.width, H = cv.height;
+      _homeBgParticles._w = W;
       for (var pi = 0; pi < pCount; pi++) {
         _homeBgParticles.push({
           x: Math.random()*W, y: Math.random()*H,
@@ -17227,10 +17227,10 @@ function renderSkinGrid() {
         // 먼지 안개
         ctx.globalAlpha=0.03;var dg=ctx.createRadialGradient(W*0.6,H*0.5,0,W*0.6,H*0.5,W*0.5);dg.addColorStop(0,cols[0]);dg.addColorStop(1,'transparent');ctx.fillStyle=dg;ctx.fillRect(0,0,W,H);
       } else if (motionType === 'rain') {
-        // 매트릭스: 더 밝은 코드 비 + 글로우
-        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.y+=0.35+pp.r*0.15;if(pp.y>H+10){pp.y=-10;pp.x=Math.random()*W;}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=4;ctx.fillStyle=pp.col;ctx.font='bold '+(8+pp.r*2)+'px monospace';ctx.fillText(String.fromCharCode(0x30A0+Math.floor(Math.random()*96)),pp.x,pp.y);ctx.shadowBlur=0;}
+        // 매트릭스: 느린 코드 비 (문자 ~0.5초마다 변경)
+        for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.y+=0.15+pp.r*0.05;if(pp.y>H+10){pp.y=-10;pp.x=Math.random()*W;pp._ch=null;}if(!pp._ch||Math.random()<0.03)pp._ch=String.fromCharCode(0x30A0+Math.floor(Math.random()*96));ctx.globalAlpha=pp.a*0.7;ctx.fillStyle=pp.col;ctx.font=(8+pp.r*2)+'px monospace';ctx.fillText(pp._ch,pp.x,pp.y);}
         // 세로 트레일
-        for(var ri=0;ri<8;ri++){var rx=W*(ri+0.5)/8;ctx.globalAlpha=0.02;ctx.fillStyle=cols[0];ctx.fillRect(rx-1,0,2,H);}
+        for(var ri=0;ri<5;ri++){var rx=W*(ri+0.5)/5;ctx.globalAlpha=0.015;ctx.fillStyle=cols[0];ctx.fillRect(rx-1,0,2,H);}
       } else if (motionType === 'ghost') {
         // 팬텀: 유령 원형 파동 + 느린 부유 + 깜빡임
         for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];pp.x+=Math.sin(t*0.15+pp.phase)*0.2;pp.y-=0.08+pp.r*0.02;if(pp.y<-20){pp.y=H+20;pp.x=Math.random()*W;}if(pp.x<-20||pp.x>W+20){pp.x=Math.random()*W;pp.y=Math.random()*H;}var fade=Math.abs(Math.sin(t*0.4+pp.phase));var mx=pp.x+Math.sin(t*0.25+pp.phase)*10;var my=pp.y+Math.cos(t*0.2+pp.phase)*10;ctx.globalAlpha=pp.a*fade*0.7;ctx.strokeStyle=pp.col;ctx.lineWidth=1;ctx.shadowColor=pp.col;ctx.shadowBlur=pp.r*5;ctx.beginPath();ctx.arc(mx,my,pp.r*5+fade*12,0,Math.PI*2);ctx.stroke();if(fade>0.8){ctx.globalAlpha=pp.a*0.15;ctx.beginPath();ctx.arc(mx,my,pp.r*3,0,Math.PI*2);ctx.fillStyle=pp.col;ctx.fill();}ctx.shadowBlur=0;}
