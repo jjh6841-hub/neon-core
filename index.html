@@ -3910,14 +3910,14 @@ function update(dt) {
           G._chipFrac -= _bonusInt;
           var chipEarned = _baseChip + _bonusInt;
           coreChips = Math.round((coreChips + chipEarned) * 100) / 100;
-          if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
+          if (chipEarned > 0) { var _tx=(e.x+G.cx)/2, _ty=(e.y+G.cy)/2; G.floatTexts.push({ x: _tx, y: _ty - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 }); }
           G.killCount++;
           PERM.totalKills++;
           _infKill(e.type);
           var _eGold = e.gold || 1;
           var _eBase = Math.round(_eGold * 0.5);
           _eGold = Math.round(_eGold * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
-          if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; G.goldBaseEarned += _eBase; PERM.gold += _eGold; G.floatTexts.push({x:e.x,y:e.y+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
+          if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; G.goldBaseEarned += _eBase; PERM.gold += _eGold; var _gx=(e.x+G.cx)/2, _gy=(e.y+G.cy)/2; G.floatTexts.push({x:_gx,y:_gy+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
           // 분열 적: 죽으면 기본 드론 2개 소환
           if (e.type === 'split' && !e._isSplitChild) {
             for (var _si=0;_si<2;_si++) {
@@ -19575,6 +19575,7 @@ function _collectGem() {
     if (window.PERM) { PERM.gems += GEM_EVENT_REWARD; logCurrency('gems', GEM_EVENT_REWARD, '보석 이벤트'); if (window.savePerm) savePerm(); }
     G.floatTexts.push({ x: _gemX, y: _gemY - 20, text: '+' + GEM_EVENT_REWARD + ' ❖', color: '#cc44ff', timer: 0 });
     try { AudioManager.playSfx('upgrade'); } catch(_) {}
+    if (window.showToastMsg) showToastMsg('이벤트 보석 +' + GEM_EVENT_REWARD + ' 획득!', '#cc44ff');
   }
 }
 
