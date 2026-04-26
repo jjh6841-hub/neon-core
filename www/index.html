@@ -6660,6 +6660,7 @@ if (dailyPopup) {
     }
     curTier = prev;
     applyTier();
+    refreshHomeData();
   });
   document.getElementById('tier-next').addEventListener('click', function() {
     var next = (curTier + 1) % TIERS.length;
@@ -6669,6 +6670,7 @@ if (dailyPopup) {
     }
     curTier = next;
     applyTier();
+    refreshHomeData();
   });
 
   /* ── 설정 버튼 (기존 설정 화면 연동) ── */
