@@ -2837,6 +2837,7 @@ var _UPG_WS_MAP = {
   bounceChance:'bounceChance', bounceTargets:'bounceTargets', bounceRange:'bounceRange',
   enemyDefReduce:'enemyDefReduce', enhCritChance:'enhCritChance', enhCritMult:'enhCritMult',
   defRate:'defRate', vamp:'vampChance', reflect:'reflectDmg', knockback:'knockChance', knockForce:'knockbackForce', shieldHP:'shieldHP',
+  pulseSize:'pulseSize', pulseCd:'pulseCd',
   maxhp:'maxHp', hpRegen:'hpRegen', defAbs:'defAbs',
 };
 function _totalLv(upgKey) {
@@ -2890,7 +2891,7 @@ var UPGRADES = [
   },
   { key:'multi',   tab:'atk', icon:'+',  name:'분열탄수', baseCost:10, unlock:'multi', maxLv:5,
     cost()   { return upgCost('multi',10); },
-    stat()   { return G.multiShot+'발'; },
+    stat()   { return (G.multiShot-1)+'발'; },
     canBuy() { return _canUpg('multi',5) && coreChips>=upgCost('multi',10); },
     apply()  { var c=upgCost('multi',10); coreChips-=c; G.upgLvl.multi=(G.upgLvl.multi||0)+1; G.multiShot++; },
   },
@@ -2999,15 +3000,15 @@ var UPGRADES = [
   },
   { key:'pulseSize', tab:'def', icon:'◎', name:'파장 크기',  baseCost:15, unlock:'pulse', maxLv:10,
     cost()   { return upgCost('pulseSize',15); },
-    stat()   { return ((G.upgLvl.pulseSize||0)*10) + 'px'; },
+    stat()   { return (_totalLv('pulseSize')*10) + 'px'; },
     canBuy() { return _canUpg('pulseSize',10) && coreChips>=upgCost('pulseSize',15); },
-    apply()  { var c=upgCost('pulseSize',15); coreChips-=c; G.upgLvl.pulseSize=(G.upgLvl.pulseSize||0)+1; G.pulseRange=(G.upgLvl.pulseSize||0)*10; },
+    apply()  { var c=upgCost('pulseSize',15); coreChips-=c; G.upgLvl.pulseSize=(G.upgLvl.pulseSize||0)+1; G.pulseRange=_totalLv('pulseSize')*10; },
   },
   { key:'pulseCd', tab:'def', icon:'⏱', name:'파장 주기',  baseCost:12, unlock:'pulse', maxLv:21,
     cost()   { return upgCost('pulseCd',12); },
-    stat()   { var lv=G.upgLvl.pulseCd||0; return lv===0?'-':Math.max(20,60-lv*2)+'초'; },
+    stat()   { var lv=_totalLv('pulseCd'); return lv===0?'-':Math.max(20,60-lv*2)+'초'; },
     canBuy() { return (G.upgLvl.pulseSize||0)>0 && _canUpg('pulseCd',21) && coreChips>=upgCost('pulseCd',12); },
-    apply()  { var c=upgCost('pulseCd',12); coreChips-=c; G.upgLvl.pulseCd=(G.upgLvl.pulseCd||0)+1; G.pulseCd=Math.max(20,60-(G.upgLvl.pulseCd||0)*2)*1000; },
+    apply()  { var c=upgCost('pulseCd',12); coreChips-=c; G.upgLvl.pulseCd=(G.upgLvl.pulseCd||0)+1; G.pulseCd=Math.max(20,60-_totalLv('pulseCd')*2)*1000; },
   },
   // ─ 특수 탭 ─
   { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
@@ -3755,7 +3756,7 @@ function update(dt) {
           for (var _sei = 0; _sei < _skipEnemies.length; _sei++) {
             var _seGold = (_enemyGoldMap[_skipEnemies[_sei]] || 1);
             _skipKillGold += Math.round(_seGold * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
-            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0)));
+            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1));
           }
           var _skipWaveGold = Math.round(Math.min(50, 5 + Math.floor(_nw / 100) * 5) * (G.goldBonus||1) * (G.goldMult||1));
           var _skipWaveChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
@@ -3912,7 +3913,7 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
+          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1));
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           // 보스 보석 보상 (엘리트 2, 하이퍼 5, 갤럭시 50 — 일반 보스는 없음)
@@ -3974,7 +3975,7 @@ function update(dt) {
               if (edx * edx + edy * edy < G.explodeR * G.explodeR) {
                 ek.hp -= exDmg;
                 if (ek.hp <= 0) {
-                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
+                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1));
                   coreChips += ekChip;
                   G.killCount++;
                   PERM.totalKills++;
@@ -6893,7 +6894,7 @@ if (dailyPopup) {
       nxt:  function(lv) { return ((lv + 1) * 10) + 'px'; } },
     pulseCd:    { tab:'def', name:'파장 주기',    maxLv:21,  defGroup:6,
       cost: function(lv) { return 12 + Math.floor(lv * 2.5); },
-      cur:  function(lv) { return Math.max(20, 60 - lv * 2) + '초'; },
+      cur:  function(lv) { return lv === 0 ? '-' : Math.max(20, 60 - lv * 2) + '초'; },
       nxt:  function(lv) { return Math.max(20, 60 - (lv + 1) * 2) + '초'; } },
     enemyDefReduce: { tab:'atk', name:'적 방어력 감소', maxLv:74, atkGroup:6,
       cost: function(lv) { return 10 + lv * 6; },
@@ -8035,6 +8036,9 @@ window.createState = function() {
   // Defense extended
   g.knockbackChance = (ws.knockChance || 0) * 0.005;
   g.knockbackForce  = ((ws.knockbackForce || 0) + parseInt(localStorage.getItem('res_r_knockforce')||'0',10)) * 2;
+  // 파장: 강화소 레벨 반영
+  g.pulseRange = (ws.pulseSize || 0) * 10;
+  g.pulseCd    = (ws.pulseCd || 0) > 0 ? Math.max(20, 60 - (ws.pulseCd||0) * 2) * 1000 : -1;
   g.orbSpeed        = 1 + (ws.orbSpeed    || 0) * 0.1;
   g.orbCount        = ws.orbCount || 0;
   g.orbAngle        = 0;
@@ -17422,47 +17426,47 @@ function renderSkinGrid() {
       } else if (motionType === 'vortex') {
         var cx2=W/2,cy2=H*0.45;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var angle=Math.atan2(pp.y-cy2,pp.x-cx2)+0.003;var dist=Math.sqrt((pp.x-cx2)*(pp.x-cx2)+(pp.y-cy2)*(pp.y-cy2));pp.x=cx2+dist*Math.cos(angle);pp.y=cy2+dist*Math.sin(angle);if(dist<5||dist>W*0.5){var a2=Math.random()*Math.PI*2;var d2=30+Math.random()*W*0.35;pp.x=cx2+d2*Math.cos(a2);pp.y=cy2+d2*Math.sin(a2);}ctx.globalAlpha=pp.a*0.9;ctx.shadowColor=pp.col;ctx.shadowBlur=6;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
       } else if (motionType === 'wave') {
-        // 오로라: 수직 커튼이 흔들리며 내려오는 실제 오로라
-        var aCols = ['#33ff88','#22ddaa','#55ffcc','#44ffaa','#66eebb','#33ccaa'];
-        // 세로 커튼 밴드 (좌우로 느리게 흔들림)
-        for(var b=0;b<8;b++){
-          var baseX = W*(0.05+b*0.12) + Math.sin(t*0.05+b*2.1)*W*0.04;
-          var bandW = W*0.08 + Math.sin(t*0.08+b*1.3)*W*0.02;
-          var topY = H*0.02 + Math.sin(t*0.06+b)*H*0.03;
-          var botY = H*0.45 + Math.sin(t*0.04+b*0.7)*H*0.15;
-          var grd = ctx.createLinearGradient(0, topY, 0, botY+H*0.2);
+        // 오로라: 부드러운 수평 웨이브 (밤하늘 오로라)
+        var aCols = ['#22cc77','#33ffaa','#44ddbb','#55eedd','#33bb88'];
+        for(var b=0;b<6;b++){
+          var baseY = H*(0.08+b*0.07);
+          var amp = 15 + Math.sin(t*0.03+b*1.5)*8;
+          var freq = 0.003 + b*0.0005;
+          var spd = 0.03 + b*0.008;
+          var alpha = 0.12 + Math.sin(t*0.05+b*0.9)*0.06;
+          var grd = ctx.createLinearGradient(0, baseY-amp*3, 0, baseY+amp*4);
           var ac = aCols[b%aCols.length];
-          grd.addColorStop(0, ac+'00');
-          grd.addColorStop(0.1, ac+'18');
-          grd.addColorStop(0.3, ac+'25');
+          grd.addColorStop(0, 'transparent');
+          grd.addColorStop(0.2, ac+'10');
+          grd.addColorStop(0.4, ac+'20');
           grd.addColorStop(0.6, ac+'15');
-          grd.addColorStop(1, ac+'00');
-          ctx.globalAlpha = 0.25 + Math.sin(t*0.12+b*1.1)*0.12;
+          grd.addColorStop(0.8, ac+'08');
+          grd.addColorStop(1, 'transparent');
+          ctx.globalAlpha = alpha;
           ctx.fillStyle = grd;
           ctx.beginPath();
-          for(var by=topY;by<=botY;by+=3){
-            var prog=(by-topY)/(botY-topY);
-            var sway=Math.sin(by*0.015+t*0.1+b*2)*bandW*0.5*prog;
-            var bw=bandW*(0.3+prog*0.7);
-            ctx.rect(baseX+sway-bw/2, by, bw, 4);
+          ctx.moveTo(0, H);
+          for(var bx=0;bx<=W;bx+=4){
+            var wy = baseY + Math.sin(bx*freq+t*spd+b*2)*amp + Math.sin(bx*freq*2+t*spd*0.5+b)*amp*0.3;
+            ctx.lineTo(bx, wy);
           }
+          ctx.lineTo(W, H);
+          ctx.closePath();
           ctx.fill();
         }
-        // 미세한 별 반짝임
+        // 별 반짝임
         for(var si=0;si<_homeBgParticles.length;si++){
           var sp=_homeBgParticles[si];
-          sp.x+=Math.sin(t*0.02+sp.phase)*0.1;
-          sp.y-=0.02;
+          sp.y-=0.01;
           if(sp.y<-5){sp.y=H;sp.x=Math.random()*W;}
-          var fl=0.3+Math.sin(t*0.5+sp.phase)*0.3;
-          ctx.globalAlpha=sp.a*fl*0.4;
-          ctx.fillStyle='#aaffcc';
-          ctx.beginPath();ctx.arc(sp.x,sp.y,sp.r*0.6,0,Math.PI*2);ctx.fill();
+          ctx.globalAlpha=sp.a*(0.2+Math.sin(t*0.3+sp.phase)*0.2);
+          ctx.fillStyle='#aaffdd';
+          ctx.beginPath();ctx.arc(sp.x,sp.y,sp.r*0.5,0,Math.PI*2);ctx.fill();
         }
-        // 상단 글로우
-        ctx.globalAlpha=0.05;
-        var ag=ctx.createRadialGradient(W*0.5,H*0.08,0,W*0.5,H*0.08,W*0.6);
-        ag.addColorStop(0,'#44ffaa');ag.addColorStop(0.5,'#22aa6622');ag.addColorStop(1,'transparent');
+        // 상단 은은한 글로우
+        ctx.globalAlpha=0.04;
+        var ag=ctx.createLinearGradient(0,0,0,H*0.5);
+        ag.addColorStop(0,'#33ffaa15');ag.addColorStop(1,'transparent');
         ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
       } else if (motionType === 'radiate') {
         var cx2=W/2,cy2=H*0.4;for(var i=0;i<_homeBgParticles.length;i++){var pp=_homeBgParticles[i];var dx=pp.x-cx2,dy=pp.y-cy2;var dist=Math.sqrt(dx*dx+dy*dy);if(dist<2)dist=2;pp.x+=dx/dist*0.4;pp.y+=dy/dist*0.4;if(dist>Math.min(W,H)*0.45){pp.x=cx2+(Math.random()-0.5)*30;pp.y=cy2+(Math.random()-0.5)*30;}ctx.globalAlpha=pp.a*(1-Math.min(1,dist/(W*0.45)));ctx.shadowColor=pp.col;ctx.shadowBlur=8;ctx.fillStyle=pp.col;ctx.beginPath();ctx.arc(pp.x,pp.y,pp.r*1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
@@ -18233,7 +18237,7 @@ if (typeof _prevApply === 'function') {
       if (a.id === 'aug_hp')  { t.maxHp = Math.round(t.maxHp * 1.5); t.hp = t.maxHp; }
       if (a.id === 'aug_chips') G._augChipMult = true;
       if (a.id === 'aug_regen') G._augRegenPct = 0.03;
-      if (a.id === 'aug_crit')  t.critChance = Math.min(1.0, (t.critChance || 0) + 0.05);
+      if (a.id === 'aug_crit')  { G.critChance = Math.min(1.0, (G.critChance || 0) + 0.05); t.critChance = G.critChance; }
       if (a.id === 'aug_start' && typeof coreChips !== 'undefined') coreChips += 300;
     });
     _pendingAugs = [];
@@ -18244,14 +18248,7 @@ if (typeof _prevApply === 'function') {
 var _augUpd = window.update;
 if (typeof _augUpd === 'function') {
   window.update = function(dt) {
-    var _preWave = (window.G && G.wave) || 0;
-    var pre = (typeof coreChips !== 'undefined') ? coreChips : 0;
     _augUpd.apply(this, arguments);
-    // 코어칩 +50%: 웨이브가 변하지 않았을 때만 (적 처치만 적용, 웨이브 클리어 보너스 제외)
-    var _postWave = (window.G && G.wave) || 0;
-    if (window.G && G._augChipMult && typeof coreChips !== 'undefined' && coreChips > pre && _postWave === _preWave) {
-      coreChips += Math.floor((coreChips - pre) * 0.5);
-    }
     if (window.G && G._augRegenPct && G.tower && G.phase === 'playing') {
       var _spdDt = dt * (G.speed || 1);
       G._augRegenT = (G._augRegenT || 0) + _spdDt;
