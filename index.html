@@ -9694,7 +9694,14 @@ if (homeEl) {
       var adActive = Date.now() < (parseInt(localStorage.getItem('td_ad_bonus_expiry')||'0',10));
       var wsBonus  = _getWsBonus();
       var tierMult = _getTierMult();
-      var total    = wsBonus * tierMult * (adActive ? 1.5 : 1.0);
+      var ws2 = (window.PERM && window.PERM.ws) || {};
+      var wsGoldGain = 1 + (ws2.goldGain || 0) * 0.05;
+      var prismGold = 1;
+      try {
+        var eq = (window.PERM && window.PERM.prismEquipped) || [];
+        if (eq.indexOf('p_kill_cash') !== -1) { var pv = (window.PERM.prisms && window.PERM.prisms.p_kill_cash) || {}; if (pv.lv > 0) prismGold *= (1 + [20,40,60,80,100,120][pv.lv-1]/100); }
+      } catch(_) {}
+      var total = wsBonus * wsGoldGain * tierMult * prismGold * (adActive ? 1.5 : 1.0);
       var el = document.getElementById('home-total-bonus');
       if (el) el.textContent = '◈ ×' + total._tf2();
     }
