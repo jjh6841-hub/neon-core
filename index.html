@@ -2546,8 +2546,6 @@ var PERM = {
 function loadPerm() {
   try {
     const s = localStorage.getItem('td_perm');
-    if (s) { try { var _dbg=JSON.parse(s); console.warn('[loadPerm] 읽은 데이터:', '닉:'+_dbg.nickname, '골드:'+_dbg.gold, 'music:'+(_dbg.settings&&_dbg.settings.music), 'ws.damage:'+(_dbg.ws&&_dbg.ws.damage||0), '길이:'+s.length); } catch(_){} }
-    else { console.warn('[loadPerm] td_perm 없음!'); }
     if (s) {
       const d = JSON.parse(s);
       PERM.gold    = d.gold    ?? 10;
@@ -2588,6 +2586,7 @@ function loadPerm() {
       }
     }
   } catch (_) {}
+  window._permLoaded = true;
   // 기본 닉네임 생성 (없으면) — Firestore 중복 체크
   if (!PERM.nickname && window._fbDb) {
     (function _genNick() {
@@ -2658,8 +2657,8 @@ function savePerm() {
     _prevPermGems = curGems;
   } catch(_){}
   if (window._userDeleted) return; // 삭제된 유저 저장 차단
-  // 디버그: savePerm 호출 시 주요 데이터 추적
-  console.log('[savePerm]', 'nick:'+PERM.nickname, 'gold:'+PERM.gold, 'ws.damage:'+(PERM.ws&&PERM.ws.damage||0), 'settings.music:'+((PERM.settings&&PERM.settings.music)), 'syncDone:'+!!window._fbSyncDone, new Error().stack.split('\n')[2]);
+  // loadPerm 실행 전에는 저장 차단 (기본값으로 덮어쓰기 방지)
+  if (!window._permLoaded) return;
   try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
   // Firestore 동기화 (초기 sync 완료 전에는 쓰기 차단)
   if (!window._fbSyncDone) return;
