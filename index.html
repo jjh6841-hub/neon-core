@@ -2661,19 +2661,20 @@ function syncFromFirebase() {
     if (!doc.exists) return;
     var cloud = doc.data().perm;
     if (!cloud) return;
-    // 클라우드 데이터가 더 진행된 경우 전체 복원
-    var localBest = PERM.bestWave || 0;
-    var cloudBest = cloud.bestWave || 0;
-    var cloudGold = cloud.gold || 0;
-    if (cloudBest > localBest || (cloudBest === localBest && cloudGold > (PERM.gold||0))) {
-      Object.keys(cloud).forEach(function(k) { PERM[k] = cloud[k]; });
-    }
-    // 관리자 재화 수정 반영: 클라우드 값이 더 높으면 항상 동기화
+    // 클라우드 동기화: 각 재화별로 높은 값 유지 (전체 덮어쓰기 방지)
     var _syncKeys = ['gold','gems','prismFragments','prismSlotCount','bestWave'];
     var _changed = false;
     _syncKeys.forEach(function(k) {
       if ((cloud[k]||0) > (PERM[k]||0)) { PERM[k] = cloud[k]; _changed = true; }
     });
+    // bestWave가 더 높으면 진행 관련 데이터도 동기화 (재화 제외)
+    var localBest = PERM.bestWave || 0;
+    var cloudBest = cloud.bestWave || 0;
+    if (cloudBest > localBest) {
+      var _noOverwrite = {gold:1,gems:1,prismFragments:1,prismSlotCount:1,bestWave:1};
+      Object.keys(cloud).forEach(function(k) { if (!_noOverwrite[k]) PERM[k] = cloud[k]; });
+      _changed = true;
+    }
     if (_changed) {
       try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
       try {
@@ -2688,8 +2689,9 @@ function syncFromFirebase() {
     if (_resetTs && _resetTs !== _lastReset) {
       localStorage.setItem('_navResetTs', _resetTs);
       localStorage.removeItem('td_nav_unlocked');
-      // PERM + tierBest를 클라우드 값으로 강제 덮어쓰기
-      Object.keys(cloud).forEach(function(k) { PERM[k] = cloud[k]; });
+      // PERM 진행 데이터만 클라우드 반영 (재화는 보호)
+      var _protectKeys = {gold:1,gems:1,prismFragments:1,prismSlotCount:1};
+      Object.keys(cloud).forEach(function(k) { if (!_protectKeys[k]) PERM[k] = cloud[k]; });
       try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
       var _cTB = doc.data().tierBest;
       if (_cTB) { for(var _ri=1;_ri<=5;_ri++) localStorage.setItem('tier'+_ri+'_best', _cTB['tier'+_ri]||0); }
