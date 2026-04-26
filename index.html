@@ -11916,7 +11916,7 @@ var PRISMS = [
   {id:'p_crit_dmg',   cat:'atk',    name:'급소 배율',       desc:'치명타 배율 증가',     lvEff:[0.4,0.8,1.2,1.6,2.0,2.4], unit:'x'},
   {id:'p_range',      cat:'atk',    name:'탐지 확장',       desc:'사거리 확장',          lvEff:[8,16,24,32,40,48], unit:'px'},
   {id:'p_crit_rate2', cat:'atk',    name:'강화 치명타 확률', desc:'치명타 확률 추가 증가', lvEff:[2,4,6,8,10,12], unit:'%'},
-  {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[1.5,1.9,2.3,2.7,3.1,3.5], unit:'x'},
+  {id:'p_crit_dmg2',  cat:'atk',    name:'강화 치명타 계수', desc:'강화 치명타 배율',      lvEff:[0.4,0.8,1.2,1.6,2.0,2.4], unit:'x'},
   {id:'p_splash',     cat:'atk',    name:'광역 타격',       desc:'적 처치 시 주변 스플래시', lvEff:[10,20,30,40,50,60], unit:'%'},
   {id:'p_overload',   cat:'atk',    name:'과부하 코어',     desc:'HP가 낮을수록 공격력 증가', lvEff:[10,20,30,40,50,60], unit:'%'},
   {id:'p_vuln',       cat:'atk',    name:'취약점 노출',     desc:'피해 누적 시 추가 피해',   lvEff:[5,10,15,20,25,30], unit:'%'},
@@ -12077,7 +12077,7 @@ function _applyPrismEffects() {
       case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
       case 'p_range':      t.range = t.range + val; break;
       case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break; // 강화소 값에 합산
-      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||0) > 0 ? G.enhCritMult + (val - 1.5) : val; break; // 강화소 기본값에 프리즘 추가분 합산
+      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||0) > 0 ? G.enhCritMult + val : 1.5 + val; break; // 기본 1.5x + 프리즘 추가분
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100); break; // #6 곱연산 20%씩 (기본 0이면 0 유지)
       case 'p_crit_rate':  t.critChance = Math.min(1.0, (t.critChance||0) + val/100); break;
@@ -13108,7 +13108,7 @@ function _showStatsPopup() {
   var wsEnhCritChance=(ws.enhCritChance||0)*0.5; // 강화소: 레벨당 0.5%
   var wsEnhCritMult=(ws.enhCritMult||0)>0?1.5+(ws.enhCritMult||0)*0.1:0; // 강화소: 기본 1.5x + 레벨당 0.1
   var enhCritChance=wsEnhCritChance+(_prismB.enhCritRate||0); // 합연산
-  var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+(_prismB.enhCritMult-1.5):wsEnhCritMult||(_prismB.enhCritMult||0); // 합연산
+  var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+_prismB.enhCritMult:wsEnhCritMult||((_prismB.enhCritMult||0)>0?1.5+_prismB.enhCritMult:0); // 합연산
   // 3. 모듈 치명타 (독립 판정)
   var modCritChance=_modB.crit||0;
   var modCritMult=_modB.cdmg||0;
