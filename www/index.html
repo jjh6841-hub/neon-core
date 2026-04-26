@@ -12124,6 +12124,9 @@ function _getOverflow(id) {
   return p.lv >= 6 ? p.dup : 0;
 }
 
+// 만렙 프리즘 자동 파편 전환 카운터 (뽑기 세션별 리셋)
+var _maxPrismConvertCount = 0;
+
 function _addPrismDrop(id) {
   var p = _getPrism(id);
   if (p.lv === 0) {
@@ -12139,8 +12142,9 @@ function _addPrismDrop(id) {
     }
     _setPrism(id, lv, dup);
   } else {
-    /* Lv.6 — 초과 중복 누적 (분해용) */
-    _setPrism(id, 6, p.dup + 1);
+    /* Lv.6 만렙 → 즉시 파편 5개로 자동 전환 */
+    _setFragments(_getFragments() + 5);
+    _maxPrismConvertCount++;
   }
 }
 
@@ -12161,11 +12165,18 @@ function _doDraw(n) {
   var cost = PRISM_SINGLE * n;
   if (!window.PERM || (window.PERM.gems || 0) < cost) return null;
   window.PERM.gems -= cost;
+  _maxPrismConvertCount = 0;
   var drawn = [];
   for (var i = 0; i < n; i++) { var p = _drawOnePrism(); drawn.push(p); _addPrismDrop(p.id); }
   window.savePerm && window.savePerm();
   _syncPrismHUD();
   try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
+  // 만렙 프리즘 자동 파편 전환 토스트
+  if (_maxPrismConvertCount > 0) {
+    setTimeout(function() {
+      if (window.showToastMsg) showToastMsg('프리즘 MAX ×' + _maxPrismConvertCount + ' → 파편 ×' + (_maxPrismConvertCount * 5), '#cc44ff');
+    }, 300);
+  }
   return drawn;
 }
 
@@ -12695,7 +12706,7 @@ function _renderCardTab() {
     var total=0;
     PRISMS.forEach(function(pr){
       var ov=_getOverflow(pr.id);
-      if(ov>0){ total+=ov; _setPrism(pr.id,5,0); }
+      if(ov>0){ total+=ov; _setPrism(pr.id,6,0); }
     });
     if(total>0){
       _setFragments(_getFragments()+total*5);
