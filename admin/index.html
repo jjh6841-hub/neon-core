@@ -673,17 +673,26 @@ document.getElementById('modal-save').addEventListener('click', async function()
     updates['perm.ws.'+inp.dataset.ws] = parseInt(inp.value)||0;
   });
 
-  // 행성별 최고 웨이브
+  // 행성별 최고 웨이브 (변경된 것만 반영)
+  var _tierChanged = false;
+  var _oldTierBest = (currentUser.data && currentUser.data.tierBest) || {};
   document.querySelectorAll('#modal-tab-info input[data-tier]').forEach(function(inp){
-    updates['tierBest.'+inp.dataset.tier] = parseInt(inp.value)||0;
+    var newVal = parseInt(inp.value)||0;
+    var oldVal = _oldTierBest[inp.dataset.tier]||0;
+    if (newVal !== oldVal) {
+      updates['tierBest.'+inp.dataset.tier] = newVal;
+      _tierChanged = true;
+    }
   });
-  // bestWave = tier1 값으로 동기화 + 해금 기록 리셋
-  var _t1 = 0;
-  document.querySelectorAll('#modal-tab-info input[data-tier]').forEach(function(inp){
-    if(inp.dataset.tier==='tier1') _t1 = parseInt(inp.value)||0;
-  });
-  updates['perm.bestWave'] = _t1;
-  updates['navUnlockReset'] = new Date().toISOString();
+  // bestWave + 해금 리셋은 티어 값이 실제로 변경됐을 때만
+  if (_tierChanged) {
+    var _t1 = 0;
+    document.querySelectorAll('#modal-tab-info input[data-tier]').forEach(function(inp){
+      if(inp.dataset.tier==='tier1') _t1 = parseInt(inp.value)||0;
+    });
+    updates['perm.bestWave'] = _t1;
+    updates['navUnlockReset'] = new Date().toISOString();
+  }
 
   // 요일탐사
   document.querySelectorAll('#modal-tab-info input[data-exp]').forEach(function(inp){
