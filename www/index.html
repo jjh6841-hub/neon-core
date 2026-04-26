@@ -2597,16 +2597,26 @@ var _prevPermGems = 0;
 function logCurrency(type, amount, reason) {
   if (!amount || amount === 0) return;
   if (!PERM.currencyLog) PERM.currencyLog = [];
+  var bal = 0;
+  if (type==='gold') bal=PERM.gold||0;
+  else if (type==='gems') bal=PERM.gems||0;
+  else if (type==='prismFragments') bal=PERM.prismFragments||0;
+  else if (type==='powerCores') bal=parseInt(localStorage.getItem('powerCores')||'0',10);
+  else if (type==='accessCodes') bal=parseInt(localStorage.getItem('accessCodes')||'0',10);
+  else if (type==='pulseFragments') bal=window.pulseFragments||0;
+  else if (type==='dataCells') bal=parseInt(localStorage.getItem('dataCells')||'0',10);
+  else if (type==='moduleFragments') { try{bal=(JSON.parse(localStorage.getItem('td_modules')||'{}').moduleFragments||0);}catch(_){} }
+  else if (type.indexOf('core_')===0) bal=parseInt(localStorage.getItem(type)||'0',10);
   PERM.currencyLog.push({
     t: type,
     a: amount,
     r: reason,
     ts: Date.now(),
-    b: type === 'gold' ? (PERM.gold||0) : (PERM.gems||0)
+    b: bal
   });
-  // 최근 200건만 유지
-  if (PERM.currencyLog.length > 200) {
-    PERM.currencyLog = PERM.currencyLog.slice(-200);
+  // 최근 500건 유지
+  if (PERM.currencyLog.length > 500) {
+    PERM.currencyLog = PERM.currencyLog.slice(-500);
   }
 }
 window.logCurrency = logCurrency;

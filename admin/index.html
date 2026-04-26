@@ -553,65 +553,108 @@ function renderModal() {
   /* ── 로그 탭 ── */
   var logs = p.currencyLog || [];
   var logHtml = '';
+  var _typeMap = {gold:{name:'골드',icon:'◈',col:'#f59e0b'},gems:{name:'보석',icon:'❖',col:'#00ffff'},prismFragments:{name:'프리즘 파편',icon:'◇',col:'#cc44ff'},powerCores:{name:'파워 코어',icon:'⊕',col:'#ff8822'},accessCodes:{name:'접근 코드',icon:'⌘',col:'#bb44ff'},pulseFragments:{name:'펄스 조각',icon:'✦',col:'#ffc800'},dataCells:{name:'데이터 셀',icon:'▣',col:'#00ff88'},moduleFragments:{name:'모듈 파편',icon:'⊿',col:'#88aaff'},core_fire:{name:'화염 코어',icon:'●',col:'#ef4444'},core_water:{name:'수류 코어',icon:'●',col:'#3b82f6'},core_electric:{name:'전기 코어',icon:'●',col:'#f59e0b'},core_earth:{name:'대지 코어',icon:'●',col:'#a0522d'},core_wind:{name:'바람 코어',icon:'●',col:'#10b981'},core_dark:{name:'암흑 코어',icon:'●',col:'#8b5cf6'}};
 
-  // 요약 통계
-  var goldIn=0, goldOut=0, gemsIn=0, gemsOut=0;
+  // 요약 통계 (모든 재화)
+  var _sumIn={}, _sumOut={};
   logs.forEach(function(l){
-    if(l.t==='gold'){if(l.a>0)goldIn+=l.a;else goldOut+=Math.abs(l.a);}
-    if(l.t==='gems'){if(l.a>0)gemsIn+=l.a;else gemsOut+=Math.abs(l.a);}
+    if(!_sumIn[l.t]) { _sumIn[l.t]=0; _sumOut[l.t]=0; }
+    if(l.a>0) _sumIn[l.t]+=l.a; else _sumOut[l.t]+=Math.abs(l.a);
   });
   logHtml += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">';
-  logHtml += '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:8px;text-align:center;"><div style="color:#556677;font-size:9px;margin-bottom:4px;">골드 획득</div><div style="color:#00ff88;font-size:13px;font-weight:bold;">+'+goldIn.toLocaleString()+'</div></div>';
-  logHtml += '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:8px;text-align:center;"><div style="color:#556677;font-size:9px;margin-bottom:4px;">골드 소비</div><div style="color:#ef4444;font-size:13px;font-weight:bold;">-'+goldOut.toLocaleString()+'</div></div>';
-  logHtml += '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:8px;text-align:center;"><div style="color:#556677;font-size:9px;margin-bottom:4px;">보석 획득</div><div style="color:#00ff88;font-size:13px;font-weight:bold;">+'+gemsIn.toLocaleString()+'</div></div>';
-  logHtml += '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:8px;text-align:center;"><div style="color:#556677;font-size:9px;margin-bottom:4px;">보석 소비</div><div style="color:#ef4444;font-size:13px;font-weight:bold;">-'+gemsOut.toLocaleString()+'</div></div>';
+  Object.keys(_typeMap).forEach(function(tk){
+    var tm=_typeMap[tk];
+    if(!_sumIn[tk]&&!_sumOut[tk]) return;
+    logHtml += '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:8px;text-align:center;"><div style="color:#556677;font-size:9px;margin-bottom:4px;">'+tm.name+' 획득</div><div style="color:#00ff88;font-size:13px;font-weight:bold;">+'+(_sumIn[tk]||0).toLocaleString()+'</div></div>';
+    logHtml += '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:8px;text-align:center;"><div style="color:#556677;font-size:9px;margin-bottom:4px;">'+tm.name+' 소비</div><div style="color:#ef4444;font-size:13px;font-weight:bold;">-'+(_sumOut[tk]||0).toLocaleString()+'</div></div>';
+  });
   logHtml += '</div>';
 
-  // 출처별 집계
+  // 출처별 집계 (페이지네이션 50개)
   var sourceMap={};
   logs.forEach(function(l){
-    if(l.a<=0) return;
     var key=l.t+'|'+l.r;
-    if(!sourceMap[key]) sourceMap[key]={t:l.t, r:l.r, total:0, count:0};
-    sourceMap[key].total+=l.a;
+    if(!sourceMap[key]) sourceMap[key]={t:l.t, r:l.r, totalIn:0, totalOut:0, count:0};
+    if(l.a>0) sourceMap[key].totalIn+=l.a; else sourceMap[key].totalOut+=Math.abs(l.a);
     sourceMap[key].count++;
   });
-  var sources=Object.values(sourceMap).sort(function(a,b){return b.total-a.total;});
+  var sources=Object.values(sourceMap).sort(function(a,b){return (b.totalIn+b.totalOut)-(a.totalIn+a.totalOut);});
   if(sources.length>0){
-    logHtml += '<div style="color:#f59e0b;font-size:10px;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #0a3344;padding-bottom:4px;">출처별 합산</div>';
-    sources.forEach(function(s){
-      var col=s.t==='gold'?'#f59e0b':'#00ffff';
-      var icon=s.t==='gold'?'◈':'❖';
-      logHtml+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10px;border-bottom:1px solid #0a1520;"><span style="color:#94a3b8;">'+s.r+' <span style="color:#334455;">('+s.count+'회)</span></span><span style="color:'+col+';">'+icon+'+'+s.total.toLocaleString()+'</span></div>';
-    });
-    logHtml+='<div style="height:12px;"></div>';
+    logHtml += '<div style="color:#f59e0b;font-size:10px;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #0a3344;padding-bottom:4px;">출처별 합산 ('+sources.length+'건)</div>';
+    logHtml += '<div id="src-list"></div><div id="src-pager" style="display:flex;justify-content:center;gap:4px;margin:8px 0;"></div>';
+    logHtml += '<div style="height:8px;"></div>';
   }
 
-  // 상세 로그
+  // 상세 로그 (페이지네이션 200개)
+  var _typeKeys = Object.keys(_typeMap);
   logHtml += '<div style="color:#00ffff;font-size:10px;letter-spacing:1px;margin-bottom:6px;border-bottom:1px solid #0a3344;padding-bottom:4px;">상세 기록 ('+logs.length+'건)</div>';
   if (logs.length > 0) {
-    logHtml += '<div class="log-filter">' +
-      '<button class="log-f-btn active" data-logf="all">전체</button>' +
-      '<button class="log-f-btn" data-logf="gold">골드</button>' +
-      '<button class="log-f-btn" data-logf="gems">보석</button>' +
-      '</div>';
-    logHtml += '<table class="log-table"><thead><tr><th>시간</th><th>유형</th><th>변동</th><th>잔액</th><th>사유</th></tr></thead>';
-    logHtml += '<tbody id="log-tbody">';
-    for (var li = logs.length - 1; li >= 0; li--) {
-      var log = logs[li];
-      var logTime = new Date(log.ts);
-      var timeStr = (logTime.getMonth()+1)+'/'+logTime.getDate()+' '+logTime.getHours().toString().padStart(2,'0')+':'+logTime.getMinutes().toString().padStart(2,'0');
-      var typeClass = log.t === 'gold' ? 'log-gold' : 'log-gems';
-      var amtClass = log.a > 0 ? 'log-plus' : 'log-minus';
-      var amtStr = log.a > 0 ? '+' + log.a.toLocaleString() : log.a.toLocaleString();
-      logHtml += '<tr data-logtype="'+log.t+'"><td class="time">'+timeStr+'</td><td class="'+typeClass+'">'+(log.t==='gold'?'◈골드':'❖보석')+'</td><td class="'+amtClass+'">'+amtStr+'</td><td style="color:#94a3b8;">'+(log.b||0).toLocaleString()+'</td><td style="color:#94a3b8;">'+log.r+'</td></tr>';
-    }
-    logHtml += '</tbody></table>';
+    logHtml += '<div class="log-filter"><button class="log-f-btn active" data-logf="all">전체</button>';
+    _typeKeys.forEach(function(tk){ var tm=_typeMap[tk]; logHtml+='<button class="log-f-btn" data-logf="'+tk+'">'+tm.name+'</button>'; });
+    logHtml += '</div>';
+    logHtml += '<div id="detail-list"></div><div id="detail-pager" style="display:flex;justify-content:center;gap:4px;margin:8px 0;"></div>';
   } else {
-    logHtml += '<div style="color:#334455;font-size:10px;padding:8px 0;">로그 없음 (클라이언트 업데이트 후 기록됨)</div>';
+    logHtml += '<div style="color:#334455;font-size:10px;padding:8px 0;">로그 없음</div>';
   }
 
   document.getElementById('modal-tab-log').innerHTML = logHtml;
+
+  // 출처별 페이지네이션 렌더
+  var SRC_PER=50, _srcPage=0;
+  function renderSrcPage(){
+    var el=document.getElementById('src-list'); if(!el) return;
+    var start=_srcPage*SRC_PER, end=Math.min(start+SRC_PER, sources.length);
+    var h='';
+    for(var si=start;si<end;si++){
+      var s=sources[si]; var tm=_typeMap[s.t]||{icon:'?',col:'#94a3b8'};
+      var valStr='';
+      if(s.totalIn>0) valStr+='<span style="color:#00ff88;">+'+s.totalIn.toLocaleString()+'</span>';
+      if(s.totalOut>0) valStr+=(valStr?' / ':'')+'<span style="color:#ef4444;">-'+s.totalOut.toLocaleString()+'</span>';
+      h+='<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:10px;border-bottom:1px solid #0a1520;"><span style="color:#94a3b8;">'+tm.icon+' '+s.r+' <span style="color:#334455;">('+s.count+'회)</span></span><span style="color:'+tm.col+';">'+valStr+'</span></div>';
+    }
+    el.innerHTML=h;
+    var pg=document.getElementById('src-pager'); if(!pg) return;
+    var totalPages=Math.ceil(sources.length/SRC_PER);
+    if(totalPages<=1){pg.innerHTML='';return;}
+    var ph='';
+    for(var pi=0;pi<totalPages;pi++) ph+='<button data-srcpg="'+pi+'" style="background:'+(pi===_srcPage?'#0a3344':'#030b10')+';border:1px solid #0a3344;color:'+(pi===_srcPage?'#00ffff':'#556677')+';font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;">'+(pi+1)+'</button>';
+    pg.innerHTML=ph;
+    pg.querySelectorAll('[data-srcpg]').forEach(function(b){b.onclick=function(){_srcPage=parseInt(b.dataset.srcpg);renderSrcPage();};});
+  }
+  if(sources.length>0) renderSrcPage();
+
+  // 상세 로그 페이지네이션 렌더
+  var DET_PER=200, _detPage=0, _detFilter='all';
+  function getFilteredLogs(){
+    if(_detFilter==='all') return logs;
+    return logs.filter(function(l){return l.t===_detFilter;});
+  }
+  function renderDetPage(){
+    var el=document.getElementById('detail-list'); if(!el) return;
+    var filtered=getFilteredLogs();
+    var reversed=filtered.slice().reverse();
+    var start=_detPage*DET_PER, end=Math.min(start+DET_PER, reversed.length);
+    var h='<table class="log-table"><thead><tr><th>시간</th><th>유형</th><th>변동</th><th>잔액</th><th>사유</th></tr></thead><tbody>';
+    for(var di=start;di<end;di++){
+      var log=reversed[di];
+      var logTime=new Date(log.ts);
+      var timeStr=(logTime.getMonth()+1)+'/'+logTime.getDate()+' '+logTime.getHours().toString().padStart(2,'0')+':'+logTime.getMinutes().toString().padStart(2,'0');
+      var tm=_typeMap[log.t]||{name:log.t,icon:'?',col:'#94a3b8'};
+      var amtClass=log.a>0?'log-plus':'log-minus';
+      var amtStr=log.a>0?'+'+log.a.toLocaleString():log.a.toLocaleString();
+      h+='<tr><td class="time">'+timeStr+'</td><td style="color:'+tm.col+';">'+tm.icon+tm.name+'</td><td class="'+amtClass+'">'+amtStr+'</td><td style="color:#94a3b8;">'+(log.b||0).toLocaleString()+'</td><td style="color:#94a3b8;">'+log.r+'</td></tr>';
+    }
+    h+='</tbody></table>';
+    el.innerHTML=h;
+    var pg=document.getElementById('detail-pager'); if(!pg) return;
+    var totalPages=Math.ceil(reversed.length/DET_PER);
+    if(totalPages<=1){pg.innerHTML='';return;}
+    var ph='';
+    for(var pi=0;pi<totalPages;pi++) ph+='<button data-detpg="'+pi+'" style="background:'+(pi===_detPage?'#0a3344':'#030b10')+';border:1px solid #0a3344;color:'+(pi===_detPage?'#00ffff':'#556677')+';font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;">'+(pi+1)+'</button>';
+    pg.innerHTML=ph;
+    pg.querySelectorAll('[data-detpg]').forEach(function(b){b.onclick=function(){_detPage=parseInt(b.dataset.detpg);renderDetPage();};});
+  }
+  if(logs.length>0) renderDetPage();
 
   // 정지/해제 버튼 상태 갱신
   var banBtn = document.getElementById('modal-ban');
@@ -634,15 +677,14 @@ function renderModal() {
     tab.onclick = function(){ switchModalTab(tab.dataset.tab); };
   });
 
-  // 로그 필터 이벤트
+  // 로그 필터 이벤트 (페이지네이션 연동)
   document.querySelectorAll('.log-f-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       document.querySelectorAll('.log-f-btn').forEach(function(b){ b.classList.remove('active'); });
       btn.classList.add('active');
-      var filter = btn.dataset.logf;
-      document.querySelectorAll('#log-tbody tr').forEach(function(tr){
-        tr.style.display = (filter === 'all' || tr.dataset.logtype === filter) ? '' : 'none';
-      });
+      _detFilter = btn.dataset.logf;
+      _detPage = 0;
+      renderDetPage();
     });
   });
 }
