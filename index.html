@@ -12728,10 +12728,11 @@ function _renderCardTab() {
       catPrisms.forEach(function(pr){
         var p=_getPrism(pr.id);
         var owned=p.lv>0;
-        inner+='<button data-select-prism="'+pr.id+'" style="background:#060810;border:1px solid '+catCol+'33;color:#f1f5f9;font-family:monospace;font-size:9px;padding:6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;opacity:'+(owned?1:0.6)+';">'+
-          '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;transform:scale(0.65);transform-origin:center;">'+_prismIcon(pr.id,owned?catCol:'#556677')+'</div>'+
+        var maxed=p.lv>=6;
+        inner+='<button data-select-prism="'+pr.id+'" '+(maxed?'disabled ':'')+' style="background:'+(maxed?'#0a0a12':'#060810')+';border:1px solid '+(maxed?'#1a1a2a':catCol+'33')+';color:'+(maxed?'#334455':'#f1f5f9')+';font-family:monospace;font-size:9px;padding:6px 4px;cursor:'+(maxed?'default':'pointer')+';display:flex;flex-direction:column;align-items:center;gap:2px;opacity:'+(maxed?0.35:owned?1:0.6)+';">'+
+          '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;transform:scale(0.65);transform-origin:center;">'+_prismIcon(pr.id,maxed?'#334455':owned?catCol:'#556677')+'</div>'+
           '<div style="font-size:8px;font-weight:bold;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">'+pr.name+'</div>'+
-          '<div style="color:'+catCol+';font-size:7px;">Lv.'+p.lv+'</div></button>';
+          '<div style="color:'+(maxed?'#334455':catCol)+';font-size:7px;">'+(maxed?'MAX':'Lv.'+p.lv)+'</div></button>';
       });
       inner+='</div>';
     });
@@ -12744,8 +12745,10 @@ function _renderCardTab() {
     for(var si2=0;si2<sBtns.length;si2++){
       (function(btn){
         btn.addEventListener('click',function(){
+          if(btn.disabled) return;
           if(_getFragments()<30) return;
           var pid=btn.getAttribute('data-select-prism');
+          var _chk=_getPrism(pid); if(_chk.lv>=6){ if(window.showToastMsg) showToastMsg('이미 최대 레벨입니다','#334455'); return; }
           var pr2=PRISMS.filter(function(x){return x.id===pid;})[0];
           var pName=pr2?pr2.name:'프리즘';
           if(window._showSlotConfirm) _showSlotConfirm('프리즘 제작 확인','파편 30개를 사용하여\n'+pName+'을(를) 획득하시겠습니까?',function(){
