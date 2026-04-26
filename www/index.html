@@ -2701,13 +2701,39 @@ function syncFromFirebase() {
     _syncKeys.forEach(function(k) {
       if ((cloud[k]||0) > (PERM[k]||0)) { PERM[k] = cloud[k]; _changed = true; }
     });
-    // bestWave가 더 높으면 진행 관련 데이터도 동기화 (재화 제외)
+    // bestWave가 더 높으면 진행 데이터만 개별 동기화 (설정/닉네임 보호)
     var localBest = PERM.bestWave || 0;
     var cloudBest = cloud.bestWave || 0;
     if (cloudBest > localBest) {
-      var _noOverwrite = {gold:1,gems:1,prismFragments:1,prismSlotCount:1,bestWave:1};
-      Object.keys(cloud).forEach(function(k) { if (!_noOverwrite[k]) PERM[k] = cloud[k]; });
-      _changed = true;
+      // 진행 관련 숫자 키만 높은 값으로 동기화
+      ['totalKills','bossKills','upgradeCount','dmgLv','spdLv','rngLv','hpLv','cardsVisited'].forEach(function(k) {
+        if ((cloud[k]||0) > (PERM[k]||0)) { PERM[k] = cloud[k]; _changed = true; }
+      });
+      // ws(강화소), unlocks, achievements, prisms: 클라우드가 더 풍부하면 동기화
+      if (cloud.ws && typeof cloud.ws === 'object') {
+        if (!PERM.ws) PERM.ws = {};
+        Object.keys(cloud.ws).forEach(function(wk) { if ((cloud.ws[wk]||0) > (PERM.ws[wk]||0)) { PERM.ws[wk] = cloud.ws[wk]; _changed = true; } });
+      }
+      if (cloud.unlocks && typeof cloud.unlocks === 'object') {
+        if (!PERM.unlocks) PERM.unlocks = {};
+        Object.keys(cloud.unlocks).forEach(function(uk) { if (cloud.unlocks[uk] && !PERM.unlocks[uk]) { PERM.unlocks[uk] = true; _changed = true; } });
+      }
+      if (cloud.achievements && typeof cloud.achievements === 'object') {
+        if (!PERM.achievements) PERM.achievements = {};
+        Object.keys(cloud.achievements).forEach(function(ak) { if (cloud.achievements[ak] && !PERM.achievements[ak]) { PERM.achievements[ak] = cloud.achievements[ak]; _changed = true; } });
+      }
+      // 프리즘: 개별 프리즘 레벨이 클라우드가 더 높으면 동기화
+      if (cloud.prisms && typeof cloud.prisms === 'object') {
+        if (!PERM.prisms) PERM.prisms = {};
+        Object.keys(cloud.prisms).forEach(function(pk) {
+          var cp = cloud.prisms[pk] || {}, lp = PERM.prisms[pk] || {};
+          if ((cp.lv||0) > (lp.lv||0)) { PERM.prisms[pk] = cp; _changed = true; }
+        });
+      }
+      // 프리즘 장착: 클라우드가 있고 로컬이 비어있으면 복원
+      if (cloud.prismEquipped && Array.isArray(cloud.prismEquipped) && (!PERM.prismEquipped || PERM.prismEquipped.length === 0)) {
+        PERM.prismEquipped = cloud.prismEquipped; _changed = true;
+      }
     }
     if (_changed) {
       try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch(_) {}
