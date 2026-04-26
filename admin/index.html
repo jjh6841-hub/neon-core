@@ -699,6 +699,7 @@ function switchModalTab(tabName) {
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('modal-cancel').addEventListener('click', closeModal);
 function closeModal() { document.getElementById('user-modal').classList.remove('show'); currentUser=null; }
+document.getElementById('user-modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
 
 // 저장
 document.getElementById('modal-save').addEventListener('click', async function(){
