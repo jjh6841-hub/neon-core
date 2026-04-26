@@ -2656,6 +2656,8 @@ function savePerm() {
     _prevPermGems = curGems;
   } catch(_){}
   if (window._userDeleted) return; // 삭제된 유저 저장 차단
+  // 디버그: savePerm 호출 시 주요 데이터 추적
+  console.log('[savePerm]', 'nick:'+PERM.nickname, 'gold:'+PERM.gold, 'ws.damage:'+(PERM.ws&&PERM.ws.damage||0), 'settings.music:'+((PERM.settings&&PERM.settings.music)), 'syncDone:'+!!window._fbSyncDone, new Error().stack.split('\n')[2]);
   try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
   // Firestore 동기화 (초기 sync 완료 전에는 쓰기 차단)
   if (!window._fbSyncDone) return;
