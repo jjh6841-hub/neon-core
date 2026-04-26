@@ -2546,6 +2546,8 @@ var PERM = {
 function loadPerm() {
   try {
     const s = localStorage.getItem('td_perm');
+    if (s) { try { var _dbg=JSON.parse(s); console.warn('[loadPerm] 읽은 데이터:', '닉:'+_dbg.nickname, '골드:'+_dbg.gold, 'music:'+(_dbg.settings&&_dbg.settings.music), 'ws.damage:'+(_dbg.ws&&_dbg.ws.damage||0), '길이:'+s.length); } catch(_){} }
+    else { console.warn('[loadPerm] td_perm 없음!'); }
     if (s) {
       const d = JSON.parse(s);
       PERM.gold    = d.gold    ?? 10;
