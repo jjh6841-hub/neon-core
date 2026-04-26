@@ -17076,7 +17076,7 @@ function renderSkinGrid() {
       card.innerHTML = preview +
         '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';">' + bg.name + '</div>' +
         '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#334455;">' + bg.desc + '</div>';
-      card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); window._cachedBgColor = null; renderSkinGrid(); if(window._startHomeBg) _startHomeBg(); };
+      card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); renderSkinGrid(); if(window._startHomeBg) _startHomeBg(); };
       grid.appendChild(card);
     });
   }
@@ -17140,10 +17140,16 @@ function renderSkinGrid() {
     cv.width = home.offsetWidth;
     cv.height = home.offsetHeight;
 
-    // 행성별 홈 배경 자동 매핑 (에이온=기본, 스펙트라=오로라, 넥사르=딥블루, 피라온=팬텀, 오메가=솔라)
-    var _homeTier = parseInt(localStorage.getItem('td_tier')||'1',10);
-    var _tierSkinMap = {1:'bg_default',2:'bg_aurora',3:'bg_deep',4:'bg_phantom',5:'bg_solar'};
-    var skinId = _tierSkinMap[_homeTier] || 'bg_default';
+    // 사용자 선택 배경 스킨 우선, 기본값은 행성별 매핑
+    var _userSkin = localStorage.getItem('neoncore_bg_skin');
+    var skinId;
+    if (_userSkin && _userSkin !== 'bg_default') {
+      skinId = _userSkin;
+    } else {
+      var _homeTier = parseInt(localStorage.getItem('td_tier')||'1',10);
+      var _tierSkinMap = {1:'bg_default',2:'bg_aurora',3:'bg_deep',4:'bg_phantom',5:'bg_solar'};
+      skinId = _tierSkinMap[_homeTier] || 'bg_default';
+    }
     var skinColor = '#030b10';
     var accent = '#00ffff';
     if (window.BG_SKINS) {
