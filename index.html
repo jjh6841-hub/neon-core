@@ -5377,31 +5377,35 @@ function render() {
       }
       ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
     }
-    // 프리즘 쉴드 시각효과 (타워 감싸는 쉴드)
+    // 프리즘 쉴드 시각효과 (정적 에너지 쉴드)
     if (G.pShieldMax > 0 && G.pShieldCur > 0) {
       var _shPct = G.pShieldCur / G.pShieldMax;
       var _shR = TR + 10;
-      var _shT = Date.now() * 0.001;
       ctx.save();
-      // 외곽 육각형 쉴드
-      ctx.globalAlpha = _shPct * 0.25;
+      // 외곽 육각형 (고정)
       ctx.beginPath();
-      for(var _hi=0;_hi<6;_hi++){var _ha=Math.PI/3*_hi-Math.PI/6+_shT*0.3;ctx.lineTo(G.cx+_shR*Math.cos(_ha),G.cy+_shR*Math.sin(_ha));}
+      for(var _hi=0;_hi<6;_hi++){var _ha=Math.PI/3*_hi-Math.PI/6;ctx.lineTo(G.cx+_shR*Math.cos(_ha),G.cy+_shR*Math.sin(_ha));}
       ctx.closePath();
-      var _shGrd=ctx.createRadialGradient(G.cx,G.cy,TR*0.5,G.cx,G.cy,_shR);
-      _shGrd.addColorStop(0,'rgba(0,170,255,0.05)');_shGrd.addColorStop(0.7,'rgba(0,200,255,0.15)');_shGrd.addColorStop(1,'rgba(0,220,255,0.02)');
+      // 내부 그라데이션 필
+      ctx.globalAlpha = _shPct * 0.2;
+      var _shGrd=ctx.createRadialGradient(G.cx,G.cy,0,G.cx,G.cy,_shR);
+      _shGrd.addColorStop(0,'rgba(0,180,255,0.02)');
+      _shGrd.addColorStop(0.6,'rgba(0,200,255,0.08)');
+      _shGrd.addColorStop(1,'rgba(0,220,255,0.15)');
       ctx.fillStyle=_shGrd; ctx.fill();
-      // 쉴드 테두리 (에너지 느낌)
-      ctx.globalAlpha = _shPct * 0.5 + Math.sin(_shT*4)*0.1;
-      ctx.strokeStyle = '#00ddff';
+      // 외곽선
+      ctx.globalAlpha = _shPct * 0.5;
+      ctx.strokeStyle = '#00ccff';
       ctx.lineWidth = 1.5;
-      ctx.setLineDash([4+Math.sin(_shT*3)*2, 3]);
       ctx.stroke();
-      ctx.setLineDash([]);
-      // 내부 글로우
-      ctx.globalAlpha = _shPct * 0.1;
-      ctx.beginPath();ctx.arc(G.cx,G.cy,_shR*0.8,0,Math.PI*2);
-      ctx.fillStyle='#00ccff';ctx.fill();
+      // 내부 얇은 육각형
+      ctx.globalAlpha = _shPct * 0.15;
+      ctx.beginPath();
+      for(var _hi2=0;_hi2<6;_hi2++){var _ha2=Math.PI/3*_hi2-Math.PI/6;ctx.lineTo(G.cx+(_shR*0.7)*Math.cos(_ha2),G.cy+(_shR*0.7)*Math.sin(_ha2));}
+      ctx.closePath();
+      ctx.strokeStyle = '#44ddff';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
       ctx.restore();
     }
     ctx.restore();
