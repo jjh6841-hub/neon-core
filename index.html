@@ -2218,9 +2218,11 @@ function _calcOfflineReward() {
   var mins = Math.floor(elapsed / 60000);
   if (mins < 5) return null; // 5분 미만 무시
   mins = Math.min(mins, 480); // 최대 8시간
-  var bestWave = PERM.bestWave || 0;
-  if (bestWave < 1) return null;
+  // 현재 선택된 행성의 최고 웨이브 사용
   var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
+  var bestWave = parseInt(localStorage.getItem('tier'+_tier+'_best')||'0',10);
+  if (_tier === 1 && (PERM.bestWave||0) > bestWave) bestWave = PERM.bestWave||0;
+  if (bestWave < 1) return null;
   var _offGoldRate = [0,0.1,0.15,0.2,0.3,0.5][_tier] || 0.1;
   var goldPerMin = bestWave * _offGoldRate;
   var gold = Math.floor(goldPerMin * mins);
