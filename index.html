@@ -3453,8 +3453,8 @@ function startWave() {
   G.spawnIntvl  = G.wave <= 50 ? 800 : G.wave <= 100 ? 600 : G.wave <= 200 ? 500 : 400;
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
-  // 보스 웨이브 제한시간 (60초)
-  G.bossTimer   = G.isBossWave ? 60000 : -1;
+  // 보스 웨이브 제한시간 (일반:1분, 엘리트:2분, 하이퍼:3분, 갤럭시:5분)
+  G.bossTimer   = G.bossType === 'galaxy' ? 300000 : G.bossType === 'hyper' ? 180000 : G.bossType === 'elite' ? 120000 : G.isBossWave ? 60000 : -1;
   // Wave start core chip bonus (2웨이브부터, 고정 2 + 프리즘 코어 수확 보너스)
   if (w >= 2) {
     var _rawBonus = 2 * (1 + (G._prismChipWaveBonus||0));
@@ -3607,14 +3607,23 @@ function update(dt) {
         var _nw = G.wave + 1;
         var _nwBoss = (_nw === 10000) ? 'galaxy' : (_nw % 100 === 0) ? 'hyper' : (_nw % 50 === 0) ? 'elite' : null;
         if (!_nwBoss) {
-          // 스킵되는 웨이브의 골드 + 코어칩 1.2배 보상
-          var _skipBaseGold = Math.min(50, 5 + Math.floor(_nw / 100) * 5);
-          var _skipGold = Math.round(_skipBaseGold * (G.goldBonus||1) * (G.goldMult||1) * 1.1);
-          G.gold += _skipGold; G.goldEarned += _skipGold; G.goldBaseEarned += _skipBaseGold; PERM.gold += _skipGold;
-          var _skipChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 1.1 * 10) / 10;
-          coreChips += _skipChips;
+          // 스킵되는 웨이브의 전체 보상 (적 처치 + 웨이브 클리어) × 1.1배
+          var _skipEnemies = getWaveEnemies(_nw);
+          var _enemyGoldMap = {basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500};
+          var _skipKillGold = 0, _skipKillChips = 0;
+          for (var _sei = 0; _sei < _skipEnemies.length; _sei++) {
+            var _seGold = (_enemyGoldMap[_skipEnemies[_sei]] || 1);
+            _skipKillGold += Math.round(_seGold * (G.goldBonus||1) * (G.goldMult||1) * 0.5);
+            _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0)));
+          }
+          var _skipWaveGold = Math.round(Math.min(50, 5 + Math.floor(_nw / 100) * 5) * (G.goldBonus||1) * (G.goldMult||1));
+          var _skipWaveChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
+          var _totalGold = Math.round((_skipKillGold + _skipWaveGold) * 1.1);
+          var _totalChips = Math.round((_skipKillChips + _skipWaveChips) * 1.1 * 10) / 10;
+          G.gold += _totalGold; G.goldEarned += _totalGold; PERM.gold += _totalGold;
+          coreChips += _totalChips;
           G.wave++;
-          G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: '차원 도약! +' + _skipGold + '◈ +' + _skipChips + '⊕', color: '#cc44ff', timer: 0 });
+          G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: '차원 도약! +' + _totalGold + '◈ +' + _totalChips + '⊕', color: '#cc44ff', timer: 0 });
         }
       }
       startWave();
