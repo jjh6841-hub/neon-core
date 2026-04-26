@@ -2657,7 +2657,8 @@ function savePerm() {
   } catch(_){}
   if (window._userDeleted) return; // 삭제된 유저 저장 차단
   try { localStorage.setItem('td_perm', JSON.stringify(PERM)); } catch (_) {}
-  // Firestore 동기화
+  // Firestore 동기화 (초기 sync 완료 전에는 쓰기 차단)
+  if (!window._fbSyncDone) return;
   try {
     if (window._fbDb && window._fbUid) {
       var _tierBest = {};
@@ -2756,7 +2757,10 @@ function syncFromFirebase() {
       if ((cExp.tickets||0) > parseInt(localStorage.getItem('explore_tickets')||'0',10))
         localStorage.setItem('explore_tickets', cExp.tickets);
     }
-  }).catch(function(){});
+    window._fbSyncDone = true;
+    // sync 완료 후 로컬 데이터를 Firestore에 반영
+    try { savePerm(); } catch(_){}
+  }).catch(function(){ window._fbSyncDone = true; });
 }
 window.syncFromFirebase = syncFromFirebase;
 
