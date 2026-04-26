@@ -3467,16 +3467,7 @@ function startGame() {
     }
   }
 
-  // 배경 스킨 색상 캐시
-  try {
-    var _bgId = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
-    var _bgMap = {bg_default:'#030b10',bg_nebula:'#0a0520',bg_crimson:'#120808',bg_deep:'#031020',bg_void:'#050005',bg_aurora:'#051812',bg_solar:'#0f0a02',bg_ice:'#030a10',bg_storm:'#080812',bg_rust:'#0e0805',bg_matrix:'#000a02',bg_phantom:'#08050e'};
-    window._cachedBgColor = _bgMap[_bgId] || '#030b10';
-    if (window.BG_SKINS) {
-      var _bgs = window.BG_SKINS.filter(function(s){return s.id===_bgId;})[0];
-      if (_bgs) window._cachedBgColor = _bgs.color;
-    }
-  } catch(_){}
+  // 전투 배경색은 render()에서 행성별로 설정 (여기서 스킨으로 덮어쓰지 않음)
 
   // 탐사선 스킨 이미지 사전 로드
   try {
