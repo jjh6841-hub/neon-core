@@ -3922,9 +3922,6 @@ function update(dt) {
           }
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
-          // 보스 보석 보상 (엘리트 2, 하이퍼 5, 갤럭시 50 — 일반 보스는 없음)
-          var _bGem = e.bossGrade==='galaxy'?200:e.bossGrade==='hyper'?5:e.bossGrade==='elite'?2:0;
-          if (_bGem > 0) { PERM.gems = (PERM.gems||0) + _bGem; G.gems = (G.gems||0) + _bGem; G.floatTexts.push({x:e.x,y:e.y-12,text:'+'+_bGem+' \u2756',color:'#00ffff',timer:0}); }
           G.killCount++;
           PERM.totalKills++;
           _infKill(e.type);
@@ -4340,8 +4337,6 @@ function fireTower() {
       var _idx = G.enemies.indexOf(target);
       if (_idx !== -1) {
         // 보석 보상
-        var _bGem2 = target.bossGrade==='galaxy'?200:target.bossGrade==='hyper'?5:target.bossGrade==='elite'?2:0;
-        if (_bGem2 > 0) { PERM.gems=(PERM.gems||0)+_bGem2; G.gems=(G.gems||0)+_bGem2; }
         var _mChip = target.boss ? 0 : Math.ceil((target.gold||1)*0.1*(1+(G._prismChipKillBonus||0)));
         if (_mChip > 0) { coreChips += _mChip; }
         G.killCount++; PERM.totalKills++;
