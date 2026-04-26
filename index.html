@@ -2123,12 +2123,12 @@ var AudioManager = {
       gain.connect(this.sfxGain);
       var t = this.ctx.currentTime;
       if (type === 'shoot') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(800, t);
-        osc.frequency.exponentialRampToValueAtTime(200, t + 0.1);
-        gain.gain.setValueAtTime(0.3, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-        osc.start(); osc.stop(t + 0.1);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, t);
+        osc.frequency.exponentialRampToValueAtTime(150, t + 0.06);
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+        osc.start(); osc.stop(t + 0.06);
       } else if (type === 'hit') {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(300, t);
@@ -2361,6 +2361,7 @@ function _showDailyClaimPopup(day, reward) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(3,11,16,0.95);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
   ov.innerHTML =
     '<div style="background:#0a0a1a;border:1px solid #00ffff44;padding:28px 24px;max-width:300px;width:90%;text-align:center;">' +
+      '<div style="margin-bottom:8px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00ffff" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><text x="12" y="18" text-anchor="middle" fill="#00ffff" stroke="none" font-size="7" font-family="monospace">✓</text></svg></div>' +
       '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:6px;">출석 보상</div>' +
       '<div style="color:#94a3b8;font-size:10px;margin-bottom:16px;">DAY ' + cycleDay + ' (총 ' + day + '일째)</div>' +
       '<div style="background:#0a1520;border:1px solid #1a2a3a;padding:14px;margin-bottom:18px;display:flex;flex-direction:column;gap:8px;align-items:center;">' +
@@ -2948,7 +2949,7 @@ var UPGRADES = [
     cost()   { return upgCost('maxhp',7); },
     stat()   { return G.tower.maxHp; },
     canBuy() { return coreChips>=upgCost('maxhp',7); },
-    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; var inc=Math.round(G.tower.maxHp*0.20); G.tower.maxHp+=inc; G.tower.hp+=inc; },
+    apply()  { var c=upgCost('maxhp',7); coreChips-=c; G.upgLvl.maxhp=(G.upgLvl.maxhp||0)+1; var inc=Math.round(G.tower.maxHp*0.20); G.tower.maxHp+=inc; G.tower.hp+=inc; if(G.pShieldMax>0){var _spct=G.pShieldMax/(G.tower.maxHp-inc); G.pShieldMax=Math.round(G.tower.maxHp*_spct);} },
   },
   { key:'hpRegen', tab:'def', icon:'♥',  name:'체력회복',  baseCost:8,  unlock:null,
     cost()   { return upgCost('hpRegen',8); },
@@ -3269,7 +3270,8 @@ function resizeCanvas() {
   canvas.style.height = h + 'px';
   if (G) {
     G.cx = w / 2;
-    G.tower.range = Math.min(w, h) * 0.45;
+    var _baseRange = Math.min(w, h) * 0.45;
+    if (!G.tower.range || G.tower.range < _baseRange) G.tower.range = _baseRange;
   }
 }
 window.addEventListener('resize', function() { window.resizeCanvas(); }, false);
@@ -3389,11 +3391,7 @@ function createState() {
 
 function getTargetZoom() {
   const lvl = G.rangeLevel;
-  if (lvl <= 5)  return 1.00;
-  if (lvl <= 10) return 0.85;
-  if (lvl <= 15) return 0.70;
-  if (lvl <= 20) return 0.55;
-  return 0.40;
+  return Math.max(0.50, 1.0 - lvl * 0.02);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3904,13 +3902,10 @@ function update(dt) {
 
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
-          var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
-          if (G._augChipMult && chipEarned > 0) {
-            G._augChipFrac = (G._augChipFrac||0) + chipEarned * 0.5;
-            var _bonus = Math.floor(G._augChipFrac);
-            G._augChipFrac -= _bonus;
-            chipEarned += _bonus;
-          }
+          var _rawChip = e.boss ? 0 : (e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)) * (G._augChipMult ? 1.5 : 1);
+          G._chipFrac = (G._chipFrac||0) + _rawChip;
+          var chipEarned = Math.floor(G._chipFrac);
+          G._chipFrac -= chipEarned;
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           G.killCount++;
@@ -5381,16 +5376,29 @@ function render() {
     }
     // 프리즘 쉴드 시각효과 (타워 감싸는 쉴드)
     if (G.pShieldMax > 0 && G.pShieldCur > 0) {
-      var _shAlpha = Math.min(0.35, (G.pShieldCur / G.pShieldMax) * 0.35);
-      var _shR = TR + 8;
+      var _shPct = G.pShieldCur / G.pShieldMax;
+      var _shR = TR + 10;
+      var _shT = Date.now() * 0.001;
       ctx.save();
-      ctx.globalAlpha = _shAlpha;
-      ctx.fillStyle = '#00aaff';
-      ctx.beginPath(); ctx.arc(G.cx, G.cy, _shR, 0, Math.PI*2); ctx.fill();
-      ctx.globalAlpha = _shAlpha + 0.2;
-      ctx.strokeStyle = '#00ccff';
+      // 외곽 육각형 쉴드
+      ctx.globalAlpha = _shPct * 0.25;
+      ctx.beginPath();
+      for(var _hi=0;_hi<6;_hi++){var _ha=Math.PI/3*_hi-Math.PI/6+_shT*0.3;ctx.lineTo(G.cx+_shR*Math.cos(_ha),G.cy+_shR*Math.sin(_ha));}
+      ctx.closePath();
+      var _shGrd=ctx.createRadialGradient(G.cx,G.cy,TR*0.5,G.cx,G.cy,_shR);
+      _shGrd.addColorStop(0,'rgba(0,170,255,0.05)');_shGrd.addColorStop(0.7,'rgba(0,200,255,0.15)');_shGrd.addColorStop(1,'rgba(0,220,255,0.02)');
+      ctx.fillStyle=_shGrd; ctx.fill();
+      // 쉴드 테두리 (에너지 느낌)
+      ctx.globalAlpha = _shPct * 0.5 + Math.sin(_shT*4)*0.1;
+      ctx.strokeStyle = '#00ddff';
       ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(G.cx, G.cy, _shR, 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([4+Math.sin(_shT*3)*2, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // 내부 글로우
+      ctx.globalAlpha = _shPct * 0.1;
+      ctx.beginPath();ctx.arc(G.cx,G.cy,_shR*0.8,0,Math.PI*2);
+      ctx.fillStyle='#00ccff';ctx.fill();
       ctx.restore();
     }
     ctx.restore();
@@ -16984,7 +16992,7 @@ window.resizeCanvas = function() {
       cv.width = w; cv.height = h;
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.48; G.tower.range = Math.min(w, h) * 0.45; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.48; var _br2=Math.min(w,h)*0.45; if(!G.tower.range||G.tower.range<_br2) G.tower.range=_br2; }
     }
     return;
   }
