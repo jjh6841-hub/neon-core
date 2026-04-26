@@ -3914,7 +3914,12 @@ function update(dt) {
         if (e.hp <= 0) {
           AudioManager.playSfx('hit');
           var chipEarned = e.boss ? 0 : Math.ceil((e.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
-          if (G._augChipMult && chipEarned > 0) chipEarned = Math.ceil(chipEarned * 1.5);
+          if (G._augChipMult && chipEarned > 0) {
+            G._augChipFrac = (G._augChipFrac||0) + chipEarned * 0.5;
+            var _bonus = Math.floor(G._augChipFrac);
+            G._augChipFrac -= _bonus;
+            chipEarned += _bonus;
+          }
           coreChips += chipEarned;
           if (chipEarned > 0) G.floatTexts.push({ x: e.x, y: e.y - 12, text: '+' + chipEarned + ' \u2295', color: '#ff6600', timer: 0 });
           // 보스 보석 보상 (엘리트 2, 하이퍼 5, 갤럭시 50 — 일반 보스는 없음)
@@ -3977,7 +3982,12 @@ function update(dt) {
                 ek.hp -= exDmg;
                 if (ek.hp <= 0) {
                   var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0)));
-                  if (G._augChipMult && ekChip > 0) ekChip = Math.ceil(ekChip * 1.5);
+                  if (G._augChipMult && ekChip > 0) {
+                    G._augChipFrac = (G._augChipFrac||0) + ekChip * 0.5;
+                    var _ekBonus = Math.floor(G._augChipFrac);
+                    G._augChipFrac -= _ekBonus;
+                    ekChip += _ekBonus;
+                  }
                   coreChips += ekChip;
                   G.killCount++;
                   PERM.totalKills++;
