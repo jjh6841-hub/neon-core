@@ -3459,8 +3459,8 @@ function startWave() {
   G.spawnIntvl  = G.wave <= 50 ? 800 : G.wave <= 100 ? 600 : G.wave <= 200 ? 500 : 400;
   G.spawnTimer  = G.spawnIntvl;
   G.phase       = 'playing';
-  // 보스 웨이브 제한시간 (일반:1분, 엘리트:2분, 하이퍼:3분, 갤럭시:5분)
-  G.bossTimer   = G.bossType === 'galaxy' ? 300000 : G.bossType === 'hyper' ? 180000 : G.bossType === 'elite' ? 120000 : G.isBossWave ? 60000 : -1;
+  // 보스 타이머는 보스 스폰 시 시작 (여기서는 초기화만)
+  G.bossTimer   = -1;
   // Wave start core chip bonus (2웨이브부터, 고정 2 + 프리즘 코어 수확 보너스)
   if (w >= 2) {
     var _rawBonus = 2 * (1 + (G._prismChipWaveBonus||0));
@@ -3643,11 +3643,15 @@ function update(dt) {
     if (G.spawnTimer <= 0) {
       var etype = G.spawnQ[G.spawnIdx];
       G.enemies.push(mkEnemy(etype));
-      if (etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper') {
+      if (etype === 'boss' || etype === 'boss_elite' || etype === 'boss_hyper' || etype === 'boss_galaxy') {
         G.bossSpawned = true;
         G.bossWarningTimer = 0;
         AudioManager.playSfx('boss');
         triggerShake(etype==='boss_galaxy'?24:etype==='boss_hyper'?16:etype==='boss_elite'?12:8);
+        // 보스 등장 시 제한시간 시작
+        if (G.bossTimer <= 0) {
+          G.bossTimer = etype==='boss_galaxy'?300000:etype==='boss_hyper'?180000:etype==='boss_elite'?120000:60000;
+        }
       }
       G.spawnIdx++;
       G.spawnTimer = G.spawnIntvl;
@@ -5316,27 +5320,27 @@ function render() {
     var _bn = _boss.bossGrade==='galaxy'?'[ GALAXY CORE ]':_boss.bossGrade==='hyper'?'[ HYPER CORE ]':_boss.bossGrade==='elite'?'[ ELITE CORE ]':'[ CORE UNIT ]';
     var _bc = _boss.bossGrade === 'hyper' ? '#ff0044' : _boss.bossGrade === 'elite' ? '#ff8822' : '#ff4444';
     ctx.save();
-    ctx.font = '11px "Courier New", monospace';
+    ctx.font = '10px "Courier New", monospace';
     ctx.fillStyle = _bc;
     ctx.textAlign = 'center';
-    ctx.fillText(_bn, CW / 2, 28);
+    ctx.fillText(_bn, CW / 2, 52);
     ctx.fillStyle = '#ffffff';
-    ctx.font = '10px "Courier New", monospace';
-    ctx.fillText(Math.ceil(_boss.hp) + ' / ' + Math.ceil(_boss.maxHp), CW / 2, 42);
-    var barW = CW * 0.6, barX = (CW - barW) / 2;
+    ctx.font = '9px "Courier New", monospace';
+    ctx.fillText(Math.ceil(_boss.hp) + ' / ' + Math.ceil(_boss.maxHp), CW / 2, 63);
+    var barW = CW * 0.5, barX = (CW - barW) / 2;
     ctx.fillStyle = '#1a0000';
-    ctx.fillRect(barX, 46, barW, 8);
+    ctx.fillRect(barX, 67, barW, 5);
     var pct = Math.max(0, _boss.hp / _boss.maxHp);
     ctx.fillStyle = _bc;
-    ctx.fillRect(barX, 46, barW * pct, 8);
+    ctx.fillRect(barX, 67, barW * pct, 5);
     // 보스 제한시간 표시
     if (G.bossTimer > 0) {
       var _bSec = Math.ceil(G.bossTimer / 1000);
       var _bCol = _bSec <= 10 ? '#ef4444' : _bSec <= 20 ? '#f59e0b' : '#94a3b8';
-      ctx.font = 'bold 10px "Courier New", monospace';
+      ctx.font = 'bold 9px "Courier New", monospace';
       ctx.fillStyle = _bCol;
       ctx.textAlign = 'center';
-      ctx.fillText('⏱ ' + _bSec + 's', CW / 2, 62);
+      ctx.fillText('⏱ ' + _bSec + 's', CW / 2, 80);
     }
     ctx.restore();
   }());
