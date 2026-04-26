@@ -5616,6 +5616,7 @@ function doUpgrade(key) {
   if (G.freeUpgChance && Math.random() < G.freeUpgChance) {
     coreChips = prevChips;
     G.floatTexts.push({ x: G.cx, y: G.cy - 30, text: 'FREE!', color: '#00ff88', timer: 0 });
+    if (window.showToastMsg) showToastMsg('행운의 강화 발동! 무료 강화', '#00ff88');
   }
   AudioManager.playSfx('upgrade');
   PERM.upgradeCount++;
