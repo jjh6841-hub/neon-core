@@ -5377,35 +5377,42 @@ function render() {
       }
       ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
     }
-    // 프리즘 쉴드 시각효과 (정적 에너지 쉴드)
+    // 프리즘 쉴드 시각효과 (에너지 쉴드)
     if (G.pShieldMax > 0 && G.pShieldCur > 0) {
       var _shPct = G.pShieldCur / G.pShieldMax;
-      var _shR = TR + 10;
+      var _shR = TR + 14;
       ctx.save();
-      // 외곽 육각형 (고정)
+      // 외곽 육각형
       ctx.beginPath();
       for(var _hi=0;_hi<6;_hi++){var _ha=Math.PI/3*_hi-Math.PI/6;ctx.lineTo(G.cx+_shR*Math.cos(_ha),G.cy+_shR*Math.sin(_ha));}
       ctx.closePath();
-      // 내부 그라데이션 필
-      ctx.globalAlpha = _shPct * 0.2;
-      var _shGrd=ctx.createRadialGradient(G.cx,G.cy,0,G.cx,G.cy,_shR);
-      _shGrd.addColorStop(0,'rgba(0,180,255,0.02)');
-      _shGrd.addColorStop(0.6,'rgba(0,200,255,0.08)');
-      _shGrd.addColorStop(1,'rgba(0,220,255,0.15)');
+      // 내부 필 (진하게)
+      ctx.globalAlpha = _shPct * 0.45;
+      var _shGrd=ctx.createRadialGradient(G.cx,G.cy,TR*0.3,G.cx,G.cy,_shR);
+      _shGrd.addColorStop(0,'rgba(0,150,255,0.05)');
+      _shGrd.addColorStop(0.5,'rgba(0,180,255,0.2)');
+      _shGrd.addColorStop(1,'rgba(0,220,255,0.35)');
       ctx.fillStyle=_shGrd; ctx.fill();
-      // 외곽선
-      ctx.globalAlpha = _shPct * 0.5;
+      // 외곽선 (두껍게)
+      ctx.globalAlpha = _shPct * 0.7;
       ctx.strokeStyle = '#00ccff';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
-      // 내부 얇은 육각형
-      ctx.globalAlpha = _shPct * 0.15;
+      // 중간 육각형
+      ctx.globalAlpha = _shPct * 0.35;
       ctx.beginPath();
-      for(var _hi2=0;_hi2<6;_hi2++){var _ha2=Math.PI/3*_hi2-Math.PI/6;ctx.lineTo(G.cx+(_shR*0.7)*Math.cos(_ha2),G.cy+(_shR*0.7)*Math.sin(_ha2));}
+      for(var _hi2=0;_hi2<6;_hi2++){var _ha2=Math.PI/3*_hi2-Math.PI/6;ctx.lineTo(G.cx+(_shR*0.72)*Math.cos(_ha2),G.cy+(_shR*0.72)*Math.sin(_ha2));}
       ctx.closePath();
       ctx.strokeStyle = '#44ddff';
-      ctx.lineWidth = 0.8;
+      ctx.lineWidth = 1;
       ctx.stroke();
+      // 꼭짓점 강조
+      ctx.globalAlpha = _shPct * 0.6;
+      for(var _hi3=0;_hi3<6;_hi3++){
+        var _ha3=Math.PI/3*_hi3-Math.PI/6;
+        ctx.fillStyle='#88eeff';
+        ctx.beginPath();ctx.arc(G.cx+_shR*Math.cos(_ha3),G.cy+_shR*Math.sin(_ha3),2,0,Math.PI*2);ctx.fill();
+      }
       ctx.restore();
     }
     ctx.restore();
