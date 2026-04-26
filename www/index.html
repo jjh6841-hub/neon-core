@@ -2199,7 +2199,7 @@ function _calcOfflineReward() {
   var bestWave = PERM.bestWave || 0;
   if (bestWave < 1) return null;
   var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
-  var planetMult = [1,1,1.5,2,3,5][_tier] || 1;
+  var planetMult = [1,1,2,3,4,5][_tier] || 1;
   var goldPerMin = bestWave * 0.1 * planetMult;
   var gold = Math.floor(goldPerMin * mins);
   // 보석: gem_epoch 기준으로 2시간당 1보석 (중간 수령해도 이어서 계산)
@@ -4122,15 +4122,16 @@ function mkEnemy(etype) {
 
   var w = G.wave;
     var _tier = parseInt(localStorage.getItem('td_tier')||'1',10);
-  var _planetHpMult = [1, 1, 2, 4, 8, 16][_tier] || 1;
-  var _planetAtkMult = [1, 1, 1.5, 2.5, 4, 7][_tier] || 1;
-  var _planetSpdMult = [1, 1, 1.2, 1.2, 1.2, 1.2][_tier] || 1; // 스펙트라+ 속도 20%
+  var _planetHpMult = [1, 1, 5, 25, 125, 625][_tier] || 1;
+  var _planetAtkMult = [1, 1, 4, 16, 64, 256][_tier] || 1;
+  var _planetSpdMult = [1, 1, 1.1, 1.2, 1.3, 1.4][_tier] || 1;
   var w = G ? G.wave : 1;
   var baseHp  = 4 * Math.pow(1.12, w - 1) * _planetHpMult;
-  var baseSpd = Math.min(3.0, 0.8 * (1 + Math.log(Math.max(1,w)) * 0.15) * _planetSpdMult);
+  var baseSpd = Math.min(3.0, 0.8 * (1 + Math.log(Math.max(1,w)) * 0.15)) * _planetSpdMult;
   var baseR   = 9;
-  var baseGold = ({basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500}[etype]) || 1;
-  var baseAtk = Math.max(1, Math.round(1 * Math.pow(1.06, w - 1) * _planetAtkMult));
+  var _planetGoldMult = [1, 1, 2, 3, 4, 5][_tier] || 1;
+  var baseGold = Math.round((({basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500}[etype]) || 1) * _planetGoldMult);
+  var baseAtk = Math.max(1, Math.round(1 * Math.pow(1.08, w - 1) * _planetAtkMult));
 
   var hp, spd, r, gold, gem = 0;
   var _isBoss = etype==='boss'||etype==='boss_elite'||etype==='boss_hyper'||etype==='boss_galaxy';
@@ -6601,10 +6602,10 @@ if (dailyPopup) {
   /* ── 행성 설정 ── */
   var TIERS = [
   { name:'에이온',   color:'#94a3b8', border:'#4a5568', mult:1.0 },
-  { name:'스펙트라', color:'#10b981', border:'#059669', mult:1.8 },
-  { name:'넥사르',   color:'#3b82f6', border:'#2563eb', mult:2.7 },
-  { name:'피라온',   color:'#a855f7', border:'#9333ea', mult:3.6 },
-  { name:'오메가',   color:'#f59e0b', border:'#d97706', mult:4.5 },
+  { name:'스펙트라', color:'#10b981', border:'#059669', mult:2.0 },
+  { name:'넥사르',   color:'#3b82f6', border:'#2563eb', mult:3.0 },
+  { name:'피라온',   color:'#a855f7', border:'#9333ea', mult:4.0 },
+  { name:'오메가',   color:'#f59e0b', border:'#d97706', mult:5.0 },
 ]
   // 티어 N (idx N-1, N>=2) 해금 조건: 티어 N-1 에서 웨이브 100 클리어
   function isTierUnlocked(idx) {
@@ -9679,7 +9680,7 @@ if (ingameMiss) ingameMiss.addEventListener('click', function() {
 function _getTierMult() {
   try {
     var t = parseInt(localStorage.getItem('td_tier') || '1', 10);
-    var mults = [1.0, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+    var mults = [1.0, 1.0, 2.0, 3.0, 4.0, 5.0];
     return mults[Math.min(t, mults.length-1)] || 1.0;
   } catch(_) { return 1.0; }
 }
@@ -16123,7 +16124,7 @@ window.showCoinBonusPopup = function () {
   var ws = (window.PERM && window.PERM.ws) ? window.PERM.ws : {};
   var adActive = Date.now() < (parseInt(localStorage.getItem('td_ad_bonus_expiry') || '0', 10));
   var tierIdx = parseInt(localStorage.getItem('td_tier') || '1', 10);
-  var tierMults = [1.0, 1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+  var tierMults = [1.0, 1.0, 2.0, 3.0, 4.0, 5.0];
   var tierMult = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
   var cb=ws.cashBonus||0, cpw=ws.cashPerWave||0, gb=ws.goldBoostPct||0, gg=ws.goldGain||0;
   var wsVal=1;
