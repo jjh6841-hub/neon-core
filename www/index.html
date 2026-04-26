@@ -5881,8 +5881,11 @@ function _openNicknamePopup() {
   ov.innerHTML =
     '<div style="background:#0a0a1a;border:1px solid #00ffff44;padding:24px;max-width:300px;width:90%;text-align:center;">' +
       '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:2px;margin-bottom:4px;">닉네임 변경</div>' +
-      '<div style="color:#556677;font-size:9px;margin-bottom:4px;">' + costText + '</div>' +
-      '<div style="color:#334455;font-size:8px;margin-bottom:14px;">' + (changeCount === 0 ? '첫 변경은 무료 · 이후 ❖30' : '변경 횟수: ' + changeCount + '회') + '</div>' +
+      (cost > 0
+        ? '<div style="color:#ef4444;font-size:11px;font-weight:bold;margin-bottom:4px;">❖ ' + cost + ' 보석 소모</div>' +
+          '<div style="color:#556677;font-size:8px;margin-bottom:14px;">보유: ❖' + (PERM.gems||0) + ' · 변경 횟수: ' + changeCount + '회</div>'
+        : '<div style="color:#00ff88;font-size:11px;font-weight:bold;margin-bottom:4px;">무료</div>' +
+          '<div style="color:#334455;font-size:8px;margin-bottom:14px;">첫 변경은 무료 · 이후 ❖30</div>') +
       '<input id="nn-input" type="text" maxlength="12" placeholder="닉네임 입력" value="'+(PERM.nickname||'')+'" style="width:100%;background:#030b10;border:1px solid #0a3344;color:#f1f5f9;font-family:monospace;font-size:14px;padding:10px;text-align:center;box-sizing:border-box;outline:none;-webkit-appearance:none;">' +
       '<div style="color:#334455;font-size:8px;margin:6px 0 4px;">한글 최대 6자 / 영어 최대 12자 / 특수문자 불가</div>' +
       '<div id="nn-msg" style="color:#ef4444;font-size:10px;min-height:16px;margin-bottom:10px;"></div>' +
@@ -5915,13 +5918,21 @@ function _openNicknamePopup() {
       snap.forEach(function(doc) { if(doc.id !== window._fbUid) isDup = true; });
       if (isDup) { msg.style.color='#ef4444'; msg.textContent = '이미 사용 중인 닉네임입니다.'; return; }
       // 변경 적용
-      if (cost > 0) { PERM.gems -= cost; }
+      if (cost > 0) {
+        PERM.gems = (PERM.gems||0) - cost;
+        logCurrency('gems', -cost, '닉네임 변경');
+      }
       PERM.nickname = input;
       savePerm();
       localStorage.setItem('nickname_changes', changeCount + 1);
       ov.remove();
       syncSettingsUI();
-      if (window.showToastMsg) showToastMsg('닉네임 변경: ' + input, '#00ff88');
+      // 보석 HUD 갱신
+      try {
+        var _hgm = document.getElementById('home-gem'); if(_hgm) _hgm.textContent = PERM.gems||0;
+        if (window.syncShopUI) syncShopUI();
+      } catch(_){}
+      if (window.showToastMsg) showToastMsg('닉네임 변경: ' + input + (cost > 0 ? ' (❖'+cost+' 소모)' : ''), '#00ff88');
     }).catch(function() { msg.style.color='#ef4444'; msg.textContent = '서버 오류. 다시 시도해주세요.'; });
   });
 }
