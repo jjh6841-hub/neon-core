@@ -4709,24 +4709,66 @@ function render() {
       var _bTier = parseInt(localStorage.getItem('td_tier')||'1',10);
       var _tierBg = {1:'#030b10',2:'#040a0e',3:'#030820',4:'#100515',5:'#0a0805'};
       window._cachedBgColor = _tierBg[_bTier] || '#030b10';
-      // 행성별 배경 그라데이션 캐시
-      var _tierGlow = {1:null, 2:'#0a3322', 3:'#0a1840', 4:'#200a20', 5:'#1a1005'};
-      window._cachedBgGlow = _tierGlow[_bTier] || null;
+      window._cachedBgTier = _bTier;
     } catch(_){ window._cachedBgColor = '#030b10'; }
   }
   ctx.fillStyle = window._cachedBgColor;
   ctx.fillRect(0, 0, CW, CH);
-  // 행성별 은은한 배경 글로우 (정적)
-  if (window._cachedBgGlow) {
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    var _bgGrd = ctx.createRadialGradient(CW*0.5, CH*0.3, 0, CW*0.5, CH*0.3, CW*0.8);
-    _bgGrd.addColorStop(0, window._cachedBgGlow);
-    _bgGrd.addColorStop(1, 'transparent');
-    ctx.fillStyle = _bgGrd;
-    ctx.fillRect(0, 0, CW, CH);
-    ctx.restore();
+  // 행성별 SF 배경 (오프스크린 캐시)
+  if (!window._battleBgCache || window._battleBgCache._w !== CW || window._battleBgCache._h !== CH || window._battleBgCache._t !== (window._cachedBgTier||1)) {
+    var _bt = window._cachedBgTier || 1;
+    var _bc = document.createElement('canvas'); _bc.width=CW; _bc.height=CH;
+    var _bx = _bc.getContext('2d');
+    // 별 필드
+    var _seed = _bt * 12345;
+    for(var _si=0;_si<60;_si++){
+      _seed=(_seed*1103515245+12345)&0x7fffffff;
+      var sx=(_seed%1000)/1000*CW; _seed=(_seed*1103515245+12345)&0x7fffffff;
+      var sy=(_seed%1000)/1000*CH; _seed=(_seed*1103515245+12345)&0x7fffffff;
+      var sr=0.3+(_seed%100)/200;
+      _bx.fillStyle='rgba(255,255,255,'+(0.15+(_seed%50)/100)+')';
+      _bx.beginPath();_bx.arc(sx,sy,sr,0,Math.PI*2);_bx.fill();
+    }
+    // 행성별 장식
+    if(_bt===2){ // 스펙트라: 녹색 성운
+      var ng=_bx.createRadialGradient(CW*0.7,CH*0.2,0,CW*0.7,CH*0.2,CW*0.5);
+      ng.addColorStop(0,'rgba(16,185,129,0.12)');ng.addColorStop(0.5,'rgba(16,185,129,0.04)');ng.addColorStop(1,'transparent');
+      _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
+      var ng2=_bx.createRadialGradient(CW*0.2,CH*0.7,0,CW*0.2,CH*0.7,CW*0.4);
+      ng2.addColorStop(0,'rgba(52,211,153,0.08)');ng2.addColorStop(1,'transparent');
+      _bx.fillStyle=ng2;_bx.fillRect(0,0,CW,CH);
+    } else if(_bt===3){ // 넥사르: 푸른 성운 + 먼 행성
+      var ng=_bx.createRadialGradient(CW*0.3,CH*0.15,0,CW*0.3,CH*0.15,CW*0.6);
+      ng.addColorStop(0,'rgba(59,130,246,0.15)');ng.addColorStop(0.4,'rgba(37,99,235,0.06)');ng.addColorStop(1,'transparent');
+      _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
+      // 먼 행성 실루엣
+      _bx.beginPath();_bx.arc(CW*0.85,CH*0.12,CW*0.06,0,Math.PI*2);
+      _bx.fillStyle='rgba(30,64,120,0.3)';_bx.fill();
+      _bx.beginPath();_bx.arc(CW*0.85,CH*0.12,CW*0.06,0,Math.PI*2);
+      _bx.strokeStyle='rgba(59,130,246,0.2)';_bx.lineWidth=1;_bx.stroke();
+    } else if(_bt===4){ // 피라온: 보라 성운 + 암적색 글로우
+      var ng=_bx.createRadialGradient(CW*0.5,CH*0.4,0,CW*0.5,CH*0.4,CW*0.7);
+      ng.addColorStop(0,'rgba(168,85,247,0.12)');ng.addColorStop(0.5,'rgba(120,50,180,0.05)');ng.addColorStop(1,'transparent');
+      _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
+      var ng2=_bx.createRadialGradient(CW*0.15,CH*0.8,0,CW*0.15,CH*0.8,CW*0.3);
+      ng2.addColorStop(0,'rgba(200,50,80,0.08)');ng2.addColorStop(1,'transparent');
+      _bx.fillStyle=ng2;_bx.fillRect(0,0,CW,CH);
+    } else if(_bt===5){ // 오메가: 황금 성운 + 거대 항성
+      var ng=_bx.createRadialGradient(CW*0.6,CH*0.25,0,CW*0.6,CH*0.25,CW*0.5);
+      ng.addColorStop(0,'rgba(245,158,11,0.15)');ng.addColorStop(0.4,'rgba(217,119,6,0.06)');ng.addColorStop(1,'transparent');
+      _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
+      // 거대 항성
+      var sg=_bx.createRadialGradient(CW*0.1,CH*0.9,0,CW*0.1,CH*0.9,CW*0.15);
+      sg.addColorStop(0,'rgba(255,200,50,0.2)');sg.addColorStop(0.5,'rgba(255,150,30,0.08)');sg.addColorStop(1,'transparent');
+      _bx.fillStyle=sg;_bx.fillRect(0,0,CW,CH);
+    } else { // 에이온: 은은한 시안 글로우
+      var ng=_bx.createRadialGradient(CW*0.5,CH*0.3,0,CW*0.5,CH*0.3,CW*0.6);
+      ng.addColorStop(0,'rgba(0,255,255,0.06)');ng.addColorStop(1,'transparent');
+      _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
+    }
+    window._battleBgCache=_bc; _bc._w=CW; _bc._h=CH; _bc._t=_bt;
   }
+  ctx.drawImage(window._battleBgCache, 0, 0);
 
   // ── Screen shake wrapper ──────────────────────────────────────
   ctx.save();
@@ -6235,6 +6277,7 @@ function startNewGame() {
   if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('battle'); }
   // 행성별 배경색 캐시 갱신
   window._cachedBgColor = null;
+  window._battleBgCache = null;
   loopGen++;
   window.resizeCanvas();
   startGame();
