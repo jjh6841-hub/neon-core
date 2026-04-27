@@ -9949,7 +9949,8 @@ if (ingameCoins) ingameCoins.addEventListener('click', function() {
 });
 var ingameMiss = document.getElementById('ingame-mission');
 if (ingameMiss) ingameMiss.addEventListener('click', function() {
-  if (typeof window.togglePause === 'function' && !window.isPaused) window.togglePause();
+  if (!window.isPaused) { window.isPaused = true; if(window.AudioManager&&window.AudioManager.bgmInterval)window.AudioManager.stopBGM(); }
+  var _pov=document.getElementById('pause-overlay'); if(_pov) _pov.style.display='none';
   window._openMissions && window._openMissions();
 });
 
@@ -10505,6 +10506,11 @@ window._openMissions = function() {
 
 document.getElementById('miss-back') && document.getElementById('miss-back').addEventListener('click', function() {
   document.getElementById('screen-missions').style.display = 'none';
+  // 전투 중이면 일시정지 오버레이 복원
+  if (window.G && window.G.phase !== 'gameover' && window.isPaused) {
+    var _pov=document.getElementById('pause-overlay'); if(_pov) _pov.style.display='flex';
+    return;
+  }
   var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
   try { syncShopUI(); } catch(_) {}
 });
