@@ -7414,14 +7414,14 @@ if (dailyPopup) {
 
   /* ── 교환 탭 ── */
   var EXCHANGE_ITEMS = [
-    { id:'ex_gem_gold',   from:{type:'gem',amount:10},   to:{type:'gold',amount:500},    label:'보석 → 골드',      fromIcon:'❖', fromColor:'#00ffff', toIcon:'◈', toColor:'#f59e0b' },
-    { id:'ex_gem_pc',     from:{type:'gem',amount:50},   to:{type:'pc',amount:10},       label:'보석 → 파워코어',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⊕', toColor:'#ff8822' },
-    { id:'ex_gem_ac',     from:{type:'gem',amount:100},  to:{type:'ac',amount:1},        label:'보석 → 접근코드',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⌘', toColor:'#bb44ff' },
-    { id:'ex_dc_gold',    from:{type:'dc',amount:1},     to:{type:'gold',amount:10000},  label:'데이터셀 → 골드',    fromIcon:'▣', fromColor:'#00ff88', toIcon:'◈', toColor:'#f59e0b' },
-    { id:'ex_dc_gem',     from:{type:'dc',amount:1},     to:{type:'gem',amount:100},     label:'데이터셀 → 보석',    fromIcon:'▣', fromColor:'#00ff88', toIcon:'❖', toColor:'#00ffff' },
-    { id:'ex_dc_pc',      from:{type:'dc',amount:1},     to:{type:'pc',amount:20},       label:'데이터셀 → 파워코어', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⊕', toColor:'#ff8822' },
-    { id:'ex_dc_ac',      from:{type:'dc',amount:1},     to:{type:'ac',amount:1},        label:'데이터셀 → 접근코드', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⌘', toColor:'#bb44ff' },
-    { id:'ex_dc_ticket',  from:{type:'dc',amount:1},     to:{type:'ticket',amount:1},    label:'데이터셀 → 탐사티켓', fromIcon:'▣', fromColor:'#00ff88', toIcon:'🎫', toColor:'#ff8822' },
+    { id:'ex_gem_gold',   from:{type:'gem',amount:10},   to:{type:'gold',amount:500},    label:'보석 → 골드',      fromIcon:'❖', fromColor:'#00ffff', toIcon:'◈', toColor:'#f59e0b', desc:'보석을 전투에서 사용하는 골드로 변환합니다. 골드는 타워 설치 및 강화에 사용됩니다.' },
+    { id:'ex_gem_pc',     from:{type:'gem',amount:50},   to:{type:'pc',amount:10},       label:'보석 → 파워코어',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⊕', toColor:'#ff8822', desc:'보석을 파워코어로 변환합니다. 파워코어는 타워 스킨 해금 등 영구 강화에 사용됩니다.' },
+    { id:'ex_gem_ac',     from:{type:'gem',amount:100},  to:{type:'ac',amount:1},        label:'보석 → 접근코드',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⌘', toColor:'#bb44ff', desc:'보석을 접근코드로 변환합니다. 접근코드는 새로운 행성을 해금하는 데 필요합니다.' },
+    { id:'ex_dc_gold',    from:{type:'dc',amount:1},     to:{type:'gold',amount:10000},  label:'데이터셀 → 골드',    fromIcon:'▣', fromColor:'#00ff88', toIcon:'◈', toColor:'#f59e0b', desc:'데이터셀을 대량의 골드로 변환합니다. 초반 자금 확보에 유용합니다.' },
+    { id:'ex_dc_gem',     from:{type:'dc',amount:1},     to:{type:'gem',amount:100},     label:'데이터셀 → 보석',    fromIcon:'▣', fromColor:'#00ff88', toIcon:'❖', toColor:'#00ffff', desc:'데이터셀을 보석으로 변환합니다. 보석은 다양한 프리미엄 용도로 활용됩니다.' },
+    { id:'ex_dc_pc',      from:{type:'dc',amount:1},     to:{type:'pc',amount:20},       label:'데이터셀 → 파워코어', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⊕', toColor:'#ff8822', desc:'데이터셀을 파워코어로 변환합니다. 파워코어는 타워 스킨 해금 등 영구 강화에 사용됩니다.' },
+    { id:'ex_dc_ac',      from:{type:'dc',amount:1},     to:{type:'ac',amount:1},        label:'데이터셀 → 접근코드', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⌘', toColor:'#bb44ff', desc:'데이터셀을 접근코드로 변환합니다. 접근코드는 새로운 행성을 해금하는 데 필요합니다.' },
+    { id:'ex_dc_ticket',  from:{type:'dc',amount:1},     to:{type:'ticket',amount:1},    label:'데이터셀 → 탐사티켓', fromIcon:'▣', fromColor:'#00ff88', toIcon:'🎫', toColor:'#ff8822', desc:'데이터셀을 탐사티켓으로 변환합니다. 탐사티켓으로 우주 탐사를 시도할 수 있습니다.' },
   ];
 
   function _getExBal(type) {
@@ -7453,11 +7453,7 @@ if (dailyPopup) {
     return html;
   }
 
-  function _doExchange(itemId) {
-    var item = EXCHANGE_ITEMS.filter(function(x){return x.id===itemId;})[0];
-    if (!item) return;
-    var bal = _getExBal(item.from.type);
-    if (bal < item.from.amount) { if(window.showToastMsg) showToastMsg('자원이 부족합니다','#ef4444'); return; }
+  function _execExchange(item) {
     // 차감
     if (item.from.type==='gem') { PERM.gems -= item.from.amount; }
     else if (item.from.type==='gold') { PERM.gold -= item.from.amount; }
@@ -7477,9 +7473,62 @@ if (dailyPopup) {
     renderStoreTab('exchange');
   }
 
+  function _showExchangePopup(itemId) {
+    var item = EXCHANGE_ITEMS.filter(function(x){return x.id===itemId;})[0];
+    if (!item) return;
+    var bal = _getExBal(item.from.type);
+    if (bal < item.from.amount) { if(window.showToastMsg) showToastMsg('자원이 부족합니다','#ef4444'); return; }
+    // 기존 팝업 제거
+    var old = document.getElementById('exchange-confirm-popup');
+    if (old) old.remove();
+
+    var _nameMap = {gem:'보석',gold:'골드',dc:'데이터셀',pc:'파워코어',ac:'접근코드',ticket:'탐사티켓'};
+
+    var ov = document.createElement('div');
+    ov.id = 'exchange-confirm-popup';
+    ov.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(3,11,16,0.92);z-index:10001;align-items:center;justify-content:center;font-family:Courier New,monospace;';
+    ov.innerHTML =
+      '<div style="background:#0d1520;border:1px solid #00ffff;max-width:310px;width:88%;box-shadow:0 0 30px rgba(0,255,255,0.15);display:flex;flex-direction:column;">' +
+        '<div style="padding:12px 14px 10px;border-bottom:1px solid #1a2a3a;text-align:center;">' +
+          '<div style="color:#00ffff;font-size:13px;font-weight:bold;letter-spacing:2px;">⇄ 교환 확인</div>' +
+        '</div>' +
+        '<div style="padding:16px 14px;">' +
+          '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;">' +
+            '<div style="text-align:center;">' +
+              '<div style="color:'+item.fromColor+';font-size:22px;">'+item.fromIcon+'</div>' +
+              '<div style="color:'+item.fromColor+';font-size:12px;margin-top:2px;">'+_nameMap[item.from.type]+'</div>' +
+              '<div style="color:#ef4444;font-size:13px;font-weight:bold;">-'+item.from.amount+'</div>' +
+            '</div>' +
+            '<div style="color:#334455;font-size:20px;margin:0 4px;">→</div>' +
+            '<div style="text-align:center;">' +
+              '<div style="color:'+item.toColor+';font-size:22px;">'+item.toIcon+'</div>' +
+              '<div style="color:'+item.toColor+';font-size:12px;margin-top:2px;">'+_nameMap[item.to.type]+'</div>' +
+              '<div style="color:#00ff88;font-size:13px;font-weight:bold;">+'+item.to.amount+'</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="background:#0a1420;border:1px solid #0a3344;padding:10px;margin-bottom:14px;">' +
+            '<div style="color:#94a3b8;font-size:10px;line-height:1.6;">'+item.desc+'</div>' +
+          '</div>' +
+          '<div style="color:#334455;font-size:9px;text-align:center;margin-bottom:12px;">보유: <span style="color:'+item.fromColor+';">'+item.fromIcon+' '+bal+'</span></div>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<button id="ex-popup-cancel" style="flex:1;height:36px;background:#0a1a2a;border:1px solid #334455;color:#94a3b8;font-family:monospace;font-size:12px;cursor:pointer;">취소</button>' +
+            '<button id="ex-popup-confirm" style="flex:1;height:36px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:12px;cursor:pointer;">교환</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(ov);
+
+    document.getElementById('ex-popup-cancel').addEventListener('click', function(){ ov.remove(); });
+    ov.addEventListener('click', function(e){ if(e.target===ov) ov.remove(); });
+    document.getElementById('ex-popup-confirm').addEventListener('click', function(){
+      ov.remove();
+      _execExchange(item);
+    });
+  }
+
   function _bindExchangeButtons(container) {
     container.querySelectorAll('[data-exchange]').forEach(function(btn){
-      btn.addEventListener('click', function(){ _doExchange(btn.getAttribute('data-exchange')); });
+      btn.addEventListener('click', function(){ _showExchangePopup(btn.getAttribute('data-exchange')); });
     });
   }
 
