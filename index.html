@@ -18445,7 +18445,7 @@ function _renderStagePopup() {
       html += '<button data-sp-buy-ticket style="width:100%;height:40px;background:#030b10;border:1px solid '+(_tbCanBuy?'#00ffff':'#1a2a3a')+';color:'+(_tbCanBuy?'#00ffff':'#334455')+';font-size:11px;cursor:'+(_tbCanBuy?'pointer':'default')+';letter-spacing:1px;-webkit-appearance:none;">🎫 티켓 구매 (❖30) '+(_tbToday>=3?'[일일 한도 초과]':'['+(3-_tbToday)+'/3 남음]')+'</button>';
     }
   }
-  if (cleared > 0) {
+  if (isCleared && cleared > 0) {
     html += '<button data-sp-harvest style="width:100%;height:36px;background:'+(canHarvest?el.color+'15':'#060810')+';border:1px solid '+(canHarvest?el.color+'44':'#1a2a3a')+';color:'+(canHarvest?el.color:'#334455')+';font-size:11px;cursor:'+(canHarvest?'pointer':'default')+';-webkit-appearance:none;">🎫 즉시 수확 ('+el.icon+' '+totalHarvest+')</button>';
   }
   html += '</div></div>';
@@ -18491,11 +18491,11 @@ function _renderStagePopup() {
   };
 
   var harvestBtn = _stagePopup.querySelector('[data-sp-harvest]');
-  if (harvestBtn) harvestBtn.onclick = function() {
+  if (harvestBtn && canHarvest) harvestBtn.onclick = function() {
     if (_getTickets() <= 0) return;
     var eId = el.id;
     var clr = _getCleared(eId);
-    if (clr <= 0) return;
+    if (clr <= 0 || _viewStage > clr) return;
     _setTickets(_getTickets() - 1);
     var total = 0;
     for (var hh = 1; hh <= clr; hh++) total += _stageReward(hh);
