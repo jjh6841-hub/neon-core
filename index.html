@@ -18416,9 +18416,8 @@ function _renderStagePopup() {
   var canBattle = isCurrent && tickets > 0 && curStage <= MAX_STAGE;
   var canHarvest = isCleared && tickets > 0;
 
-  // 즉시 수확 총량
-  var totalHarvest = 0;
-  for (var h = 1; h <= cleared; h++) totalHarvest += _stageReward(h);
+  // 즉시 수확: 현재 보고 있는 스테이지(클리어한 것) 1개의 보상
+  var totalHarvest = isCleared ? _stageReward(s) : 0;
 
   var html = '<div style="background:#0a1020;border:1px solid '+el.color+'44;width:min(300px,88%);padding:0;box-shadow:0 0 30px '+el.color+'15;">';
 
@@ -18511,8 +18510,7 @@ function _renderStagePopup() {
     var clr = _getCleared(eId);
     if (clr <= 0 || _viewStage > clr) return;
     _setTickets(_getTickets() - 1);
-    var total = 0;
-    for (var hh = 1; hh <= clr; hh++) total += _stageReward(hh);
+    var total = _stageReward(_viewStage);
     _setCore(eId, _getCore(eId) + total);
     if (window.showToastMsg) showToastMsg(el.icon + ' 즉시 수확! ' + el.core + ' +' + total);
     _renderStagePopup();
