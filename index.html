@@ -5312,12 +5312,13 @@ function render() {
     // 오프스크린 캔버스 캐시 — 매 프레임 path 연산 대신 비트맵 1회 그리기
     var _tcKey = _towerAccent + '_' + (window._dpr||1);
     if (!window._towerCache || window._towerCache._key !== _tcKey) {
-      var _ts = Math.ceil((TR*2+4) * (window._dpr||1));
+      var _sc = window._dpr || 1;
+      var _cssSize = TR*2+6;
+      var _ts = Math.round(_cssSize * _sc);
       var _tc = document.createElement('canvas'); _tc.width = _ts; _tc.height = _ts;
       var _tx = _tc.getContext('2d');
-      var _sc = window._dpr || 1;
       _tx.setTransform(_sc, 0, 0, _sc, 0, 0);
-      var _cx = (TR+2), _cy = (TR+2);
+      var _cx = _cssSize/2, _cy = _cssSize/2;
       // 외곽 육각형 (채움)
       _tx.beginPath();
       for (var _hi = 0; _hi < 6; _hi++) {
@@ -5365,9 +5366,15 @@ function render() {
       _tc._key = _tcKey;
       window._towerCache = _tc;
     }
-    // 캐시된 타워 비트맵을 메인 캔버스에 그리기
+    // 캐시된 타워 비트맵을 메인 캔버스에 1:1 픽셀 매핑으로 그리기
     ctx.save();
-    ctx.drawImage(window._towerCache, G.cx-(TR+2), G.cy-(TR+2), TR*2+4, TR*2+4);
+    var _d2 = window._dpr || 1;
+    var _tsz = window._towerCache.width;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(window._towerCache, Math.round(G.cx * _d2) - Math.round(_tsz / 2), Math.round(G.cy * _d2) - Math.round(_tsz / 2));
+    ctx.setTransform(_d2, 0, 0, _d2, 0, 0);
+    ctx.imageSmoothingEnabled = true;
     // 피격/버프 오버레이 (동적 효과만 직접 그리기)
     if (flashHit) {
       ctx.globalAlpha = 0.4; ctx.fillStyle = '#ef4444';
