@@ -7009,13 +7009,16 @@ if (dailyPopup) {
     if (!container) return;
     container.innerHTML = '';
 
-    /* 탭 활성 스타일 */
+    /* 탭 활성 스타일 (탭별 고유색 사용) */
+    var _TC = { atk:'#3b82f6', def:'#ef4444', utl:'#f59e0b', ult:'#00ff88' };
     var tabs = document.querySelectorAll('.ws-tab');
     for (var i = 0; i < tabs.length; i++) {
       var isAct = tabs[i].dataset.tab === tab;
+      var _tabCol = _TC[tabs[i].dataset.tab] || '#00ffff';
       var inactiveColor = tabs[i].disabled ? '#3a5566' : '#4a7a8a';
-      tabs[i].style.color        = isAct ? '#00ffff' : inactiveColor;
-      tabs[i].style.borderBottom = isAct ? '2px solid #00ffff' : '2px solid transparent';
+      tabs[i].style.color        = isAct ? _tabCol : inactiveColor;
+      tabs[i].style.borderBottom = isAct ? '3px solid ' + _tabCol : '3px solid transparent';
+      tabs[i].style.background   = isAct ? _tabCol + '11' : 'none';
       if (!isAct && !tabs[i].disabled) {
         (function(t, ic) {
           t.onmouseenter = function() { t.style.color = '#7ab8c8'; };
@@ -8746,7 +8749,7 @@ function _appendExtCard(container, key, ws) {
         PERM.ws[k] = l2 + 1;
         savePerm();
         try { _ext.sync(); } catch(_) {}
-        setTimeout(function() { try { document.querySelector('.ws-tab[style*="00ffff"]') && document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {} }, 10);
+        setTimeout(function() { try { var _at=window._wsExt&&window._wsExt.activeTab?window._wsExt.activeTab():'atk';document.querySelector('.ws-tab[data-tab="'+_at+'"]')&&document.querySelector('.ws-tab[data-tab="'+_at+'"]').click(); } catch(_) {} }, 10);
       });
     }(key));
   }
@@ -8786,7 +8789,7 @@ function _appendTierCard(container, tab, nextTier, cost, ws) {
     PERM.ws[tierKey] = nextTier;
     savePerm();
     try { _ext.sync(); } catch(_) {}
-    setTimeout(function() { try { document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {} }, 10);
+    setTimeout(function() { try { var _at=window._wsExt&&window._wsExt.activeTab?window._wsExt.activeTab():'atk';document.querySelector('.ws-tab[data-tab="'+_at+'"]').click(); } catch(_) {} }, 10);
   });
   container.appendChild(card);
 }
@@ -14894,7 +14897,7 @@ function _renderFreeCard(container, key, ws, insertBefore) {
         savePerm();
         try { window._wsExt.sync(); } catch(_) {}
         setTimeout(function() {
-          try { document.querySelector('.ws-tab[style*="00ffff"]').click(); } catch(_) {}
+          try { var _at=window._wsExt&&window._wsExt.activeTab?window._wsExt.activeTab():'atk';document.querySelector('.ws-tab[data-tab="'+_at+'"]').click(); } catch(_) {}
         }, 10);
       });
     }(key, card));
