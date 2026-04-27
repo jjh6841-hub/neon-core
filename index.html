@@ -12245,13 +12245,13 @@ function _spRenderPopup() {
     var freeBtn = freeDone
       ? '<div style="font-size:11px;color:#334455;margin-top:4px;">✓ 수령됨</div>'
       : freeCanClaim
-        ? '<button onclick="_spClaimTier(' + t.tier + ')" style="margin-top:6px;background:linear-gradient(135deg,#10b981,#059669);border:1px solid #34d399;color:#030b10;font-family:\'Courier New\',monospace;font-size:12px;font-weight:bold;padding:8px 0;cursor:pointer;width:100%;letter-spacing:2px;box-shadow:0 0 12px rgba(16,185,129,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
+        ? '<button onclick="_spClaimTier(' + t.tier + ')" style="margin-top:4px;background:linear-gradient(135deg,#10b981,#059669);border:1px solid #34d399;color:#030b10;font-family:\'Courier New\',monospace;font-size:10px;font-weight:bold;padding:4px 0;cursor:pointer;width:80%;letter-spacing:1px;box-shadow:0 0 8px rgba(16,185,129,0.4);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
         : '<div style="margin-top:4px;"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#334455" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#334455" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#334455"/></svg></div>';
 
     var premBtn = premDone
       ? '<div style="font-size:11px;color:#334455;margin-top:4px;">✓ 수령됨</div>'
       : premCanClaim
-        ? '<button onclick="_spClaimPremiumTier(' + t.tier + ')" style="margin-top:6px;background:linear-gradient(135deg,#ff8822,#ff5500);border:1px solid #ffaa44;color:#030b10;font-family:\'Courier New\',monospace;font-size:12px;font-weight:bold;padding:8px 0;cursor:pointer;width:100%;letter-spacing:2px;box-shadow:0 0 12px rgba(255,136,34,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
+        ? '<button onclick="_spClaimPremiumTier(' + t.tier + ')" style="margin-top:4px;background:linear-gradient(135deg,#ff8822,#ff5500);border:1px solid #ffaa44;color:#030b10;font-family:\'Courier New\',monospace;font-size:10px;font-weight:bold;padding:4px 0;cursor:pointer;width:80%;letter-spacing:1px;box-shadow:0 0 8px rgba(255,136,34,0.4);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
         : '<div style="margin-top:4px;"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="' + (hasPremium ? '#334455' : '#554422') + '" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="' + (hasPremium ? '#334455' : '#554422') + '" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="' + (hasPremium ? '#334455' : '#554422') + '"/></svg></div>';
 
     var rowBorder = (freeCanClaim || premCanClaim) ? '#ff8822' : (freeDone && (premDone || !hasPremium)) ? '#1a2a3a' : '#1a3344';
