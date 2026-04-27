@@ -18420,18 +18420,18 @@ function _renderStagePopup() {
   // 스테이지 네비게이션
   html += '<div style="padding:20px 16px;text-align:center;">'+
     '<div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:16px;">'+
-      '<button data-sp-prev style="background:none;border:1px solid '+(s>1?'#334455':'#1a1a2a')+';color:'+(s>1?'#778899':'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">◀</button>'+
+      '<button data-sp-prev style="background:none;border:1px solid '+(s>1?el.color+'66':'#1a1a2a')+';color:'+(s>1?el.color:'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">◀</button>'+
       '<div>'+
         '<div style="font-size:24px;color:'+(isLocked?'#334455':el.color)+';font-weight:bold;">'+s+'</div>'+
         '<div style="font-size:9px;color:#556677;margin-top:2px;">STAGE</div>'+
       '</div>'+
-      '<button data-sp-next style="background:none;border:1px solid '+(s<MAX_STAGE?'#334455':'#1a1a2a')+';color:'+(s<MAX_STAGE?'#778899':'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">▶</button>'+
+      '<button data-sp-next style="background:none;border:1px solid '+(s<MAX_STAGE?el.color+'66':'#1a1a2a')+';color:'+(s<MAX_STAGE?el.color:'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">▶</button>'+
     '</div>';
 
   // 상태 & 보상
   var statusText = isCleared ? '<span style="color:'+el.color+';">✓ 클리어</span>' : isCurrent ? '<span style="color:#fff;">도전 가능</span>' : '<span style="color:#334455;">잠김</span>';
   html += '<div style="font-size:10px;color:#778899;margin-bottom:6px;">'+statusText+'</div>'+
-    '<div style="font-size:10px;color:#556677;">보상: <span style="color:'+el.color+';">'+el.icon+' '+reward+'</span></div>'+
+    '<div style="font-size:12px;color:#556677;">보상: <span style="color:'+el.color+';font-size:14px;">'+el.icon+' '+reward+'</span></div>'+
   '</div>';
 
   // 액션 버튼
@@ -18445,8 +18445,8 @@ function _renderStagePopup() {
       html += '<button data-sp-buy-ticket style="width:100%;height:40px;background:#030b10;border:1px solid '+(_tbCanBuy?'#00ffff':'#1a2a3a')+';color:'+(_tbCanBuy?'#00ffff':'#334455')+';font-size:11px;cursor:'+(_tbCanBuy?'pointer':'default')+';letter-spacing:1px;-webkit-appearance:none;">🎫 티켓 구매 (❖50) '+(_tbToday>=3?'[일일 한도 초과]':'['+(3-_tbToday)+'/3 남음]')+'</button>';
     }
   }
-  if (cleared > 0) {
-    html += '<button data-sp-harvest style="width:100%;height:36px;background:'+(canHarvest?el.color+'15':'#060810')+';border:1px solid '+(canHarvest?el.color+'44':'#1a2a3a')+';color:'+(canHarvest?el.color:'#334455')+';font-size:11px;cursor:'+(canHarvest?'pointer':'default')+';-webkit-appearance:none;">'+(canHarvest?'⚡ 즉시 수확 ('+el.icon+' '+totalHarvest+')':'티켓 부족')+'</button>';
+  if (cleared > 0 && canHarvest) {
+    html += '<button data-sp-harvest style="width:100%;height:36px;background:'+el.color+'15;border:1px solid '+el.color+'44;color:'+el.color+';font-size:11px;cursor:pointer;-webkit-appearance:none;">🎫 즉시 수확 ('+el.icon+' '+totalHarvest+')</button>';
   }
   html += '</div></div>';
 
