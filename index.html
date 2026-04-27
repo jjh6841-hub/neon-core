@@ -12108,8 +12108,9 @@ function _spAddPoints(pts) {
   _spCheckSeasonReset();
   var cur = parseInt(localStorage.getItem('sp_points') || '0', 10);
   localStorage.setItem('sp_points', cur + pts);
-  // 시즌패스 UI 즉시 갱신
+  // 시즌패스 UI 즉시 갱신 (팝업 + 홈 바)
   try { if (typeof _spRenderPopup === 'function') _spRenderPopup(); } catch(_){}
+  try { if (typeof _spUpdateHomeBtn === 'function') _spUpdateHomeBtn(); } catch(_){}
 }
 window._spAddPoints = _spAddPoints;
 
