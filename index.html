@@ -5218,48 +5218,37 @@ function render() {
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      // 타워 물질화 (캔버스 직접 그리기)
+      // 타워 물질화 (캔버스 직접 그리기 — lineWidth 최소 1 이상)
       ctx.globalAlpha = ease;
       var _eR = TR * ease;
-      // 외곽 헥사곤
+      // 외곽 헥사곤 (채움)
       ctx.beginPath();
       for (var hi = 0; hi < 6; hi++) {
         var ha = Math.PI/3*hi - Math.PI/6;
-        var hx = G.cx + _eR*Math.cos(ha);
-        var hy = G.cy + _eR*Math.sin(ha);
-        if (hi===0) ctx.moveTo(hx,hy); else ctx.lineTo(hx,hy);
+        if (hi===0) ctx.moveTo(G.cx+_eR*Math.cos(ha), G.cy+_eR*Math.sin(ha));
+        else ctx.lineTo(G.cx+_eR*Math.cos(ha), G.cy+_eR*Math.sin(ha));
       }
       ctx.closePath();
       ctx.fillStyle = '#06061a'; ctx.fill();
+      ctx.strokeStyle = _ac; ctx.lineWidth = 2; ctx.stroke();
       // 내부 장식 헥사곤
       ctx.beginPath();
       for (var hi2 = 0; hi2 < 6; hi2++) {
         var ha2 = Math.PI/3*hi2 - Math.PI/6;
-        ctx.lineTo(G.cx + _eR*0.82*Math.cos(ha2), G.cy + _eR*0.82*Math.sin(ha2));
+        if (hi2===0) ctx.moveTo(G.cx+_eR*0.8*Math.cos(ha2), G.cy+_eR*0.8*Math.sin(ha2));
+        else ctx.lineTo(G.cx+_eR*0.8*Math.cos(ha2), G.cy+_eR*0.8*Math.sin(ha2));
       }
       ctx.closePath();
-      ctx.strokeStyle = _ac; ctx.globalAlpha = ease*0.5; ctx.lineWidth = 0.5; ctx.stroke();
+      ctx.strokeStyle = _ac; ctx.globalAlpha = ease*0.4; ctx.lineWidth = 1; ctx.stroke();
       ctx.globalAlpha = ease;
-      // 외곽선
-      ctx.beginPath();
-      for (var hi3 = 0; hi3 < 6; hi3++) {
-        var ha3 = Math.PI/3*hi3 - Math.PI/6;
-        ctx.lineTo(G.cx + _eR*Math.cos(ha3), G.cy + _eR*Math.sin(ha3));
-      }
-      ctx.closePath();
-      if (_isMobileGfx) {
-        ctx.save(); ctx.globalAlpha = ease*0.25; ctx.strokeStyle = _ac; ctx.lineWidth = 6; ctx.stroke(); ctx.restore();
-        ctx.globalAlpha = ease;
-      } else { ctx.shadowColor = _ac; ctx.shadowBlur = 18*ease; }
-      ctx.strokeStyle = _ac; ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0;
       // 코어 중심원
       if (ease > 0.3) {
         var _cA = (ease-0.3)/0.7;
         ctx.globalAlpha = _cA;
-        ctx.beginPath(); ctx.arc(G.cx, G.cy, _eR*0.18, 0, Math.PI*2);
+        ctx.beginPath(); ctx.arc(G.cx, G.cy, Math.max(2, _eR*0.18), 0, Math.PI*2);
         ctx.fillStyle = '#06061a'; ctx.fill();
-        ctx.strokeStyle = _ac; ctx.lineWidth = 1.2; ctx.stroke();
-        ctx.beginPath(); ctx.arc(G.cx, G.cy, _eR*0.08, 0, Math.PI*2);
+        ctx.strokeStyle = _ac; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(G.cx, G.cy, Math.max(1, _eR*0.08), 0, Math.PI*2);
         ctx.fillStyle = _ac; ctx.fill();
         ctx.globalAlpha = ease;
       }
@@ -5321,60 +5310,35 @@ function render() {
     } catch(_){}
     const _towerAccent = _skinColor;
     ctx.save();
-    // 캔버스 직접 그리기 (Android SVG 호환 문제 해결)
-    // 외곽 육각형
+    // 캔버스 직접 그리기 — DPR 보정 (고해상도 Android 대응)
+    // DPR이 높으면 setTransform으로 이미 스케일됨 → lineWidth 등은 CSS픽셀 기준
+    // 외곽 육각형 (채움)
     ctx.beginPath();
     for (var _hi = 0; _hi < 6; _hi++) {
       var _ha = Math.PI / 3 * _hi - Math.PI / 6;
-      var _hx = G.cx + TR * Math.cos(_ha);
-      var _hy = G.cy + TR * Math.sin(_ha);
-      if (_hi === 0) ctx.moveTo(_hx, _hy); else ctx.lineTo(_hx, _hy);
+      if (_hi === 0) ctx.moveTo(G.cx + TR * Math.cos(_ha), G.cy + TR * Math.sin(_ha));
+      else ctx.lineTo(G.cx + TR * Math.cos(_ha), G.cy + TR * Math.sin(_ha));
     }
     ctx.closePath();
     ctx.fillStyle = '#06061a'; ctx.fill();
+    // 외곽선
+    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
+    ctx.lineWidth = 2; ctx.stroke();
     // 내부 장식 육각형
     ctx.beginPath();
     for (var _hi2 = 0; _hi2 < 6; _hi2++) {
       var _ha2 = Math.PI / 3 * _hi2 - Math.PI / 6;
-      var _hx2 = G.cx + TR * 0.82 * Math.cos(_ha2);
-      var _hy2 = G.cy + TR * 0.82 * Math.sin(_ha2);
-      if (_hi2 === 0) ctx.moveTo(_hx2, _hy2); else ctx.lineTo(_hx2, _hy2);
+      if (_hi2 === 0) ctx.moveTo(G.cx + TR*0.8*Math.cos(_ha2), G.cy + TR*0.8*Math.sin(_ha2));
+      else ctx.lineTo(G.cx + TR*0.8*Math.cos(_ha2), G.cy + TR*0.8*Math.sin(_ha2));
     }
     ctx.closePath();
-    ctx.strokeStyle = _towerAccent; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.strokeStyle = _towerAccent; ctx.globalAlpha = 0.4; ctx.lineWidth = 1; ctx.stroke();
     ctx.globalAlpha = 1;
-    // 내부 작은 육각형
-    ctx.beginPath();
-    for (var _hi3 = 0; _hi3 < 6; _hi3++) {
-      var _ha3 = Math.PI / 3 * _hi3 - Math.PI / 6;
-      var _hx3 = G.cx + TR * 0.75 * Math.cos(_ha3);
-      var _hy3 = G.cy + TR * 0.75 * Math.sin(_ha3);
-      if (_hi3 === 0) ctx.moveTo(_hx3, _hy3); else ctx.lineTo(_hx3, _hy3);
-    }
-    ctx.closePath();
-    ctx.strokeStyle = _towerAccent; ctx.globalAlpha = 0.25; ctx.lineWidth = 0.5; ctx.stroke();
-    ctx.globalAlpha = 1;
-    // 외곽선 + 글로우
-    ctx.beginPath();
-    for (var _hi4 = 0; _hi4 < 6; _hi4++) {
-      var _ha4 = Math.PI / 3 * _hi4 - Math.PI / 6;
-      var _hx4 = G.cx + TR * Math.cos(_ha4);
-      var _hy4 = G.cy + TR * Math.sin(_ha4);
-      if (_hi4 === 0) ctx.moveTo(_hx4, _hy4); else ctx.lineTo(_hx4, _hy4);
-    }
-    ctx.closePath();
-    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
-    if (_isMobileGfx) {
-      ctx.save(); ctx.globalAlpha = 0.25; ctx.strokeStyle = _towerAccent; ctx.lineWidth = 6; ctx.stroke(); ctx.restore();
-    } else {
-      ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12;
-    }
-    ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0;
     // 코어 중심원
-    ctx.beginPath(); ctx.arc(G.cx, G.cy, TR*0.18, 0, Math.PI*2);
+    ctx.beginPath(); ctx.arc(G.cx, G.cy, 4, 0, Math.PI*2);
     ctx.fillStyle = '#06061a'; ctx.fill();
-    ctx.strokeStyle = _towerAccent; ctx.lineWidth = 1.2; ctx.stroke();
-    ctx.beginPath(); ctx.arc(G.cx, G.cy, TR*0.08, 0, Math.PI*2);
+    ctx.strokeStyle = _towerAccent; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(G.cx, G.cy, 1.5, 0, Math.PI*2);
     ctx.fillStyle = _towerAccent; ctx.fill();
     // 피격/버프 오버레이
     if (flashHit) {
@@ -5392,7 +5356,7 @@ function render() {
     ctx.moveTo(G.cx-8, G.cy); ctx.lineTo(G.cx+8, G.cy);
     ctx.stroke();
     // 코너 브래킷
-    var bk = 6; ctx.globalAlpha = 0.4;
+    var bk = 6; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR+bk,G.cy-TR);
     ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR,G.cy-TR+bk);
