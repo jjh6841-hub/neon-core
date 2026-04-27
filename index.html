@@ -965,6 +965,10 @@ canvas {
   pointer-events: none;
   animation: fadeInOut 1.5s ease forwards;
 }
+@keyframes spBtnPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(16,185,129,0.3); }
+  50% { box-shadow: 0 0 18px rgba(16,185,129,0.6); }
+}
 @keyframes fadeInOut {
   0%   { opacity: 0; }
   20%  { opacity: 1; }
@@ -2265,12 +2269,8 @@ function _showOfflinePopup(data) {
     if (data.gems > 0) { PERM.gems = (PERM.gems||0) + data.gems; logCurrency('gems', data.gems, '오프라인 보상'); }
     savePerm();
     localStorage.setItem('last_online', Date.now());
-    // 보석 에포크: 수령한 보석 시간(2시간 단위)만큼만 전진, 현재 시간 초과 방지
-    if (data.gems > 0) {
-      var _ge = parseInt(localStorage.getItem('gem_epoch')||'0',10) || parseInt(localStorage.getItem('last_online')||'0',10);
-      var _newEpoch = _ge + data.gems * 2 * 3600000;
-      localStorage.setItem('gem_epoch', Math.min(_newEpoch, Date.now()));
-    }
+    // 보석 에포크: 수령 시 현재 시간으로 리셋 (잔여 시간 이월 방지)
+    localStorage.setItem('gem_epoch', Date.now());
     ov.remove();
     try {
       var hg=document.getElementById('home-gold'); if(hg) hg.textContent=PERM.gold||0;
@@ -3234,7 +3234,7 @@ function checkAchievements() {
       try { showAchievementToast(ach.name); } catch(e) {}
     }
   }
-  if (changed) savePerm();
+  if (changed) { savePerm(); if (window._updateAchieveBadge) _updateAchieveBadge(); }
 }
 function claimAchievement(key) {
   var ach = ACHIEVEMENTS.find(function(a) { return a.key === key; });
@@ -3247,6 +3247,7 @@ function claimAchievement(key) {
   savePerm();
   try { buildAchieveUI(); } catch(_) {}
   if (rwItems.length && window.showRewardPopup) showRewardPopup(rwItems, '업적 보상');
+  if (window._updateAchieveBadge) _updateAchieveBadge();
 }
 window.claimAchievement = claimAchievement;
 window.checkAchievements = checkAchievements;
@@ -3467,18 +3468,26 @@ function startGame() {
 
   // 전투 배경색은 render()에서 행성별로 설정 (여기서 스킨으로 덮어쓰지 않음)
 
-  // 탐사선 스킨 이미지 사전 로드
+  // 탐사선 스킨 이미지 사전 로드 (오프스크린 캔버스 래스터화)
   try {
     var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
     var _preDpr = window.devicePixelRatio || 1;
     var _preKey = _sid + '_' + _preDpr;
-    if ((!window._towerSkinImg || window._towerSkinId !== _preKey) && window.getNeonCoreIcon) {
-      var _svgStr = window.getNeonCoreIcon(Math.round(80 * _preDpr), _sid);
+    if ((!window._towerSkinCanvas || window._towerSkinId !== _preKey) && window.getNeonCoreIcon) {
+      var _preSvgSize = Math.round(128 * _preDpr);
+      var _svgStr = window.getNeonCoreIcon(_preSvgSize, _sid);
       if (_svgStr) {
-        var _img = new Image();
-        _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
-        window._towerSkinImg = _img;
-        window._towerSkinId = _preKey;
+        var _preImg = new Image();
+        _preImg.onload = function() {
+          var _osc = document.createElement('canvas');
+          _osc.width = _preSvgSize; _osc.height = _preSvgSize;
+          var _oCtx = _osc.getContext('2d');
+          _oCtx.drawImage(_preImg, 0, 0, _preSvgSize, _preSvgSize);
+          window._towerSkinCanvas = _osc;
+          window._towerSkinImg = _osc;
+          window._towerSkinId = _preKey;
+        };
+        _preImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(_svgStr)));
       }
     }
   } catch(_){}
@@ -5221,7 +5230,7 @@ function render() {
       }
       // 타워 물질화 (스킨 이미지 or 기본 헥사곤)
       ctx.globalAlpha = ease;
-      if (window._towerSkinImg && window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0) {
+      if (window._towerSkinImg && (window._towerSkinImg.tagName === 'CANVAS' || (window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0))) {
         var _isz = TR * 2.4 * ease;
         ctx.drawImage(window._towerSkinImg, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
       } else {
@@ -5288,19 +5297,32 @@ function render() {
     const TR = 20;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
-    // 탐사선 스킨 SVG → 캐시 Image로 렌더링
+    // 탐사선 스킨 SVG → 오프스크린 캔버스 래스터화 (Android 호환)
     var _skinDpr = window._dpr || 1;
     var _skinKey = (localStorage.getItem('neoncore_skin')||'iris0') + '_' + _skinDpr;
-    if (!window._towerSkinImg || window._towerSkinId !== _skinKey) {
+    if (!window._towerSkinCanvas || window._towerSkinId !== _skinKey) {
       try {
         var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
         var _svgSize = Math.round(128 * _skinDpr);
         var _svgStr = window.getNeonCoreIcon ? window.getNeonCoreIcon(_svgSize, _sid) : null;
         if (_svgStr) {
-          var _img = new Image();
-          _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
-          window._towerSkinImg = _img;
-          window._towerSkinId = _skinKey;
+          var _tmpImg = new Image();
+          var _b64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(_svgStr)));
+          _tmpImg.onload = function() {
+            var _osc = document.createElement('canvas');
+            _osc.width = _svgSize; _osc.height = _svgSize;
+            var _oCtx = _osc.getContext('2d');
+            _oCtx.drawImage(_tmpImg, 0, 0, _svgSize, _svgSize);
+            window._towerSkinCanvas = _osc;
+            window._towerSkinId = _skinKey;
+            window._towerSkinImg = _osc;
+          };
+          _tmpImg.src = _b64;
+          // 이전 캐시 유지 (로딩 중 깜빡임 방지)
+          if (!window._towerSkinCanvas) {
+            window._towerSkinImg = null;
+            window._towerSkinId = _skinKey + '_loading';
+          }
         }
       } catch(_) {}
     }
@@ -5315,7 +5337,7 @@ function render() {
     const _towerAccent = _skinColor;
     ctx.save();
     // 스킨 이미지가 있으면 SVG 패턴 사용, 없으면 기본 육각형
-    if (window._towerSkinImg && window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0) {
+    if (window._towerSkinImg && (window._towerSkinImg.tagName === 'CANVAS' || (window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0))) {
       var _sz = TR * 2.4;
       if (flashHit) { ctx.globalAlpha = 0.6; }
       ctx.drawImage(window._towerSkinImg, G.cx - _sz/2, G.cy - _sz/2, _sz, _sz);
@@ -5854,7 +5876,7 @@ function syncUI() {
 }
 
 function doUpgrade(key) {
-  if (!G || G.phase !== 'playing') return;
+  if (!G || (G.phase !== 'playing' && G.phase !== 'between')) return;
   const upg = UPGRADES.find(function(u) { return u.key === key; });
   if (!upg || !isUnlocked(upg.unlock) || !upg.canBuy()) return;
   var prevChips = coreChips;
@@ -9495,7 +9517,7 @@ if (storeBtn) {
 
   <!-- 상단 헤더 -->
   <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + var(--sat)) 14px 10px;border-bottom:1px solid rgba(0,255,255,0.12);flex-shrink:0;background:#040c14;">
-    <button id="miss-back" style="background:none;border:none;color:#00ffff;font-size:13px;font-family:monospace;cursor:pointer;padding:6px 10px 6px 0;z-index:1;">← 뒤로</button>
+    <button id="miss-back" style="background:none;border:none;color:#00ffff;font-size:12px;font-family:'Courier New',monospace;cursor:pointer;padding:4px;z-index:1;">◀ 뒤로</button>
     <span style="position:absolute;left:0;right:0;text-align:center;color:#00ffff;font-size:12px;font-family:monospace;letter-spacing:3px;pointer-events:none;">임무</span>
     <div style="display:flex;gap:8px;align-items:center;font-family:'Courier New',monospace;font-size:11px;z-index:1;">
       <span style="color:#f59e0b;">◈ <span id="miss-gold-display">0</span></span>
@@ -10201,16 +10223,42 @@ function _getCompletedCount() {
   return count;
 }
 
-/* ── 배지 업데이트 ── */
+/* ── 배지 업데이트 (일일+주간+무한) ── */
 function _updateBadge() {
   var pending = _getPendingCount();
   var completed = _getCompletedCount();
   var prog = document.getElementById('mission-progress');
   if (prog) prog.textContent = completed + '/8';
+  // 주간 임무 미수령 체크
+  var weeklyPending = false;
+  try {
+    if (window._checkWeeklyReset) _checkWeeklyReset();
+    var _wkKeys = ['wk_wave','wk_kills','wk_boss','wk_upgrade','wk_games','wk_ads','wk_attend'];
+    var _wkTargets = {wk_wave:50,wk_kills:1000,wk_boss:20,wk_upgrade:10,wk_games:10,wk_ads:7,wk_attend:5};
+    var _wkTrack = {wk_wave:'wk_wave_progress',wk_kills:'wk_kills_progress',wk_boss:'wk_boss_progress',wk_upgrade:'wk_upgrade_progress',wk_games:'wk_games_progress',wk_ads:'wk_ads_progress',wk_attend:'wk_attend_progress'};
+    for (var _wi=0; _wi<_wkKeys.length; _wi++) {
+      var _wk = _wkKeys[_wi];
+      var _wp = parseInt(localStorage.getItem(_wkTrack[_wk])||'0',10);
+      if (_wp >= _wkTargets[_wk] && localStorage.getItem('wk_claimed_'+_wk) !== 'true') { weeklyPending = true; break; }
+    }
+  } catch(_){}
+  // 무한 임무 미수령 체크
+  var infPending = false;
+  try {
+    if (window._INF_MISSIONS) {
+      for (var _ii=0; _ii<window._INF_MISSIONS.length; _ii++) {
+        var _im = window._INF_MISSIONS[_ii];
+        var _itotal = _im.tier ? parseInt(localStorage.getItem('tier'+_im.tier+'_best')||'0',10) : parseInt(localStorage.getItem(_im.storageKey)||'0',10);
+        var _iclaimed = parseInt(localStorage.getItem(_im.id+'_claimed')||'0',10);
+        if (Math.floor(_itotal / _im.interval) > _iclaimed) { infPending = true; break; }
+      }
+    }
+  } catch(_){}
+  var anyPending = pending > 0 || weeklyPending || infPending;
   var badge1 = document.getElementById('home-miss-badge');
-  if (badge1) badge1.style.display = pending > 0 ? 'block' : 'none';
+  if (badge1) badge1.style.display = anyPending ? 'block' : 'none';
   var badge2 = document.getElementById('ingame-miss-badge');
-  if (badge2) badge2.style.display = pending > 0 ? 'block' : 'none';
+  if (badge2) badge2.style.display = anyPending ? 'block' : 'none';
 }
 
 /* ── 임무 화면 렌더링 ── */
@@ -11366,14 +11414,20 @@ function _showPopup(tab) {
 function _doUnlock(tab) {
   if (!window.PERM) return;
   var cfg = TAB_LOCKS[tab];
-  if (cfg.acCost > 0) {
+  // 조건 기반 해금: 비용 없음, 조건 미달 시 안내만
+  if (cfg.unlockCond) {
+    if (!_isContentUnlocked(cfg.unlockCond)) {
+      _flash(_unlockCondText(cfg.unlockCond) + ' 필요');
+      return;
+    }
+  } else if (cfg.acCost > 0) {
     var _ac = parseInt(localStorage.getItem('accessCodes')||'0',10);
     if (_ac < cfg.acCost) { _flash('접근 코드가 부족합니다'); return; }
     localStorage.setItem('accessCodes', _ac - cfg.acCost);
   } else if (cfg.goldCost > 0) {
     if (PERM.gold < cfg.goldCost) { _flash('골드가 부족합니다'); return; }
     PERM.gold -= cfg.goldCost;
-  } else {
+  } else if (cfg.gemCost > 0) {
     if (PERM.gems < cfg.gemCost) { _flash('보석이 부족합니다'); return; }
     PERM.gems -= cfg.gemCost;
   }
@@ -11433,8 +11487,8 @@ function _attachInterceptor() {
     if (TAB_LOCKS[tab] && !_isUnlocked(tab)) {
       e.stopImmediatePropagation();
       var cfg = TAB_LOCKS[tab];
-      var costStr = cfg.goldCost > 0 ? '골드 '+cfg.goldCost : '보석 '+cfg.gemCost;
-      if (window.showNavToast) showNavToast(cfg.label + ' — ' + costStr + '으로 해금 가능', 'ws_lock_'+tab);
+      var condStr = cfg.unlockCond ? _unlockCondText(cfg.unlockCond) : '';
+      if (window.showNavToast) showNavToast(cfg.label + ' — ' + condStr + ' 시 해금', 'ws_lock_'+tab);
     }
   }, true); // capture 단계 — 기존 리스너보다 먼저 실행
 }
@@ -11950,6 +12004,8 @@ function _spAddPoints(pts) {
   _spCheckSeasonReset();
   var cur = parseInt(localStorage.getItem('sp_points') || '0', 10);
   localStorage.setItem('sp_points', cur + pts);
+  // 시즌패스 UI 즉시 갱신
+  try { if (typeof _spRenderPopup === 'function') _spRenderPopup(); } catch(_){}
 }
 window._spAddPoints = _spAddPoints;
 
@@ -12098,13 +12154,13 @@ function _spRenderPopup() {
     var freeBtn = freeDone
       ? '<div style="font-size:11px;color:#334455;margin-top:4px;">✓ 수령됨</div>'
       : freeCanClaim
-        ? '<button onclick="_spClaimTier(' + t.tier + ')" style="margin-top:6px;background:#10b981;border:none;color:#030b10;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;padding:10px 0;cursor:pointer;width:100%;letter-spacing:1px;">수령</button>'
+        ? '<button onclick="_spClaimTier(' + t.tier + ')" style="margin-top:6px;background:linear-gradient(135deg,#10b981,#059669);border:1px solid #34d399;color:#030b10;font-family:\'Courier New\',monospace;font-size:12px;font-weight:bold;padding:8px 0;cursor:pointer;width:100%;letter-spacing:2px;box-shadow:0 0 12px rgba(16,185,129,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
         : '<div style="margin-top:4px;"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#334455" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#334455" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#334455"/></svg></div>';
 
     var premBtn = premDone
       ? '<div style="font-size:11px;color:#334455;margin-top:4px;">✓ 수령됨</div>'
       : premCanClaim
-        ? '<button onclick="_spClaimPremiumTier(' + t.tier + ')" style="margin-top:6px;background:#ff8822;border:none;color:#030b10;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;padding:10px 0;cursor:pointer;width:100%;letter-spacing:1px;">수령</button>'
+        ? '<button onclick="_spClaimPremiumTier(' + t.tier + ')" style="margin-top:6px;background:linear-gradient(135deg,#ff8822,#ff5500);border:1px solid #ffaa44;color:#030b10;font-family:\'Courier New\',monospace;font-size:12px;font-weight:bold;padding:8px 0;cursor:pointer;width:100%;letter-spacing:2px;box-shadow:0 0 12px rgba(255,136,34,0.4);text-shadow:0 1px 2px rgba(0,0,0,0.3);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
         : '<div style="margin-top:4px;"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="' + (hasPremium ? '#334455' : '#554422') + '" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="' + (hasPremium ? '#334455' : '#554422') + '" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="' + (hasPremium ? '#334455' : '#554422') + '"/></svg></div>';
 
     var rowBorder = (freeCanClaim || premCanClaim) ? '#ff8822' : (freeDone && (premDone || !hasPremium)) ? '#1a2a3a' : '#1a3344';
@@ -12934,10 +12990,16 @@ function _renderCardTab() {
       _renderCardTab();
     });
   });
-  // 슬롯 해금 (확인 팝업)
+  // 슬롯 해금 (확인 팝업) — 이전 슬롯 순서대로만 해금 가능
   content.querySelectorAll('[data-slot-unlock]').forEach(function(el){
     el.addEventListener('click',function(){
       var idx=parseInt(el.dataset.slotUnlock);
+      var currentSlots=_getSlots();
+      // 이전 슬롯이 열려있지 않으면 구매 불가
+      if(idx>currentSlots){
+        if(window.showToastMsg) showToastMsg('슬롯 '+(currentSlots+1)+'번을 먼저 해금하세요', '#ef4444');
+        return;
+      }
       var cost=PRISM_SLOT_COSTS[idx]||9999;
       var gems=(window.PERM&&window.PERM.gems)||0;
       if(gems<cost){
@@ -12946,8 +13008,13 @@ function _renderCardTab() {
       }
       _showSlotConfirm('프리즘 슬롯 '+(idx+1)+'번 해금','보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?',function(){
         if((window.PERM.gems||0)<cost) return;
+        // 다시 한번 순서 체크 (동시 클릭 방지)
+        if(idx>_getSlots()){
+          if(window.showToastMsg) showToastMsg('슬롯 '+(_getSlots()+1)+'번을 먼저 해금하세요', '#ef4444');
+          return;
+        }
         window.PERM.gems-=cost;
-        _setSlots(idx+1);
+        _setSlots(currentSlots+1);
         window.savePerm&&window.savePerm();
         _syncPrismHUD();
         if(window.showToastMsg) showToastMsg('슬롯 '+(idx+1)+'번 해금!', '#00ff88');
@@ -13872,7 +13939,6 @@ function _showEncyclopedia() {
       ['공격 범위','타워의 레이저 최대 사거리. 코어랩에서 연구 가능.'],
       ['관통','레이저가 적을 관통하여 뒤에 있는 적에게도 피해를 줌. 코어랩에서 연구 가능.'],
       ['분열탄','레이저가 여러 갈래로 동시에 발사됨. 코어랩에서 연구 가능.'],
-      ['넉백','적중 시 적을 뒤로 밀어내는 확률. 강화소에서 레벨당 +0.5%.'],
     ]},
     def:{ label:'방어', rows:[
       ['최대 HP','코어의 최대 체력. 강화소에서 레벨당 +5.'],
@@ -13881,8 +13947,8 @@ function _showEncyclopedia() {
       ['방어율','받는 피해를 % 비율로 감소. 강화소에서 레벨당 +0.5%, 최대 60%.'],
       ['절대 방어','고정 수치만큼 피해를 감소. 방어율 적용 후 추가로 차감.'],
       ['반사 데미지','적이 코어를 공격할 때 피해의 일정 %를 반사. 강화소에서 레벨당 +0.5%.'],
-      ['흡혈','적 처치 시 최대 HP의 일정 %를 회복. 강화소에서 레벨당 +0.5%.'],
-      ['에너지 흡수','적에게 적중할 때마다 가한 피해의 일정 %만큼 코어 HP를 회복. 최대 20%.'],
+      ['넉백','적중 시 적을 뒤로 밀어내는 확률. 강화소에서 레벨당 +0.5%.'],
+      ['흡혈','공격 적중 시 피해의 일정 %만큼 코어 HP를 회복. 강화소에서 레벨당 +0.5%.'],
     ]},
     utl:{ label:'유틸리티', items:[
       { id:'gold_bonus', name:'골드 획득량', desc:'적 처치 시 획득 골드 배율. 강화소에서 레벨당 +10%.' },
@@ -13941,9 +14007,9 @@ function _showEncyclopedia() {
       t.items.forEach(function(u){
         var unlocked=localStorage.getItem('enc_util_'+u.id)==='true';
         if(!unlocked){
-          body+='<div style="padding:8px 0;border-bottom:1px solid #0a2233;opacity:0.4;">'+
-            '<div style="color:#334455;font-family:monospace;font-size:11px;font-weight:bold;">???</div>'+
-            '<div style="color:#223344;font-family:monospace;font-size:10px;margin-top:2px;">???</div></div>';
+          body+='<div style="padding:8px 0;border-bottom:1px solid #0a2233;opacity:0.7;">'+
+            '<div style="color:#ffffff;font-family:monospace;font-size:11px;font-weight:bold;">???</div>'+
+            '<div style="color:#94a3b8;font-family:monospace;font-size:10px;margin-top:2px;">미개방</div></div>';
         } else {
           body+='<div style="padding:8px 0;border-bottom:1px solid #0a2233;">'+
             '<div style="color:#00ffff;font-family:monospace;font-size:11px;font-weight:bold;">'+u.name+'</div>'+
@@ -13955,10 +14021,10 @@ function _showEncyclopedia() {
       t.enemies.forEach(function(e){
         var unlocked=localStorage.getItem('enc_enemy_'+e.id)==='true';
         if(!unlocked){
-          body+='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #0a1a2a;opacity:0.4;">'+
-            '<div style="width:36px;height:36px;border:2px solid #334455;border-radius:4px;flex-shrink:0;"></div>'+
-            '<div><div style="font-size:12px;color:#334455;font-weight:500;font-family:monospace;">???</div>'+
-            '<div style="font-size:11px;color:#223344;margin-top:3px;font-family:monospace;">???</div></div></div>';
+          body+='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #0a1a2a;opacity:0.7;">'+
+            '<div style="width:36px;height:36px;border:2px solid #556677;border-radius:4px;flex-shrink:0;"></div>'+
+            '<div><div style="font-size:12px;color:#ffffff;font-weight:500;font-family:monospace;">???</div>'+
+            '<div style="font-size:11px;color:#94a3b8;margin-top:3px;font-family:monospace;">미개방</div></div></div>';
         } else {
           var icon;
           if(e.boss){
@@ -16237,6 +16303,14 @@ function renderLeftIcons() {
         btn.innerHTML = '<span style="font-size:15px; color:' + labelCol + '; line-height:1;">' + icon.icon + '</span><span style="font-size:7px; color:' + labelCol + '; font-family:\'Courier New\',monospace;">' + icon.label + '</span>' + lockHtml;
       }
 
+      // 업적 레드닷
+      if (icon.id === 'achievement' && unlocked) {
+        var _achBadge = document.createElement('div');
+        _achBadge.id = 'achieve-reddot';
+        _achBadge.style.cssText = 'display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:#ff4444;border-radius:50%;border:1px solid #06061a;';
+        btn.appendChild(_achBadge);
+      }
+
       if (unlocked) {
         btn.onclick = function() { showScreen(icon.screen); };
       } else {
@@ -16256,6 +16330,20 @@ function renderLeftIcons() {
   }
 
 }
+
+/* ── 업적 레드닷 업데이트 ── */
+function _updateAchieveBadge() {
+  var dot = document.getElementById('achieve-reddot');
+  if (!dot) return;
+  var hasReady = false;
+  if (window.PERM && PERM.achievements && window.ACHIEVEMENTS) {
+    for (var _ai=0; _ai<ACHIEVEMENTS.length; _ai++) {
+      if (PERM.achievements[ACHIEVEMENTS[_ai].key] === 'ready') { hasReady = true; break; }
+    }
+  }
+  dot.style.display = hasReady ? 'block' : 'none';
+}
+window._updateAchieveBadge = _updateAchieveBadge;
 
 /* 우측 랭킹 버튼 바인딩 */
 (function() {
@@ -16332,7 +16420,7 @@ function renderLeftIcons() {
 }());
 
 /* 초기 렌더링 */
-setTimeout(function () { try { renderLeftIcons(); } catch(e) {} }, 100);
+setTimeout(function () { try { renderLeftIcons(); if(window._updateAchieveBadge) _updateAchieveBadge(); } catch(e) {} }, 100);
 </script>
 
 <script>
@@ -17089,47 +17177,47 @@ if (typeof _origStart === 'function') {
 ══════════════════════════════════════════════════════ -->
 <script>
 var IRIS_SKINS = [
-  { id: 'iris0',  name: '기본',       color: '#00ffff', type: 'none', v:0 },
-  { id: 'iris1',  name: 'IRIS-I',    color: '#00ffff', type: 'tear',   v:0 },
-  { id: 'iris2',  name: 'IRIS-II',   color: '#00ffff', type: 'cross',  v:0 },
-  { id: 'iris3',  name: 'IRIS-III',  color: '#00ffff', type: 'blade',  v:0 },
-  { id: 'iris4',  name: 'IRIS-IV',   color: '#00ffff', type: 'star5',  v:0 },
-  { id: 'iris5',  name: 'IRIS-V',    color: '#00ffff', type: 'wave',   v:0 },
-  { id: 'iris6',  name: 'IRIS-VI',   color: '#00ffff', type: 'line',   v:0 },
-  { id: 'iris7',  name: 'IRIS-VII',  color: '#00ffff', type: 'lens',   v:0 },
-  { id: 'iris8',  name: 'IRIS-VIII', color: '#00ffff', type: 'petal',  v:0 },
-  { id: 'iris9',  name: 'IRIS-IX',   color: '#cc44ff', type: 'spoke',  v:0 },
-  { id: 'iris10', name: 'IRIS-X',    color: '#cc44ff', type: 'star10', v:0 },
-  { id: 'iris11', name: 'IRIS-XI',   color: '#cc44ff', type: 'eye',    v:0 },
-  { id: 'iris12', name: 'IRIS-XII',  color: '#cc44ff', type: 'spiral', v:0 },
-  { id: 'iris13', name: 'NOVA-I',   color: '#ff6644', type: 'tear',   v:1 },
-  { id: 'iris14', name: 'NOVA-II',  color: '#ff6644', type: 'cross',  v:1 },
-  { id: 'iris15', name: 'NOVA-III', color: '#ff6644', type: 'blade',  v:1 },
-  { id: 'iris16', name: 'FLUX-I',   color: '#44ff88', type: 'star5',  v:1 },
-  { id: 'iris17', name: 'FLUX-II',  color: '#44ff88', type: 'wave',   v:1 },
-  { id: 'iris18', name: 'FLUX-III', color: '#44ff88', type: 'line',   v:1 },
-  { id: 'iris19', name: 'VOID-I',   color: '#8844ff', type: 'lens',   v:1 },
-  { id: 'iris20', name: 'VOID-II',  color: '#8844ff', type: 'petal',  v:1 },
-  { id: 'iris21', name: 'VOID-III', color: '#8844ff', type: 'spoke',  v:1 },
-  { id: 'iris22', name: 'CRYO-I',   color: '#44ddff', type: 'star10', v:1 },
-  { id: 'iris23', name: 'CRYO-II',  color: '#44ddff', type: 'eye',    v:1 },
-  { id: 'iris24', name: 'CRYO-III', color: '#44ddff', type: 'spiral', v:1 },
+  { id: 'iris0',  name: '기본',       color: '#00ffff', type: 'none', v:0, unlock:null },
+  { id: 'iris1',  name: 'IRIS-I',    color: '#00ffff', type: 'tear',   v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris2',  name: 'IRIS-II',   color: '#00ffff', type: 'cross',  v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris3',  name: 'IRIS-III',  color: '#00ffff', type: 'blade',  v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris4',  name: 'IRIS-IV',   color: '#00ffff', type: 'star5',  v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris5',  name: 'IRIS-V',    color: '#00ffff', type: 'wave',   v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris6',  name: 'IRIS-VI',   color: '#00ffff', type: 'line',   v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris7',  name: 'IRIS-VII',  color: '#00ffff', type: 'lens',   v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris8',  name: 'IRIS-VIII', color: '#00ffff', type: 'petal',  v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris9',  name: 'IRIS-IX',   color: '#cc44ff', type: 'spoke',  v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris10', name: 'IRIS-X',    color: '#cc44ff', type: 'star10', v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris11', name: 'IRIS-XI',   color: '#cc44ff', type: 'eye',    v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris12', name: 'IRIS-XII',  color: '#cc44ff', type: 'spiral', v:0, unlock:{type:'gem',cost:200} },
+  { id: 'iris13', name: 'NOVA-I',   color: '#ff6644', type: 'tear',   v:1, unlock:{type:'wave',tier:1,wave:300} },
+  { id: 'iris14', name: 'NOVA-II',  color: '#ff6644', type: 'cross',  v:1, unlock:{type:'wave',tier:2,wave:300} },
+  { id: 'iris15', name: 'NOVA-III', color: '#ff6644', type: 'blade',  v:1, unlock:{type:'wave',tier:3,wave:300} },
+  { id: 'iris16', name: 'FLUX-I',   color: '#44ff88', type: 'star5',  v:1, unlock:{type:'wave',tier:4,wave:300} },
+  { id: 'iris17', name: 'FLUX-II',  color: '#44ff88', type: 'wave',   v:1, unlock:{type:'wave',tier:5,wave:300} },
+  { id: 'iris18', name: 'FLUX-III', color: '#44ff88', type: 'line',   v:1, unlock:{type:'ac',cost:50} },
+  { id: 'iris19', name: 'VOID-I',   color: '#8844ff', type: 'lens',   v:1, unlock:{type:'ac',cost:50} },
+  { id: 'iris20', name: 'VOID-II',  color: '#8844ff', type: 'petal',  v:1, unlock:{type:'pc',cost:100} },
+  { id: 'iris21', name: 'VOID-III', color: '#8844ff', type: 'spoke',  v:1, unlock:{type:'pc',cost:100} },
+  { id: 'iris22', name: 'CRYO-I',   color: '#44ddff', type: 'star10', v:1, unlock:{type:'store',price:5900} },
+  { id: 'iris23', name: 'CRYO-II',  color: '#44ddff', type: 'eye',    v:1, unlock:{type:'store',price:5900} },
+  { id: 'iris24', name: 'CRYO-III', color: '#44ddff', type: 'spiral', v:1, unlock:{type:'store',price:5900} },
 ];
 
 /* ── 배경 스킨 ── */
 var BG_SKINS = [
-  { id:'bg_default',  name:'기본 공간',     color:'#030b10', desc:'기본 네온코어 배경',       gradient:'radial-gradient(ellipse at 50% 50%, #0a1520 0%, #030b10 100%)' },
-  { id:'bg_nebula',   name:'네뷸러 필드',   color:'#0a0520', desc:'보라색 성운이 피어나는 지대', gradient:'radial-gradient(ellipse at 30% 40%, #1a0840 0%, #0c0320 40%, #050010 100%)' },
-  { id:'bg_crimson',  name:'크림슨 섹터',   color:'#120808', desc:'핏빛 항성이 타오르는 구역',  gradient:'radial-gradient(ellipse at 60% 30%, #2a0808 0%, #150505 40%, #0a0202 100%)' },
-  { id:'bg_deep',     name:'딥 블루',       color:'#031020', desc:'심해처럼 깊고 푸른 심연',    gradient:'radial-gradient(ellipse at 50% 60%, #082040 0%, #041228 50%, #020818 100%)' },
-  { id:'bg_void',     name:'보이드 리프트',  color:'#050005', desc:'빛이 소멸하는 차원의 틈',    gradient:'radial-gradient(ellipse at 50% 50%, #0d0015 0%, #060008 40%, #020002 100%)' },
-  { id:'bg_aurora',   name:'오로라 벨트',    color:'#051812', desc:'극광이 일렁이는 에너지 벨트', gradient:'radial-gradient(ellipse at 40% 30%, #0c3828 0%, #082018 40%, #041210 100%)' },
-  { id:'bg_solar',    name:'솔라 플레어',    color:'#0f0a02', desc:'항성 코로나에 휩싸인 구역',  gradient:'radial-gradient(ellipse at 70% 40%, #2a1a05 0%, #150d02 40%, #0a0600 100%)' },
-  { id:'bg_ice',      name:'아이스 크래들',  color:'#030a10', desc:'결정화된 얼음 행성 궤도',    gradient:'radial-gradient(ellipse at 50% 50%, #0a1825 0%, #051015 50%, #020810 100%)' },
-  { id:'bg_storm',    name:'이온 스톰',     color:'#080812', desc:'전기 폭풍이 휘몰아치는 구역', gradient:'radial-gradient(ellipse at 40% 60%, #10102a 0%, #080818 40%, #040408 100%)' },
-  { id:'bg_rust',     name:'러스트 필드',    color:'#0e0805', desc:'폐허가 된 고대 우주 정거장', gradient:'radial-gradient(ellipse at 60% 50%, #1a1008 0%, #0e0805 50%, #060402 100%)' },
-  { id:'bg_matrix',   name:'매트릭스 코어',  color:'#000a02', desc:'데이터 코드가 흐르는 공간',  gradient:'radial-gradient(ellipse at 50% 40%, #001a08 0%, #000d04 40%, #000602 100%)' },
-  { id:'bg_phantom',  name:'팬텀 존',       color:'#08050e', desc:'유령 에너지가 감도는 차원',  gradient:'radial-gradient(ellipse at 50% 50%, #140a20 0%, #0a0610 50%, #050308 100%)' },
+  { id:'bg_default',  name:'기본 공간',     color:'#030b10', desc:'기본 네온코어 배경',       gradient:'radial-gradient(ellipse at 50% 50%, #0a1520 0%, #030b10 100%)', unlock:null },
+  { id:'bg_nebula',   name:'네뷸러 필드',   color:'#0a0520', desc:'보라색 성운이 피어나는 지대', gradient:'radial-gradient(ellipse at 30% 40%, #1a0840 0%, #0c0320 40%, #050010 100%)', unlock:{type:'gem',cost:300} },
+  { id:'bg_crimson',  name:'크림슨 섹터',   color:'#120808', desc:'핏빛 항성이 타오르는 구역',  gradient:'radial-gradient(ellipse at 60% 30%, #2a0808 0%, #150505 40%, #0a0202 100%)', unlock:{type:'gem',cost:300} },
+  { id:'bg_deep',     name:'딥 블루',       color:'#031020', desc:'심해처럼 깊고 푸른 심연',    gradient:'radial-gradient(ellipse at 50% 60%, #082040 0%, #041228 50%, #020818 100%)', unlock:{type:'gem',cost:300} },
+  { id:'bg_void',     name:'보이드 리프트',  color:'#050005', desc:'빛이 소멸하는 차원의 틈',    gradient:'radial-gradient(ellipse at 50% 50%, #0d0015 0%, #060008 40%, #020002 100%)', unlock:{type:'gem',cost:300} },
+  { id:'bg_aurora',   name:'오로라 벨트',    color:'#051812', desc:'극광이 일렁이는 에너지 벨트', gradient:'radial-gradient(ellipse at 40% 30%, #0c3828 0%, #082018 40%, #041210 100%)', unlock:{type:'wave',tier:1,wave:500} },
+  { id:'bg_solar',    name:'솔라 플레어',    color:'#0f0a02', desc:'항성 코로나에 휩싸인 구역',  gradient:'radial-gradient(ellipse at 70% 40%, #2a1a05 0%, #150d02 40%, #0a0600 100%)', unlock:{type:'wave',tier:2,wave:500} },
+  { id:'bg_ice',      name:'아이스 크래들',  color:'#030a10', desc:'결정화된 얼음 행성 궤도',    gradient:'radial-gradient(ellipse at 50% 50%, #0a1825 0%, #051015 50%, #020810 100%)', unlock:{type:'wave',tier:3,wave:500} },
+  { id:'bg_storm',    name:'이온 스톰',     color:'#080812', desc:'전기 폭풍이 휘몰아치는 구역', gradient:'radial-gradient(ellipse at 40% 60%, #10102a 0%, #080818 40%, #040408 100%)', unlock:{type:'wave',tier:4,wave:500} },
+  { id:'bg_rust',     name:'러스트 필드',    color:'#0e0805', desc:'폐허가 된 고대 우주 정거장', gradient:'radial-gradient(ellipse at 60% 50%, #1a1008 0%, #0e0805 50%, #060402 100%)', unlock:{type:'wave',tier:5,wave:500} },
+  { id:'bg_matrix',   name:'매트릭스 코어',  color:'#000a02', desc:'데이터 코드가 흐르는 공간',  gradient:'radial-gradient(ellipse at 50% 40%, #001a08 0%, #000d04 40%, #000602 100%)', unlock:{type:'store',price:7900} },
+  { id:'bg_phantom',  name:'팬텀 존',       color:'#08050e', desc:'유령 에너지가 감도는 차원',  gradient:'radial-gradient(ellipse at 50% 50%, #140a20 0%, #0a0610 50%, #050308 100%)', unlock:{type:'store',price:7900} },
 ];
 var currentBgSkin = localStorage.getItem('neoncore_bg_skin') || 'bg_default';
 var _skinSubTab = 'ship';
@@ -17249,7 +17337,147 @@ window.getNeonCoreIcon = function(size, skinId) {
     base + inner + core + '</svg>';
 };
 
+/* ── 스킨 보유 체크 ── */
+function _isSkinOwned(skinId) {
+  // 기본 스킨은 항상 보유
+  if (skinId === 'iris0' || skinId === 'bg_default') return true;
+  return localStorage.getItem('skin_owned_' + skinId) === '1';
+}
+function _setSkinOwned(skinId) {
+  localStorage.setItem('skin_owned_' + skinId, '1');
+}
+// 잠긴 스킨이 장착되어 있으면 기본으로 되돌리기
+if (!_isSkinOwned(currentSkin)) { currentSkin = 'iris0'; localStorage.setItem('neoncore_skin', 'iris0'); }
+if (!_isSkinOwned(currentBgSkin)) { currentBgSkin = 'bg_default'; localStorage.setItem('neoncore_bg_skin', 'bg_default'); }
+
+/* ── 스킨 해금 조건 텍스트 ── */
+function _skinUnlockText(unlock) {
+  if (!unlock) return '';
+  var planets = {1:'에이온',2:'스펙트라',3:'넥사르',4:'피라온',5:'오메가'};
+  if (unlock.type === 'gem') return '보석 ❖' + unlock.cost + '으로 해금';
+  if (unlock.type === 'wave') return (planets[unlock.tier]||'행성'+unlock.tier) + ' ' + unlock.wave + '웨이브 클리어';
+  if (unlock.type === 'ac') return '접근 코드 ⌘' + unlock.cost + '으로 해금';
+  if (unlock.type === 'pc') return '파워 코어 ⚡' + unlock.cost + '으로 해금';
+  if (unlock.type === 'store') return '스토어 ₩' + unlock.price.toLocaleString();
+  return '';
+}
+
+/* ── 스킨 구매 팝업 ── */
+function _showSkinPurchasePopup(skin, isBg) {
+  var old = document.getElementById('skin-purchase-popup');
+  if (old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'skin-purchase-popup';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(3,11,16,0.92);z-index:20000;display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+
+  var unlock = skin.unlock;
+  var condText = _skinUnlockText(unlock);
+  var bonusType = isBg ? '+20%' : '+10%';
+  var bonusLabel = '공격력/방어력/체력 ' + bonusType;
+
+  // 프리뷰 생성
+  var previewHTML = '';
+  if (isBg) {
+    var pcols = {bg_default:'#00ffff',bg_nebula:'#cc44ff',bg_crimson:'#ff4444',bg_deep:'#3388ff',bg_void:'#8844ff',bg_aurora:'#44ff88',bg_solar:'#ffaa22',bg_ice:'#88ddff',bg_storm:'#aaaaff',bg_rust:'#cc8844',bg_matrix:'#00ff44',bg_phantom:'#bb88ff'};
+    var pc = pcols[skin.id] || '#00ffff';
+    previewHTML = '<div style="width:80px;height:80px;border-radius:8px;background:' + (skin.gradient || skin.color) + ';border:1px solid '+pc+'44;margin:0 auto 8px;position:relative;overflow:hidden;">' +
+      '<div style="position:absolute;top:50%;left:50%;width:40px;height:40px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,'+pc+'22,transparent 70%);"></div>' +
+      '</div>';
+  } else {
+    previewHTML = '<div style="margin:0 auto 8px;width:80px;text-align:center;">' + getNeonCoreIcon(72, skin.id) + '</div>';
+  }
+
+  // 해금 가능 여부 체크
+  var canPurchase = false;
+  var costHTML = '';
+  var btnLabel = '해금';
+  if (unlock.type === 'gem') {
+    var gems = PERM.gems || 0;
+    canPurchase = gems >= unlock.cost;
+    costHTML = '<span style="color:#00ffff;">❖ ' + unlock.cost + '</span> <span style="color:#556677;">(보유: ❖' + gems + ')</span>';
+    btnLabel = '보석으로 해금';
+  } else if (unlock.type === 'wave') {
+    var met = _isContentUnlocked({tier:unlock.tier, wave:unlock.wave});
+    canPurchase = met;
+    costHTML = condText;
+    if (met) {
+      costHTML = '<span style="color:#00ff88;">조건 달성!</span> ' + condText;
+      btnLabel = '해금';
+    } else {
+      var tierBest = parseInt(localStorage.getItem('tier'+unlock.tier+'_best')||'0',10);
+      costHTML = '<span style="color:#ef4444;">미달성</span> ' + condText + '<br><span style="color:#556677;">현재: ' + tierBest + '/' + unlock.wave + ' 웨이브</span>';
+    }
+  } else if (unlock.type === 'ac') {
+    var ac = parseInt(localStorage.getItem('accessCodes')||'0',10);
+    canPurchase = ac >= unlock.cost;
+    costHTML = '<span style="color:#bb44ff;">⌘ ' + unlock.cost + '</span> <span style="color:#556677;">(보유: ⌘' + ac + ')</span>';
+    btnLabel = '접근 코드로 해금';
+  } else if (unlock.type === 'pc') {
+    var pc2 = parseInt(localStorage.getItem('powerCores')||'0',10);
+    canPurchase = pc2 >= unlock.cost;
+    costHTML = '<span style="color:#ffaa22;">⚡ ' + unlock.cost + '</span> <span style="color:#556677;">(보유: ⚡' + pc2 + ')</span>';
+    btnLabel = '파워 코어로 해금';
+  } else if (unlock.type === 'store') {
+    canPurchase = true;
+    costHTML = '<span style="color:#ff6644;">₩' + unlock.price.toLocaleString() + '</span>';
+    btnLabel = '구매 (₩' + unlock.price.toLocaleString() + ')';
+  }
+
+  var box = '<div style="background:#0d1520;border:1px solid #00ffff;padding:24px;max-width:320px;width:88%;text-align:center;">' +
+    '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:1px;margin-bottom:12px;">' + skin.name + '</div>' +
+    previewHTML +
+    (isBg ? '<div style="color:#667788;font-size:10px;margin-bottom:8px;">' + (skin.desc||'') + '</div>' : '') +
+    '<div style="color:#94a3b8;font-size:10px;margin-bottom:6px;">보너스: <span style="color:#00ff88;">' + bonusLabel + '</span></div>' +
+    '<div style="background:#060a12;border:1px solid #0a3344;padding:8px;margin-bottom:14px;font-size:10px;color:#8899aa;">' + costHTML + '</div>' +
+    '<div style="display:flex;gap:8px;">';
+  if (canPurchase) {
+    box += '<button id="skin-buy-yes" style="flex:1;padding:10px;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">' + btnLabel + '</button>';
+  }
+  box += '<button id="skin-buy-no" style="flex:1;padding:10px;background:#030b10;border:1px solid '+(canPurchase?'#334455':'#00ffff')+';color:'+(canPurchase?'#556677':'#00ffff')+';font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">'+(canPurchase?'취소':'닫기')+'</button>';
+  box += '</div></div>';
+  ov.innerHTML = box;
+  document.body.appendChild(ov);
+
+  document.getElementById('skin-buy-no').addEventListener('click', function() { ov.remove(); });
+  ov.addEventListener('click', function(e) { if (e.target === ov) ov.remove(); });
+
+  if (canPurchase) {
+    document.getElementById('skin-buy-yes').addEventListener('click', function() {
+      // 구매 처리
+      if (unlock.type === 'gem') {
+        if ((PERM.gems||0) < unlock.cost) return;
+        PERM.gems -= unlock.cost;
+        logCurrency('gems', -unlock.cost, '스킨 해금: ' + skin.name);
+        savePerm();
+      } else if (unlock.type === 'wave') {
+        if (!_isContentUnlocked({tier:unlock.tier, wave:unlock.wave})) return;
+      } else if (unlock.type === 'ac') {
+        var curAc = parseInt(localStorage.getItem('accessCodes')||'0',10);
+        if (curAc < unlock.cost) return;
+        localStorage.setItem('accessCodes', curAc - unlock.cost);
+        logCurrency('accessCodes', -unlock.cost, '스킨 해금: ' + skin.name);
+      } else if (unlock.type === 'pc') {
+        var curPc = parseInt(localStorage.getItem('powerCores')||'0',10);
+        if (curPc < unlock.cost) return;
+        localStorage.setItem('powerCores', curPc - unlock.cost);
+        logCurrency('powerCores', -unlock.cost, '스킨 해금: ' + skin.name);
+      } else if (unlock.type === 'store') {
+        // 테스트 모드: 무료 활성화
+      }
+      _setSkinOwned(skin.id);
+      ov.remove();
+      if (window.showToastMsg) showToastMsg('스킨 해금: ' + skin.name, '#00ff88');
+      try { renderSkinGrid(); } catch(_){}
+      try { if(window._syncStoreHUD) _syncStoreHUD(); } catch(_){}
+    });
+  }
+}
+
 function setSkin(skinId) {
+  if (!_isSkinOwned(skinId)) {
+    if (window.showToastMsg) showToastMsg('잠긴 스킨입니다', '#ef4444');
+    return;
+  }
   currentSkin = skinId;
   localStorage.setItem('neoncore_skin', skinId);
   var el = document.getElementById('home-icon');
@@ -17257,13 +17485,13 @@ function setSkin(skinId) {
 }
 
 function _getSkinCount() {
-  // 기본 스킨 제외한 보유 스킨 수
-  return IRIS_SKINS.filter(function(s){ return s.id !== 'iris0'; }).length;
+  // 기본 스킨 제외한 보유(해금된) 스킨 수
+  return IRIS_SKINS.filter(function(s){ return s.id !== 'iris0' && _isSkinOwned(s.id); }).length;
 }
 
 function _getBgSkinCount() {
-  // 기본 배경 제외한 보유 배경 스킨 수
-  return BG_SKINS.filter(function(s){ return s.id !== 'bg_default'; }).length;
+  // 기본 배경 제외한 보유(해금된) 배경 스킨 수
+  return BG_SKINS.filter(function(s){ return s.id !== 'bg_default' && _isSkinOwned(s.id); }).length;
 }
 
 function _getSkinMultipliers() {
@@ -17307,12 +17535,21 @@ function renderSkinGrid() {
         '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.shipAtk._tf2() + '</span>  방어력 <span style="color:#3b82f6;">x' + m.shipDef._tf2() + '</span>  체력 <span style="color:#10b981;">x' + m.shipHp._tf2() + '</span></span>';
     }
     IRIS_SKINS.forEach(function(skin) {
+      var owned = _isSkinOwned(skin.id);
       var isSelected = skin.id === currentSkin;
       var card = document.createElement('div');
-      card.style.cssText = 'background:#0a1a2a;border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';border-radius:8px;padding:10px;text-align:center;cursor:pointer;';
-      card.innerHTML = getNeonCoreIcon(64, skin.id) +
-        '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';margin-top:6px;">' + skin.name + '</div>';
-      card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
+      card.style.cssText = 'background:#0a1a2a;border:1px solid ' + (isSelected ? '#00ffff' : owned ? '#0a3344' : '#1a1a2a') + ';border-radius:8px;padding:10px;text-align:center;cursor:pointer;position:relative;' + (!owned ? 'opacity:0.7;' : '');
+      if (owned) {
+        card.innerHTML = getNeonCoreIcon(64, skin.id) +
+          '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';margin-top:6px;">' + skin.name + '</div>';
+        card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
+      } else {
+        card.innerHTML = '<div style="position:relative;">' + getNeonCoreIcon(64, skin.id) +
+          '<div style="position:absolute;inset:0;background:rgba(3,11,16,0.6);display:flex;align-items:center;justify-content:center;font-size:22px;">&#x1F512;</div></div>' +
+          '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:#334455;margin-top:6px;">' + skin.name + '</div>' +
+          '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#445566;margin-top:2px;">' + _skinUnlockText(skin.unlock) + '</div>';
+        card.onclick = function() { _showSkinPurchasePopup(skin, false); };
+      }
       grid.appendChild(card);
     });
   } else {
@@ -17323,9 +17560,10 @@ function renderSkinGrid() {
         '<br><span style="font-size:9px;">공격력 <span style="color:#ef4444;">x' + m.bgAtk._tf2() + '</span>  방어력 <span style="color:#3b82f6;">x' + m.bgDef._tf2() + '</span>  체력 <span style="color:#10b981;">x' + m.bgHp._tf2() + '</span></span>';
     }
     BG_SKINS.forEach(function(bg) {
+      var owned = _isSkinOwned(bg.id);
       var isSelected = bg.id === currentBgSkin;
       var card = document.createElement('div');
-      card.style.cssText = 'background:' + bg.color + ';border:1px solid ' + (isSelected ? '#00ffff' : '#0a3344') + ';border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;';
+      card.style.cssText = 'background:' + bg.color + ';border:1px solid ' + (isSelected ? '#00ffff' : owned ? '#0a3344' : '#1a1a2a') + ';border-radius:8px;padding:12px 8px;text-align:center;cursor:pointer;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;' + (!owned ? 'opacity:0.7;' : '');
       var pcols = {bg_default:'#00ffff',bg_nebula:'#cc44ff',bg_crimson:'#ff4444',bg_deep:'#3388ff',bg_void:'#8844ff',bg_aurora:'#44ff88',bg_solar:'#ffaa22',bg_ice:'#88ddff',bg_storm:'#aaaaff',bg_rust:'#cc8844',bg_matrix:'#00ff44',bg_phantom:'#bb88ff'};
       var pc = pcols[bg.id] || '#00ffff';
       var bgStyle = bg.gradient || ('background:' + bg.color);
@@ -17336,12 +17574,22 @@ function renderSkinGrid() {
         '<div style="position:absolute;top:30%;left:55%;width:1.5px;height:1.5px;border-radius:50%;background:'+pc+';opacity:0.6;box-shadow:0 0 4px '+pc+';"></div>' +
         '<div style="position:absolute;top:70%;left:35%;width:1.5px;height:1.5px;border-radius:50%;background:'+pc+';opacity:0.4;box-shadow:0 0 3px '+pc+';"></div>' +
         '<div style="position:absolute;top:80%;left:65%;width:1px;height:1px;border-radius:50%;background:'+pc+';opacity:0.5;box-shadow:0 0 3px '+pc+';"></div>' +
-        '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,'+pc+'33,transparent);"></div>' +
-      '</div>';
-      card.innerHTML = preview +
-        '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';">' + bg.name + '</div>' +
-        '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#334455;">' + bg.desc + '</div>';
-      card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); renderSkinGrid(); if(window._startHomeBg) _startHomeBg(); };
+        '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,'+pc+'33,transparent);"></div>';
+      if (!owned) {
+        preview += '<div style="position:absolute;inset:0;background:rgba(3,11,16,0.55);display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:6px;">&#x1F512;</div>';
+      }
+      preview += '</div>';
+      if (owned) {
+        card.innerHTML = preview +
+          '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:' + (isSelected ? '#00ffff' : '#445566') + ';">' + bg.name + '</div>' +
+          '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#334455;">' + bg.desc + '</div>';
+        card.onclick = function() { currentBgSkin = bg.id; localStorage.setItem('neoncore_bg_skin', bg.id); renderSkinGrid(); if(window._startHomeBg) _startHomeBg(); };
+      } else {
+        card.innerHTML = preview +
+          '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:#334455;">' + bg.name + '</div>' +
+          '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#445566;">' + _skinUnlockText(bg.unlock) + '</div>';
+        card.onclick = function() { _showSkinPurchasePopup(bg, true); };
+      }
       grid.appendChild(card);
     });
   }
