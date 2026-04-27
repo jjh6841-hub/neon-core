@@ -3469,13 +3469,13 @@ function startGame() {
 
   // 전투 배경색은 render()에서 행성별로 설정 (여기서 스킨으로 덮어쓰지 않음)
 
-  // 탐사선 스킨 이미지 사전 로드 (오프스크린 캔버스 래스터화)
+  // 탐사선 스킨 이미지 사전 로드 (오프스크린 캔버스 래스터화, DPR 최대 2)
   try {
     var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
-    var _preDpr = window.devicePixelRatio || 1;
+    var _preDpr = Math.min(window.devicePixelRatio || 1, 2);
     var _preKey = _sid + '_' + _preDpr;
     if ((!window._towerSkinCanvas || window._towerSkinId !== _preKey) && window.getNeonCoreIcon) {
-      var _preSvgSize = Math.round(128 * _preDpr);
+      var _preSvgSize = Math.round(96 * _preDpr);
       var _svgStr = window.getNeonCoreIcon(_preSvgSize, _sid);
       if (_svgStr) {
         var _preImg = new Image();
@@ -5298,13 +5298,13 @@ function render() {
     const TR = 20;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
-    // 탐사선 스킨 SVG → 오프스크린 캔버스 래스터화 (Android 호환)
-    var _skinDpr = window._dpr || 1;
+    // 탐사선 스킨 SVG → 오프스크린 캔버스 래스터화 (Android 호환, DPR 최대 2)
+    var _skinDpr = Math.min(window._dpr || 1, 2);
     var _skinKey = (localStorage.getItem('neoncore_skin')||'iris0') + '_' + _skinDpr;
     if (!window._towerSkinCanvas || window._towerSkinId !== _skinKey) {
       try {
         var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
-        var _svgSize = Math.round(128 * _skinDpr);
+        var _svgSize = Math.round(96 * _skinDpr);
         var _svgStr = window.getNeonCoreIcon ? window.getNeonCoreIcon(_svgSize, _sid) : null;
         if (_svgStr) {
           var _tmpImg = new Image();
