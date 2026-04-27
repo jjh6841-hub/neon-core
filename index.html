@@ -7449,11 +7449,11 @@ if (dailyPopup) {
   /* ── 교환 탭 ── */
   var EXCHANGE_ITEMS = [
     { id:'ex_gem_gold',   from:{type:'gem',amount:10},   to:{type:'gold',amount:500},    label:'보석 → 골드',      fromIcon:'❖', fromColor:'#00ffff', toIcon:'◈', toColor:'#f59e0b' },
-    { id:'ex_gem_pc',     from:{type:'gem',amount:50},   to:{type:'pc',amount:10},       label:'보석 → 파워코어',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⚡', toColor:'#ffaa22' },
+    { id:'ex_gem_pc',     from:{type:'gem',amount:50},   to:{type:'pc',amount:10},       label:'보석 → 파워코어',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⊕', toColor:'#ff8822' },
     { id:'ex_gem_ac',     from:{type:'gem',amount:100},  to:{type:'ac',amount:1},        label:'보석 → 접근코드',  fromIcon:'❖', fromColor:'#00ffff', toIcon:'⌘', toColor:'#bb44ff' },
     { id:'ex_dc_gold',    from:{type:'dc',amount:1},     to:{type:'gold',amount:10000},  label:'데이터셀 → 골드',    fromIcon:'▣', fromColor:'#00ff88', toIcon:'◈', toColor:'#f59e0b' },
     { id:'ex_dc_gem',     from:{type:'dc',amount:1},     to:{type:'gem',amount:100},     label:'데이터셀 → 보석',    fromIcon:'▣', fromColor:'#00ff88', toIcon:'❖', toColor:'#00ffff' },
-    { id:'ex_dc_pc',      from:{type:'dc',amount:1},     to:{type:'pc',amount:20},       label:'데이터셀 → 파워코어', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⚡', toColor:'#ffaa22' },
+    { id:'ex_dc_pc',      from:{type:'dc',amount:1},     to:{type:'pc',amount:20},       label:'데이터셀 → 파워코어', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⊕', toColor:'#ff8822' },
     { id:'ex_dc_ac',      from:{type:'dc',amount:1},     to:{type:'ac',amount:1},        label:'데이터셀 → 접근코드', fromIcon:'▣', fromColor:'#00ff88', toIcon:'⌘', toColor:'#bb44ff' },
     { id:'ex_dc_ticket',  from:{type:'dc',amount:1},     to:{type:'ticket',amount:1},    label:'데이터셀 → 탐사티켓', fromIcon:'▣', fromColor:'#00ff88', toIcon:'🎫', toColor:'#ff8822' },
   ];
@@ -17461,7 +17461,7 @@ function _skinUnlockText(unlock) {
   if (unlock.type === 'gem') return '보석 ❖' + unlock.cost + '으로 해금';
   if (unlock.type === 'wave') return (planets[unlock.tier]||'행성'+unlock.tier) + ' ' + unlock.wave + '웨이브 클리어';
   if (unlock.type === 'ac') return '접근 코드 ⌘' + unlock.cost + '으로 해금';
-  if (unlock.type === 'pc') return '파워 코어 ⚡' + unlock.cost + '으로 해금';
+  if (unlock.type === 'pc') return '파워 코어 ⊕' + unlock.cost + '으로 해금';
   if (unlock.type === 'store') return '스토어 ₩' + unlock.price.toLocaleString();
   return '';
 }
@@ -17519,7 +17519,7 @@ function _showSkinPurchasePopup(skin, isBg) {
   } else if (unlock.type === 'pc') {
     var pc2 = parseInt(localStorage.getItem('powerCores')||'0',10);
     canPurchase = pc2 >= unlock.cost;
-    costHTML = '<span style="color:#ffaa22;">⚡ ' + unlock.cost + '</span> <span style="color:#556677;">(보유: ⚡' + pc2 + ')</span>';
+    costHTML = '<span style="color:#ff8822;">⊕ ' + unlock.cost + '</span> <span style="color:#556677;">(보유: ⊕' + pc2 + ')</span>';
     btnLabel = '파워 코어로 해금';
   } else if (unlock.type === 'store') {
     canPurchase = true;
@@ -17649,7 +17649,7 @@ function renderSkinGrid() {
         card.onclick = function() { setSkin(skin.id); renderSkinGrid(); };
       } else {
         card.innerHTML = '<div style="position:relative;">' + getNeonCoreIcon(64, skin.id) +
-          '<div style="position:absolute;inset:0;background:rgba(3,11,16,0.6);display:flex;align-items:center;justify-content:center;font-size:22px;">&#x1F512;</div></div>' +
+          '<div style="position:absolute;inset:0;background:rgba(3,11,16,0.55);display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#cc44ff" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#cc44ff" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#cc44ff"/></svg></div></div>' +
           '<div style="font-family:\'Courier New\',monospace;font-size:9px;color:#334455;margin-top:6px;">' + skin.name + '</div>' +
           '<div style="font-family:\'Courier New\',monospace;font-size:7px;color:#445566;margin-top:2px;">' + _skinUnlockText(skin.unlock) + '</div>';
         card.onclick = function() { _showSkinPurchasePopup(skin, false); };
@@ -17680,7 +17680,7 @@ function renderSkinGrid() {
         '<div style="position:absolute;top:80%;left:65%;width:1px;height:1px;border-radius:50%;background:'+pc+';opacity:0.5;box-shadow:0 0 3px '+pc+';"></div>' +
         '<div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,'+pc+'33,transparent);"></div>';
       if (!owned) {
-        preview += '<div style="position:absolute;inset:0;background:rgba(3,11,16,0.55);display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:6px;">&#x1F512;</div>';
+        preview += '<div style="position:absolute;inset:0;background:rgba(3,11,16,0.5);display:flex;align-items:center;justify-content:center;border-radius:6px;"><svg width="20" height="20" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#cc44ff" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#cc44ff" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#cc44ff"/></svg></div>';
       }
       preview += '</div>';
       if (owned) {
