@@ -12209,18 +12209,18 @@ function _spRenderPopup() {
     hdr.innerHTML =
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
         '<span style="color:#94a3b8;font-size:10px;">시즌 포인트 (일일 +1, 주간 +3)</span>' +
-        '<span style="color:#ff8822;font-size:12px;font-weight:bold;">' + kills + ' pt</span>' +
+        '<span style="color:#e84057;font-size:12px;font-weight:bold;">' + kills + ' pt</span>' +
       '</div>' +
       '<div style="width:100%;height:6px;background:#0a1a2a;border:1px solid #1a3344;border-radius:3px;overflow:hidden;">' +
-        '<div style="width:' + pctGlobal + '%;height:100%;background:linear-gradient(90deg,#ff8822,#f59e0b);transition:width 0.3s;"></div>' +
+        '<div style="width:' + pctGlobal + '%;height:100%;background:linear-gradient(90deg,#e84057,#ff6b7f);transition:width 0.3s;"></div>' +
       '</div>' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:6px 8px;background:#0a1520;border:1px solid #1a2a3a;">' +
         '<span style="color:#94a3b8;font-size:9px;">' + _spGetSeasonMonth() + '월 시즌 종료까지</span>' +
-        '<span style="color:#ff8822;font-size:11px;font-weight:bold;">' + _spGetTimeRemaining() + '</span>' +
+        '<span style="color:#e84057;font-size:11px;font-weight:bold;">' + _spGetTimeRemaining() + '</span>' +
       '</div>' +
       (hasPremium
-        ? '<div style="margin-top:8px;text-align:center;padding:6px;border:1px solid #ff8822;background:rgba(255,136,34,0.1);"><span style="color:#ff8822;font-size:11px;font-weight:bold;letter-spacing:1px;">✦ 프리미엄 패스 활성화</span></div>'
-        : '<button id="sp-buy-premium" style="width:100%;margin-top:10px;padding:14px;background:#0d1520;border:2px solid #ff8822;color:#ff8822;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 16 16"><polygon points="8,1 10,6 15,6 11,10 13,15 8,12 3,15 5,10 1,6 6,6" fill="none" stroke="#ff8822" stroke-width="1.2"/></svg> 프리미엄 패스 구매 (₩11,000)</button>');
+        ? '<div style="margin-top:8px;text-align:center;padding:6px;border:1px solid #e84057;background:rgba(232,64,87,0.1);"><span style="color:#e84057;font-size:11px;font-weight:bold;letter-spacing:1px;">✦ 프리미엄 패스 활성화</span></div>'
+        : '<button id="sp-buy-premium" style="width:100%;margin-top:10px;padding:14px;background:#0d1520;border:2px solid #e84057;color:#e84057;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:8px;"><svg width="14" height="14" viewBox="0 0 16 16"><polygon points="8,1 10,6 15,6 11,10 13,15 8,12 3,15 5,10 1,6 6,6" fill="none" stroke="#e84057" stroke-width="1.2"/></svg> 프리미엄 패스 구매 (₩11,000)</button>');
   }
 
   setTimeout(function() {
@@ -12232,7 +12232,7 @@ function _spRenderPopup() {
           _spSetPremium(true);
           _spRenderPopup();
           syncShopUI();
-          if (window.showRewardPopup) showRewardPopup([{icon:'✦', label:'프리미엄 패스', amount:'활성화', color:'#ff8822'}], '구매 완료');
+          if (window.showRewardPopup) showRewardPopup([{icon:'✦', label:'프리미엄 패스', amount:'활성화', color:'#e84057'}], '구매 완료');
         });
       };
     }
@@ -12266,29 +12266,29 @@ function _spRenderPopup() {
     var freeBtn = freeDone
       ? '<div style="font-size:11px;color:#334455;margin-top:4px;">✓ 수령됨</div>'
       : freeCanClaim
-        ? '<button onclick="_spClaimTier(' + t.tier + ')" style="margin-top:4px;background:linear-gradient(135deg,#10b981,#059669);border:1px solid #34d399;color:#030b10;font-family:\'Courier New\',monospace;font-size:10px;font-weight:bold;padding:4px 0;cursor:pointer;width:80%;letter-spacing:1px;box-shadow:0 0 8px rgba(16,185,129,0.4);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
+        ? '<button onclick="_spClaimTier(' + t.tier + ')" style="margin-top:4px;background:linear-gradient(135deg,#42a5f5,#1e88e5);border:1px solid #64b5f6;color:#030b10;font-family:\'Courier New\',monospace;font-size:10px;font-weight:bold;padding:4px 0;cursor:pointer;width:80%;letter-spacing:1px;box-shadow:0 0 8px rgba(66,165,245,0.4);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
         : '<div style="margin-top:4px;"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#334455" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#334455" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#334455"/></svg></div>';
 
     var premBtn = premDone
       ? '<div style="font-size:11px;color:#334455;margin-top:4px;">✓ 수령됨</div>'
       : premCanClaim
-        ? '<button onclick="_spClaimPremiumTier(' + t.tier + ')" style="margin-top:4px;background:linear-gradient(135deg,#ff8822,#ff5500);border:1px solid #ffaa44;color:#030b10;font-family:\'Courier New\',monospace;font-size:10px;font-weight:bold;padding:4px 0;cursor:pointer;width:80%;letter-spacing:1px;box-shadow:0 0 8px rgba(255,136,34,0.4);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
+        ? '<button onclick="_spClaimPremiumTier(' + t.tier + ')" style="margin-top:4px;background:linear-gradient(135deg,#e84057,#c91e3e);border:1px solid #ff6b7f;color:#030b10;font-family:\'Courier New\',monospace;font-size:10px;font-weight:bold;padding:4px 0;cursor:pointer;width:80%;letter-spacing:1px;box-shadow:0 0 8px rgba(232,64,87,0.4);animation:spBtnPulse 1.5s ease-in-out infinite;">수령</button>'
         : '<div style="margin-top:4px;"><svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="' + (hasPremium ? '#334455' : '#554422') + '" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="' + (hasPremium ? '#334455' : '#554422') + '" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="' + (hasPremium ? '#334455' : '#554422') + '"/></svg></div>';
 
-    var rowBorder = (freeCanClaim || premCanClaim) ? '#ff8822' : (freeDone && (premDone || !hasPremium)) ? '#1a2a3a' : '#1a3344';
+    var rowBorder = (freeCanClaim || premCanClaim) ? '#e84057' : (freeDone && (premDone || !hasPremium)) ? '#1a2a3a' : '#1a3344';
     var rowBg = (freeDone && (premDone || !hasPremium)) ? '#080e18' : '#0a1a2a';
-    var rowGlow = (freeCanClaim || premCanClaim) ? 'box-shadow:0 0 10px rgba(255,136,34,0.3);' : '';
+    var rowGlow = (freeCanClaim || premCanClaim) ? 'box-shadow:0 0 10px rgba(232,64,87,0.3);' : '';
 
     html +=
       '<div style="display:flex;align-items:stretch;background:' + rowBg + ';border:1px solid ' + rowBorder + ';' + rowGlow + '">' +
         '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-right:1px solid #1a2a3a;">' +
           freeRwTxt + freeBtn +
         '</div>' +
-        '<div style="width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;gap:3px;background:rgba(255,136,34,0.03);">' +
-          '<span style="font-size:18px;color:' + (freeDone ? '#334455' : freeCanClaim ? '#ff8822' : '#94a3b8') + ';font-weight:900;">' + t.tier + '</span>' +
+        '<div style="width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 2px;gap:3px;background:rgba(232,64,87,0.03);">' +
+          '<span style="font-size:18px;color:' + (freeDone ? '#334455' : freeCanClaim ? '#e84057' : '#94a3b8') + ';font-weight:900;">' + t.tier + '</span>' +
           '<span style="font-size:8px;color:#556677;">' + t.target + 'pt</span>' +
           '<div style="width:32px;height:3px;background:#0a1520;border-radius:2px;overflow:hidden;">' +
-            '<div style="width:' + pct + '%;height:100%;background:' + (freeDone ? '#334455' : freeCanClaim ? '#ff8822' : '#1a3344') + ';"></div>' +
+            '<div style="width:' + pct + '%;height:100%;background:' + (freeDone ? '#334455' : freeCanClaim ? '#e84057' : '#1a3344') + ';"></div>' +
           '</div>' +
         '</div>' +
         '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;border-left:1px solid #1a2a3a;' + (!hasPremium ? 'opacity:0.45;' : '') + '">' +
@@ -12306,18 +12306,18 @@ function _spOpenPopup() {
     popup.id = 'sp-popup';
     popup.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(3,11,16,0.95);z-index:10000;align-items:center;justify-content:center;flex-direction:column;font-family:"Courier New",monospace;';
     popup.innerHTML =
-      '<div style="background:#0d1520;border:1px solid #ff8822;max-width:400px;width:94%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 0 30px rgba(255,136,34,0.2);">' +
+      '<div style="background:#0d1520;border:1px solid #e84057;max-width:400px;width:94%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 0 30px rgba(232,64,87,0.2);">' +
         '<div style="padding:14px 16px 10px;border-bottom:1px solid #1a2a3a;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-            '<span style="display:inline-flex;align-items:center;gap:8px;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:16px;background:linear-gradient(135deg,#ff8822,#ff5500);border-radius:2px;color:#0a0e1a;font-size:8px;font-weight:900;box-shadow:0 0 8px rgba(255,136,34,0.4);padding:0 4px;">SP</span><span style="color:#ff8822;font-size:14px;font-weight:bold;letter-spacing:2px;">시즌 패스</span></span>' +
+            '<span style="display:inline-flex;align-items:center;gap:8px;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:16px;background:linear-gradient(135deg,#e84057,#c91e3e);border-radius:2px;color:#ffffff;font-size:8px;font-weight:900;box-shadow:0 0 8px rgba(232,64,87,0.4);padding:0 4px;">SP</span><span style="color:#e84057;font-size:14px;font-weight:bold;letter-spacing:2px;">시즌 패스</span></span>' +
             '<button id="sp-close-btn" style="background:none;border:1px solid #334455;color:#94a3b8;font-size:18px;width:28px;height:28px;cursor:pointer;line-height:1;padding:0;font-family:\'Courier New\',monospace;">×</button>' +
           '</div>' +
           '<div id="sp-header-info"></div>' +
         '</div>' +
         '<div style="display:flex;align-items:center;padding:8px 8px 4px;border-bottom:1px solid #1a2a3a;">' +
-          '<div style="flex:1;text-align:center;font-size:11px;font-weight:bold;color:#10b981;">무료</div>' +
+          '<div style="flex:1;text-align:center;font-size:11px;font-weight:bold;color:#42a5f5;">무료</div>' +
           '<div style="width:56px;text-align:center;font-size:10px;color:#556677;">TIER</div>' +
-          '<div style="flex:1;text-align:center;font-size:11px;font-weight:bold;color:#ff8822;">프리미엄</div>' +
+          '<div style="flex:1;text-align:center;font-size:11px;font-weight:bold;color:#e84057;">프리미엄</div>' +
         '</div>' +
         '<div id="sp-tier-list" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch;"></div>' +
       '</div>';
@@ -12361,13 +12361,13 @@ function _spUpdateHomeBtn() {
     if (claimed.indexOf(_SP_TIERS[i].tier) === -1) { nextTier = _SP_TIERS[i]; break; }
   }
   var canClaim = nextTier && kills >= nextTier.target;
-  bar.style.borderColor = canClaim ? '#ff8822' : '#1a3344';
+  bar.style.borderColor = canClaim ? '#e84057' : '#1a3344';
   var rightText = canClaim ? '보상 수령 가능!' : nextTier ? kills + ' / ' + nextTier.target : '완료';
   bar.innerHTML =
-    '<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:12px;background:linear-gradient(135deg,#ff8822,#ff5500);border-radius:1px;color:#0a0e1a;font-size:7px;font-weight:900;box-shadow:0 0 6px rgba(255,136,34,0.3);padding:0 3px;font-family:\'Courier New\',monospace;">SP</span><span style="font-size:10px;color:#ff8822;font-family:\'Courier New\',monospace;">시즌 패스</span></span>' +
+    '<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:12px;background:linear-gradient(135deg,#e84057,#c91e3e);border-radius:1px;color:#ffffff;font-size:7px;font-weight:900;box-shadow:0 0 6px rgba(232,64,87,0.3);padding:0 3px;font-family:\'Courier New\',monospace;">SP</span><span style="font-size:10px;color:#e84057;font-family:\'Courier New\',monospace;">시즌 패스</span></span>' +
     '<div style="display:flex;align-items:center;gap:6px;">' +
       '<span style="font-size:9px;color:#94a3b8;font-family:\'Courier New\',monospace;">임무 클리어 포인트</span>' +
-      '<span style="font-size:10px;color:' + (canClaim ? '#ff8822' : '#94a3b8') + ';font-family:\'Courier New\',monospace;">' + rightText + '</span>' +
+      '<span style="font-size:10px;color:' + (canClaim ? '#e84057' : '#94a3b8') + ';font-family:\'Courier New\',monospace;">' + rightText + '</span>' +
     '</div>';
 }
 
