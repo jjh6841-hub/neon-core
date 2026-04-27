@@ -4749,11 +4749,22 @@ function render() {
       var ng=_bx.createRadialGradient(CW*0.3,CH*0.15,0,CW*0.3,CH*0.15,CW*0.6);
       ng.addColorStop(0,'rgba(59,130,246,0.15)');ng.addColorStop(0.4,'rgba(37,99,235,0.06)');ng.addColorStop(1,'transparent');
       _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
-      // 먼 행성 실루엣
-      _bx.beginPath();_bx.arc(CW*0.85,CH*0.12,CW*0.06,0,Math.PI*2);
-      _bx.fillStyle='rgba(30,64,120,0.3)';_bx.fill();
-      _bx.beginPath();_bx.arc(CW*0.85,CH*0.12,CW*0.06,0,Math.PI*2);
-      _bx.strokeStyle='rgba(59,130,246,0.2)';_bx.lineWidth=1;_bx.stroke();
+      // 먼 행성 (그라데이션 + 대기권 글로우 + 그림자)
+      var _px=CW*0.85,_py=CH*0.12,_pr=CW*0.06;
+      // 대기권 글로우
+      var _atm=_bx.createRadialGradient(_px,_py,_pr*0.9,_px,_py,_pr*1.8);
+      _atm.addColorStop(0,'rgba(80,140,255,0.15)');_atm.addColorStop(0.5,'rgba(50,100,220,0.06)');_atm.addColorStop(1,'transparent');
+      _bx.fillStyle=_atm;_bx.fillRect(_px-_pr*2,_py-_pr*2,_pr*4,_pr*4);
+      // 행성 본체 (그라데이션)
+      var _pg=_bx.createRadialGradient(_px-_pr*0.3,_py-_pr*0.3,_pr*0.1,_px,_py,_pr);
+      _pg.addColorStop(0,'rgba(60,110,180,0.45)');_pg.addColorStop(0.6,'rgba(25,60,120,0.35)');_pg.addColorStop(1,'rgba(10,25,60,0.25)');
+      _bx.beginPath();_bx.arc(_px,_py,_pr,0,Math.PI*2);_bx.fillStyle=_pg;_bx.fill();
+      // 밝은 가장자리 (림 라이트)
+      _bx.beginPath();_bx.arc(_px,_py,_pr,Math.PI*-0.4,Math.PI*0.4);
+      _bx.strokeStyle='rgba(100,160,255,0.25)';_bx.lineWidth=1.5;_bx.stroke();
+      // 표면 띠 (적도선)
+      _bx.beginPath();_bx.ellipse(_px,_py+_pr*0.05,_pr*0.95,_pr*0.15,0,0,Math.PI*2);
+      _bx.strokeStyle='rgba(80,130,220,0.12)';_bx.lineWidth=1;_bx.stroke();
     } else if(_bt===4){ // 피라온: 보라 성운 + 암적색 글로우
       var ng=_bx.createRadialGradient(CW*0.5,CH*0.4,0,CW*0.5,CH*0.4,CW*0.7);
       ng.addColorStop(0,'rgba(168,85,247,0.12)');ng.addColorStop(0.5,'rgba(120,50,180,0.05)');ng.addColorStop(1,'transparent');
