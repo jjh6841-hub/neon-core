@@ -17499,7 +17499,8 @@ function _showSkinPurchasePopup(skin, isBg) {
   var unlock = skin.unlock;
   var condText = _skinUnlockText(unlock);
   var bonusType = isBg ? '+20%' : '+10%';
-  var bonusLabel = '공격력/방어력/체력 ' + bonusType;
+  var skinCategory = isBg ? '배경 스킨' : '탐사선 스킨';
+  var bonusLabel = skinCategory + ' 공격력/방어력/체력 ' + bonusType;
 
   // 프리뷰 생성
   var previewHTML = '';
@@ -17521,7 +17522,7 @@ function _showSkinPurchasePopup(skin, isBg) {
     var gems = PERM.gems || 0;
     canPurchase = gems >= unlock.cost;
     costHTML = '<span style="color:#00ffff;">❖ ' + unlock.cost + '</span> <span style="color:#556677;">(보유: ❖' + gems + ')</span>';
-    btnLabel = '보석으로 해금';
+    btnLabel = '❖ ' + unlock.cost + ' 해금';
   } else if (unlock.type === 'wave') {
     var met = _isContentUnlocked({tier:unlock.tier, wave:unlock.wave});
     canPurchase = met;
@@ -17553,7 +17554,7 @@ function _showSkinPurchasePopup(skin, isBg) {
     '<div style="color:#00ffff;font-size:14px;font-weight:bold;letter-spacing:1px;margin-bottom:12px;">' + skin.name + '</div>' +
     previewHTML +
     (isBg ? '<div style="color:#667788;font-size:10px;margin-bottom:8px;">' + (skin.desc||'') + '</div>' : '') +
-    '<div style="color:#94a3b8;font-size:10px;margin-bottom:6px;">보너스: <span style="color:#00ff88;">' + bonusLabel + '</span></div>' +
+    '<div style="color:#94a3b8;font-size:10px;margin-bottom:6px;"><span style="color:#00ff88;">' + bonusLabel + '</span></div>' +
     '<div style="background:#060a12;border:1px solid #0a3344;padding:8px;margin-bottom:14px;font-size:10px;color:#8899aa;">' + costHTML + '</div>' +
     '<div style="display:flex;gap:8px;">';
   if (canPurchase) {
