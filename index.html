@@ -5298,35 +5298,6 @@ function render() {
     const TR = 20;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
-    // 탐사선 스킨 SVG → 오프스크린 캔버스 래스터화 (Android 호환, DPR 최대 2)
-    var _skinDpr = Math.min(window._dpr || 1, 2);
-    var _skinKey = (localStorage.getItem('neoncore_skin')||'iris0') + '_' + _skinDpr;
-    if (!window._towerSkinCanvas || window._towerSkinId !== _skinKey) {
-      try {
-        var _sid = localStorage.getItem('neoncore_skin') || 'iris0';
-        var _svgSize = Math.round(96 * _skinDpr);
-        var _svgStr = window.getNeonCoreIcon ? window.getNeonCoreIcon(_svgSize, _sid) : null;
-        if (_svgStr) {
-          var _tmpImg = new Image();
-          var _b64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(_svgStr)));
-          _tmpImg.onload = function() {
-            var _osc = document.createElement('canvas');
-            _osc.width = _svgSize; _osc.height = _svgSize;
-            var _oCtx = _osc.getContext('2d');
-            _oCtx.drawImage(_tmpImg, 0, 0, _svgSize, _svgSize);
-            window._towerSkinCanvas = _osc;
-            window._towerSkinId = _skinKey;
-            window._towerSkinImg = _osc;
-          };
-          _tmpImg.src = _b64;
-          // 이전 캐시 유지 (로딩 중 깜빡임 방지)
-          if (!window._towerSkinCanvas) {
-            window._towerSkinImg = null;
-            window._towerSkinId = _skinKey + '_loading';
-          }
-        }
-      } catch(_) {}
-    }
     var _skinColor = '#00ffff';
     try {
       var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
@@ -5337,69 +5308,88 @@ function render() {
     } catch(_){}
     const _towerAccent = _skinColor;
     ctx.save();
-    // 스킨 이미지가 있으면 SVG 패턴 사용, 없으면 기본 육각형
-    if (window._towerSkinImg && (window._towerSkinImg.tagName === 'CANVAS' || (window._towerSkinImg.complete && window._towerSkinImg.naturalWidth > 0))) {
-      var _sz = TR * 2.4;
-      if (flashHit) { ctx.globalAlpha = 0.6; }
-      ctx.drawImage(window._towerSkinImg, G.cx - _sz/2, G.cy - _sz/2, _sz, _sz);
-      if (flashHit) {
-        ctx.globalAlpha = 0.5;
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath(); ctx.arc(G.cx, G.cy, TR, 0, Math.PI*2); ctx.fill();
-      }
-      if (buffed) {
-        ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(G.cx, G.cy, TR+4, 0, Math.PI*2); ctx.stroke();
-      }
-      // 줌(크로스헤어+코너브래킷) 오버레이 유지
-      ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = _towerAccent;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(G.cx, G.cy-8); ctx.lineTo(G.cx, G.cy+8);
-      ctx.moveTo(G.cx-8, G.cy); ctx.lineTo(G.cx+8, G.cy);
-      ctx.stroke();
-      var bk = 6;
-      ctx.globalAlpha = 0.4;
-      ctx.beginPath();
-      ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR+bk,G.cy-TR);
-      ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR,G.cy-TR+bk);
-      ctx.moveTo(G.cx+TR,G.cy-TR); ctx.lineTo(G.cx+TR-bk,G.cy-TR);
-      ctx.moveTo(G.cx+TR,G.cy-TR); ctx.lineTo(G.cx+TR,G.cy-TR+bk);
-      ctx.moveTo(G.cx-TR,G.cy+TR); ctx.lineTo(G.cx-TR+bk,G.cy+TR);
-      ctx.moveTo(G.cx-TR,G.cy+TR); ctx.lineTo(G.cx-TR,G.cy+TR-bk);
-      ctx.moveTo(G.cx+TR,G.cy+TR); ctx.lineTo(G.cx+TR-bk,G.cy+TR);
-      ctx.moveTo(G.cx+TR,G.cy+TR); ctx.lineTo(G.cx+TR,G.cy+TR-bk);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    } else {
-      // 폴백: 기본 육각형
-      ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const a = Math.PI / 3 * i - Math.PI / 6;
-        const hx = G.cx + TR * Math.cos(a);
-        const hy = G.cy + TR * Math.sin(a);
-        if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
-      }
-      ctx.closePath();
-      ctx.fillStyle = '#001a22'; ctx.fill();
-      ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
-      if (!flashHit && !buffed) {
-        if (_isMobileGfx) {
-          // 모바일: shadowBlur 대신 확대 반투명 stroke로 글로우
-          ctx.save();
-          ctx.globalAlpha = 0.25;
-          ctx.strokeStyle = _towerAccent;
-          ctx.lineWidth = 8;
-          ctx.stroke();
-          ctx.restore();
-        } else {
-          ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12;
-        }
-      }
-      ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
+    // 캔버스 직접 그리기 (Android SVG 호환 문제 해결)
+    // 외곽 육각형
+    ctx.beginPath();
+    for (var _hi = 0; _hi < 6; _hi++) {
+      var _ha = Math.PI / 3 * _hi - Math.PI / 6;
+      var _hx = G.cx + TR * Math.cos(_ha);
+      var _hy = G.cy + TR * Math.sin(_ha);
+      if (_hi === 0) ctx.moveTo(_hx, _hy); else ctx.lineTo(_hx, _hy);
     }
+    ctx.closePath();
+    ctx.fillStyle = '#06061a'; ctx.fill();
+    // 내부 장식 육각형
+    ctx.beginPath();
+    for (var _hi2 = 0; _hi2 < 6; _hi2++) {
+      var _ha2 = Math.PI / 3 * _hi2 - Math.PI / 6;
+      var _hx2 = G.cx + TR * 0.82 * Math.cos(_ha2);
+      var _hy2 = G.cy + TR * 0.82 * Math.sin(_ha2);
+      if (_hi2 === 0) ctx.moveTo(_hx2, _hy2); else ctx.lineTo(_hx2, _hy2);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = _towerAccent; ctx.globalAlpha = 0.5; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+    // 내부 작은 육각형
+    ctx.beginPath();
+    for (var _hi3 = 0; _hi3 < 6; _hi3++) {
+      var _ha3 = Math.PI / 3 * _hi3 - Math.PI / 6;
+      var _hx3 = G.cx + TR * 0.75 * Math.cos(_ha3);
+      var _hy3 = G.cy + TR * 0.75 * Math.sin(_ha3);
+      if (_hi3 === 0) ctx.moveTo(_hx3, _hy3); else ctx.lineTo(_hx3, _hy3);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = _towerAccent; ctx.globalAlpha = 0.25; ctx.lineWidth = 0.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+    // 외곽선 + 글로우
+    ctx.beginPath();
+    for (var _hi4 = 0; _hi4 < 6; _hi4++) {
+      var _ha4 = Math.PI / 3 * _hi4 - Math.PI / 6;
+      var _hx4 = G.cx + TR * Math.cos(_ha4);
+      var _hy4 = G.cy + TR * Math.sin(_ha4);
+      if (_hi4 === 0) ctx.moveTo(_hx4, _hy4); else ctx.lineTo(_hx4, _hy4);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
+    if (_isMobileGfx) {
+      ctx.save(); ctx.globalAlpha = 0.25; ctx.strokeStyle = _towerAccent; ctx.lineWidth = 6; ctx.stroke(); ctx.restore();
+    } else {
+      ctx.shadowColor = _towerAccent; ctx.shadowBlur = 12;
+    }
+    ctx.lineWidth = 1.5; ctx.stroke(); ctx.shadowBlur = 0;
+    // 코어 중심원
+    ctx.beginPath(); ctx.arc(G.cx, G.cy, TR*0.18, 0, Math.PI*2);
+    ctx.fillStyle = '#06061a'; ctx.fill();
+    ctx.strokeStyle = _towerAccent; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(G.cx, G.cy, TR*0.08, 0, Math.PI*2);
+    ctx.fillStyle = _towerAccent; ctx.fill();
+    // 피격/버프 오버레이
+    if (flashHit) {
+      ctx.globalAlpha = 0.4; ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(G.cx, G.cy, TR, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    if (buffed) {
+      ctx.globalAlpha = 0.3; ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(G.cx, G.cy, TR+4, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    // 크로스헤어
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = _towerAccent; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(G.cx, G.cy-8); ctx.lineTo(G.cx, G.cy+8);
+    ctx.moveTo(G.cx-8, G.cy); ctx.lineTo(G.cx+8, G.cy);
+    ctx.stroke();
+    // 코너 브래킷
+    var bk = 6; ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR+bk,G.cy-TR);
+    ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR,G.cy-TR+bk);
+    ctx.moveTo(G.cx+TR,G.cy-TR); ctx.lineTo(G.cx+TR-bk,G.cy-TR);
+    ctx.moveTo(G.cx+TR,G.cy-TR); ctx.lineTo(G.cx+TR,G.cy-TR+bk);
+    ctx.moveTo(G.cx-TR,G.cy+TR); ctx.lineTo(G.cx-TR+bk,G.cy+TR);
+    ctx.moveTo(G.cx-TR,G.cy+TR); ctx.lineTo(G.cx-TR,G.cy+TR-bk);
+    ctx.moveTo(G.cx+TR,G.cy+TR); ctx.lineTo(G.cx+TR-bk,G.cy+TR);
+    ctx.moveTo(G.cx+TR,G.cy+TR); ctx.lineTo(G.cx+TR,G.cy+TR-bk);
+    ctx.stroke(); ctx.globalAlpha = 1;
     // 프리즘 쉴드 시각효과 (에너지 쉴드)
     if (G.pShieldMax > 0 && G.pShieldCur > 0) {
       var _shPct = G.pShieldCur / G.pShieldMax;
