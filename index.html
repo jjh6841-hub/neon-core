@@ -11909,6 +11909,12 @@ function _patchCritFloat() {
     if (!_dmgFloats.length) return;
     var c = ctx;
     c.save();
+    // 게임 좌표계와 동일한 zoom transform 적용
+    if (window.G && G.zoom) {
+      c.translate(CW / 2, CH / 2);
+      c.scale(G.zoom, G.zoom);
+      c.translate(-CW / 2, -CH / 2);
+    }
     c.textAlign = 'center';
     c.textBaseline = 'middle';
     for (var i = 0; i < _dmgFloats.length; i++) {
