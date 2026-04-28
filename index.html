@@ -6854,10 +6854,46 @@ if (dailyPopup) {
       cost: function(lv) { return 30 + lv * 15; },
       cur:  function(lv) { return (1.5 + lv * 0.1)._tf1() + 'x'; },
       nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1)._tf1() + 'x'; } },
-    goldGain:   { tab:'utl', name:'골드 획득량', maxLv:10,
-      cost: function(lv) { return 5 + lv * 4; },
-      cur:  function(lv) { return (1 + lv * 0.1)._tf1(); },
-      nxt:  function(lv) { return (1 + (lv + 1) * 0.1)._tf1(); } },
+    chipKillBonus: { tab:'utl', name:'코어칩 보너스', maxLv:50, utlGroup:1,
+      cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
+      cur:  function(lv) { return '+' + (lv * 2) + '%'; },
+      nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
+    chipWaveBonus: { tab:'utl', name:'코어칩 웨이브', maxLv:50, utlGroup:1,
+      cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
+      cur:  function(lv) { return '+' + (lv * 2) + '%'; },
+      nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
+    goldKillBonus: { tab:'utl', name:'골드 보너스', maxLv:50, utlGroup:1,
+      cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
+      cur:  function(lv) { return '+' + (lv * 2) + '%'; },
+      nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
+    goldWaveBonus: { tab:'utl', name:'골드 웨이브', maxLv:50, utlGroup:1,
+      cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
+      cur:  function(lv) { return '+' + (lv * 2) + '%'; },
+      nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
+    freeUpgrade: { tab:'utl', name:'무료 업그레이드', maxLv:10, utlGroup:2,
+      cost: function(lv) { return 15 + Math.floor(lv * 3); },
+      cur:  function(lv) { return lv + '%'; },
+      nxt:  function(lv) { return (lv+1) + '%'; } },
+    autoAtkUpg: { tab:'utl', name:'공격 자동 업글', maxLv:20, utlGroup:2,
+      cost: function(lv) { return 12 + Math.floor(lv * 2.5); },
+      cur:  function(lv) { return lv + '%'; },
+      nxt:  function(lv) { return (lv+1) + '%'; } },
+    autoDefUpg: { tab:'utl', name:'방어 자동 업글', maxLv:20, utlGroup:2,
+      cost: function(lv) { return 12 + Math.floor(lv * 2.5); },
+      cur:  function(lv) { return lv + '%'; },
+      nxt:  function(lv) { return (lv+1) + '%'; } },
+    autoUtlUpg: { tab:'utl', name:'유틸 자동 업글', maxLv:20, utlGroup:2,
+      cost: function(lv) { return 12 + Math.floor(lv * 2.5); },
+      cur:  function(lv) { return lv + '%'; },
+      nxt:  function(lv) { return (lv+1) + '%'; } },
+    enemySkip: { tab:'utl', name:'적 레벨 건너뛰기', maxLv:3000, utlGroup:3,
+      cost: function(lv) { return 3 + Math.floor(lv * 0.5); },
+      cur:  function(lv) { return Math.min(15, (lv * 0.05))._tf2() + '%'; },
+      nxt:  function(lv) { return Math.min(15, ((lv+1) * 0.05))._tf2() + '%'; } },
+    protoCdReduce: { tab:'utl', name:'프로토콜 쿨감', maxLv:40, utlGroup:3,
+      cost: function(lv) { return 20 + Math.floor(lv * 4); },
+      cur:  function(lv) { return (lv * 0.5)._tf1() + '%'; },
+      nxt:  function(lv) { return ((lv+1) * 0.5)._tf1() + '%'; } },
   };
 
   var wsActiveTab = 'atk';
@@ -8150,9 +8186,9 @@ window.createState = function() {
   g.mines           = [];
   g.mineSpawnTimer  = 0;
   // Utility
-  g.cashBonusM      = 1 + (ws.cashBonus   || 0) * 0.05;
+  // cashBonusM 제거됨 (새 유틸 시스템으로 대체)
   g.cashPerWaveExt  = (ws.cashPerWave     || 0) * 2;
-  g.coinsPerKillM   = 1 + (ws.coinsPerKill|| 0) * 0.02;
+  // coinsPerKillM 제거됨 (새 유틸 시스템으로 대체)
   g.interestRate    = (ws.interest        || 0) * 0.001;
   return g;
 };
@@ -8166,8 +8202,6 @@ window.applyPermStats = function() {
   // Extended range from ws.wsRange
   G.tower.range += (ws.wsRange || 0) * 8;
   // Cash bonus multiplies gold mult
-  if (G.cashBonusM) G.goldMult = (G.goldMult || 1) * G.cashBonusM;
-  if (G.coinsPerKillM) G.goldMult = (G.goldMult || 1) * G.coinsPerKillM;
 };
 
 /* ── startWave 확장 (이자율, 웨이브 보너스) ── */
@@ -8411,13 +8445,6 @@ var NEW_ITEMS = {
   mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (0.5+lv*0.02)._tf2();},nxt:function(lv){return (0.5+(lv+1)*0.02)._tf2();} },
   deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1)._tf1();},     nxt:function(lv){return ((lv+1)*0.1)._tf1();} },
 
-  // 특수 탭 1단계 확장
-  cashBonus:       { tab:'utl', name:'크레딧 보너스',   tier:1, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return (1+lv*0.05)._tf2();},   nxt:function(lv){return (1+(lv+1)*0.05)._tf2();} },
-  cashPerWave:     { tab:'utl', name:'웨이브 보너스',   tier:1, maxLv:99, cost:function(lv){return 8+Math.floor(lv*1.5);},  cur:function(lv){return ''+lv*2;},                  nxt:function(lv){return ''+(lv+1)*2;} },
-  // 특수 탭 2단계
-  coinsPerKill:    { tab:'utl', name:'처치 보너스',     tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (1+lv*0.02)._tf2();},   nxt:function(lv){return (1+(lv+1)*0.02)._tf2();} },
-  coinsPerWave:    { tab:'utl', name:'웨이브 골드',     tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv*5;},                   nxt:function(lv){return ''+(lv+1)*5;} },
-  // 특수 탭 4단계
 };
 
 // WS에 주입
@@ -14597,209 +14624,69 @@ window.update = function(dt) {
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     스크립트: 무료 업그레이드 시스템
-     (freeAtkUpgrade / freeDefUpgrade / freeUtlUpgrade)
+     스크립트: 유틸 탭 게임 로직
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
 'use strict';
 
-/* ── 아이템 정의 ── */
-var FREE_UPG_ITEMS = {
-  freeAtkUpgrade: { tab:'utl', name:'무료 공격 업글', tier:3, maxLv:99,
-    cost:function(lv){return 20+Math.floor(lv*3.5);},
-    cur:function(lv){return (lv*0.5)._tf1()+'%';},
-    nxt:function(lv){return ((lv+1)*0.5)._tf1()+'%';} },
-  freeDefUpgrade: { tab:'utl', name:'무료 방어 업글', tier:3, maxLv:99,
-    cost:function(lv){return 20+Math.floor(lv*3.5);},
-    cur:function(lv){return (lv*0.5)._tf1()+'%';},
-    nxt:function(lv){return ((lv+1)*0.5)._tf1()+'%';} },
-  freeUtlUpgrade: { tab:'utl', name:'무료 유틸 업글', tier:3, maxLv:99,
-    cost:function(lv){return 20+Math.floor(lv*3.5);},
-    cur:function(lv){return (lv*0.5)._tf1()+'%';},
-    nxt:function(lv){return ((lv+1)*0.5)._tf1()+'%';} },
-};
-
-// 자기 자신은 무료 업그레이드 대상에서 제외
-var _freeKeys = { freeAtkUpgrade:true, freeDefUpgrade:true, freeUtlUpgrade:true };
-
-/* ── _wsExt.items에 등록 ── */
-(function _reg() {
-  if (window._wsExt && window._wsExt.items) {
-    Object.keys(FREE_UPG_ITEMS).forEach(function(k) {
-      window._wsExt.items[k] = FREE_UPG_ITEMS[k];
-    });
-  } else {
-    setTimeout(_reg, 200);
-  }
-}());
-
-/* ── SPC 탭 카드 주입 ── */
-var _fuInjecting = false, _fuTimer = null;
-var _fuContent = document.getElementById('ws-content');
-if (_fuContent) {
-  new MutationObserver(function() {
-    if (_fuInjecting) return;
-    clearTimeout(_fuTimer);
-    _fuTimer = setTimeout(function() {
-      _fuInjecting = true;
-      _injectFreeCards();
-      setTimeout(function() { _fuInjecting = false; }, 180);
-    }, 70);
-  }).observe(_fuContent, { childList: true });
-}
-
-function _injectFreeCards() {
-  if (!window._wsExt) return;
-  var activeTab = (window._wsExt.activeTab && window._wsExt.activeTab()) || 'atk';
-  if (activeTab !== 'utl') return;
-  var ws = PERM.ws || {};
-  if ((ws['tier_spc'] || 1) < 3) return;              // 3단계 미해금
-  if (document.querySelector('[data-freeupg]')) return; // 이미 주입됨
-  var container = document.getElementById('ws-content');
-  if (!container) return;
-  // 다음 단계 해금 버튼 바로 앞에 삽입
-  var tierBtn = null;
-  for (var ci = 0; ci < container.children.length; ci++) {
-    var ch = container.children[ci];
-    if (!ch.getAttribute('data-freeupg') && ch.querySelector && ch.querySelector('button')) {
-      var btnTxt = ch.querySelector('button').textContent || '';
-      if (btnTxt.indexOf('◈') !== -1 && (ch.textContent||'').indexOf('다음 단계') !== -1) {
-        tierBtn = ch; break;
-      }
-    }
-  }
-  Object.keys(FREE_UPG_ITEMS).forEach(function(k) {
-    _renderFreeCard(container, k, ws, tierBtn);
-  });
-}
-
-function _renderFreeCard(container, key, ws, insertBefore) {
-  var cfg    = FREE_UPG_ITEMS[key];
-  var lv     = ws[key] || 0;
-  var maxed  = lv >= cfg.maxLv;
-  var cost   = maxed ? 0 : cfg.cost(lv);
-  var afford = PERM.gold >= cost;
-
-  var card = document.createElement('div');
-  card.setAttribute('data-freeupg', key);
-  card.style.cssText =
-    'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(0,255,255,0.25);' +
-    'padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0;overflow:hidden;';
-
-  var btnHTML3 = maxed
-    ? '<span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span>'
-    : '<button data-fukey="' + key + '" style="background:#030b10;border:1px solid ' +
-        (afford ? '#0a3344' : '#ef4444') + ';color:' + (afford ? '#f59e0b' : '#ef4444') +
-        ';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;' +
-        '-webkit-appearance:none;">◈' + cost + '</button>';
-
-  var valueHTML3 = maxed
-    ? '<span style="font-size:14px;color:#00ffff;font-family:monospace;font-weight:bold;">' + cfg.cur(lv) + '</span>'
-    : '<span style="font-family:monospace;white-space:nowrap;">' +
-        '<span style="font-size:11px;color:#445566;">' + cfg.cur(lv) + '</span>' +
-        '<span style="font-size:11px;color:#334455;"> → </span>' +
-        '<span style="font-size:14px;color:#00ffff;font-weight:bold;">' + cfg.nxt(lv) + '</span>' +
-      '</span>';
-
-  card.innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">' +
-      '<div style="display:flex;align-items:center;gap:6px;">' +
-        '<span style="font-size:11px;color:#7aacac;font-family:monospace;white-space:nowrap;">' + cfg.name + '</span>' +
-        '<span style="font-size:10px;color:#556677;font-family:monospace;">Lv.' + lv + (maxed ? ' ✓' : '') + '</span>' +
-      '</div>' +
-      '<div>' + valueHTML3 + '</div>' +
-    '</div>' +
-    '<div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;flex-shrink:0;">' + btnHTML3 + '</div>';
-
-  if (!maxed) {
-    (function(k, crd) {
-      var btn = crd.querySelector('[data-fukey]');
-      if (!btn) return;
-      btn.addEventListener('click', function() {
-        var l2 = (PERM.ws || {})[k] || 0;
-        var co = FREE_UPG_ITEMS[k].cost(l2);
-        if (l2 >= FREE_UPG_ITEMS[k].maxLv) return;
-        if (PERM.gold < co) {
-          crd.style.borderColor = '#ef4444';
-          setTimeout(function(){ crd.style.borderColor = ''; }, 200);
-          return;
-        }
-        PERM.gold -= co;
-        if (!PERM.ws) PERM.ws = {};
-        PERM.ws[k] = l2 + 1;
-        savePerm();
-        try { window._wsExt.sync(); } catch(_) {}
-        setTimeout(function() {
-          try { var _at=window._wsExt&&window._wsExt.activeTab?window._wsExt.activeTab():'atk';document.querySelector('.ws-tab[data-tab="'+_at+'"]').click(); } catch(_) {}
-        }, 10);
-      });
-    }(key, card));
-  }
-
-  if (insertBefore) container.insertBefore(card, insertBefore);
-  else container.appendChild(card);
-}
-
-/* ── createState 확장: 무료 업그레이드 확률 ── */
-var _origCS_fu = window.createState;
+/* ── createState 확장: 유틸 보너스 초기화 ── */
+var _origCS_utl = window.createState;
 window.createState = function() {
-  var g = _origCS_fu.apply(this, arguments);
+  var g = _origCS_utl.apply(this, arguments);
   var ws = PERM.ws || {};
-  g.freeAtkChance = (ws.freeAtkUpgrade || 0) * 0.005;
-  g.freeDefChance = (ws.freeDefUpgrade || 0) * 0.005;
-  g.freeUtlChance = (ws.freeUtlUpgrade || 0) * 0.005;
+  g._chipKillBonus  = (ws.chipKillBonus  || 0) * 0.02; // 코어칩 보너스
+  g._chipWaveBonus  = (ws.chipWaveBonus  || 0) * 0.02; // 코어칩 웨이브
+  g._goldKillBonus  = (ws.goldKillBonus  || 0) * 0.02; // 골드 보너스
+  g._goldWaveBonus  = (ws.goldWaveBonus  || 0) * 0.02; // 골드 웨이브
+  g._freeUpgChance  = (ws.freeUpgrade    || 0) * 0.01; // 무료 업그레이드
+  g._autoAtkChance  = (ws.autoAtkUpg     || 0) * 0.01; // 공격 자동 업글
+  g._autoDefChance  = (ws.autoDefUpg     || 0) * 0.01; // 방어 자동 업글
+  g._autoUtlChance  = (ws.autoUtlUpg     || 0) * 0.01; // 유틸 자동 업글
+  g._enemySkipChance= Math.min(0.15, (ws.enemySkip || 0) * 0.0005); // 적 레벨 건너뛰기 (15% 캡)
+  g._protoCdReduce  = (ws.protoCdReduce  || 0) * 0.005; // 프로토콜 쿨타임 감소
   return g;
 };
 
-/* ── startWave 확장: 웨이브마다 확률 적용 ── */
-var _origSW_fu = window.startWave;
-window.startWave = function() {
-  _origSW_fu.apply(this, arguments);
+/* ── applyPermStats 확장: 골드 배율 합산 ── */
+var _origAP_utl = window.applyPermStats;
+window.applyPermStats = function() {
+  _origAP_utl.apply(this, arguments);
   if (!G) return;
-  if (G.freeAtkChance > 0 && Math.random() < G.freeAtkChance) _applyFreeUpgrade('atk');
-  if (G.freeDefChance > 0 && Math.random() < G.freeDefChance) _applyFreeUpgrade('def');
-  if (G.freeUtlChance > 0 && Math.random() < G.freeUtlChance) _applyFreeUpgrade('utl');
+  // 골드 보너스 → G.goldMult에 합산
+  if (G._goldKillBonus > 0) G.goldMult = (G.goldMult || 1) * (1 + G._goldKillBonus);
 };
 
-function _applyFreeUpgrade(tab) {
-  if (!window._wsExt) return;
-  var WS = window._wsExt.items;
-  var ws = PERM.ws || {};
-  var curTier = ws['tier_' + tab] || 1;
+/* ── startWave 확장: 자동 업그레이드 ── */
+var _origSW_utl = window.startWave;
+window.startWave = function() {
+  _origSW_utl.apply(this, arguments);
+  if (!G) return;
+  // 자동 업그레이드 (웨이브 클리어 시)
+  if (G._autoAtkChance > 0 && Math.random() < G._autoAtkChance) _autoUpgrade('atk');
+  if (G._autoDefChance > 0 && Math.random() < G._autoDefChance) _autoUpgrade('def');
+  if (G._autoUtlChance > 0 && Math.random() < G._autoUtlChance) _autoUpgrade('utl');
+};
 
-  // 해금된 탭에서 레벨업 가능한 항목 수집 (자기 자신 제외)
+function _autoUpgrade(tab) {
+  if (!window.UPGRADES) return;
   var eligible = [];
-  Object.keys(WS).forEach(function(k) {
-    if (_freeKeys[k]) return;
-    var item = WS[k];
-    if (!item || item.tab !== tab) return;
-    if ((item.tier || 1) > curTier) return;
-    var lv = ws[k] || 0;
-    if (lv >= (item.maxLv || 99)) return;
-    eligible.push(k);
+  window.UPGRADES.forEach(function(u) {
+    if (u.tab !== tab) return;
+    var lv = (G.upgLvl && G.upgLvl[u.key]) || 0;
+    if (u.maxLv && lv >= u.maxLv) return;
+    eligible.push(u);
   });
   if (!eligible.length) return;
-
-  // 랜덤 선택 후 레벨업
   var chosen = eligible[Math.floor(Math.random() * eligible.length)];
-  if (!PERM.ws) PERM.ws = {};
-  PERM.ws[chosen] = (PERM.ws[chosen] || 0) + 1;
-  savePerm();
-  try { window._wsExt.sync(); } catch(_) {}
-
-  // 인게임 토스트
-  var name = (WS[chosen] && WS[chosen].name) || chosen;
+  chosen.apply();
   try {
     var t = document.createElement('div');
-    t.style.cssText = 'position:fixed;bottom:110px;left:50%;transform:translateX(-50%);' +
-      'background:rgba(3,11,16,0.92);border:1px solid #f59e0b;color:#f59e0b;' +
-      'font-family:\'Courier New\',monospace;font-size:11px;padding:5px 14px;' +
-      'pointer-events:none;z-index:9500;white-space:nowrap;';
-    t.textContent = '★ 무료 업글: ' + name;
+    t.style.cssText = 'position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:rgba(3,11,16,0.92);border:1px solid #f59e0b;color:#f59e0b;font-family:\'Courier New\',monospace;font-size:11px;padding:5px 14px;pointer-events:none;z-index:9500;white-space:nowrap;';
+    t.textContent = '★ 자동 업글: ' + (chosen.name||'').replace(/<br>/g,' ');
     document.body.appendChild(t);
-    setTimeout(function(){ if (t.parentNode) t.remove(); }, 2200);
-  } catch(_) {}
+    setTimeout(function(){ if(t.parentNode)t.remove(); }, 2200);
+  } catch(_){}
 }
 
 }());
