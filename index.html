@@ -7459,8 +7459,8 @@ if (dailyPopup) {
 
   function _execExchange(item) {
     // 차감
-    if (item.from.type==='gem') { PERM.gems -= item.from.amount; }
-    else if (item.from.type==='gold') { PERM.gold -= item.from.amount; }
+    if (item.from.type==='gem') { PERM.gems -= item.from.amount; logCurrency('gems', -item.from.amount, '교환: '+item.label); }
+    else if (item.from.type==='gold') { PERM.gold -= item.from.amount; logCurrency('gold', -item.from.amount, '교환: '+item.label); }
     else if (item.from.type==='dc') { localStorage.setItem('dataCells', parseInt(localStorage.getItem('dataCells')||'0',10)-item.from.amount); }
     else if (item.from.type==='pc') { localStorage.setItem('powerCores', parseInt(localStorage.getItem('powerCores')||'0',10)-item.from.amount); }
     else if (item.from.type==='ac') { localStorage.setItem('accessCodes', parseInt(localStorage.getItem('accessCodes')||'0',10)-item.from.amount); }
@@ -8986,6 +8986,7 @@ function _buildLabSlots() {
           if(window._showSlotConfirm) _showSlotConfirm('연구 슬롯 '+(idx+1)+'번 해금','보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?', function(){
             if((PERM.gems||0)<cost) return;
             PERM.gems -= cost;
+            logCurrency('gems', -cost, '연구 슬롯 해금');
             savePerm();
             var ld = _loadLab();
             if(!ld['slot'+idx]) ld['slot'+idx] = {};
@@ -9036,6 +9037,7 @@ function _buildLabSlots() {
           if(window._showSlotConfirm) _showSlotConfirm('즉시 완료','보석 ❖'+rc2+'을 사용하여\n연구를 즉시 완료하시겠습니까?', function(){
             if(PERM.gems < rc2) return;
             PERM.gems -= rc2;
+            logCurrency('gems', -rc2, '연구 즉시 완료');
             savePerm();
             var ld = _loadLab();
             if(!ld['slot'+idx]) ld['slot'+idx] = {};
@@ -11531,6 +11533,7 @@ function _doUnlock(tab) {
   } else if (cfg.gemCost > 0) {
     if (PERM.gems < cfg.gemCost) { _flash('보석이 부족합니다'); return; }
     PERM.gems -= cfg.gemCost;
+    logCurrency('gems', -cfg.gemCost, '탭 해금');
   }
   if (!PERM.ws) PERM.ws = {};
   PERM.ws[cfg.permKey] = 1;
@@ -12618,6 +12621,7 @@ function _doDraw(n) {
   var cost = PRISM_SINGLE * n;
   if (!window.PERM || (window.PERM.gems || 0) < cost) return null;
   window.PERM.gems -= cost;
+  logCurrency('gems', -cost, '프리즘 뽑기 '+n+'회');
   _maxPrismConvertCount = 0;
   var drawn = [];
   for (var i = 0; i < n; i++) { var p = _drawOnePrism(); drawn.push(p); _addPrismDrop(p.id); }
@@ -13130,7 +13134,7 @@ function _renderCardTab() {
           if(window.showToastMsg) showToastMsg('슬롯 '+(_getSlots()+1)+'번을 먼저 해금하세요', '#ef4444');
           return;
         }
-        window.PERM.gems-=cost;
+        window.PERM.gems-=cost; logCurrency('gems', -cost, '프리즘 슬롯 해금');
         _setSlots(currentSlots+1);
         window.savePerm&&window.savePerm();
         _syncPrismHUD();
@@ -18464,6 +18468,7 @@ function _renderStagePopup() {
     if (_dayCount >= 3) { if(window.showToastMsg) showToastMsg('일일 구매 한도(3회) 초과','#ef4444'); return; }
     if ((PERM.gems||0) < 30) { if(window.showToastMsg) showToastMsg('보석이 부족합니다 (❖30 필요)','#ef4444'); return; }
     PERM.gems -= 30;
+    logCurrency('gems', -30, '탐사 티켓 구매');
     savePerm();
     _setTickets(_getTickets() + 1);
     localStorage.setItem(_dayKey, _dayCount + 1);
@@ -18676,6 +18681,7 @@ function _doStart() {
   if (total > 0 && gems < total) return;
   if (total > 0) {
     PERM.gems -= total;
+    logCurrency('gems', -total, '전투 증강 구매');
     try { savePerm(); } catch(_){}
     // 전투 증강 사용 횟수 통계
     try { var _ac=parseInt(localStorage.getItem('stat_augments')||'0',10); localStorage.setItem('stat_augments',_ac+_pendingAugs.length); } catch(_){}
@@ -19209,7 +19215,7 @@ function _renderModuleContent() {
               : '보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?';
             if(window._showSlotConfirm) _showSlotConfirm('모듈 슬롯 해금', desc, function(){
               if((PERM.gems||0)<cost)return;
-              PERM.gems-=cost; savePerm();
+              PERM.gems-=cost; logCurrency('gems', -cost, '모듈 슬롯 해금'); savePerm();
               var d=_loadMods(); d.slotsBought=Math.max(d.slotsBought||1,idx+1); _saveMods(d);
               _renderModuleContent();
             });
