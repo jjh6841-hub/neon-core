@@ -5289,10 +5289,6 @@ function render() {
         _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
       }
       _tDom.style.display = 'block';
-      var _zm = G.zoom || 1;
-      var _domSz = _drawSz * _zm;
-      _tDom.style.width = _domSz + 'px';
-      _tDom.style.height = _domSz + 'px';
       // 캔버스 내 CSS 좌표를 캔버스 요소 기준 위치로 변환
       var _cv = document.getElementById('gameCanvas');
       if (_cv) {
@@ -5301,11 +5297,13 @@ function render() {
         var _offX = _cvRect.left - _aRect.left;
         var _offY = _cvRect.top - _aRect.top;
         var _csW = parseFloat(_cv.style.width) || _cvRect.width;
-        var _csH = parseFloat(_cv.style.height) || _cvRect.height;
-        var _scX = _cvRect.width / _csW;
-        var _scY = _cvRect.height / _csH;
-        _tDom.style.left = (_offX + G.cx * _scX) + 'px';
-        _tDom.style.top = (_offY + G.cy * _scY) + 'px';
+        var _sc = _cvRect.width / _csW;
+        var _zm = G.zoom || 1;
+        var _domSz = _drawSz * _zm * _sc;
+        _tDom.style.width = _domSz + 'px';
+        _tDom.style.height = _domSz + 'px';
+        _tDom.style.left = (_offX + G.cx * _sc) + 'px';
+        _tDom.style.top = (_offY + G.cy * _sc) + 'px';
       }
     }
     ctx.save();
