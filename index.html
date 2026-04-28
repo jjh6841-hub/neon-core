@@ -2822,6 +2822,9 @@ function upgCost(key, base) {
   } else if (upg && upg.tab === 'def') {
     var defDisc = parseInt(localStorage.getItem('res_def_discount')||'0',10);
     if (defDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - defDisc * 0.01)));
+  } else if (upg && upg.tab === 'utl') {
+    var utlDisc = parseInt(localStorage.getItem('res_utl_discount')||'0',10);
+    if (utlDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - utlDisc * 0.01)));
   }
   return raw;
 }
@@ -3414,9 +3417,13 @@ function applyPermStats() {
   t.hpRegen    = _getHpRegen(ws.hpRegen || 0);
   G.defenseAbs = _getDefAbs(ws.defAbs || 0);                  // 절대 방어
   G.enemyDefReduce = (ws.enemyDefReduce || 0);               // 적 방어력 감소 (강화소 기본값)
-  // 강화 치명타 (강화소 기본값, 프리즘과 합연산됨)
-  G.enhCritChance = (ws.enhCritChance || 0) * 0.005;         // 레벨당 0.5%
-  G.enhCritMult   = (ws.enhCritMult || 0) > 0 ? 1.5 + (ws.enhCritMult || 0) * 0.1 : 0; // 레벨당 +0.1, 기본 1.5x
+  // 강화 치명타 (강화소 + 코어랩 합연산, 프리즘과도 합연산됨)
+  var _rEnhCritLv = parseInt(localStorage.getItem('res_r_enh_crit')||'0',10);
+  var _rEnhCritMLv = parseInt(localStorage.getItem('res_r_enh_crit_m')||'0',10);
+  G.enhCritChance = (ws.enhCritChance || 0) * 0.005 + _rEnhCritLv * 0.005;  // 강화소+코어랩 각 0.5%/Lv
+  G.enhCritMult   = (ws.enhCritMult || 0) > 0 || _rEnhCritMLv > 0
+    ? 1.5 + (ws.enhCritMult || 0) * 0.1 + _rEnhCritMLv * 0.1
+    : 0;  // 기본 1.5x + 강화소 + 코어랩 각 0.1/Lv
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
   G.gemMult    = 1;
@@ -7948,7 +7955,6 @@ if (dailyPopup) {
     <button class="lab-filter" data-cat="attack"  style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">공격</button>
     <button class="lab-filter" data-cat="defense" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">방어</button>
     <button class="lab-filter" data-cat="utility" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">유틸</button>
-    <button class="lab-filter" data-cat="ultimate" style="background:#0a1a2a; border:1px solid #334455; color:#334455; font-family:monospace; font-size:9px; padding:3px 8px; cursor:pointer; white-space:nowrap;">속성</button>
   </div>
   <div style="padding:6px 12px; flex-shrink:0; display:flex; justify-content:flex-end;">
     <label style="color:#4a7a8a; font-family:'Courier New',monospace; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:5px;">
@@ -8802,16 +8808,18 @@ var RESEARCH_LIST = {
     { id:'game_speed',   name:'게임 속도',   desc:'최대 배속 증가',           time:3600,  cost:500,   maxLv:10 },
     { id:'atk_discount', name:'공격 할인',   desc:'공격 업그레이드 비용 -1%',  time:19800, cost:12390, maxLv:30 },
     { id:'def_discount', name:'방어 할인',   desc:'방어 업그레이드 비용 -1%',  time:28320, cost:18810, maxLv:30 },
+    { id:'utl_discount', name:'유틸 할인',   desc:'유틸 업그레이드 비용 -1%',  time:28320, cost:18810, maxLv:30 },
     { id:'lab_speed',    name:'연구 속도',   desc:'연구 시간 단축',            time:7200,  cost:8000,  maxLv:30 },
   ],
   attack: [
     { id:'r_damage',     name:'공격력 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:999 },
     { id:'r_spd',        name:'속도 연구',     desc:'공격속도 향상',            time:12600, cost:5000,  maxLv:99 },
     { id:'r_crit',       name:'치명타 연구',   desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:70 },
-    { id:'r_multishot',  name:'분열탄 연구',   desc:'분열탄 효과 향상',         time:21600, cost:11000, maxLv:30 },
     { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:999 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
+    { id:'r_enh_crit',   name:'강화 치명타 확률 연구', desc:'강화 치명타 확률 +0.5%', time:18000, cost:12000, maxLv:26 },
+    { id:'r_enh_crit_m', name:'강화 치명타 계수 연구', desc:'강화 치명타 계수 +0.1',  time:16200, cost:10000, maxLv:999 },
   ],
   defense: [
     { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:999 },
@@ -8828,11 +8836,6 @@ var RESEARCH_LIST = {
     { id:'start_cash',   name:'시작 골드',   desc:'게임 시작 시 +골드',        time:6300,  cost:2940,  maxLv:20 },
     { id:'r_wave_cash',  name:'웨이브 연구',   desc:'웨이브 골드 향상',         time:15660, cost:9810,  maxLv:50 },
     { id:'r_gold_gain',  name:'골드 획득 연구',desc:'골드 획득량 향상',         time:14400, cost:8000,  maxLv:30 },
-  ],
-  ultimate: [
-    { id:'r_elem_atk',   name:'속성 공격 연구',desc:'속성 공격력 배율 향상',     time:28800, cost:50000, maxLv:30 },
-    { id:'r_elem_def',   name:'속성 방어 연구',desc:'속성 방어력 배율 향상',     time:28800, cost:50000, maxLv:30 },
-    { id:'r_elem_hp',    name:'속성 체력 연구',desc:'속성 체력 배율 향상',       time:28800, cost:50000, maxLv:30 },
   ],
 };
 
@@ -9108,13 +9111,13 @@ function _buildLabPopupList() {
     var _statText = '';
     var _effectMap = {
       'r_damage':'+2%/Lv 공격력','r_spd':'+2%/Lv 공속','r_crit':'+0.5%/Lv 치명타',
-      'r_multishot':'+1%/Lv 분열','r_crit_mult':'+0.02/Lv 치명타 계수','r_range':'+8/Lv 사거리',
-      'r_pierce':'+1/Lv 관통','r_knockback':'+0.5%/Lv 넉백','r_knockforce':'+2px/Lv 넉백 거리',
+      'r_crit_mult':'+0.02/Lv 치명타 계수','r_range':'+8/Lv 사거리',
+      'r_pierce':'+1/Lv 관통','r_enh_crit':'+0.5%/Lv 강화치명타확률','r_enh_crit_m':'+0.1/Lv 강화치명타계수',
+      'r_knockback':'+0.5%/Lv 넉백','r_knockforce':'+2px/Lv 넉백 거리',
       'r_health':'+2%/Lv 체력','r_regen':'+0.05/Lv 재생','r_defense':'+2%/Lv 방어',
       'r_mine':'+1%/Lv 지뢰','r_reflect':'+0.5%/Lv 반사','r_vamp':'+0.1%/Lv 흡혈','r_shield':'+5%/Lv 쉴드',
       'start_cash':'+10/Lv 시작골드','r_wave_cash':'+2%/Lv 웨이브골드','r_gold_gain':'+1%/Lv 골드획득',
-      'game_speed':'+0.5x/Lv 배속','atk_discount':'-1%/Lv 공격비용','def_discount':'-1%/Lv 방어비용','lab_speed':'-2%/Lv 연구시간',
-      'r_elem_atk':'+2%/Lv 속성공격','r_elem_def':'+2%/Lv 속성방어','r_elem_hp':'+2%/Lv 속성체력'
+      'game_speed':'+0.5x/Lv 배속','atk_discount':'-1%/Lv 공격비용','def_discount':'-1%/Lv 방어비용','utl_discount':'-1%/Lv 유틸비용','lab_speed':'-2%/Lv 연구시간',
     };
     _statText = _effectMap[r.id] || '';
 
@@ -13669,11 +13672,13 @@ function _showStatsPopup() {
   var normalCritMult=baseCritMult+(_prismB.critDmg||0);
   var _statRCritLv=parseInt(localStorage.getItem('res_r_crit')||'0',10);
   var normalCritChance=Math.min(100,(ws.critChance||0)*0.5+_prismB.critRate+_statRCritLv*0.5);
-  // 2. 강화 치명타 (강화소 + 프리즘 합연산)
-  var wsEnhCritChance=(ws.enhCritChance||0)*0.5; // 강화소: 레벨당 0.5%
-  var wsEnhCritMult=(ws.enhCritMult||0)>0?1.5+(ws.enhCritMult||0)*0.1:0; // 강화소: 기본 1.5x + 레벨당 0.1
-  var enhCritChance=wsEnhCritChance+(_prismB.enhCritRate||0); // 합연산
-  var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+_prismB.enhCritMult:wsEnhCritMult||((_prismB.enhCritMult||0)>0?1.5+_prismB.enhCritMult:0); // 합연산
+  // 2. 강화 치명타 (강화소 + 코어랩 + 프리즘 합연산)
+  var _rEnhCLv=parseInt(localStorage.getItem('res_r_enh_crit')||'0',10);
+  var _rEnhMLv=parseInt(localStorage.getItem('res_r_enh_crit_m')||'0',10);
+  var wsEnhCritChance=(ws.enhCritChance||0)*0.5+_rEnhCLv*0.5; // 강화소+코어랩: 각 0.5%/Lv
+  var wsEnhCritMult=(ws.enhCritMult||0)>0||_rEnhMLv>0?1.5+(ws.enhCritMult||0)*0.1+_rEnhMLv*0.1:0; // 강화소+코어랩: 기본 1.5x + 각 0.1/Lv
+  var enhCritChance=wsEnhCritChance+(_prismB.enhCritRate||0); // +프리즘 합연산
+  var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+_prismB.enhCritMult:wsEnhCritMult||((_prismB.enhCritMult||0)>0?1.5+_prismB.enhCritMult:0); // +프리즘 합연산
   // 3. 모듈 치명타 (독립 판정)
   var modCritChance=_modB.crit||0;
   var modCritMult=_modB.cdmg||0;
@@ -13734,14 +13739,16 @@ function _showStatsPopup() {
     ['게임 속도','game_speed',function(l){return '+'+l+'단계';}],
     ['공격 할인','atk_discount',function(l){return '-'+l+'%';}],
     ['방어 할인','def_discount',function(l){return '-'+l+'%';}],
+    ['유틸 할인','utl_discount',function(l){return '-'+l+'%';}],
     ['연구 속도','lab_speed',function(l){return '-'+(l*2)+'%';}],
     ['공격력','r_damage',function(l){return '+'+(l*2)+'%';}],
     ['속도','r_spd',function(l){return '+'+(l*2)+'%';}],
     ['치명타','r_crit',function(l){return '+'+(l*0.5)._tf1()+'%';}],
-    ['분열탄','r_multishot',function(l){return '+'+l;}],
     ['치명타 계수','r_crit_mult',function(l){return '+'+(l*5)+'%';}],
     ['사거리','r_range',function(l){return '+'+(l*2)+'%';}],
     ['관통','r_pierce',function(l){return '+'+l;}],
+    ['강화 치명타 확률','r_enh_crit',function(l){return '+'+(l*0.5)._tf1()+'%';}],
+    ['강화 치명타 계수','r_enh_crit_m',function(l){return '+'+(l*0.1)._tf1();}],
     ['넉백','r_knockback',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['넉백 거리','r_knockforce',function(l){return '+'+(l*2)+'px';}],
     ['체력','r_health',function(l){return '+'+(l*3)+'%';}],
@@ -13753,10 +13760,7 @@ function _showStatsPopup() {
     ['쉴드','r_shield',function(l){return '+'+(l*5)+'%';}],
     ['시작 골드','start_cash',function(l){return '+'+(l*50);}],
     ['웨이브 골드','r_wave_cash',function(l){return '+'+(l*2)+'%';}],
-    ['골드 획득','r_gold_gain',function(l){return '+'+(l*2)+'%';}],
-    ['속성 공격','r_elem_atk',function(l){return '+'+(l*2)+'%';}],
-    ['속성 방어','r_elem_def',function(l){return '+'+(l*2)+'%';}],
-    ['속성 체력','r_elem_hp',function(l){return '+'+(l*2)+'%';}]
+    ['골드 획득','r_gold_gain',function(l){return '+'+(l*2)+'%';}]
   ];
   _labData.forEach(function(li){
     var lv=parseInt(localStorage.getItem('res_'+li[1])||'0',10);
@@ -18148,13 +18152,6 @@ function _getElementMultipliers() {
       }
     });
   });
-  // 코어랩 속성 연구 보너스 (모든 속성에 곱적용, 레벨당 +2%)
-  var eAtkLv = parseInt(localStorage.getItem('res_r_elem_atk')||'0',10);
-  var eDefLv = parseInt(localStorage.getItem('res_r_elem_def')||'0',10);
-  var eHpLv  = parseInt(localStorage.getItem('res_r_elem_hp')||'0',10);
-  if (eAtkLv > 0) m.atk *= (1 + eAtkLv * 0.02);
-  if (eDefLv > 0) m.def *= (1 + eDefLv * 0.02);
-  if (eHpLv > 0)  m.hp  *= (1 + eHpLv * 0.02);
   return m;
 }
 // 속성별 개별 배율 (통계 상세용)
