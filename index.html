@@ -3024,12 +3024,6 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('explode',15); },
     apply()  { var c=upgCost('explode',15); coreChips-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
   },
-  { key:'slow',    tab:'utl', icon:'#',  name:'감속',     baseCost:12, unlock:null,
-    cost()   { return upgCost('slow',12); },
-    stat()   { return Math.round(G.slowPct*100)+'%'; },
-    canBuy() { return coreChips>=upgCost('slow',12); },
-    apply()  { var c=upgCost('slow',12); coreChips-=c; G.upgLvl.slow=(G.upgLvl.slow||0)+1; G.slowPct=Math.min(0.8,G.slowPct+0.1); },
-  },
   { key:'goldup',  tab:'utl', icon:'G',  name:'골드증폭',  baseCost:11, unlock:null,
     cost()   { return upgCost('goldup',11); },
     stat()   { return 'x'+G.goldBonus._tf1(); },
@@ -3376,7 +3370,6 @@ function createState() {
     lifeSteal:  0,
     regenRate:  0,
     regenTimer: 0,
-    slowPct:    0,
     explodeR:   0,
     gemBonus:   1.0,
     goldBonus:  1.0,
@@ -3889,8 +3882,6 @@ function update(dt) {
           var _healAmt = dmg * G.lifeSteal / 100;
           if (_healAmt > 0) G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _healAmt);
         }
-        // Slow on hit
-        if (G.slowPct > 0) e.slowTimer = 1500;
         e.hp -= dmg;
         // 흡혈 드론: 입힌 피해의 30% 회복
         if (e.type === 'vampire' && e.hp > 0) { e.hp = Math.min(e.maxHp, e.hp + dmg * 0.3); }
@@ -4093,10 +4084,8 @@ function update(dt) {
     }
 
     // Slow tick
-    if (e.slowTimer > 0) e.slowTimer = Math.max(0, e.slowTimer - dt);
-    const spdMult = (e.slowTimer > 0) ? (1 - G.slowPct) : 1;
     const auraSlow = G.auraSlowPct ? (1 - Math.min(0.8, G.auraSlowPct)) : 1;
-    const mv = e.spd * spdMult * auraSlow * (dt / 16.667);
+    const mv = e.spd * auraSlow * (dt / 16.667);
     e.x += (dx / dist) * mv;
     e.y += (dy / dist) * mv;
 
@@ -4278,7 +4267,6 @@ function mkEnemy(etype) {
     spd:       spd,
     gold:      Math.ceil(gold),
     gem:       gem,
-    slowTimer: 0,
     atkTimer:  0,
     enraged:   false,
     stealthTimer: etype==='stealth'?3000:0,
@@ -4312,7 +4300,6 @@ function fireTower() {
     if (target.type === 'shield') _dmg = Math.ceil(_dmg * 0.5);
     if (target.type === 'resist') { var _cap = Math.ceil(target.maxHp*0.3); if(_dmg>_cap) _dmg=_cap; }
     if (G.lifeSteal > 0) { G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _dmg*G.lifeSteal/100); }
-    if (G.slowPct > 0) target.slowTimer = 1500;
     target.hp -= _dmg;
     if (target.type === 'vampire' && target.hp > 0) target.hp = Math.min(target.maxHp, target.hp + _dmg*0.3);
     target.hitFlash = 2;
@@ -4866,7 +4853,6 @@ function render() {
 
   // Enemies (type-specific shapes)
   for (const e of G.enemies) {
-    const slowed = e.slowTimer > 0;
     ctx.save();
     ctx.translate(e.x, e.y);
 
@@ -4876,7 +4862,6 @@ function render() {
       var _bg = _grd==='galaxy'?'#440066':_grd==='hyper'?'#660022':_grd==='elite'?'#553300':'#443300';
       var _bs = _grd==='galaxy'?'#cc44ff':_grd==='hyper'?'#ff0044':_grd==='elite'?'#ff8822':'#ffcc00';
       if (e.enraged) { _bg = _grd==='hyper'?'#880033':'#664400'; _bs = '#ffdd44'; }
-      if (slowed) { _bg = '#1e3a8a'; _bs = '#93c5fd'; }
       var _bt = (G.ticks||0)*0.02;
       var _ringCount = _grd==='galaxy'?4:_grd==='hyper'?3:_grd==='elite'?2:1;
       var _sides = _grd==='galaxy'?12:_grd==='hyper'?10:_grd==='elite'?8:8;
@@ -4921,8 +4906,8 @@ function render() {
       ctx.fillText(_bn, 0, -e.r-(_ringCount*5)-8);
     } else if (e.type === 'tank') {
       // 중장갑 전함 — 이중 헥사곤 + 장갑판
-      var tankColor = slowed ? '#1e3a8a' : '#ff6600';
-      var tankStroke = slowed ? '#93c5fd' : '#ff8833';
+      var tankColor = '#ff6600';
+      var tankStroke = '#ff8833';
       // 외곽 헥사곤
       ctx.beginPath();
       for(var hi=0;hi<6;hi++){var ha=(Math.PI*2/6)*hi-Math.PI/6;if(hi===0)ctx.moveTo(Math.cos(ha)*e.r,Math.sin(ha)*e.r);else ctx.lineTo(Math.cos(ha)*e.r,Math.sin(ha)*e.r);}
@@ -4946,14 +4931,14 @@ function render() {
       var ra = Math.atan2(rdy, rdx);
       ctx.rotate(ra);
       var rl = e.r*1.8, rw = e.r*0.7;
-      var rushColor = slowed ? '#1d4ed8' : '#ff0055';
-      var rushStroke = slowed ? '#93c5fd' : '#ff3377';
+      var rushColor = '#ff0055';
+      var rushStroke = '#ff3377';
       // 엔진 플레임
       var _ft = (G.ticks||0)*0.3;
       var flameLen = 6+Math.sin(_ft)*3;
-      ctx.globalAlpha = 0.6; ctx.fillStyle = slowed ? '#60a5fa' : '#ff6600';
+      ctx.globalAlpha = 0.6; ctx.fillStyle = '#ff6600';
       ctx.beginPath(); ctx.moveTo(-rl/2,0); ctx.lineTo(-rl/2-flameLen,-rw*0.25); ctx.lineTo(-rl/2-flameLen*0.7,0); ctx.lineTo(-rl/2-flameLen,rw*0.25); ctx.closePath(); ctx.fill();
-      ctx.globalAlpha = 0.3; ctx.fillStyle = slowed ? '#93c5fd' : '#ffaa00';
+      ctx.globalAlpha = 0.3; ctx.fillStyle = '#ffaa00';
       ctx.beginPath(); ctx.moveTo(-rl/2,0); ctx.lineTo(-rl/2-flameLen*1.3,-rw*0.12); ctx.lineTo(-rl/2-flameLen,0); ctx.lineTo(-rl/2-flameLen*1.3,rw*0.12); ctx.closePath(); ctx.fill();
       ctx.globalAlpha = 1;
       // 본체
@@ -4971,8 +4956,8 @@ function render() {
       ctx.rotate(-ra);
     } else if (e.type === 'sniper') {
       // 스텔스 드론 — 다이아몬드 + 스캔 링
-      var snpColor = slowed ? '#1d4ed8' : '#aa00ff';
-      var snpStroke = slowed ? '#93c5fd' : '#cc44ff';
+      var snpColor = '#aa00ff';
+      var snpStroke = '#cc44ff';
       var _st = (G.ticks||0)*0.04;
       // 본체 다이아몬드
       ctx.beginPath();
@@ -4992,8 +4977,8 @@ function render() {
       ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI*2); ctx.fillStyle = snpStroke; ctx.fill();
     } else if (e.type === 'shield') {
       // 배리어 함선 — 오각형 + 에너지 실드
-      var shColor = slowed ? '#1d4ed8' : '#7c3aed';
-      var shStroke = slowed ? '#93c5fd' : '#a78bfa';
+      var shColor = '#7c3aed';
+      var shStroke = '#a78bfa';
       var _sht = (G.ticks||0)*0.025;
       // 본체 오각형
       ctx.beginPath();
@@ -5005,13 +4990,13 @@ function render() {
       // 에너지 실드 링 (회전)
       ctx.save(); ctx.rotate(_sht);
       ctx.beginPath(); ctx.arc(0,0,e.r+3,0,Math.PI*2);
-      ctx.strokeStyle = slowed?'#93c5fd':'#c084fc'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.35;
       ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
       ctx.restore();
     } else if (e.type === 'split') {
       // 클러스터 드론 — 6각별 + 분열 코어
-      var spColor = slowed ? '#1d4ed8' : '#ec4899';
-      var spStroke = slowed ? '#93c5fd' : '#f472b6';
+      var spColor = '#ec4899';
+      var spStroke = '#f472b6';
       // 6각별
       ctx.beginPath();
       for(var si2=0;si2<6;si2++){var sa2=(Math.PI*2/6)*si2-Math.PI/2;var outr=si2%2===0?e.r*1.15:e.r*0.55;if(si2===0)ctx.moveTo(Math.cos(sa2)*outr,Math.sin(sa2)*outr);else ctx.lineTo(Math.cos(sa2)*outr,Math.sin(sa2)*outr);}
@@ -5021,8 +5006,8 @@ function render() {
       for(var dc=0;dc<3;dc++){var dca=Math.PI*2/3*dc-Math.PI/2;var dcx=Math.cos(dca)*e.r*0.35,dcy=Math.sin(dca)*e.r*0.35;ctx.beginPath();ctx.arc(dcx,dcy,2,0,Math.PI*2);ctx.fillStyle=spStroke;ctx.globalAlpha=0.7;ctx.fill();ctx.globalAlpha=1;}
     } else if (e.type === 'regen') {
       // 수리 드론 — 원형 + 나노 파동 + 회전 십자
-      var regenColor = slowed ? '#1d4ed8' : '#10b981';
-      var regenStroke = slowed ? '#93c5fd' : '#34d399';
+      var regenColor = '#10b981';
+      var regenStroke = '#34d399';
       var _rgt = (G.ticks||0)*0.03;
       // 나노 파동 (외곽)
       ctx.beginPath(); ctx.arc(0,0,e.r+3+Math.sin(_rgt*2)*2,0,Math.PI*2);
@@ -5039,8 +5024,8 @@ function render() {
       ctx.globalAlpha = 1; ctx.restore();
     } else if (e.type === 'vampire') {
       // 흡혈 드론 — 역삼각형 + 흡혈 맥동
-      var vpColor = slowed?'#1d4ed8':'#ff2266';
-      var vpStroke = slowed?'#93c5fd':'#ff6699';
+      var vpColor = '#ff2266';
+      var vpStroke = '#ff6699';
       var _vt=(G.ticks||0)*0.04;
       ctx.beginPath();ctx.moveTo(0,-e.r*1.2);ctx.lineTo(e.r*0.9,e.r*0.6);ctx.lineTo(-e.r*0.9,e.r*0.6);ctx.closePath();
       ctx.fillStyle=vpColor;ctx.fill();ctx.strokeStyle=vpStroke;ctx.lineWidth=1.5;ctx.stroke();
@@ -5049,8 +5034,8 @@ function render() {
       ctx.fillStyle=vpStroke;ctx.globalAlpha=0.4+Math.sin(_vt)*0.2;ctx.fill();ctx.globalAlpha=1;
     } else if (e.type === 'stealth') {
       // 은신 함선 — 삼각형 + 은신 시 반투명
-      var stColor = slowed?'#1d4ed8':'#6688cc';
-      var stStroke = slowed?'#93c5fd':'#88aadd';
+      var stColor = '#6688cc';
+      var stStroke = '#88aadd';
       if(!e.stealthVisible) ctx.globalAlpha=0.15;
       ctx.beginPath();ctx.moveTo(0,-e.r*1.2);ctx.lineTo(e.r*0.8,e.r*0.8);ctx.lineTo(-e.r*0.8,e.r*0.8);ctx.closePath();
       ctx.fillStyle=stColor;ctx.fill();ctx.strokeStyle=stStroke;ctx.lineWidth=1;ctx.stroke();
@@ -5059,8 +5044,8 @@ function render() {
       ctx.globalAlpha=1;
     } else if (e.type === 'spawner') {
       // 소환 모함 — 큰 육각형 + 소환 링
-      var swColor = slowed?'#1d4ed8':'#aa66ff';
-      var swStroke = slowed?'#93c5fd':'#cc88ff';
+      var swColor = '#aa66ff';
+      var swStroke = '#cc88ff';
       var _swt=(G.ticks||0)*0.02;
       ctx.beginPath();for(var shi=0;shi<6;shi++){var sha=(Math.PI*2/6)*shi-Math.PI/6;if(shi===0)ctx.moveTo(Math.cos(sha)*e.r,Math.sin(sha)*e.r);else ctx.lineTo(Math.cos(sha)*e.r,Math.sin(sha)*e.r);}ctx.closePath();
       ctx.fillStyle=swColor;ctx.fill();ctx.strokeStyle=swStroke;ctx.lineWidth=2;ctx.stroke();
@@ -5071,8 +5056,8 @@ function render() {
       ctx.beginPath();ctx.arc(0,0,e.r*0.25,0,Math.PI*2);ctx.fillStyle=swStroke;ctx.fill();
     } else if (e.type === 'resist') {
       // 저항 코어 — 팔각형 + 방어막
-      var rsColor = slowed?'#1d4ed8':'#ff8844';
-      var rsStroke = slowed?'#93c5fd':'#ffaa66';
+      var rsColor = '#ff8844';
+      var rsStroke = '#ffaa66';
       ctx.beginPath();for(var ri2=0;ri2<8;ri2++){var ra2=(Math.PI*2/8)*ri2;if(ri2===0)ctx.moveTo(Math.cos(ra2)*e.r,Math.sin(ra2)*e.r);else ctx.lineTo(Math.cos(ra2)*e.r,Math.sin(ra2)*e.r);}ctx.closePath();
       ctx.fillStyle=rsColor;ctx.fill();ctx.strokeStyle=rsStroke;ctx.lineWidth=2;ctx.stroke();
       // 방어 마크
@@ -5080,8 +5065,8 @@ function render() {
       ctx.beginPath();ctx.moveTo(-e.r*0.4,-e.r*0.3);ctx.lineTo(0,-e.r*0.5);ctx.lineTo(e.r*0.4,-e.r*0.3);ctx.lineTo(e.r*0.4,e.r*0.2);ctx.quadraticCurveTo(0,e.r*0.5,-e.r*0.4,e.r*0.2);ctx.closePath();ctx.stroke();ctx.globalAlpha=1;
     } else if (e.type === 'kamikaze') {
       // 자폭 드론 — 작은 다이아몬드 + 경고 깜빡임
-      var kmColor = slowed?'#1d4ed8':'#ff6600';
-      var kmStroke = slowed?'#93c5fd':'#ff8833';
+      var kmColor = '#ff6600';
+      var kmStroke = '#ff8833';
       var _kmt=(G.ticks||0)*0.1;
       var _kmFlash = Math.sin(_kmt)>0 ? 1 : 0.6;
       ctx.globalAlpha=_kmFlash;
@@ -5098,16 +5083,16 @@ function render() {
       var _et = (G.ticks||0)*0.015;
       ctx.rotate(Math.PI/4+_et*0.5);
       var sz = e.r*1.3;
-      ctx.fillStyle = slowed ? '#1d4ed8' : '#ef4444';
+      ctx.fillStyle = '#ef4444';
       ctx.fillRect(-sz/2,-sz/2,sz,sz);
-      ctx.strokeStyle = slowed ? '#93c5fd' : '#ff6666';
+      ctx.strokeStyle = '#ff6666';
       ctx.lineWidth = 1; ctx.strokeRect(-sz/2,-sz/2,sz,sz);
       // 내부 회로 패턴
-      ctx.strokeStyle = slowed ? '#3b82f6' : '#ff8888'; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#ff8888'; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.4;
       ctx.strokeRect(-sz*0.22,-sz*0.22,sz*0.44,sz*0.44);
       ctx.globalAlpha = 1;
       // 코어 점
-      ctx.beginPath(); ctx.arc(0,0,1.5,0,Math.PI*2); ctx.fillStyle = slowed?'#93c5fd':'#ffaaaa'; ctx.fill();
+      ctx.beginPath(); ctx.arc(0,0,1.5,0,Math.PI*2); ctx.fillStyle = '#ffaaaa'; ctx.fill();
       ctx.rotate(-(Math.PI/4+_et*0.5));
     }
 
@@ -5751,7 +5736,7 @@ function _showUpgDetail(upg) {
     bounceChance:'레이저가 적에게 맞은 뒤 다른 적에게 튕길 확률',bounceTargets:'바운스 시 튕기는 최대 적 수',
     maxhp:'타워의 최대 체력을 늘립니다',hpRegen:'매 초 자동으로 체력을 회복합니다',
     armor:'받는 피해를 감소시키는 방어 중첩을 쌓습니다',defRate:'받는 피해를 비율로 감소시킵니다 (최대 90%)',defAbs:'받는 피해에서 고정 수치를 차감합니다',vamp:'적 처치 시 체력을 흡수합니다',
-    explode:'적 사망 시 주변 적에게 범위 피해를 줍니다',slow:'적 이동 속도를 감소시킵니다',
+    explode:'적 사망 시 주변 적에게 범위 피해를 줍니다',
     goldup:'골드 획득량을 증폭합니다'
   };
   var desc = descMap[upg.key] || upg.name + ' 능력을 강화합니다';
@@ -8251,21 +8236,14 @@ window.createState = function() {
   // Ultimate weapons
   var uw = _loadUW();
   g.hasDeathWave    = !!(uw.death_wave    && uw.death_wave.unlocked);
-  g.hasChronoField  = !!(uw.chrono_field  && uw.chrono_field.unlocked);
   g.hasPlasma       = !!(uw.plasma_surge  && uw.plasma_surge.unlocked);
   g.hasNovaBurst    = !!(uw.nova_burst    && uw.nova_burst.unlocked);
   var dw = uw.death_wave    || {};
-  var cf = uw.chrono_field  || {};
   var ps = uw.plasma_surge  || {};
   var nb = uw.nova_burst    || {};
   g.dwDamageMult  = 2.5 + (dw.dmgLv      || 0) * 0.05;
   g.dwCooldownMax = Math.max(30000, (270  - (dw.cooldownLv || 0) * 5) * 1000);
   g.dwCooldown    = g.hasDeathWave    ? g.dwCooldownMax : Infinity;
-  g.cfDuration    = (8  + (cf.durationLv || 0) * 0.5) * 1000;
-  g.cfSlowRate    = 0.20 + (cf.slowLv    || 0) * 0.01;
-  g.cfCooldownMax = Math.max(30000, (170  - (cf.cooldownLv || 0) * 3) * 1000);
-  g.cfCooldown    = g.hasChronoField  ? g.cfCooldownMax : Infinity;
-  g.cfActive      = false; g.cfTimer = 0;
   g.psCooldownMax = Math.max(30000, (180  - (ps.cooldownLv || 0) * 4) * 1000);
   g.psCooldown    = g.hasPlasma       ? g.psCooldownMax : Infinity;
   g.psEffect      = null;
@@ -8416,18 +8394,6 @@ function _updateUltimates(dt) {
     G.dwCooldown = Math.max(0, G.dwCooldown - dt);
     if (G.dwCooldown === 0) _triggerDeathWave();
   }
-  // Chrono Field
-  if (G.hasChronoField) {
-    if (!G.cfActive && G.cfCooldown > 0) {
-      G.cfCooldown = Math.max(0, G.cfCooldown - dt);
-      if (G.cfCooldown === 0) { G.cfActive = true; G.cfTimer = G.cfDuration; _toast('◷ 크로노 필드 활성화!'); }
-    }
-    if (G.cfActive) {
-      G.cfTimer -= dt;
-      for (var ci = 0; ci < G.enemies.length; ci++) G.enemies[ci].slowTimer = Math.max(G.enemies[ci].slowTimer, 150);
-      if (G.cfTimer <= 0) { G.cfActive = false; G.cfCooldown = G.cfCooldownMax; }
-    }
-  }
   // Plasma Surge
   if (G.hasPlasma && G.psCooldown > 0) {
     G.psCooldown = Math.max(0, G.psCooldown - dt);
@@ -8559,7 +8525,6 @@ function _updateUltHUD() {
   var el = document.getElementById('ult-hud'); if (!el) return;
   var wps = [];
   if (G.hasDeathWave)   wps.push({ icon:'◎', color:'#ef4444', cd:G.dwCooldown,  max:G.dwCooldownMax  });
-  if (G.hasChronoField) wps.push({ icon:'◷', color:'#3b82f6', cd:G.cfCooldown,  max:G.cfCooldownMax, active:G.cfActive });
   if (G.hasPlasma)      wps.push({ icon:'⚡', color:'#f59e0b', cd:G.psCooldown, max:G.psCooldownMax  });
   if (G.hasNovaBurst)   wps.push({ icon:'✦', color:'#cc44ff', cd:G.nbCooldown,  max:G.nbCooldownMax  });
   el.style.display = wps.length ? 'flex' : 'none';
@@ -8805,13 +8770,6 @@ var ULTIMATE_WEAPONS = [
     stats:[
       { key:'dmgLv',       name:'피해량',  fmt:function(lv){return (250+lv*5)+'%';} },
       { key:'cooldownLv',  name:'쿨타임',  fmt:function(lv){return Math.max(30,(270-lv*5))+'s';} },
-    ]},
-  { id:'chrono_field',  name:'크로노 필드',  icon:'◷', color:'#3b82f6', unlockCost:5,
-    desc:'적 이동속도를 감소시키는 시간 왜곡 필드',
-    stats:[
-      { key:'durationLv', name:'지속시간', fmt:function(lv){return (8+lv*0.5)._tf1()+'s';} },
-      { key:'slowLv',     name:'감속률',   fmt:function(lv){return (20+lv)+'%';} },
-      { key:'cooldownLv', name:'쿨타임',   fmt:function(lv){return Math.max(30,(170-lv*3))+'s';} },
     ]},
   { id:'plasma_surge',  name:'플라즈마 서지', icon:'⚡', color:'#f59e0b', unlockCost:8,
     desc:'레이저 빔으로 일직선 관통',
@@ -14102,7 +14060,6 @@ function _showEncyclopedia() {
     utl:{ label:'유틸리티', items:[
       { id:'gold_bonus', name:'골드 증폭', desc:'적 처치 시 획득 골드 배율. 전투 중 강화로 레벨당 +50%.' },
       { id:'explode',    name:'폭발', desc:'적 처치 시 폭발하여 주변 적에게 범위 피해. 전투 중 강화로 범위 +15px.' },
-      { id:'slow',       name:'감속', desc:'레이저에 맞은 적의 이동속도를 감소. 전투 중 강화로 감속률 +10%.' },
       { id:'gold_wave',  name:'골드/웨이브', desc:'웨이브 클리어 시 추가 지급 골드.' },
       { id:'interest',   name:'이자', desc:'보유 골드의 일정 %를 매 웨이브마다 추가 지급.' },
     ]},
