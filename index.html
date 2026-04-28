@@ -17354,7 +17354,7 @@ function _skinAccent(col) {
 }
 
 var _SKIN_PATTERNS = {
-  none: function(){return '';},
+  none: function(c,s,p,col,col2,v){var len=s*0.2;return '<line x1="'+c+'" y1="'+(c-len)+'" x2="'+c+'" y2="'+(c+len)+'" stroke="'+col+'" stroke-width="'+(s*0.012)+'" opacity="0.5"/><line x1="'+(c-len)+'" y1="'+c+'" x2="'+(c+len)+'" y2="'+c+'" stroke="'+col+'" stroke-width="'+(s*0.012)+'" opacity="0.5"/><circle cx="'+c+'" cy="'+c+'" r="'+(s*0.04)+'" fill="'+col+'" opacity="0.6"/>';},
   tear: function(c,s,p,col,col2,v) {
     var n=v?4:3, rot=v?45:0, h='';
     for(var i=0;i<n;i++) h+='<g transform="rotate('+(i*(360/n)+rot)+','+c+','+c+')"><path d="M'+c+','+(c-p)+' Q'+(c+p*0.6)+','+(c-p*0.4)+' '+(c+p*0.5)+','+c+' Q'+(c+p*0.4)+','+(c+p*0.7)+' '+c+','+(c+p)+' Q'+(c-p*0.4)+','+(c+p*0.7)+' '+(c-p*0.5)+','+c+' Q'+(c-p*0.6)+','+(c-p*0.4)+' '+c+','+(c-p)+'Z" fill="none" stroke="'+col+'" stroke-width="'+(s*0.013)+'"/></g>';
@@ -17594,7 +17594,7 @@ function _showSkinPurchasePopup(skin, isBg) {
       ov.remove();
       if (window.showToastMsg) showToastMsg('스킨 해금: ' + skin.name, '#00ff88');
       try { renderSkinGrid(); } catch(_){}
-      try { if(window._syncStoreHUD) _syncStoreHUD(); } catch(_){}
+      try { syncShopUI(); } catch(_){}
     });
   }
 }

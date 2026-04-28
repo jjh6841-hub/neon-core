@@ -429,12 +429,19 @@ document.getElementById('refresh-btn').addEventListener('click', loadUsers);
 
 // 유저 상세 모달
 function openModal(user) {
-  currentUser = user;
-  var p = user.data.perm || {};
-  var ws = p.ws || {};
-  var unlocks = p.unlocks || {};
-
-  renderModal();
+  // Firestore에서 최신 데이터 다시 로드
+  db.collection('users').doc(user.id).get().then(function(doc) {
+    if (doc.exists) {
+      user.data = doc.data();
+      var idx = allUsers.findIndex(function(u){ return u.id === user.id; });
+      if (idx !== -1) allUsers[idx].data = doc.data();
+    }
+    currentUser = user;
+    renderModal();
+  }).catch(function() {
+    currentUser = user;
+    renderModal();
+  });
 }
 
 function renderModal() {
