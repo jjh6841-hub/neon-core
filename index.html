@@ -18445,7 +18445,7 @@ function _renderStagePopup() {
         '<div style="font-size:24px;color:'+(isLocked?'#334455':el.color)+';font-weight:bold;">'+s+'</div>'+
         '<div style="font-size:9px;color:#556677;margin-top:2px;">STAGE</div>'+
       '</div>'+
-      '<button data-sp-next style="background:none;border:1px solid '+(s<MAX_STAGE?el.color+'66':'#1a1a2a')+';color:'+(s<MAX_STAGE?el.color:'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">▶</button>'+
+      '<button data-sp-next style="background:none;border:1px solid '+(s<curStage?el.color+'66':'#1a1a2a')+';color:'+(s<curStage?el.color:'#1a1a2a')+';width:32px;height:32px;font-size:14px;cursor:pointer;font-family:monospace;-webkit-appearance:none;">▶</button>'+
     '</div>';
 
   // 상태 & 보상
@@ -18475,7 +18475,7 @@ function _renderStagePopup() {
   // 이벤트 바인딩
   _stagePopup.querySelector('[data-sp-close]').onclick = _closeStagePopup;
   _stagePopup.querySelector('[data-sp-prev]').onclick = function() { if (_viewStage > 1) { _viewStage--; _renderStagePopup(); } };
-  _stagePopup.querySelector('[data-sp-next]').onclick = function() { if (_viewStage < MAX_STAGE) { _viewStage++; _renderStagePopup(); } };
+  _stagePopup.querySelector('[data-sp-next]').onclick = function() { if (_viewStage < curStage) { _viewStage++; _renderStagePopup(); } };
 
   var buyTicketBtn = _stagePopup.querySelector('[data-sp-buy-ticket]');
   if (buyTicketBtn) buyTicketBtn.onclick = function() {
