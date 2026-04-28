@@ -5248,17 +5248,10 @@ function render() {
       // 타워 물질화 (SVG 스킨 캐시 사용)
       ctx.globalAlpha = ease;
       if (window._towerSkinCache && window._towerSkinCache._ready) {
-        var _idpr = window._dpr || 1;
-        var _ipsz = window._towerSkinCache.width;
-        var _isz = _ipsz / _idpr * ease;
+        var _isz = (TR * 2 + 2) * ease;
         if (_isz > 1) {
           ctx.drawImage(window._towerSkinCache, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
         }
-      } else {
-        var _eR = TR * ease;
-        ctx.beginPath();
-        for (var hi=0;hi<6;hi++){var ha=Math.PI/3*hi-Math.PI/6;if(hi===0)ctx.moveTo(G.cx+_eR*Math.cos(ha),G.cy+_eR*Math.sin(ha));else ctx.lineTo(G.cx+_eR*Math.cos(ha),G.cy+_eR*Math.sin(ha));}
-        ctx.closePath(); ctx.fillStyle='#06061a'; ctx.fill(); ctx.strokeStyle=_ac; ctx.lineWidth=2; ctx.stroke();
       }
     }
 
@@ -5304,11 +5297,9 @@ function render() {
     }
     ctx.save();
     var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
-    // 오프스크린 캔버스를 물리 픽셀 좌표에 1:1 블릿
+    // SVG 스킨 캐시를 CSS 좌표 기준으로 그리기
     if (window._towerSkinCache && window._towerSkinCache._ready) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(window._towerSkinCache, Math.round(_tx * _dpr) - Math.round(_physSz / 2), Math.round(_ty * _dpr) - Math.round(_physSz / 2));
-      ctx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
+      ctx.drawImage(window._towerSkinCache, _tx - _drawSz/2, _ty - _drawSz/2, _drawSz, _drawSz);
     }
     // 피격/버프 오버레이
     if (flashHit) {
