@@ -3023,12 +3023,6 @@ var UPGRADES = [
     apply()  { var c=upgCost('pulseCd',12); coreChips-=c; G.upgLvl.pulseCd=(G.upgLvl.pulseCd||0)+1; G.pulseCd=Math.max(20,60-_totalLv('pulseCd')*2)*1000; },
   },
   // ─ 특수 탭 ─
-  { key:'explode', tab:'utl', icon:'*',  name:'폭발',     baseCost:15, unlock:null,
-    cost()   { return upgCost('explode',15); },
-    stat()   { return 'r='+G.explodeR; },
-    canBuy() { return coreChips>=upgCost('explode',15); },
-    apply()  { var c=upgCost('explode',15); coreChips-=c; G.upgLvl.explode=(G.upgLvl.explode||0)+1; G.explodeR+=15; },
-  },
 ];
 
 
@@ -3369,7 +3363,6 @@ function createState() {
     lifeSteal:  0,
     regenRate:  0,
     regenTimer: 0,
-    explodeR:   0,
     gemBonus:   1.0,
 
     // Wave banner (canvas-rendered)
@@ -3941,49 +3934,7 @@ function update(dt) {
           // Colored particles by enemy type
           var _pColors = { basic:'#ef4444', tank:'#ff6600', rusher:'#ff0055', sniper:'#aa00ff', boss:'#ffcc00' };
           spawnDeathParticles(e.x, e.y, _pColors[e.type] || '#ef4444', e.boss ? 16 : 8);
-          // Explosion AOE
-          if (G.explodeR > 0) {
-            const ex = e.x, ey = e.y;
-            const exDmg = Math.max(1, Math.floor(G.tower.dmg * 0.5));
-            addFx(ex, ey, G.explodeR, '#f97316');
-            for (let k = G.enemies.length - 1; k >= 0; k--) {
-              const ek = G.enemies[k];
-              if (ek === e) continue;
-              const edx = ek.x - ex, edy = ek.y - ey;
-              if (edx * edx + edy * edy < G.explodeR * G.explodeR) {
-                ek.hp -= exDmg;
-                if (ek.hp <= 0) {
-                  var ekChip = ek.boss ? 0 : Math.ceil((ek.gold || 1) * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult ? 0.5 : 0)));
-                  if (G._augChipMult && ekChip > 0) {
-                    G._augChipFrac = (G._augChipFrac||0) + ekChip * 0.5;
-                    var _ekBonus = Math.floor(G._augChipFrac);
-                    G._augChipFrac -= _ekBonus;
-                    ekChip += _ekBonus;
-                  }
-                  coreChips += ekChip;
-                  G.killCount++;
-                  PERM.totalKills++;
-                  _infKill(ek.type);
-                  var _ekG = ek.gold || 1;
-                  var _ekBase = Math.round(_ekG * 0.5);
-                  _ekG = Math.round(_ekG * (G.goldMult||1) * 0.5);
-                  if (_ekG > 0) { G.gold += _ekG; G.goldEarned += _ekG; G.goldBaseEarned += _ekBase; PERM.gold += _ekG; }
-                  if (ek.boss) { PERM.bossKills++; }
-                  if (ekChip > 0) G.floatTexts.push({ x: ek.x, y: ek.y, text: '+' + ekChip + ' \uD83D\uDD38', color: '#ff6600', timer: 0 });
-                  for (let dp2 = 0; dp2 < 4; dp2++) {
-                    const da2 = Math.PI / 2 * dp2 + Math.PI / 4;
-                    G.deathParticles.push({ x: ek.x, y: ek.y, vx: Math.cos(da2) * 40, vy: Math.sin(da2) * 40, timer: 0 });
-                  }
-                  addFx(ek.x, ek.y, ek.r * 2.8, '#f97316');
-                  G.enemies.splice(k, 1);
-
-                  if (k <= j) j--;
-                }
-              }
-            }
-          } else {
-            addFx(e.x, e.y, e.r * 2.8, e.boss ? '#f97316' : '#ef4444');
-          }
+          addFx(e.x, e.y, e.r * 2.8, e.boss ? '#f97316' : '#ef4444');
           // 광역 타격: 적 처치 시 주변 적에게 스플래시 데미지
           if (G.splashPct && G.splashPct > 0) {
             var _spDmg = Math.round(G.tower.dmg * G.splashPct);
@@ -5701,7 +5652,6 @@ function _showUpgDetail(upg) {
     bounceChance:'레이저가 적에게 맞은 뒤 다른 적에게 튕길 확률',bounceTargets:'바운스 시 튕기는 최대 적 수',
     maxhp:'타워의 최대 체력을 늘립니다',hpRegen:'매 초 자동으로 체력을 회복합니다',
     armor:'받는 피해를 감소시키는 방어 중첩을 쌓습니다',defRate:'받는 피해를 비율로 감소시킵니다 (최대 90%)',defAbs:'받는 피해에서 고정 수치를 차감합니다',vamp:'적 처치 시 체력을 흡수합니다',
-    explode:'적 사망 시 주변 적에게 범위 피해를 줍니다',
     goldup:'골드 획득량을 증폭합니다'
   };
   var desc = descMap[upg.key] || upg.name + ' 능력을 강화합니다';
@@ -8204,23 +8154,6 @@ window.createState = function() {
   g.cashPerWaveExt  = (ws.cashPerWave     || 0) * 2;
   g.coinsPerKillM   = 1 + (ws.coinsPerKill|| 0) * 0.02;
   g.interestRate    = (ws.interest        || 0) * 0.001;
-  // Ultimate weapons
-  var uw = _loadUW();
-  g.hasDeathWave    = !!(uw.death_wave    && uw.death_wave.unlocked);
-  g.hasPlasma       = !!(uw.plasma_surge  && uw.plasma_surge.unlocked);
-  g.hasNovaBurst    = !!(uw.nova_burst    && uw.nova_burst.unlocked);
-  var dw = uw.death_wave    || {};
-  var ps = uw.plasma_surge  || {};
-  var nb = uw.nova_burst    || {};
-  g.dwDamageMult  = 2.5 + (dw.dmgLv      || 0) * 0.05;
-  g.dwCooldownMax = Math.max(30000, (270  - (dw.cooldownLv || 0) * 5) * 1000);
-  g.dwCooldown    = g.hasDeathWave    ? g.dwCooldownMax : Infinity;
-  g.psCooldownMax = Math.max(30000, (180  - (ps.cooldownLv || 0) * 4) * 1000);
-  g.psCooldown    = g.hasPlasma       ? g.psCooldownMax : Infinity;
-  g.psEffect      = null;
-  g.nbProj        = 8 + (nb.projectilesLv || 0);
-  g.nbCooldownMax = Math.max(30000, (90   - (nb.cooldownLv || 0) * 2) * 1000);
-  g.nbCooldown    = g.hasNovaBurst    ? g.nbCooldownMax : Infinity;
   return g;
 };
 
@@ -8360,77 +8293,7 @@ function _updateThorn(dt) {
 }
 
 function _updateUltimates(dt) {
-  // Death Wave
-  if (G.hasDeathWave && G.dwCooldown > 0) {
-    G.dwCooldown = Math.max(0, G.dwCooldown - dt);
-    if (G.dwCooldown === 0) _triggerDeathWave();
-  }
-  // Plasma Surge
-  if (G.hasPlasma && G.psCooldown > 0) {
-    G.psCooldown = Math.max(0, G.psCooldown - dt);
-    if (G.psCooldown === 0) _triggerPlasma();
-  }
-  if (G.psEffect) { G.psEffect.timer -= dt; if (G.psEffect.timer <= 0) G.psEffect = null; }
-  // Nova Burst
-  if (G.hasNovaBurst && G.nbCooldown > 0) {
-    G.nbCooldown = Math.max(0, G.nbCooldown - dt);
-    if (G.nbCooldown === 0) _triggerNovaBurst();
-  }
-}
-
-function _triggerDeathWave() {
-  var dmg = G.tower.dmg * G.dwDamageMult, killed = 0;
-  for (var i = G.enemies.length - 1; i >= 0; i--) {
-    G.enemies[i].hp -= dmg;
-    if (G.enemies[i].hp <= 0) {
-      var _dwc = G.enemies[i].boss ? 0 : Math.ceil((G.enemies[i].gold||1)*0.1*(1+(G._prismChipKillBonus||0)+(G._augChipMult?0.5:0))); coreChips += _dwc;
-      G.killCount++; PERM.totalKills++; _infKill(G.enemies[i].type);
-      var _dwG = G.enemies[i].gold || 1; var _dwGb = _dwG;
-      _dwG = Math.round(_dwG * (G.goldMult||1));
-      if (_dwG > 0) { G.gold += _dwG; G.goldEarned += _dwG; G.goldBaseEarned += _dwGb; PERM.gold += _dwG; }
-      if (G.enemies[i].boss) { PERM.bossKills++; }
-      try { spawnDeathParticles(G.enemies[i].x, G.enemies[i].y, '#ef4444', 8); } catch(_) {}
-      G.enemies.splice(i, 1); killed++;
-    }
-  }
-  try { triggerShake(12); addFx(G.cx, G.cy, Math.max(CW, CH) * 0.7, '#ef4444'); } catch(_) {}
-  G.dwCooldown = G.dwCooldownMax;
-  _toast('◎ 데스 웨이브! ' + killed + '마리 처치');
-}
-
-function _triggerPlasma() {
-  var angle = Math.random() * Math.PI;
-  G.psEffect = { angle: angle, timer: 600 };
-  var cos = Math.cos(angle), sin = Math.sin(angle), bw = 22;
-  for (var i = G.enemies.length - 1; i >= 0; i--) {
-    var e = G.enemies[i], ex = e.x - G.cx, ey = e.y - G.cy;
-    if (Math.abs(-ex * sin + ey * cos) < bw + e.r) {
-      e.hp -= G.tower.dmg * 4;
-      if (e.hp <= 0) {
-        var _psc = e.boss ? 0 : Math.ceil((e.gold||1)*0.1*(1+(G._prismChipKillBonus||0)+(G._augChipMult?0.5:0))); coreChips += _psc;
-        G.killCount++; PERM.totalKills++; _infKill(e.type);
-        var _psG = e.gold || 1; var _psGb = _psG;
-        _psG = Math.round(_psG * (G.goldMult||1));
-        if (_psG > 0) { G.gold += _psG; G.goldEarned += _psG; G.goldBaseEarned += _psGb; PERM.gold += _psG; }
-        if (e.boss) { PERM.bossKills++; }
-        try { spawnDeathParticles(e.x, e.y, '#f59e0b', 8); } catch(_) {}
-        G.enemies.splice(i, 1);
-      }
-    }
-  }
-  G.psCooldown = G.psCooldownMax;
-  try { triggerShake(6); } catch(_) {}
-  _toast('⚡ 플라즈마 서지!');
-}
-
-function _triggerNovaBurst() {
-  var shots = G.nbProj || 8, dmg = G.tower.dmg * 1.5;
-  for (var s = 0; s < shots; s++) {
-    var a = (Math.PI * 2 / shots) * s;
-    G.bullets.push({ x: G.cx, y: G.cy, dx: Math.cos(a), dy: Math.sin(a), crit: false, pierceLeft: 99, hitSet: new Set(), _dmg: dmg });
-  }
-  G.nbCooldown = G.nbCooldownMax;
-  _toast('✦ 노바 버스트! ' + shots + '발');
+  // 궁극무기 제거됨 — 빈 함수 유지 (호출부 호환)
 }
 
 /* ── render 확장 ── */
@@ -8477,40 +8340,13 @@ window.render = function() {
     }
   }
 
-  // Plasma Surge
-  if (G.psEffect && G.psEffect.timer > 0) {
-    var pa = G.psEffect.angle, alpha = Math.min(1, G.psEffect.timer / 300);
-    var pc = Math.cos(pa), ps2 = Math.sin(pa), len = Math.max(CW, CH) * 1.2;
-    ctx.save(); ctx.translate(G.cx, G.cy);
-    ctx.strokeStyle = 'rgba(245,158,11,' + alpha + ')'; ctx.lineWidth = 18;
-    ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 30;
-    ctx.beginPath(); ctx.moveTo(-pc * len, -ps2 * len); ctx.lineTo(pc * len, ps2 * len); ctx.stroke();
-    ctx.restore();
   }
 
   ctx.restore(); ctx.restore();
 };
 
-/* ── 궁극 무기 HUD ── */
 function _updateUltHUD() {
-  var el = document.getElementById('ult-hud'); if (!el) return;
-  var wps = [];
-  if (G.hasDeathWave)   wps.push({ icon:'◎', color:'#ef4444', cd:G.dwCooldown,  max:G.dwCooldownMax  });
-  if (G.hasPlasma)      wps.push({ icon:'⚡', color:'#f59e0b', cd:G.psCooldown, max:G.psCooldownMax  });
-  if (G.hasNovaBurst)   wps.push({ icon:'✦', color:'#cc44ff', cd:G.nbCooldown,  max:G.nbCooldownMax  });
-  el.style.display = wps.length ? 'flex' : 'none';
-  el.innerHTML = wps.map(function(w) {
-    var pct   = w.max > 0 ? Math.max(0, 1 - w.cd / w.max) : 1;
-    var ready = w.cd <= 0;
-    var lbl   = ready ? 'READY' : (Math.ceil(w.cd / 1000) + 's');
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:28px;">' +
-      '<div style="font-size:13px;color:' + w.color + ';' + (ready ? 'text-shadow:0 0 8px ' + w.color + ';' : '') + '">' + w.icon + '</div>' +
-      '<div style="width:26px;height:3px;background:#0a1a2a;border:1px solid #1a2a3a;">' +
-        '<div style="height:100%;background:' + w.color + ';width:' + Math.round(pct * 100) + '%;transition:width 0.3s;"></div>' +
-      '</div>' +
-      '<div style="font-size:7px;color:' + (ready ? w.color : '#334455') + ';font-family:monospace;">' + lbl + '</div>' +
-      '</div>';
-  }).join('');
+  var el = document.getElementById('ult-hud'); if (el) el.style.display = 'none';
 }
 
 function _toast(msg) {
@@ -8525,11 +8361,10 @@ function _toast(msg) {
   } catch(_) {}
 }
 
-function _loadUW() {
-  try { return JSON.parse(localStorage.getItem('td_uw') || '{}'); } catch(_) { return {}; }
-}
-window._loadUW  = _loadUW;
-window._saveUW  = function(d) { try { localStorage.setItem('td_uw', JSON.stringify(d)); } catch(_) {} };
+// _loadUW/_saveUW 제거됨 (궁극무기 → 프로토콜 대체)
+function _loadUW() { return {}; }
+window._loadUW = _loadUW;
+window._saveUW = function() {};
 
 }());
 </script>
@@ -8734,26 +8569,7 @@ function _appendTierCard(container, tab, nextTier, cost, ws) {
   container.appendChild(card);
 }
 
-/* ══ 프로토콜 스킬 데이터 ══ */
-var ULTIMATE_WEAPONS = [
-  { id:'death_wave',   name:'데스 웨이브',   icon:'◎', color:'#ef4444', unlockCost:5,
-    desc:'강력한 충격파 - 공격력 250% 피해를 전체 적에게',
-    stats:[
-      { key:'dmgLv',       name:'피해량',  fmt:function(lv){return (250+lv*5)+'%';} },
-      { key:'cooldownLv',  name:'쿨타임',  fmt:function(lv){return Math.max(30,(270-lv*5))+'s';} },
-    ]},
-  { id:'plasma_surge',  name:'플라즈마 서지', icon:'⚡', color:'#f59e0b', unlockCost:8,
-    desc:'레이저 빔으로 일직선 관통',
-    stats:[
-      { key:'cooldownLv', name:'쿨타임', fmt:function(lv){return Math.max(30,(180-lv*4))+'s';} },
-    ]},
-  { id:'nova_burst',    name:'노바 버스트',   icon:'✦', color:'#cc44ff', unlockCost:10,
-    desc:'360도 에너지 파동 발사',
-    stats:[
-      { key:'projectilesLv', name:'발사체 수', fmt:function(lv){return (8+lv)+'발';} },
-      { key:'cooldownLv',    name:'쿨타임',    fmt:function(lv){return Math.max(30,(90-lv*2))+'s';} },
-    ]},
-];
+// 궁극무기 제거됨 (프로토콜로 대체)
 
 
 
@@ -14099,8 +13915,6 @@ function _showEncyclopedia() {
       ['파장 주기','에너지 파장의 발동 간격. 강화소에서 레벨당 -0.5초.'],
     ]},
     utl:{ label:'유틸리티', items:[
-      { id:'gold_bonus', name:'골드 증폭', desc:'적 처치 시 획득 골드 배율. 전투 중 강화로 레벨당 +50%.' },
-      { id:'explode',    name:'폭발', desc:'적 처치 시 폭발하여 주변 적에게 범위 피해. 전투 중 강화로 범위 +15px.' },
       { id:'gold_wave',  name:'골드/웨이브', desc:'웨이브 클리어 시 추가 지급 골드.' },
       { id:'interest',   name:'이자', desc:'보유 골드의 일정 %를 매 웨이브마다 추가 지급.' },
     ]},
