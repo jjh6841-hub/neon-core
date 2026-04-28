@@ -89,6 +89,8 @@ canvas {
   display: block;
   touch-action: none;
   -ms-touch-action: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 /* ─── OVERLAY SCREENS (results + shop) ───────────────────────── */
@@ -1149,7 +1151,7 @@ canvas {
   <div id="canvas-area">
     <canvas id="gameCanvas"></canvas>
     <div id="tower-dom" style="display:none;position:absolute;pointer-events:none;z-index:10;transform:translate(-50%,-50%);"></div>
-    <div id="range-dom" style="display:none;position:absolute;pointer-events:none;z-index:5;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed rgba(0,255,255,0.3);box-sizing:border-box;"></div>
+    <div id="range-dom" style="display:none;position:absolute;pointer-events:none;z-index:5;transform:translate(-50%,-50%);overflow:visible;"></div>
     <!-- 궁극 무기 쿨타임 HUD -->
     <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
 
@@ -3268,7 +3270,7 @@ function resizeCanvas() {
     w = Math.floor(ah * 9 / 16);
   }
   CW = w; CH = h;
-  window._dpr = Math.min(window.devicePixelRatio || 1, 3);
+  window._dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width  = Math.round(w * window._dpr);
   canvas.height = Math.round(h * window._dpr);
   canvas.style.width  = w + 'px';
@@ -5162,33 +5164,55 @@ function render() {
   }
 
   // Tower (hexagon) — 인트로 배치 연출 / 일반
-  // ── 공통: tower/range DOM 좌표 계산 (인트로/일반 공유) ──
+  // ── 공통: tower/range DOM 위치 (캔버스 CSS 크기 기준) ──
   var _tDom = document.getElementById('tower-dom');
   var _rDom = document.getElementById('range-dom');
-  var _cv = document.getElementById('gameCanvas');
-  var _scrX = 0, _scrY = 0, _pxPerUnit = 1, _zm = G.zoom || 1;
-  if (_cv) {
-    var _cvRect = _cv.getBoundingClientRect();
-    var _aRect = _cv.parentElement.getBoundingClientRect();
-    var _offX = _cvRect.left - _aRect.left;
-    var _offY = _cvRect.top - _aRect.top;
-    _pxPerUnit = _cvRect.width / CW;
-    var _vizX = CW/2 + (G.cx - CW/2) * _zm;
-    var _vizY = CH/2 + (G.cy - CH/2) * _zm;
-    _scrX = _offX + _vizX * _pxPerUnit;
-    _scrY = _offY + _vizY * _pxPerUnit;
+  var _zm = G.zoom || 1;
+  // 캔버스 CSS px와 게임 좌표가 1:1이므로, 캔버스의 부모 내 오프셋만 보정
+  var _canvasEl = document.getElementById('gameCanvas');
+  var _domCX = 0, _domCY = 0;
+  if (_canvasEl) {
+    var _cRect = _canvasEl.getBoundingClientRect();
+    var _pRect = _canvasEl.parentElement.getBoundingClientRect();
+    _domCX = (_cRect.left - _pRect.left) + (CW/2 + (G.cx - CW/2) * _zm);
+    _domCY = (_cRect.top  - _pRect.top)  + (CH/2 + (G.cy - CH/2) * _zm);
+  }
+  var _TR = 23, _drawSz = _TR * 2 + 2;
+  var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
+
+  // ── tower-dom + range-dom 위치/크기 (인트로·일반 공통) ──
+  if (_tDom) {
+    if (_tDom._skinKey !== _cSkin) {
+      _tDom._skinKey = _cSkin;
+      _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
+    }
+    var _tSz = _drawSz * _zm;
+    _tDom.style.width  = _tSz + 'px';
+    _tDom.style.height = _tSz + 'px';
+    _tDom.style.left   = _domCX + 'px';
+    _tDom.style.top    = _domCY + 'px';
+  }
+  if (_rDom) {
+    var _rSz = G.tower.range * 2 * _zm;
+    _rDom.style.width  = _rSz + 'px';
+    _rDom.style.height = _rSz + 'px';
+    _rDom.style.left   = _domCX + 'px';
+    _rDom.style.top    = _domCY + 'px';
+    // SVG 원 (CSS border 대신 — 안드로이드 선명도 대응)
+    if (!_rDom._svgReady) {
+      _rDom._svgReady = true;
+      _rDom.innerHTML = '<svg width="100%" height="100%" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;"><circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,255,255,0.3)" stroke-width="1.5" stroke-dasharray="4 4"/></svg>';
+    }
   }
 
   if (G.introTimer >= 0) {
-  // 인트로 중 range-dom 숨김
+  // 인트로: 타워 페이드인, 범위 숨김
   if (_rDom) _rDom.style.display = 'none';
   (function(){
     var t = G.introTimer;
-    // 장착 스킨 색상 적용
     var _ac = '#00ffff';
     var _fl = '#001a22';
     try {
-      var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
       if (window.IRIS_SKINS) {
         var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0];
         if (_found) _ac = _found.color;
@@ -5198,30 +5222,21 @@ function render() {
     else if (_ac === '#ff4444' || _ac === '#ef4444') _fl = '#1a0005';
     else if (_ac === '#10b981' || _ac === '#00ff88') _fl = '#001a10';
     else if (_ac === '#f59e0b') _fl = '#1a1400';
-    var TR = 23;
-    var _drawSz = TR * 2 + 2;
     ctx.save();
 
     // Phase 1 (0-500ms): 스캔 라인 + 확장 링
     if (t < 500) {
       var p1 = t / 500;
-      ctx.strokeStyle = _ac;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = _ac; ctx.lineWidth = 1;
       for (var si = 0; si < 6; si++) {
         var sa = Math.PI/3*si + t*0.005;
         ctx.globalAlpha = 0.5*(1-p1*0.5);
-        ctx.beginPath();
-        ctx.moveTo(G.cx, G.cy);
-        ctx.lineTo(G.cx+Math.cos(sa)*p1*100, G.cy+Math.sin(sa)*p1*100);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(G.cx, G.cy);
+        ctx.lineTo(G.cx+Math.cos(sa)*p1*100, G.cy+Math.sin(sa)*p1*100); ctx.stroke();
       }
-      ctx.beginPath();
-      ctx.arc(G.cx, G.cy, p1*60, 0, Math.PI*2);
-      ctx.globalAlpha = 0.4*(1-p1);
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5,7]);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(G.cx, G.cy, p1*60, 0, Math.PI*2);
+      ctx.globalAlpha = 0.4*(1-p1); ctx.lineWidth = 2;
+      ctx.setLineDash([5,7]); ctx.stroke(); ctx.setLineDash([]);
     }
 
     // Phase 2 (300-1000ms): 에너지 파티클 수렴
@@ -5229,8 +5244,7 @@ function render() {
       var p2 = (t-300)/700;
       for (var pi = 0; pi < 14; pi++) {
         var pa = (pi/14)*Math.PI*2 + t*0.003;
-        var pd = (1-p2)*85;
-        var ps = 1.5 + p2*2;
+        var pd = (1-p2)*85; var ps = 1.5 + p2*2;
         ctx.fillStyle = pi%3===0 ? '#cc44ff' : _ac;
         ctx.globalAlpha = 0.8*(1-p2*0.4);
         ctx.fillRect(G.cx+Math.cos(pa)*pd-ps/2, G.cy+Math.sin(pa)*pd-ps/2, ps, ps);
@@ -5241,33 +5255,19 @@ function render() {
     if (t > 600) {
       var p3 = Math.min(1,(t-600)/700);
       var ease = 1-Math.pow(1-p3,3);
-      // 글로우 링
       if (p3 < 0.5) {
-        ctx.beginPath();
-        ctx.arc(G.cx, G.cy, 30+p3*30, 0, Math.PI*2);
-        ctx.strokeStyle = _ac;
-        ctx.globalAlpha = 0.6-p3;
+        ctx.beginPath(); ctx.arc(G.cx, G.cy, 30+p3*30, 0, Math.PI*2);
+        ctx.strokeStyle = _ac; ctx.globalAlpha = 0.6-p3;
         if (!_isMobileGfx) { ctx.shadowColor = _ac; ctx.shadowBlur = 25; }
-        else { ctx.lineWidth = 6; }
-        ctx.lineWidth = _isMobileGfx ? 6 : 2;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        ctx.lineWidth = _isMobileGfx ? 6 : 2; ctx.stroke(); ctx.shadowBlur = 0;
       }
-      // 타워 물질화 (DOM 오버레이 — 위치 설정 + opacity 페이드인)
       if (_tDom) {
-        if (_tDom._skinKey !== _cSkin) {
-          _tDom._skinKey = _cSkin;
-          _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
-        }
-        var _domSz = _drawSz * _zm * _pxPerUnit;
         _tDom.style.display = 'block';
-        _tDom.style.width = _domSz + 'px';
-        _tDom.style.height = _domSz + 'px';
-        _tDom.style.left = _scrX + 'px';
-        _tDom.style.top = _scrY + 'px';
-        _tDom.style.opacity = ease;
-        _tDom.style.transform = 'translate(-50%,-50%) scale(' + ease + ')';
+        _tDom.style.opacity = String(ease);
+        _tDom.style.transform = 'translate(-50%,-50%) scale(' + ease.toFixed(3) + ')';
       }
+    } else {
+      if (_tDom) _tDom.style.display = 'none';
     }
 
     // Phase 4 (1100-1500ms): CORE ONLINE 텍스트
@@ -5275,52 +5275,22 @@ function render() {
       var p4 = (t-1100)/400;
       ctx.globalAlpha = Math.max(0, 1-p4*1.8);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = 'bold 14px "Courier New", monospace';
-      ctx.fillStyle = _ac;
+      ctx.font = 'bold 14px "Courier New", monospace'; ctx.fillStyle = _ac;
       if (!_isMobileGfx) { ctx.shadowColor = _ac; ctx.shadowBlur = 12; }
-      ctx.fillText('CORE ONLINE', G.cx, G.cy - 50);
-      ctx.shadowBlur = 0;
+      ctx.fillText('CORE ONLINE', G.cx, G.cy - 50); ctx.shadowBlur = 0;
     }
 
-    ctx.restore();
-    ctx.globalAlpha = 1;
+    ctx.restore(); ctx.globalAlpha = 1;
   }());
   } else {
-    const TR = 23;
+    const TR = _TR;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
-    var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
     var _skinColor = '#00ffff';
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
-    // DOM 오버레이로 타워 스킨 표시 (브라우저 네이티브 SVG 렌더링 → DPR 완벽 대응)
-    var _drawSz = TR * 2 + 2;
-    // ── 타워 + 범위 DOM 동기화 (공통 좌표 사용) ──
-    if (_cv && (_tDom || _rDom)) {
-      // 타워 스킨
-      if (_tDom) {
-        if (_tDom._skinKey !== _cSkin) {
-          _tDom._skinKey = _cSkin;
-          _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
-        }
-        _tDom.style.display = 'block';
-        _tDom.style.opacity = '1';
-        _tDom.style.transform = 'translate(-50%,-50%)';
-        var _domSz = _drawSz * _zm * _pxPerUnit;
-        _tDom.style.width = _domSz + 'px';
-        _tDom.style.height = _domSz + 'px';
-        _tDom.style.left = _scrX + 'px';
-        _tDom.style.top = _scrY + 'px';
-      }
-      // 공격 범위 원
-      if (_rDom) {
-        _rDom.style.display = 'block';
-        var _rSize = G.tower.range * 2 * _zm * _pxPerUnit;
-        _rDom.style.width = _rSize + 'px';
-        _rDom.style.height = _rSize + 'px';
-        _rDom.style.left = _scrX + 'px';
-        _rDom.style.top = _scrY + 'px';
-      }
-    }
+    // 타워·범위 DOM 표시
+    if (_tDom) { _tDom.style.display = 'block'; _tDom.style.opacity = '1'; _tDom.style.transform = 'translate(-50%,-50%)'; }
+    if (_rDom) { _rDom.style.display = 'block'; }
     ctx.save();
     var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
     // 피격/버프 오버레이
@@ -6251,16 +6221,21 @@ function startNewGame() {
   if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('battle'); }
   // 행성별 배경색 캐시 갱신
   window._cachedBgColor = null;
-  // 타워 DOM 오버레이 초기화
+  // 타워·범위 DOM 오버레이 초기화
   var _tDomInit = document.getElementById('tower-dom');
+  var _rDomInit = document.getElementById('range-dom');
   if (_tDomInit) { _tDomInit.style.display='none'; _tDomInit._skinKey=null; _tDomInit.style.opacity='0'; _tDomInit.style.transform='translate(-50%,-50%) scale(0)'; }
+  if (_rDomInit) { _rDomInit.style.display='none'; _rDomInit._svgReady=false; }
   window._battleBgCache = null;
   loopGen++;
-  // 레이아웃 완료 후 캔버스 크기 설정 (안드로이드 타이밍 이슈 방지)
+  // 안드로이드 레이아웃 안정화: 이중 RAF 후 게임 시작
   window.resizeCanvas();
   requestAnimationFrame(function() {
     window.resizeCanvas();
-    startGame();
+    requestAnimationFrame(function() {
+      window.resizeCanvas();
+      startGame();
+    });
   });
 }
 
