@@ -18201,7 +18201,7 @@ window._renderElementTab = function(container) {
   var cores = _getCore(el.id);
 
   // 하위 탭 바
-  var tabBar = '<div style="display:flex;gap:0;margin-bottom:12px;border:1px solid #1a2a3a;">';
+  var tabBar = '<div style="display:flex;gap:0;margin-bottom:6px;border:1px solid #1a2a3a;">';
   ELEMENTS.forEach(function(e) {
     var active = e.id === _elemActiveTab;
     tabBar += '<div data-elem-tab="'+e.id+'" style="flex:1;text-align:center;padding:8px 0;cursor:pointer;font-family:monospace;font-size:9px;'+
@@ -18211,7 +18211,7 @@ window._renderElementTab = function(container) {
   tabBar += '</div>';
 
   // 코어 보유량
-  var header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'+
+  var header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
     '<span style="font-size:11px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.icon+' '+el.name+' 속성</span>'+
     '<span style="font-size:11px;color:'+el.color+';font-family:monospace;">'+el.core+': '+cores+'</span>'+
   '</div>';
