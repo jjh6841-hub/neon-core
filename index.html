@@ -17593,7 +17593,11 @@ function _showSkinPurchasePopup(skin, isBg) {
       ov.remove();
       if (window.showToastMsg) showToastMsg('스킨 해금: ' + skin.name, '#00ff88');
       try { renderSkinGrid(); } catch(_){}
-      try { syncShopUI(); } catch(_){}
+      try {
+        syncShopUI();
+        ['skin-gold','home-gold','store-gold'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=PERM.gold||0;});
+        ['skin-gem','home-gem','store-gem'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=PERM.gems||0;});
+      } catch(_){}
     });
   }
 }
