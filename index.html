@@ -5347,11 +5347,6 @@ function render() {
     if (window._towerSkinImg && window._towerSkinImg._loaded) {
       var _drawSz = TR * 2 + 2;
       ctx.drawImage(window._towerSkinImg, _tx - _drawSz/2, _ty - _drawSz/2, _drawSz, _drawSz);
-    } else {
-      // 이미지 로딩 전 폴백: 기본 육각형
-      ctx.beginPath();
-      for (var _hi=0;_hi<6;_hi++){var _ha=Math.PI/3*_hi-Math.PI/6;if(_hi===0)ctx.moveTo(_tx+TR*Math.cos(_ha),_ty+TR*Math.sin(_ha));else ctx.lineTo(_tx+TR*Math.cos(_ha),_ty+TR*Math.sin(_ha));}
-      ctx.closePath(); ctx.fillStyle='#06061a'; ctx.fill(); ctx.strokeStyle=_skinColor; ctx.lineWidth=2; ctx.stroke();
     }
     // 피격/버프 오버레이
     if (flashHit) {
@@ -6279,6 +6274,16 @@ function startNewGame() {
   if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('battle'); }
   // 행성별 배경색 캐시 갱신
   window._cachedBgColor = null;
+  // 타워 스킨 프리로드
+  try {
+    var _preSkin = localStorage.getItem('neoncore_skin') || 'iris0';
+    if (window.getNeonCoreIcon && (!window._towerSkinImg || window._towerSkinImg._key !== _preSkin)) {
+      var _preImg = new Image(); _preImg._key = _preSkin; _preImg._loaded = false;
+      _preImg.onload = function(){ _preImg._loaded = true; };
+      _preImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.getNeonCoreIcon(48, _preSkin));
+      window._towerSkinImg = _preImg;
+    }
+  } catch(_){}
   window._battleBgCache = null;
   loopGen++;
   window.resizeCanvas();
