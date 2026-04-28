@@ -7632,6 +7632,7 @@ if (dailyPopup) {
         localStorage.setItem('powerCores', cur + 100);
         var bc = parseInt(localStorage.getItem('pkg_pcore_'+pcM)||'0',10);
         localStorage.setItem('pkg_pcore_'+pcM, bc+1);
+        try{savePerm();}catch(_){}
         if(window.showRewardPopup) showRewardPopup([{icon:'⊕',label:'파워 코어',amount:100,color:'#ff8822'}],'파워 코어 팩');
         renderStoreTab('package');
       });
@@ -7642,6 +7643,7 @@ if (dailyPopup) {
         localStorage.setItem('accessCodes', cur + 100);
         var bc = parseInt(localStorage.getItem('pkg_acode_'+acM)||'0',10);
         localStorage.setItem('pkg_acode_'+acM, bc+1);
+        try{savePerm();}catch(_){}
         if(window.showRewardPopup) showRewardPopup([{icon:'⊿',label:'접근 코드',amount:100,color:'#00ffff'}],'접근 코드 팩');
         renderStoreTab('package');
       });
@@ -16793,6 +16795,7 @@ function renderLab(){
         if(!w||cur<w.unlockCost) return;
         localStorage.setItem('accessCodes',cur-w.unlockCost);
         var s=window._loadUW(); if(!s[id])s[id]={}; s[id].unlocked=true; window._saveUW(s);
+        try{savePerm();}catch(_){}
         renderLab();
         if(window.showToastMsg) showToastMsg(w.name+' 해금!', '#00ff88');
       });
@@ -16808,6 +16811,7 @@ function renderLab(){
         var skey=btn.getAttribute('data-proto-stat');
         localStorage.setItem('accessCodes',cur-3);
         var s=window._loadUW(); if(!s[uid])s[uid]={unlocked:true}; s[uid][skey]=(s[uid][skey]||0)+1; window._saveUW(s);
+        try{savePerm();}catch(_){}
         renderLab();
       });
     })(upBtns[i]);
@@ -17553,11 +17557,13 @@ function _showSkinPurchasePopup(skin, isBg) {
         if (curAc < unlock.cost) return;
         localStorage.setItem('accessCodes', curAc - unlock.cost);
         logCurrency('accessCodes', -unlock.cost, '스킨 해금: ' + skin.name);
+        savePerm();
       } else if (unlock.type === 'pc') {
         var curPc = parseInt(localStorage.getItem('powerCores')||'0',10);
         if (curPc < unlock.cost) return;
         localStorage.setItem('powerCores', curPc - unlock.cost);
         logCurrency('powerCores', -unlock.cost, '스킨 해금: ' + skin.name);
+        savePerm();
       } else if (unlock.type === 'store') {
         // 테스트 모드: 무료 활성화
       }
@@ -18217,6 +18223,7 @@ window._renderElementTab = function(container) {
         if (cur < cost) return;
         _setCore(eId, cur - cost);
         _setElemLv(eId, sKey, lv + 1);
+        try { savePerm(); } catch(_){}
         try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
         if (window._renderElementTab) window._renderElementTab(container);
       });
@@ -18454,6 +18461,7 @@ function _renderStagePopup() {
     _setCore(eId, _getCore(eId) + rw);
     _setCleared(eId, Math.max(_getCleared(eId), stg));
     _setStage(eId, stg + 1);
+    try { savePerm(); } catch(_){}
     try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
     if (window.showToastMsg) showToastMsg(el.icon + ' ' + stg + '단계 클리어! ' + el.core + ' +' + rw);
     _viewStage = Math.min(stg + 1, MAX_STAGE);
@@ -18470,6 +18478,7 @@ function _renderStagePopup() {
     _setTickets(_getTickets() - 1);
     var total = _stageReward(_viewStage);
     _setCore(eId, _getCore(eId) + total);
+    try { savePerm(); } catch(_){}
     if (window.showToastMsg) showToastMsg(el.icon + ' 즉시 수확! ' + el.core + ' +' + total);
     _renderStagePopup();
     renderExplore();
@@ -19744,6 +19753,7 @@ function _buyModule(count) {
     newMods.push(m);
   }
   _saveMods(d);
+  try{savePerm();}catch(_){}
   // 제조 연출 표시
   _showModCraftAnim(newMods, function(){
     _renderModuleContent();
