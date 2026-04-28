@@ -1148,6 +1148,7 @@ canvas {
 <div id="screen-game">
   <div id="canvas-area">
     <canvas id="gameCanvas"></canvas>
+    <div id="tower-dom" style="display:none;position:absolute;pointer-events:none;z-index:10;transform:translate(-50%,-50%);"></div>
     <!-- 궁극 무기 쿨타임 HUD -->
     <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
 
@@ -5249,15 +5250,11 @@ function render() {
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      // 타워 물질화 (고해상도 SVG Image 사용)
-      ctx.globalAlpha = ease;
-      if (window._towerSkinImg && window._towerSkinImg._ready) {
-        var _isz = (TR * 2 + 2) * ease;
-        if (_isz > 1) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(window._towerSkinImg, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
-        }
+      // 타워 물질화 (DOM 오버레이 — opacity로 페이드인)
+      var _tDomI = document.getElementById('tower-dom');
+      if (_tDomI) {
+        _tDomI.style.opacity = ease;
+        _tDomI.style.transform = 'translate(-50%,-50%) scale(' + ease + ')';
       }
     }
 
@@ -5283,28 +5280,34 @@ function render() {
     var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
     var _skinColor = '#00ffff';
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
-    // 고해상도 SVG Image 캐시 (오프스크린 캔버스 없이 직접 사용)
+    // DOM 오버레이로 타워 스킨 표시 (브라우저 네이티브 SVG 렌더링 → DPR 완벽 대응)
     var _drawSz = TR * 2 + 2;
-    var _svgHiRes = 192;
-    var _cacheKey = _cSkin + '_hr';
-    if (!window._towerSkinImg || window._towerSkinImg._key !== _cacheKey) {
-      if (window.getNeonCoreIcon) {
-        var _img = new Image();
-        _img._key = _cacheKey;
-        _img._ready = false;
-        _img.onload = function() { _img._ready = true; };
-        _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.getNeonCoreIcon(_svgHiRes, _cSkin));
-        window._towerSkinImg = _img;
+    var _tDom = document.getElementById('tower-dom');
+    if (_tDom) {
+      if (_tDom._skinKey !== _cSkin) {
+        _tDom._skinKey = _cSkin;
+        _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
+      }
+      _tDom.style.display = 'block';
+      _tDom.style.width = _drawSz + 'px';
+      _tDom.style.height = _drawSz + 'px';
+      // 캔버스 내 CSS 좌표를 캔버스 요소 기준 위치로 변환
+      var _cv = document.getElementById('gameCanvas');
+      if (_cv) {
+        var _cvRect = _cv.getBoundingClientRect();
+        var _aRect = _cv.parentElement.getBoundingClientRect();
+        var _offX = _cvRect.left - _aRect.left;
+        var _offY = _cvRect.top - _aRect.top;
+        var _csW = parseFloat(_cv.style.width) || _cvRect.width;
+        var _csH = parseFloat(_cv.style.height) || _cvRect.height;
+        var _scX = _cvRect.width / _csW;
+        var _scY = _cvRect.height / _csH;
+        _tDom.style.left = (_offX + G.cx * _scX) + 'px';
+        _tDom.style.top = (_offY + G.cy * _scY) + 'px';
       }
     }
     ctx.save();
     var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
-    // 고해상도 SVG Image → CSS 크기로 다운스케일 (브라우저 고품질 보간)
-    if (window._towerSkinImg && window._towerSkinImg._ready) {
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(window._towerSkinImg, _tx - _drawSz/2, _ty - _drawSz/2, _drawSz, _drawSz);
-    }
     // 피격/버프 오버레이
     if (flashHit) {
       ctx.globalAlpha = 0.4; ctx.fillStyle = '#ef4444';
@@ -6144,6 +6147,7 @@ function toggleSetting(key) {
 function openShop() {
   document.getElementById('results-screen').classList.remove('show');
   document.getElementById('screen-game').style.display = 'none';
+  var _tDomH = document.getElementById('tower-dom'); if(_tDomH) { _tDomH.style.display='none'; _tDomH.style.opacity='1'; _tDomH.style.transform='translate(-50%,-50%)'; }
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'flex';
   const home = document.getElementById('screen-home');
@@ -6231,18 +6235,9 @@ function startNewGame() {
   if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('battle'); }
   // 행성별 배경색 캐시 갱신
   window._cachedBgColor = null;
-  // 타워 스킨 프리로드 (고해상도 SVG Image)
-  try {
-    var _preSkin = localStorage.getItem('neoncore_skin') || 'iris0';
-    var _preCacheKey = _preSkin + '_hr';
-    if (window.getNeonCoreIcon && (!window._towerSkinImg || window._towerSkinImg._key !== _preCacheKey)) {
-      var _preImg = new Image();
-      _preImg._key = _preCacheKey; _preImg._ready = false;
-      _preImg.onload = function(){ _preImg._ready = true; };
-      _preImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.getNeonCoreIcon(192, _preSkin));
-      window._towerSkinImg = _preImg;
-    }
-  } catch(_){}
+  // 타워 DOM 오버레이 초기화
+  var _tDomInit = document.getElementById('tower-dom');
+  if (_tDomInit) { _tDomInit.style.display='none'; _tDomInit._skinKey=null; _tDomInit.style.opacity='0'; _tDomInit.style.transform='translate(-50%,-50%) scale(0)'; }
   window._battleBgCache = null;
   loopGen++;
   // 레이아웃 완료 후 캔버스 크기 설정 (안드로이드 타이밍 이슈 방지)
