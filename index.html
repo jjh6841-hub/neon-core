@@ -6885,7 +6885,7 @@ if (dailyPopup) {
       cost: function(lv) { return 12 + Math.floor(lv * 2.5); },
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv+1) + '%'; } },
-    enemySkip: { tab:'utl', name:'적 레벨 건너뛰기', maxLv:3000, utlGroup:3,
+    enemySkip: { tab:'utl', name:'적 레벨 건너뛰기', maxLv:300, utlGroup:3,
       cost: function(lv) { return 3 + Math.floor(lv * 0.5); },
       cur:  function(lv) { return Math.min(15, (lv * 0.05))._tf2() + '%'; },
       nxt:  function(lv) { return Math.min(15, ((lv+1) * 0.05))._tf2() + '%'; } },
