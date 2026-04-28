@@ -17556,7 +17556,8 @@ function _showSkinPurchasePopup(skin, isBg) {
     '<div style="background:#060a12;border:1px solid #0a3344;padding:8px;margin-bottom:14px;font-size:10px;color:#8899aa;">' + costHTML + '</div>' +
     '<div style="display:flex;gap:8px;">';
   if (canPurchase) {
-    box += '<button id="skin-buy-yes" style="flex:1;padding:10px;background:#030b10;border:1px solid #00ff88;color:#00ff88;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">' + btnLabel + '</button>';
+    var _btnCol = unlock.type === 'gem' ? '#00ffff' : '#00ff88';
+    box += '<button id="skin-buy-yes" style="flex:1;padding:10px;background:#030b10;border:1px solid '+_btnCol+';color:'+_btnCol+';font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">' + btnLabel + '</button>';
   }
   box += '<button id="skin-buy-no" style="flex:1;padding:10px;background:#030b10;border:1px solid '+(canPurchase?'#334455':'#00ffff')+';color:'+(canPurchase?'#556677':'#00ffff')+';font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">'+(canPurchase?'취소':'닫기')+'</button>';
   box += '</div></div>';
