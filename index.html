@@ -7865,27 +7865,6 @@ if (dailyPopup) {
     <button id="lab-help-btn" style="position:absolute;left:10px;background:#040c14;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:28px;height:28px;cursor:pointer;padding:0;-webkit-appearance:none;z-index:10;touch-action:manipulation;">?</button>
     코어랩
   </div>
-<!-- 코어랩 도움말 팝업 -->
-<div id="lab-help-popup" style="display:none;position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:10500;flex-direction:column;align-items:center;justify-content:center;font-family:'Courier New',monospace;">
-  <div style="background:#0a1020;border:1px solid #00ffff44;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;padding:20px;">
-    <div style="font-size:13px;color:#00ffff;font-weight:bold;margin-bottom:12px;text-align:center;">코어랩 안내</div>
-    <div style="color:#94a3b8;font-size:10px;line-height:1.8;">
-      <div style="color:#00ffff;margin-bottom:4px;">▸ 연구 시스템</div>
-      골드를 소모하여 연구를 시작할 수 있습니다.<br>
-      연구가 완료되면 해당 스탯이 영구 강화됩니다.<br>
-      연구 레벨이 올라갈수록 시간과 비용이 증가합니다.<br><br>
-      <div style="color:#00ffff;margin-bottom:4px;">▸ 슬롯</div>
-      기본 1개 슬롯이 제공되며, 보석으로 추가 슬롯을 해금할 수 있습니다.<br>
-      여러 슬롯에서 동시에 연구를 진행할 수 있습니다.<br><br>
-      <div style="color:#00ffff;margin-bottom:4px;">▸ 즉시 완료</div>
-      보석을 사용하면 연구를 즉시 완료할 수 있습니다.<br>
-      비용은 남은 시간에 비례합니다 (1분당 ❖1).<br><br>
-      <div style="color:#00ffff;margin-bottom:4px;">▸ 연구 속도</div>
-      시즌패스 연구 속도 보너스로 연구 시간을 단축할 수 있습니다.
-    </div>
-    <button id="lab-help-close" style="width:100%;margin-top:14px;height:36px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">닫기</button>
-  </div>
-</div>
   <!-- 슬롯 목록 -->
   <div id="lab-slots" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 12px; display:flex; flex-direction:column; gap:8px; padding-bottom:calc(10px + var(--sab));"></div>
 </div>
@@ -12113,7 +12092,7 @@ function _prismIcon(id,c){
   return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'" style="display:block;margin:0 auto;">'+svg+'</svg>';
 }
 
-var PRISMS = [
+var PRISMS = window.PRISMS = [
   /* 공격 (10종) */
   {id:'p_damage',     cat:'atk',    name:'화력 증폭',       desc:'공격력 증가',          lvEff:[50,100,150,200,250,300], unit:'%'},
   {id:'p_atk_spd',    cat:'atk',    name:'속사 모듈',       desc:'발사 속도 증가',        lvEff:[0.2,0.4,0.6,0.8,1.0,1.2], unit:''},
@@ -19899,5 +19878,26 @@ if (_gemAdBtn) {
 
 })();
 </script>
+<!-- 코어랩 도움말 팝업 (body 직속 — screen-lab 내부 배치 시 display 상속 문제) -->
+<div id="lab-help-popup" style="display:none;position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:10500;align-items:center;justify-content:center;font-family:'Courier New',monospace;">
+  <div style="background:#0a1020;border:1px solid #00ffff44;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;padding:20px;">
+    <div style="font-size:13px;color:#00ffff;font-weight:bold;margin-bottom:12px;text-align:center;">코어랩 안내</div>
+    <div style="color:#94a3b8;font-size:10px;line-height:1.8;">
+      <div style="color:#00ffff;margin-bottom:4px;">▸ 연구 시스템</div>
+      골드를 소모하여 연구를 시작할 수 있습니다.<br>
+      연구가 완료되면 해당 스탯이 영구 강화됩니다.<br>
+      연구 레벨이 올라갈수록 시간과 비용이 증가합니다.<br><br>
+      <div style="color:#00ffff;margin-bottom:4px;">▸ 슬롯</div>
+      기본 1개 슬롯이 제공되며, 보석으로 추가 슬롯을 해금할 수 있습니다.<br>
+      여러 슬롯에서 동시에 연구를 진행할 수 있습니다.<br><br>
+      <div style="color:#00ffff;margin-bottom:4px;">▸ 즉시 완료</div>
+      보석을 사용하면 연구를 즉시 완료할 수 있습니다.<br>
+      비용은 남은 시간에 비례합니다 (1분당 ❖1).<br><br>
+      <div style="color:#00ffff;margin-bottom:4px;">▸ 연구 속도</div>
+      시즌패스 연구 속도 보너스로 연구 시간을 단축할 수 있습니다.
+    </div>
+    <button id="lab-help-close" style="width:100%;margin-top:14px;height:36px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">닫기</button>
+  </div>
+</div>
 </body>
 </html>
