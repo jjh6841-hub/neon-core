@@ -1149,6 +1149,7 @@ canvas {
   <div id="canvas-area">
     <canvas id="gameCanvas"></canvas>
     <div id="tower-dom" style="display:none;position:absolute;pointer-events:none;z-index:10;transform:translate(-50%,-50%);"></div>
+    <div id="range-dom" style="display:none;position:absolute;pointer-events:none;z-index:5;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed rgba(0,255,255,0.3);box-sizing:border-box;"></div>
     <!-- 궁극 무기 쿨타임 HUD -->
     <div id="ult-hud" style="display:none; position:absolute; left:6px; bottom:8px; flex-direction:column; gap:6px; z-index:50; pointer-events:none;"></div>
 
@@ -4826,16 +4827,31 @@ function render() {
     ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + visW, y); ctx.stroke();
   }
 
-  // Attack range circle (인트로 중 숨김)
-  if (G.introTimer < 0) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(Math.round(G.cx), Math.round(G.cy), Math.round(G.tower.range), 0, Math.PI * 2);
-  ctx.setLineDash([6, 8]);
-  ctx.strokeStyle = 'rgba(0,255,255,0.3)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.restore();
+  // Attack range circle → DOM 오버레이 (안드로이드 선명도 대응)
+  var _rDom = document.getElementById('range-dom');
+  if (_rDom) {
+    if (G.introTimer < 0) {
+      _rDom.style.display = 'block';
+      var _rCv = document.getElementById('gameCanvas');
+      if (_rCv) {
+        var _rCvRect = _rCv.getBoundingClientRect();
+        var _rARect = _rCv.parentElement.getBoundingClientRect();
+        var _rOffX = _rCvRect.left - _rARect.left;
+        var _rOffY = _rCvRect.top - _rARect.top;
+        var _rCsW = parseFloat(_rCv.style.width) || _rCvRect.width;
+        var _rSc = _rCvRect.width / _rCsW;
+        var _rZm = G.zoom || 1;
+        var _rVizX = CW/2 + (G.cx - CW/2) * _rZm;
+        var _rVizY = CH/2 + (G.cy - CH/2) * _rZm;
+        var _rSize = G.tower.range * 2 * _rZm * _rSc;
+        _rDom.style.width = _rSize + 'px';
+        _rDom.style.height = _rSize + 'px';
+        _rDom.style.left = (_rOffX + _rVizX * _rSc) + 'px';
+        _rDom.style.top = (_rOffY + _rVizY * _rSc) + 'px';
+      }
+    } else {
+      _rDom.style.display = 'none';
+    }
   }
 
   // Targeting line to nearest in-range enemy
@@ -5215,8 +5231,8 @@ function render() {
       ctx.beginPath();
       ctx.arc(G.cx, G.cy, p1*60, 0, Math.PI*2);
       ctx.globalAlpha = 0.4*(1-p1);
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([3,5]);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5,7]);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -6152,6 +6168,7 @@ function openShop() {
   document.getElementById('results-screen').classList.remove('show');
   document.getElementById('screen-game').style.display = 'none';
   var _tDomH = document.getElementById('tower-dom'); if(_tDomH) { _tDomH.style.display='none'; _tDomH.style.opacity='1'; _tDomH.style.transform='translate(-50%,-50%)'; }
+  var _rDomH = document.getElementById('range-dom'); if(_rDomH) _rDomH.style.display='none';
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'flex';
   const home = document.getElementById('screen-home');
