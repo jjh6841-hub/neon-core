@@ -8850,9 +8850,16 @@ function openLab() {
   var _lhPop = document.getElementById('lab-help-popup');
   if (_lhBtn && _lhPop && !_lhBtn._bound) {
     _lhBtn._bound = true;
-    _lhBtn.onclick = function() { _lhPop.style.display = 'flex'; };
-    document.getElementById('lab-help-close').onclick = function() { _lhPop.style.display = 'none'; };
-    _lhPop.addEventListener('click', function(e) { if (e.target === _lhPop) _lhPop.style.display = 'none'; });
+    var _openHelp = function() { _lhPop.style.display = 'flex'; };
+    var _closeHelp = function() { _lhPop.style.display = 'none'; };
+    _lhBtn.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
+    _lhBtn.addEventListener('touchend', function(e){ e.preventDefault(); _openHelp(); }, {passive:false});
+    _lhBtn.addEventListener('click', _openHelp);
+    var _clBtn = document.getElementById('lab-help-close');
+    _clBtn.addEventListener('touchstart', function(e){ e.preventDefault(); }, {passive:false});
+    _clBtn.addEventListener('touchend', function(e){ e.preventDefault(); _closeHelp(); }, {passive:false});
+    _clBtn.addEventListener('click', _closeHelp);
+    _lhPop.addEventListener('click', function(e) { if (e.target === _lhPop) _closeHelp(); });
   }
 }
 function closeLab() {
