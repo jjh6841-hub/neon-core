@@ -4021,7 +4021,7 @@ function update(dt) {
   }
 
   // ── Move enemies toward tower ──
-  const TOWER_HIT_R = 18;
+  const TOWER_HIT_R = 21;
   for (let i = G.enemies.length - 1; i >= 0; i--) {
     const e = G.enemies[i];
     const dx = G.cx - e.x, dy = G.cy - e.y;
@@ -5191,7 +5191,7 @@ function render() {
     else if (_ac === '#ff4444' || _ac === '#ef4444') _fl = '#1a0005';
     else if (_ac === '#10b981' || _ac === '#00ff88') _fl = '#001a10';
     else if (_ac === '#f59e0b') _fl = '#1a1400';
-    var TR = 20;
+    var TR = 23;
     ctx.save();
 
     // Phase 1 (0-500ms): 스캔 라인 + 확장 링
@@ -5278,7 +5278,7 @@ function render() {
     ctx.globalAlpha = 1;
   }());
   } else {
-    const TR = 20;
+    const TR = 23;
     const buffed = G.tower.buffMs > 0;
     const flashHit = G.flashAlpha > 0;
     var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
@@ -6240,7 +6240,7 @@ function startNewGame() {
   try {
     var _preSkin = localStorage.getItem('neoncore_skin') || 'iris0';
     var _preDpr = window._dpr || 1;
-    var _prePhys = Math.round(42 * _preDpr);
+    var _prePhys = Math.round(48 * _preDpr);
     var _preCacheKey = _preSkin + '_' + _prePhys;
     if (window.getNeonCoreIcon && (!window._towerSkinCache || window._towerSkinCache._key !== _preCacheKey)) {
       var _preSvg = window.getNeonCoreIcon(_prePhys, _preSkin);
