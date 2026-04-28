@@ -5162,35 +5162,33 @@ function render() {
   }
 
   // Tower (hexagon) — 인트로 배치 연출 / 일반
-  // ── 공통: tower/range DOM 위치 ──
+  // ── 공통: tower/range DOM 위치 (정수 반올림으로 서브픽셀 차이 방지) ──
   var _tDom = document.getElementById('tower-dom');
   var _rDom = document.getElementById('range-dom');
   var _zm = G.zoom || 1;
-  // getBoundingClientRect 대신 CSS 크기 직접 사용 (안드로이드 레이아웃 지연 방지)
   var _canvasEl = document.getElementById('gameCanvas');
   var _areaEl = _canvasEl ? _canvasEl.parentElement : null;
-  var _canvasW = CW, _areaW = _areaEl ? _areaEl.clientWidth : CW;
-  var _offX = Math.max(0, (_areaW - _canvasW) / 2); // justify-content:center
-  var _offY = 0; // align-items:flex-start
-  var _domCX = _offX + (CW/2 + (G.cx - CW/2) * _zm);
-  var _domCY = _offY + (CH/2 + (G.cy - CH/2) * _zm);
+  var _areaW = _areaEl ? _areaEl.clientWidth : CW;
+  var _offX = Math.round(Math.max(0, (_areaW - CW) / 2));
+  var _domCX = Math.round(_offX + CW/2 + (G.cx - CW/2) * _zm);
+  var _domCY = Math.round(CH/2 + (G.cy - CH/2) * _zm);
   var _TR = 23, _drawSz = _TR * 2 + 2;
   var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
 
-  // ── tower-dom + range-dom 위치/크기 (인트로·일반 공통) ──
+  // ── tower-dom + range-dom 위치/크기 (인트로·일반 공통, 정수 px) ──
   if (_tDom) {
     if (_tDom._skinKey !== _cSkin) {
       _tDom._skinKey = _cSkin;
       _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
     }
-    var _tSz = _drawSz * _zm;
+    var _tSz = Math.round(_drawSz * _zm);
     _tDom.style.width  = _tSz + 'px';
     _tDom.style.height = _tSz + 'px';
     _tDom.style.left   = _domCX + 'px';
     _tDom.style.top    = _domCY + 'px';
   }
   if (_rDom) {
-    var _rSz = G.tower.range * 2 * _zm;
+    var _rSz = Math.round(G.tower.range * 2 * _zm);
     _rDom.style.width  = _rSz + 'px';
     _rDom.style.height = _rSz + 'px';
     _rDom.style.left   = _domCX + 'px';
@@ -6225,15 +6223,17 @@ function startNewGame() {
   if (_rDomInit) { _rDomInit.style.display='none'; _rDomInit._svgReady=false; }
   window._battleBgCache = null;
   loopGen++;
-  // 안드로이드 레이아웃 안정화: 이중 RAF 후 게임 시작
+  // 안드로이드 레이아웃 안정화: setTimeout으로 레이아웃 확정 대기
   window.resizeCanvas();
-  requestAnimationFrame(function() {
+  setTimeout(function() {
     window.resizeCanvas();
-    requestAnimationFrame(function() {
+    startGame();
+    // 200ms 후 한번 더 보정 (안드로이드 WebView 늦은 레이아웃 대응)
+    setTimeout(function() {
       window.resizeCanvas();
-      startGame();
-    });
-  });
+      if (G) { G.zoom = getTargetZoom(); G.targetZoom = G.zoom; }
+    }, 200);
+  }, 50);
 }
 
 /* ─── 버튼 이벤트 (touch + click) ─────────────────────────────── */
