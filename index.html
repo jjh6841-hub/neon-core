@@ -8838,6 +8838,31 @@ function _saveLab(d) {
   try { localStorage.setItem('td_lab', JSON.stringify(d)); } catch(_) {}
 }
 
+// 시계 역행 감지: 시간을 미래로 돌렸다가 되돌린 경우 연구 endTime 보정
+function _labClockGuard() {
+  var KEY = '_lab_clock';
+  var lastTs = parseInt(localStorage.getItem(KEY) || '0', 10);
+  var now = Date.now();
+  if (lastTs > 0 && now < lastTs - 60000) {
+    // 시계가 1분 이상 역행 → 연구 endTime을 역행분만큼 뒤로 밀기
+    var diff = lastTs - now;
+    var ld = _loadLab();
+    var patched = false;
+    for (var si = 0; si < 10; si++) {
+      var sk = 'slot' + si;
+      if (ld[sk] && ld[sk].endTime && ld[sk].researchId) {
+        ld[sk].endTime += diff;
+        patched = true;
+      }
+    }
+    if (patched) {
+      _saveLab(ld);
+      try { if (window.showToastMsg) showToastMsg('시스템 시간 변경 감지 — 연구 시간 보정됨'); } catch(_){}
+    }
+  }
+  localStorage.setItem(KEY, String(now));
+}
+
 function openLab() {
   _hideAll();
   var el = document.getElementById('screen-lab');
@@ -8891,6 +8916,7 @@ function _fmtTime(sec) {
 }
 
 function _buildLabSlots() {
+  _labClockGuard();
   var container = document.getElementById('lab-slots'); if (!container) return;
   container.innerHTML = '';
   var lab = _loadLab();
@@ -9207,6 +9233,7 @@ for (var fi = 0; fi < filterBtns.length; fi++) {
 var _labNotified = {};
 setInterval(function() {
   try {
+    _labClockGuard();
     var lab = _loadLab();
     var now = Date.now();
     for (var i = 0; i < LAB_SLOT_COUNT; i++) {
