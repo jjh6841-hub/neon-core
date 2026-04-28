@@ -7866,7 +7866,7 @@ if (dailyPopup) {
     </div>
   </div>
   <div style="display:flex; align-items:center; justify-content:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0; position:relative;">
-    <button id="lab-help-btn" style="position:absolute;left:10px;background:none;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:22px;height:22px;cursor:pointer;padding:0;-webkit-appearance:none;">?</button>
+    <button id="lab-help-btn" style="position:absolute;left:10px;background:#040c14;border:1px solid #334455;color:#556677;font-family:monospace;font-size:10px;width:28px;height:28px;cursor:pointer;padding:0;-webkit-appearance:none;z-index:10;touch-action:manipulation;">?</button>
     코어랩
   </div>
 <!-- 코어랩 도움말 팝업 -->
@@ -8626,7 +8626,7 @@ var RESEARCH_LIST = {
     { id:'r_crit',       name:'치명타 확률 연구', desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:70 },
     { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:999 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
-    { id:'r_dmg_meter', name:'거리 피해 연구', desc:'거리 피해 배율 +0.05 (강화소와 합연산)', time:15000, cost:9000, maxLv:10 },
+    { id:'r_dmg_meter', name:'거리 피해 연구', desc:'거리 피해 배율 +0.05',  time:15000, cost:9000, maxLv:10 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
     { id:'r_enh_crit',   name:'강화 치명타 확률 연구', desc:'강화 치명타 확률 +0.5%', time:18000, cost:12000, maxLv:26 },
     { id:'r_enh_crit_m', name:'강화 치명타 계수 연구', desc:'강화 치명타 계수 +0.1',  time:16200, cost:10000, maxLv:999 },
@@ -8635,7 +8635,7 @@ var RESEARCH_LIST = {
     { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:999 },
     { id:'r_regen',      name:'재생 연구',     desc:'체력 재생 향상',           time:3147,  cost:1240,  maxLv:999 },
     { id:'r_defense',    name:'방어 연구',     desc:'방어력 향상',              time:8820,  cost:4180,  maxLv:30 },
-    { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 +1% (강화소와 합연산, 최대 99%)', time:14400, cost:12000, maxLv:49 },
+    { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 +1%',         time:14400, cost:12000, maxLv:49 },
     { id:'r_vamp',       name:'흡혈 연구',     desc:'흡혈 확률 향상',           time:18000, cost:15000, maxLv:30 },
     { id:'r_shield',     name:'쉴드 연구',     desc:'쉴드 HP 향상',             time:21600, cost:20000, maxLv:20 },
     { id:'r_knockback',  name:'넉백 확률 연구', desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
@@ -9859,7 +9859,7 @@ window._showCoinBonusPopup = function() {
 
   // 강화 골드 획득량
   var ws = PERM.ws || {};
-  var wsGoldGain = 1 + (ws.goldGain || 0) * 0.05;
+  var wsGoldGain = 1;
   // 프리즘 골드
   var prismGold = 1;
   try {
@@ -9902,7 +9902,7 @@ if (homeEl) {
       var wsBonus  = _getWsBonus();
       var tierMult = _getTierMult();
       var ws2 = (window.PERM && window.PERM.ws) || {};
-      var wsGoldGain = 1 + (ws2.goldGain || 0) * 0.05;
+      var wsGoldGain = 1;
       var prismGold = 1;
       try {
         var eq = (window.PERM && window.PERM.prismEquipped) || [];
@@ -11123,7 +11123,7 @@ var NEW_MAX = {
   enhCritChance: 30,
   enhCritMult:   999,
   defAbs:    999,
-  reflectDmg:99,
+  reflectDmg:50,
   knockChance:60,
   shieldHP:  50,
 };
