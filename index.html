@@ -7029,6 +7029,7 @@ if (dailyPopup) {
     var container = document.getElementById('ws-content');
     if (!container) return;
     container.innerHTML = '';
+    container.style.gridTemplateColumns = '1fr 1fr';
 
     /* 탭 활성 스타일 (탭별 고유색 사용) */
     var _TC = { atk:'#3b82f6', def:'#ef4444', utl:'#f59e0b', ult:'#00ff88' };
