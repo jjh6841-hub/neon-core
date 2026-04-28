@@ -2893,7 +2893,7 @@ var UPGRADES = [
     cost()   { return upgCost('dmgPerMeter',8); },
     stat()   { return 'x'+(G.dmgPerMeter||1)._tf2(); },
     canBuy() { return _canUpg('dmgPerMeter',30) && coreChips>=upgCost('dmgPerMeter',8); },
-    apply()  { var c=upgCost('dmgPerMeter',8); coreChips-=c; G.upgLvl.dmgPerMeter=(G.upgLvl.dmgPerMeter||0)+1; G.dmgPerMeter=1+((PERM.ws&&PERM.ws.dmgPerMeter||0)+(G.upgLvl.dmgPerMeter||0))*0.05; },
+    apply()  { var c=upgCost('dmgPerMeter',8); coreChips-=c; G.upgLvl.dmgPerMeter=(G.upgLvl.dmgPerMeter||0)+1; var _rDmLv=parseInt(localStorage.getItem('res_r_dmg_meter')||'0',10); G.dmgPerMeter=1+((PERM.ws&&PERM.ws.dmgPerMeter||0)+(G.upgLvl.dmgPerMeter||0)+_rDmLv)*0.05; },
   },
   { key:'multiChance', tab:'atk', icon:'%', name:'분열탄<br>확률', baseCost:10, unlock:'multi', maxLv:100,
     cost()   { return upgCost('multiChance',10); },
@@ -2986,11 +2986,11 @@ var UPGRADES = [
     canBuy() { return _canUpg('vamp',150) && coreChips>=upgCost('vamp',9); },
     apply()  { var c=upgCost('vamp',9); coreChips-=c; G.upgLvl.vamp=(G.upgLvl.vamp||0)+1; },
   },
-  { key:'reflect', tab:'def', icon:'↩',  name:'반사<br>데미지', baseCost:10, unlock:'reflect', maxLv:99,
+  { key:'reflect', tab:'def', icon:'↩',  name:'반사<br>데미지', baseCost:10, unlock:'reflect', maxLv:50,
     cost()   { return upgCost('reflect',10); },
     stat()   { return ((G.reflectPct||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('reflect',99) && coreChips>=upgCost('reflect',10); },
-    apply()  { var c=upgCost('reflect',10); coreChips-=c; G.upgLvl.reflect=(G.upgLvl.reflect||0)+1; G.reflectPct=Math.min(0.99,((PERM.ws&&PERM.ws.reflectDmg||0)+(G.upgLvl.reflect||0))*0.01); },
+    canBuy() { return _canUpg('reflect',50) && coreChips>=upgCost('reflect',10); },
+    apply()  { var c=upgCost('reflect',10); coreChips-=c; G.upgLvl.reflect=(G.upgLvl.reflect||0)+1; var _rRefLv=parseInt(localStorage.getItem('res_r_reflect')||'0',10); G.reflectPct=Math.min(0.99,((PERM.ws&&PERM.ws.reflectDmg||0)+(G.upgLvl.reflect||0)+_rRefLv)*0.01); },
   },
   { key:'knockback', tab:'def', icon:'⇤', name:'넉백확률',  baseCost:10, unlock:'knockback', maxLv:60,
     cost()   { return upgCost('knockback',10); },
@@ -6875,7 +6875,7 @@ if (dailyPopup) {
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return _getDefAbs(lv) + ''; },
       nxt:  function(lv) { return _getDefAbs(lv + 1) + ''; } },
-    reflectDmg: { tab:'def', name:'반사 데미지',  maxLv:99, defGroup:2,
+    reflectDmg: { tab:'def', name:'반사 데미지',  maxLv:50, defGroup:2,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv + 1) + '%'; } },
@@ -8197,7 +8197,7 @@ window.createState = function() {
   g.orbSpeed        = 1 + (ws.orbSpeed    || 0) * 0.1;
   g.orbCount        = ws.orbCount || 0;
   g.orbAngle        = 0;
-  g.thornDamage     = (ws.thornDamage || 0) * 0.01;
+  g.thornDamage     = Math.min(0.99, ((ws.thornDamage || 0) + parseInt(localStorage.getItem('res_r_reflect')||'0',10)) * 0.01);
   g.deathDefy       = (ws.deathDefy   || 0) * 0.001;
   g.defenseAbs      = _getDefAbs(ws.defenseAbsolute || 0);
   // Mine state
@@ -8786,9 +8786,10 @@ var RESEARCH_LIST = {
   attack: [
     { id:'r_damage',     name:'공격력 연구',   desc:'공격력 배율 향상',         time:15720, cost:7580,  maxLv:999 },
     { id:'r_spd',        name:'속도 연구',     desc:'공격속도 향상',            time:12600, cost:5000,  maxLv:99 },
-    { id:'r_crit',       name:'치명타 연구',   desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:70 },
+    { id:'r_crit',       name:'치명타 확률 연구', desc:'치명타 확률 향상',         time:18000, cost:9000,  maxLv:70 },
     { id:'r_crit_mult',  name:'치명타 계수 연구',desc:'치명타 데미지 배율 향상', time:16200, cost:8500,  maxLv:999 },
     { id:'r_range',      name:'사거리 연구',   desc:'공격 범위 확장',           time:14400, cost:6800,  maxLv:20 },
+    { id:'r_dmg_meter', name:'거리 피해 연구', desc:'거리 피해 배율 +0.05 (강화소와 합연산)', time:15000, cost:9000, maxLv:10 },
     { id:'r_pierce',     name:'관통 연구',     desc:'레이저 관통력 향상',       time:20400, cost:10500, maxLv:20 },
     { id:'r_enh_crit',   name:'강화 치명타 확률 연구', desc:'강화 치명타 확률 +0.5%', time:18000, cost:12000, maxLv:26 },
     { id:'r_enh_crit_m', name:'강화 치명타 계수 연구', desc:'강화 치명타 계수 +0.1',  time:16200, cost:10000, maxLv:999 },
@@ -8797,11 +8798,10 @@ var RESEARCH_LIST = {
     { id:'r_health',     name:'체력 연구',     desc:'최대 체력 배율 향상',      time:15720, cost:9800,  maxLv:999 },
     { id:'r_regen',      name:'재생 연구',     desc:'체력 재생 향상',           time:3147,  cost:1240,  maxLv:999 },
     { id:'r_defense',    name:'방어 연구',     desc:'방어력 향상',              time:8820,  cost:4180,  maxLv:30 },
-    { id:'r_mine',       name:'지뢰 연구',     desc:'에너지 지뢰 피해 향상',   time:11400, cost:37120, maxLv:20 },
-    { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 향상',         time:14400, cost:12000, maxLv:30 },
+    { id:'r_reflect',    name:'반사 연구',     desc:'반사 데미지 +1% (강화소와 합연산, 최대 99%)', time:14400, cost:12000, maxLv:49 },
     { id:'r_vamp',       name:'흡혈 연구',     desc:'흡혈 확률 향상',           time:18000, cost:15000, maxLv:30 },
     { id:'r_shield',     name:'쉴드 연구',     desc:'쉴드 HP 향상',             time:21600, cost:20000, maxLv:20 },
-    { id:'r_knockback',  name:'넉백 연구',     desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
+    { id:'r_knockback',  name:'넉백 확률 연구', desc:'넉백 확률 향상',           time:16200, cost:13000, maxLv:30 },
     { id:'r_knockforce', name:'넉백 거리 연구', desc:'넉백 거리 향상',           time:14400, cost:11000, maxLv:5 },
   ],
   utility: [
@@ -9115,12 +9115,12 @@ function _buildLabPopupList() {
     // 현재 능력치 텍스트
     var _statText = '';
     var _effectMap = {
-      'r_damage':'+2%/Lv 공격력','r_spd':'+2%/Lv 공속','r_crit':'+0.5%/Lv 치명타',
-      'r_crit_mult':'+0.02/Lv 치명타 계수','r_range':'+8/Lv 사거리',
+      'r_damage':'+2%/Lv 공격력','r_spd':'+2%/Lv 공속','r_crit':'+0.5%/Lv 치명타확률',
+      'r_crit_mult':'+0.02/Lv 치명타 계수','r_range':'+8/Lv 사거리','r_dmg_meter':'+0.05/Lv 거리피해',
       'r_pierce':'+1/Lv 관통','r_enh_crit':'+0.5%/Lv 강화치명타확률','r_enh_crit_m':'+0.1/Lv 강화치명타계수',
       'r_knockback':'+0.5%/Lv 넉백','r_knockforce':'+2px/Lv 넉백 거리',
       'r_health':'+2%/Lv 체력','r_regen':'+0.05/Lv 재생','r_defense':'+2%/Lv 방어',
-      'r_mine':'+1%/Lv 지뢰','r_reflect':'+0.5%/Lv 반사','r_vamp':'+0.1%/Lv 흡혈','r_shield':'+5%/Lv 쉴드',
+      'r_reflect':'+1%/Lv 반사','r_vamp':'+0.1%/Lv 흡혈','r_shield':'+5%/Lv 쉴드',
       'start_cash':'+10/Lv 시작골드','r_wave_cash':'+2%/Lv 웨이브골드','r_gold_gain':'+1%/Lv 골드획득',
       'game_speed':'+0.5x/Lv 배속','atk_discount':'-1%/Lv 공격비용','def_discount':'-1%/Lv 방어비용','utl_discount':'-1%/Lv 유틸비용','lab_speed':'-2%/Lv 연구시간',
     };
@@ -13639,8 +13639,8 @@ function _showStatsPopup() {
     var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
     if(!pr)return;
     var pv=(PERM.prisms&&PERM.prisms[pid])||{};
-    if(pv.lv<=0)return;
-    var val=pr.lvEff[pv.lv-1];
+    if(!pv.lv||pv.lv<=0)return;
+    var val=pr.lvEff[pv.lv-1]||0;
     if(pid==='p_damage')_prismB.atk+=val;
     if(pid==='p_max_hp')_prismB.hp+=val;
     if(pid==='p_def')_prismB.def+=val;
@@ -13716,10 +13716,9 @@ function _showStatsPopup() {
   h+=_row('방어율 (회피)',evadeRate._tf1()+'%','#3b82f6');
   h+=_clickRow('최대 치명타 피해',_fn(maxCritDmg),'#cc44ff','detail-crit');
   h+=_clickRow('① 일반 치명타',normalCritChance._tf1()+'% / ×'+normalCritMult._tf2(),'#cc44ff','detail-ncrit');
-  h+=_row('② 강화 치명타',enhCritChance>0?enhCritChance+'% / ×'+enhCritMult._tf2():'미장착','#a855f7');
-  h+=_row('③ 모듈 치명타',modCritChance>0?modCritChance._tf1()+'% / ×'+(modCritMult||0)._tf2():'미장착','#22ddaa');
-  h+=_row('④ 모듈Lv 치명타 확률',modLvCritChance>0?modLvCritChance._tf1()+'%':'-','#00ccaa');
-  h+=_row('④ 모듈Lv 치명타 계수',modLvCritMult>0?'×'+modLvCritMult._tf2():'-','#00ccaa');
+  h+=_clickRow('② 강화 치명타',enhCritChance._tf1()+'% / ×'+enhCritMult._tf2(),'#a855f7','detail-ecrit');
+  h+=_clickRow('③ 모듈 치명타',modCritChance>0?modCritChance._tf1()+'% / ×'+modCritMult._tf2():'미장착 / ×'+modCritMult._tf2(),'#22ddaa','detail-mcrit');
+  h+=_row('④ 모듈Lv 치명타',modLvCritChance>0?modLvCritChance._tf1()+'% / ×'+modLvCritMult._tf2():'- / ×'+modLvCritMult._tf2(),'#00ccaa');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05)._tf2()+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1)._tf1()+'%','#ef4444');
 
@@ -13749,19 +13748,19 @@ function _showStatsPopup() {
     ['연구 속도','lab_speed',function(l){return '-'+(l*2)+'%';}],
     ['공격력','r_damage',function(l){return '+'+(l*2)+'%';}],
     ['속도','r_spd',function(l){return '+'+(l*2)+'%';}],
-    ['치명타','r_crit',function(l){return '+'+(l*0.5)._tf1()+'%';}],
+    ['치명타 확률','r_crit',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['치명타 계수','r_crit_mult',function(l){return '+'+(l*5)+'%';}],
     ['사거리','r_range',function(l){return '+'+(l*2)+'%';}],
+    ['거리 피해','r_dmg_meter',function(l){return '+'+(l*0.05)._tf2();}],
     ['관통','r_pierce',function(l){return '+'+l;}],
     ['강화 치명타 확률','r_enh_crit',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['강화 치명타 계수','r_enh_crit_m',function(l){return '+'+(l*0.1)._tf1();}],
-    ['넉백','r_knockback',function(l){return '+'+(l*0.5)._tf1()+'%';}],
+    ['넉백 확률','r_knockback',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['넉백 거리','r_knockforce',function(l){return '+'+(l*2)+'px';}],
     ['체력','r_health',function(l){return '+'+(l*3)+'%';}],
     ['재생','r_regen',function(l){return '+'+(l*0.1)._tf1()+'/s';}],
     ['방어','r_defense',function(l){return '+'+(l*2)+'%';}],
-    ['지뢰','r_mine',function(l){return '+'+(l*5)+'%';}],
-    ['반사','r_reflect',function(l){return '+'+(l*2)+'%';}],
+    ['반사','r_reflect',function(l){return '+'+l+'%';}],
     ['흡혈','r_vamp',function(l){return '+'+(l*0.5)._tf1()+'%';}],
     ['쉴드','r_shield',function(l){return '+'+(l*5)+'%';}],
     ['시작 골드','start_cash',function(l){return '+'+(l*50);}],
@@ -13780,8 +13779,8 @@ function _showStatsPopup() {
     var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
     if(!pr)return;
     var pv=(PERM.prisms&&PERM.prisms[pid])||{};
-    if(pv.lv<=0)return;
-    var val=pr.lvEff[pv.lv-1];
+    if(!pv.lv||pv.lv<=0)return;
+    var val=pr.lvEff[pv.lv-1]||0;
     var valStr=pr.unit==='x'?'+'+val+'x':'+'+val+pr.unit;
     h+=_row(pr.name+' Lv.'+pv.lv, valStr,'#cc44ff');
   });
@@ -13915,7 +13914,7 @@ function _showStatsPopup() {
         r.push(['[ 확률 ]','']);
         r.push(['강화소 치명타 확률',_wsCrit>0?'Lv.'+_wsCrit+'/100 (+'+_wsCritPct._tf1()+'% / 최대 50%)':'-']);
         r.push(['프리즘 약점 분석',_prismCritRate>0?'+'+_prismCritRate._tf1()+'% (최대 15%)':'-']);
-        r.push(['코어랩 치명타 연구',_rCritLv>0?'Lv.'+_rCritLv+'/70 (+'+_rCritPct._tf1()+'% / 최대 35%)':'-']);
+        r.push(['코어랩 치명타 확률 연구',_rCritLv>0?'Lv.'+_rCritLv+'/70 (+'+_rCritPct._tf1()+'% / 최대 35%)':'-']);
         r.push(['─────────','']);
         r.push(['합산 치명타 확률',Math.min(_totalCritPct,100)._tf1()+'% (최대 100%)']);
         r.push(['','']);
@@ -13925,6 +13924,45 @@ function _showStatsPopup() {
         r.push(['프리즘 급소배율',(_prismB.critDmg||0)>0?'+'+_prismB.critDmg+'x':'-']);
         r.push(['─────────','']);
         r.push(['최종 배율','×'+normalCritMult._tf2()]);
+        return r;
+      })()
+    },
+    'detail-ecrit': {
+      title:'강화 치명타 상세',color:'#a855f7',
+      rows:(function(){
+        var r=[];
+        r.push(['[ 확률 ]','']);
+        r.push(['강화소 강화 치명타 확률',(ws.enhCritChance||0)>0?'Lv.'+(ws.enhCritChance||0)+'/30 (+'+((ws.enhCritChance||0)*0.5)._tf1()+'%)':'-']);
+        r.push(['코어랩 강화 치명타 확률',_rEnhCLv>0?'Lv.'+_rEnhCLv+'/26 (+'+(_rEnhCLv*0.5)._tf1()+'%)':'-']);
+        r.push(['프리즘 강화 약점 분석',(_prismB.enhCritRate||0)>0?'+'+(_prismB.enhCritRate||0)+'%':'-']);
+        r.push(['─────────','']);
+        r.push(['합산 확률',enhCritChance._tf1()+'%']);
+        r.push(['','']);
+        r.push(['[ 계수 ]','']);
+        r.push(['기본 배율','×1.50']);
+        r.push(['강화소 강화 치명타 계수',(ws.enhCritMult||0)>0?'+'+((ws.enhCritMult||0)*0.1)._tf1():'-']);
+        r.push(['코어랩 강화 치명타 계수',_rEnhMLv>0?'+'+(_rEnhMLv*0.1)._tf1():'-']);
+        r.push(['프리즘 강화 급소배율',(_prismB.enhCritMult||0)>0?'+'+_prismB.enhCritMult:'-']);
+        r.push(['─────────','']);
+        r.push(['최종 배율','×'+enhCritMult._tf2()]);
+        r.push(['','']);
+        r.push(['※ 일반 치명타 발동 시에만 2차 판정','']);
+        return r;
+      })()
+    },
+    'detail-mcrit': {
+      title:'모듈 치명타 상세',color:'#22ddaa',
+      rows:(function(){
+        var r=[];
+        r.push(['[ 모듈 등급 치명타 ]','']);
+        r.push(['확률',modCritChance>0?modCritChance._tf1()+'%':'미장착']);
+        r.push(['계수 (기본 1.5x)','×'+modCritMult._tf2()]);
+        r.push(['','']);
+        r.push(['[ 모듈 Lv 치명타 ]','']);
+        r.push(['확률',modLvCritChance>0?modLvCritChance._tf1()+'%':'미장착']);
+        r.push(['계수 (기본 1.5x)','×'+modLvCritMult._tf2()]);
+        r.push(['','']);
+        r.push(['※ 각각 독립 판정 (①②와 별개)','']);
         return r;
       })()
     },
