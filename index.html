@@ -4827,32 +4827,7 @@ function render() {
     ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + visW, y); ctx.stroke();
   }
 
-  // Attack range circle → DOM 오버레이 (안드로이드 선명도 대응)
-  var _rDom = document.getElementById('range-dom');
-  if (_rDom) {
-    if (G.introTimer < 0) {
-      _rDom.style.display = 'block';
-      var _rCv = document.getElementById('gameCanvas');
-      if (_rCv) {
-        var _rCvRect = _rCv.getBoundingClientRect();
-        var _rARect = _rCv.parentElement.getBoundingClientRect();
-        var _rOffX = _rCvRect.left - _rARect.left;
-        var _rOffY = _rCvRect.top - _rARect.top;
-        var _rCsW = parseFloat(_rCv.style.width) || _rCvRect.width;
-        var _rSc = _rCvRect.width / _rCsW;
-        var _rZm = G.zoom || 1;
-        var _rVizX = CW/2 + (G.cx - CW/2) * _rZm;
-        var _rVizY = CH/2 + (G.cy - CH/2) * _rZm;
-        var _rSize = G.tower.range * 2 * _rZm * _rSc;
-        _rDom.style.width = _rSize + 'px';
-        _rDom.style.height = _rSize + 'px';
-        _rDom.style.left = (_rOffX + _rVizX * _rSc) + 'px';
-        _rDom.style.top = (_rOffY + _rVizY * _rSc) + 'px';
-      }
-    } else {
-      _rDom.style.display = 'none';
-    }
-  }
+  // range-dom은 tower-dom과 함께 아래에서 동기화
 
   // Targeting line to nearest in-range enemy
   {
@@ -5298,32 +5273,47 @@ function render() {
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
     // DOM 오버레이로 타워 스킨 표시 (브라우저 네이티브 SVG 렌더링 → DPR 완벽 대응)
     var _drawSz = TR * 2 + 2;
+    // ── 타워 + 범위 DOM 동기화 (동일 좌표 계산 1회) ──
     var _tDom = document.getElementById('tower-dom');
-    if (_tDom) {
-      if (_tDom._skinKey !== _cSkin) {
-        _tDom._skinKey = _cSkin;
-        _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
-      }
-      _tDom.style.display = 'block';
-      // 캔버스 zoom transform 반영: translate(CW/2,CH/2) → scale(zoom) → translate(-CW/2,-CH/2)
-      var _cv = document.getElementById('gameCanvas');
-      if (_cv) {
-        var _cvRect = _cv.getBoundingClientRect();
-        var _aRect = _cv.parentElement.getBoundingClientRect();
-        var _offX = _cvRect.left - _aRect.left;
-        var _offY = _cvRect.top - _aRect.top;
-        var _csW = parseFloat(_cv.style.width) || _cvRect.width;
-        var _csH = parseFloat(_cv.style.height) || _cvRect.height;
-        var _sc = _cvRect.width / _csW;
-        var _zm = G.zoom || 1;
-        // zoom transform 적용된 화면 좌표
-        var _vizX = CW/2 + (G.cx - CW/2) * _zm;
-        var _vizY = CH/2 + (G.cy - CH/2) * _zm;
+    var _rDom = document.getElementById('range-dom');
+    var _cv = document.getElementById('gameCanvas');
+    if (_cv && (_tDom || _rDom)) {
+      var _cvRect = _cv.getBoundingClientRect();
+      var _aRect = _cv.parentElement.getBoundingClientRect();
+      var _offX = _cvRect.left - _aRect.left;
+      var _offY = _cvRect.top - _aRect.top;
+      var _csW = parseFloat(_cv.style.width) || _cvRect.width;
+      var _sc = _cvRect.width / _csW;
+      var _zm = G.zoom || 1;
+      var _vizX = CW/2 + (G.cx - CW/2) * _zm;
+      var _vizY = CH/2 + (G.cy - CH/2) * _zm;
+      var _scrX = _offX + _vizX * _sc;
+      var _scrY = _offY + _vizY * _sc;
+      // 타워 스킨
+      if (_tDom) {
+        if (_tDom._skinKey !== _cSkin) {
+          _tDom._skinKey = _cSkin;
+          _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
+        }
+        _tDom.style.display = 'block';
         var _domSz = _drawSz * _zm * _sc;
         _tDom.style.width = _domSz + 'px';
         _tDom.style.height = _domSz + 'px';
-        _tDom.style.left = (_offX + _vizX * _sc) + 'px';
-        _tDom.style.top = (_offY + _vizY * _sc) + 'px';
+        _tDom.style.left = _scrX + 'px';
+        _tDom.style.top = _scrY + 'px';
+      }
+      // 공격 범위 원
+      if (_rDom) {
+        if (G.introTimer < 0) {
+          _rDom.style.display = 'block';
+          var _rSize = G.tower.range * 2 * _zm * _sc;
+          _rDom.style.width = _rSize + 'px';
+          _rDom.style.height = _rSize + 'px';
+          _rDom.style.left = _scrX + 'px';
+          _rDom.style.top = _scrY + 'px';
+        } else {
+          _rDom.style.display = 'none';
+        }
       }
     }
     ctx.save();
