@@ -8454,7 +8454,7 @@ var NEW_ITEMS = {
 Object.keys(NEW_ITEMS).forEach(function(k) { WS[k] = NEW_ITEMS[k]; });
 
 /* ── 단계 해금 비용 ── */
-var TIER_COSTS = { atk:[0,150,400,1000,3000], def:[0,150,400,1000,3000], spc:[0,40,150,400,1000] };
+var TIER_COSTS = { atk:[0,150,400,1000,3000], def:[0,150,400,1000,3000] };
 
 /* ── MutationObserver로 탭 빌드 후 확장 카드 추가 ── */
 var _building = false, _buildTimer = null;
@@ -8488,7 +8488,8 @@ function _appendExtended() {
   var costs    = TIER_COSTS[activeTab] || [0,150,400,1000,3000];
 
   // 공격/방어 탭은 새 단계별 잠금 시스템에서 처리 — 확장 주입 건너뜀
-  if (activeTab === 'atk' || activeTab === 'def') return;
+  // 유틸 탭은 단계 해금 없이 WS 기본 아이템만 사용
+  if (activeTab === 'atk' || activeTab === 'def' || activeTab === 'utl') return;
 
   // 해금된 확장 아이템 추가
   Object.keys(NEW_ITEMS).forEach(function(key) {
