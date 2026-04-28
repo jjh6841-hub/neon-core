@@ -3271,7 +3271,7 @@ function resizeCanvas() {
     w = Math.floor(ah * 9 / 16);
   }
   CW = w; CH = h;
-  window._dpr = Math.min(window.devicePixelRatio || 1, 2);
+  window._dpr = Math.min(window.devicePixelRatio || 1, 3);
   canvas.width  = Math.round(w * window._dpr);
   canvas.height = Math.round(h * window._dpr);
   canvas.style.width  = w + 'px';
@@ -5170,7 +5170,26 @@ function render() {
   }
 
   // Tower (hexagon) — 인트로 배치 연출 / 일반
+  // ── 공통: tower/range DOM 좌표 계산 (인트로/일반 공유) ──
+  var _tDom = document.getElementById('tower-dom');
+  var _rDom = document.getElementById('range-dom');
+  var _cv = document.getElementById('gameCanvas');
+  var _scrX = 0, _scrY = 0, _pxPerUnit = 1, _zm = G.zoom || 1;
+  if (_cv) {
+    var _cvRect = _cv.getBoundingClientRect();
+    var _aRect = _cv.parentElement.getBoundingClientRect();
+    var _offX = _cvRect.left - _aRect.left;
+    var _offY = _cvRect.top - _aRect.top;
+    _pxPerUnit = _cvRect.width / CW;
+    var _vizX = CW/2 + (G.cx - CW/2) * _zm;
+    var _vizY = CH/2 + (G.cy - CH/2) * _zm;
+    _scrX = _offX + _vizX * _pxPerUnit;
+    _scrY = _offY + _vizY * _pxPerUnit;
+  }
+
   if (G.introTimer >= 0) {
+  // 인트로 중 range-dom 숨김
+  if (_rDom) _rDom.style.display = 'none';
   (function(){
     var t = G.introTimer;
     // 장착 스킨 색상 적용
@@ -5188,6 +5207,7 @@ function render() {
     else if (_ac === '#10b981' || _ac === '#00ff88') _fl = '#001a10';
     else if (_ac === '#f59e0b') _fl = '#1a1400';
     var TR = 23;
+    var _drawSz = TR * 2 + 2;
     ctx.save();
 
     // Phase 1 (0-500ms): 스캔 라인 + 확장 링
@@ -5241,11 +5261,20 @@ function render() {
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      // 타워 물질화 (DOM 오버레이 — opacity로 페이드인)
-      var _tDomI = document.getElementById('tower-dom');
-      if (_tDomI) {
-        _tDomI.style.opacity = ease;
-        _tDomI.style.transform = 'translate(-50%,-50%) scale(' + ease + ')';
+      // 타워 물질화 (DOM 오버레이 — 위치 설정 + opacity 페이드인)
+      if (_tDom) {
+        if (_tDom._skinKey !== _cSkin) {
+          _tDom._skinKey = _cSkin;
+          _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
+        }
+        var _domSz = _drawSz * _zm * _pxPerUnit;
+        _tDom.style.display = 'block';
+        _tDom.style.width = _domSz + 'px';
+        _tDom.style.height = _domSz + 'px';
+        _tDom.style.left = _scrX + 'px';
+        _tDom.style.top = _scrY + 'px';
+        _tDom.style.opacity = ease;
+        _tDom.style.transform = 'translate(-50%,-50%) scale(' + ease + ')';
       }
     }
 
@@ -5273,21 +5302,8 @@ function render() {
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
     // DOM 오버레이로 타워 스킨 표시 (브라우저 네이티브 SVG 렌더링 → DPR 완벽 대응)
     var _drawSz = TR * 2 + 2;
-    // ── 타워 + 범위 DOM 동기화 (부모 기준 absolute 좌표) ──
-    var _tDom = document.getElementById('tower-dom');
-    var _rDom = document.getElementById('range-dom');
-    var _cv = document.getElementById('gameCanvas');
+    // ── 타워 + 범위 DOM 동기화 (공통 좌표 사용) ──
     if (_cv && (_tDom || _rDom)) {
-      var _cvRect = _cv.getBoundingClientRect();
-      var _aRect = _cv.parentElement.getBoundingClientRect();
-      var _offX = _cvRect.left - _aRect.left;
-      var _offY = _cvRect.top - _aRect.top;
-      var _zm = G.zoom || 1;
-      var _pxPerUnit = _cvRect.width / CW;
-      var _vizX = CW/2 + (G.cx - CW/2) * _zm;
-      var _vizY = CH/2 + (G.cy - CH/2) * _zm;
-      var _scrX = _offX + _vizX * _pxPerUnit;
-      var _scrY = _offY + _vizY * _pxPerUnit;
       // 타워 스킨
       if (_tDom) {
         if (_tDom._skinKey !== _cSkin) {
@@ -5295,6 +5311,8 @@ function render() {
           _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
         }
         _tDom.style.display = 'block';
+        _tDom.style.opacity = '1';
+        _tDom.style.transform = 'translate(-50%,-50%)';
         var _domSz = _drawSz * _zm * _pxPerUnit;
         _tDom.style.width = _domSz + 'px';
         _tDom.style.height = _domSz + 'px';
@@ -5303,16 +5321,12 @@ function render() {
       }
       // 공격 범위 원
       if (_rDom) {
-        if (G.introTimer < 0) {
-          _rDom.style.display = 'block';
-          var _rSize = G.tower.range * 2 * _zm * _pxPerUnit;
-          _rDom.style.width = _rSize + 'px';
-          _rDom.style.height = _rSize + 'px';
-          _rDom.style.left = _scrX + 'px';
-          _rDom.style.top = _scrY + 'px';
-        } else {
-          _rDom.style.display = 'none';
-        }
+        _rDom.style.display = 'block';
+        var _rSize = G.tower.range * 2 * _zm * _pxPerUnit;
+        _rDom.style.width = _rSize + 'px';
+        _rDom.style.height = _rSize + 'px';
+        _rDom.style.left = _scrX + 'px';
+        _rDom.style.top = _scrY + 'px';
       }
     }
     ctx.save();
