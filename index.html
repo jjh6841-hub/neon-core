@@ -4454,10 +4454,9 @@ function onWaveComplete() {
     if (G.wave >= 100 && _pb < 100 && _ct < 5) _tierUnlocked = _ct;
   } catch(_){}
   checkAchievements();
-  // 티어 클리어 → 행성 이동 연출
+  // 티어 클리어 → 홈 복귀 시 행성 이동 연출 예약
   if (_tierUnlocked) {
-    G.betweenTimer = 5500; // 연출 시간 확보
-    _showPlanetTransition(_tierUnlocked);
+    localStorage.setItem('_pendingPlanetTransit', _tierUnlocked);
   }
   const nextW    = G.wave + 1;
   const nextBoss = nextW % 5 === 0;
@@ -4466,145 +4465,170 @@ function onWaveComplete() {
   G.bannerTimer = 0;
 }
 
-/* ── 행성 이동 연출 ── */
+/* ── 행성 이동 연출 (홈 화면) ── */
 var _PLANET_NAMES = ['에이온', '스펙트라', '넥사르', '피라온', '오메가'];
 var _PLANET_COLORS = ['#00ffff', '#cc44ff', '#f59e0b', '#ef4444', '#ff00ff'];
 function _showPlanetTransition(fromIdx) {
-  var toIdx = fromIdx; // 0-based next planet = fromIdx (td_tier is 1-based, so tier1 → idx 0→next idx 1)
   var fromName = _PLANET_NAMES[fromIdx - 1] || '???';
   var toName = _PLANET_NAMES[fromIdx] || '???';
   var fromColor = _PLANET_COLORS[fromIdx - 1] || '#00ffff';
   var toColor = _PLANET_COLORS[fromIdx] || '#cc44ff';
+  var _skinColor = '#00ffff';
+  try { var _sk = localStorage.getItem('neoncore_skin')||'iris0'; if(window.IRIS_SKINS){var _f=window.IRIS_SKINS.filter(function(s){return s.id===_sk;})[0]; if(_f)_skinColor=_f.color;} } catch(_){}
 
   var ov = document.createElement('div');
   ov.id = 'planet-transit-ov';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;pointer-events:none;overflow:hidden;';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9500;pointer-events:auto;overflow:hidden;';
   var cvs = document.createElement('canvas');
   cvs.style.cssText = 'width:100%;height:100%;';
   ov.appendChild(cvs);
   document.body.appendChild(ov);
 
-  var W, H, cx2d;
-  function resize() {
-    W = cvs.width = window.innerWidth;
-    H = cvs.height = window.innerHeight;
+  var W, H, c;
+  function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+  resize(); c = cvs.getContext('2d');
+
+  var _st = performance.now(), _dur = 6000;
+  var _stars = [];
+  for (var i=0;i<100;i++) _stars.push({x:Math.random()*2-1, y:Math.random()*2-1, s:0.3+Math.random()*1.5});
+
+  // 육각형 그리기 헬퍼
+  function _hex(cx,cy,r) { c.beginPath(); for(var i=0;i<6;i++){var a=Math.PI/3*i-Math.PI/6;if(i===0)c.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a));else c.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));}c.closePath(); }
+  // 탐사선 그리기 헬퍼
+  function _ship(cx,cy,sz,col) {
+    c.save(); c.translate(cx,cy);
+    c.beginPath(); c.moveTo(0,-sz); c.lineTo(sz*0.5,sz*0.4); c.lineTo(sz*0.2,sz*0.6); c.lineTo(-sz*0.2,sz*0.6); c.lineTo(-sz*0.5,sz*0.4); c.closePath();
+    c.fillStyle='#06061a'; c.fill(); c.strokeStyle=col; c.lineWidth=1.5; c.stroke();
+    c.beginPath(); c.arc(0,-sz*0.1,sz*0.15,0,Math.PI*2); c.fillStyle=col; c.globalAlpha=0.6; c.fill(); c.globalAlpha=1;
+    c.restore();
   }
-  resize();
-  cx2d = cvs.getContext('2d');
 
-  var _ptStart = performance.now();
-  var _ptDur = 4500;
-  // 별 데이터
-  var _ptStars = [];
-  for (var i = 0; i < 80; i++) _ptStars.push({ x: Math.random()*W, y: Math.random()*H, s: 0.5+Math.random()*1.5 });
-
-  function _ptFrame(now) {
-    var t = now - _ptStart;
-    var p = t / _ptDur;
+  function _frame(now) {
+    var t = now - _st, p = t / _dur;
     if (p > 1) { ov.remove(); return; }
-    cx2d.clearRect(0, 0, W, H);
+    c.clearRect(0,0,W,H);
 
-    // 배경 어둡게
-    var bgAlpha = p < 0.1 ? p/0.1*0.85 : p > 0.85 ? (1-p)/0.15*0.85 : 0.85;
-    cx2d.fillStyle = 'rgba(3,11,16,' + bgAlpha + ')';
-    cx2d.fillRect(0, 0, W, H);
+    // 배경
+    var bgA = p<0.08?p/0.08*0.92 : p>0.88?(1-p)/0.12*0.92 : 0.92;
+    c.fillStyle='rgba(3,11,16,'+bgA+')'; c.fillRect(0,0,W,H);
 
-    // 워프 스타라인 (별이 줄로 늘어남)
-    if (p > 0.15 && p < 0.65) {
-      var wp = (p - 0.15) / 0.5;
-      for (var i = 0; i < _ptStars.length; i++) {
-        var st = _ptStars[i];
-        var streak = wp * 60 * st.s;
-        cx2d.strokeStyle = 'rgba(200,230,255,' + (0.3 + wp * 0.5) * (st.s / 2) + ')';
-        cx2d.lineWidth = st.s * 0.5;
-        cx2d.beginPath();
-        cx2d.moveTo(st.x, st.y);
-        cx2d.lineTo(st.x, st.y - streak);
-        cx2d.stroke();
+    var cx=W/2, cy=H/2;
+
+    // Phase 1 (0~0.2): 타워 육각형 등장 + 회전
+    if (p < 0.2) {
+      var p1=p/0.2, ea=1-Math.pow(1-p1,2);
+      var r=20*ea;
+      c.save(); c.translate(cx,cy); c.rotate(p1*Math.PI*0.5);
+      c.beginPath(); for(var i=0;i<6;i++){var a=Math.PI/3*i-Math.PI/6;if(i===0)c.moveTo(r*Math.cos(a),r*Math.sin(a));else c.lineTo(r*Math.cos(a),r*Math.sin(a));}c.closePath();
+      c.fillStyle='#06061a'; c.fill(); c.strokeStyle=_skinColor; c.lineWidth=2; c.stroke();
+      c.beginPath(); c.arc(0,0,3,0,Math.PI*2); c.fillStyle=_skinColor; c.fill();
+      c.restore();
+      c.save(); c.globalAlpha=ea; c.textAlign='center'; c.textBaseline='middle';
+      c.font='11px "Courier New",monospace'; c.fillStyle=fromColor;
+      c.fillText(fromName+' 100웨이브 클리어!', cx, cy+36);
+      c.restore();
+    }
+
+    // Phase 2 (0.15~0.35): 육각형 → 탐사선 모핑
+    if (p>=0.15 && p<0.35) {
+      var p2=(p-0.15)/0.2;
+      var morph=1-Math.pow(1-p2,2);
+      c.save(); c.translate(cx,cy);
+      // 육각형이 삼각형(탐사선)으로 서서히 변함
+      var r=20;
+      c.beginPath();
+      for(var i=0;i<6;i++){
+        var a=Math.PI/3*i-Math.PI/6;
+        // 탐사선 꼭짓점으로 보간
+        var shipPts=[{x:0,y:-r},{x:r*0.5,y:r*0.4},{x:r*0.2,y:r*0.6},{x:-r*0.2,y:r*0.6},{x:-r*0.5,y:r*0.4},{x:0,y:-r}];
+        var hx=r*Math.cos(a), hy=r*Math.sin(a);
+        var sx=shipPts[i].x, sy=shipPts[i].y;
+        var fx=hx+(sx-hx)*morph, fy=hy+(sy-hy)*morph;
+        if(i===0)c.moveTo(fx,fy);else c.lineTo(fx,fy);
+      }
+      c.closePath();
+      c.fillStyle='#06061a'; c.fill(); c.strokeStyle=_skinColor; c.lineWidth=1.5+morph*0.5; c.stroke();
+      c.beginPath(); c.arc(0,-r*0.1*morph,3-morph,0,Math.PI*2); c.fillStyle=_skinColor; c.globalAlpha=0.6+morph*0.4; c.fill();
+      c.globalAlpha=1; c.restore();
+      // 텍스트 페이드
+      c.save(); c.globalAlpha=1-p2; c.textAlign='center'; c.textBaseline='middle';
+      c.font='11px "Courier New",monospace'; c.fillStyle=fromColor;
+      c.fillText(fromName+' 100웨이브 클리어!', cx, cy+36);
+      c.restore();
+    }
+
+    // Phase 3 (0.3~0.6): 탐사선 상승 + 워프 스타라인
+    if (p>=0.3 && p<0.6) {
+      var p3=(p-0.3)/0.3;
+      var shipY=cy-p3*cy*1.2;
+      // 스타라인
+      for(var i=0;i<_stars.length;i++){
+        var st=_stars[i];
+        var sx=cx+st.x*W*0.5, sy=cy+st.y*H*0.5;
+        var streak=p3*80*st.s;
+        c.strokeStyle='rgba(200,230,255,'+(0.2+p3*0.6)*(st.s/2)+')';
+        c.lineWidth=st.s*0.5;
+        c.beginPath(); c.moveTo(sx,sy); c.lineTo(sx,sy+streak); c.stroke();
+      }
+      // 탐사선
+      _ship(cx,shipY,20,_skinColor);
+      // 엔진 불꽃
+      c.save(); c.globalAlpha=0.5+p3*0.5;
+      var flameH=8+p3*20;
+      var fg=c.createLinearGradient(cx,shipY+12,cx,shipY+12+flameH);
+      fg.addColorStop(0,_skinColor); fg.addColorStop(0.4,'#ffffff44'); fg.addColorStop(1,'transparent');
+      c.fillStyle=fg;
+      c.beginPath(); c.moveTo(cx-4,shipY+12); c.lineTo(cx,shipY+12+flameH); c.lineTo(cx+4,shipY+12); c.closePath(); c.fill();
+      c.restore();
+      // WARP 텍스트
+      if(p3>0.2&&p3<0.8){
+        var ta=p3<0.5?(p3-0.2)/0.3:(0.8-p3)/0.3;
+        c.save(); c.globalAlpha=ta; c.textAlign='center'; c.textBaseline='middle';
+        c.font='bold 15px "Courier New",monospace'; c.fillStyle='#ffffff';
+        c.shadowColor=_skinColor; c.shadowBlur=12;
+        c.fillText('WARP DRIVE', cx, cy*0.85);
+        c.shadowBlur=0; c.restore();
       }
     }
 
-    // Phase A (0-0.35): 현재 행성 축소 + 떠남
-    if (p < 0.35) {
-      var pa = p / 0.35;
-      var pr = (1 - pa) * Math.min(W, H) * 0.12 + 5;
-      var py = H * 0.5 + pa * H * 0.4;
-      var palpha = 1 - pa;
-      cx2d.save();
-      cx2d.globalAlpha = palpha;
-      cx2d.beginPath();
-      cx2d.arc(W/2, py, pr, 0, Math.PI*2);
-      var pg = cx2d.createRadialGradient(W/2, py, pr*0.1, W/2, py, pr);
-      pg.addColorStop(0, fromColor);
-      pg.addColorStop(0.6, fromColor + '88');
-      pg.addColorStop(1, 'transparent');
-      cx2d.fillStyle = pg;
-      cx2d.fill();
-      // 행성 이름
-      cx2d.textAlign = 'center'; cx2d.textBaseline = 'middle';
-      cx2d.font = '12px "Courier New", monospace';
-      cx2d.fillStyle = fromColor;
-      cx2d.globalAlpha = palpha * 0.8;
-      cx2d.fillText(fromName, W/2, py - pr - 12);
-      cx2d.restore();
+    // Phase 4 (0.55~0.85): 새 행성 등장 + 탐사선 도착
+    if (p>=0.55) {
+      var p4=Math.min(1,(p-0.55)/0.3);
+      var ease=1-Math.pow(1-p4,3);
+      var pr=ease*Math.min(W,H)*0.1+2;
+      var py=cy*0.45;
+      // 행성
+      c.save(); c.globalAlpha=ease;
+      c.beginPath(); c.arc(cx,py,pr,0,Math.PI*2);
+      var ng=c.createRadialGradient(cx,py,pr*0.1,cx,py,pr);
+      ng.addColorStop(0,toColor); ng.addColorStop(0.5,toColor+'aa'); ng.addColorStop(1,'transparent');
+      c.fillStyle=ng; c.fill();
+      c.beginPath(); c.arc(cx,py,pr+6,0,Math.PI*2);
+      c.strokeStyle=toColor; c.globalAlpha=ease*0.4; c.lineWidth=1; c.setLineDash([4,6]); c.stroke(); c.setLineDash([]);
+      c.globalAlpha=ease;
+      // 탐사선 도착 (행성 아래로 접근)
+      var shipArrY=py+pr+30+(1-ease)*60;
+      _ship(cx,shipArrY,14*(0.6+ease*0.4),_skinColor);
+      // 텍스트
+      c.textAlign='center'; c.textBaseline='middle';
+      c.font='bold 14px "Courier New",monospace'; c.fillStyle=toColor;
+      c.shadowColor=toColor; c.shadowBlur=10;
+      c.fillText(toName+' 도달', cx, py-pr-20);
+      c.shadowBlur=0;
+      c.font='11px "Courier New",monospace'; c.fillStyle='#94a3b8';
+      c.fillText('새로운 행성이 해금되었습니다', cx, py+pr+80);
+      c.restore();
     }
 
-    // Phase B (0.3-0.55): 워프 텍스트
-    if (p > 0.3 && p < 0.55) {
-      var pb = (p - 0.3) / 0.25;
-      cx2d.save();
-      cx2d.globalAlpha = pb < 0.5 ? pb * 2 : 2 * (1 - pb);
-      cx2d.textAlign = 'center'; cx2d.textBaseline = 'middle';
-      cx2d.font = 'bold 16px "Courier New", monospace';
-      cx2d.fillStyle = '#ffffff';
-      cx2d.shadowColor = '#00ffff'; cx2d.shadowBlur = 15;
-      cx2d.fillText('WARP DRIVE ENGAGED', W/2, H * 0.45);
-      cx2d.shadowBlur = 0;
-      cx2d.restore();
+    // Phase 5 (0.85~1.0): 페이드아웃
+    if (p>=0.85) {
+      var p5=(p-0.85)/0.15;
+      c.fillStyle='rgba(3,11,16,'+p5*0.9+')'; c.fillRect(0,0,W,H);
     }
 
-    // Phase C (0.55-0.9): 새 행성 등장
-    if (p > 0.55) {
-      var pc = Math.min(1, (p - 0.55) / 0.35);
-      var ease = 1 - Math.pow(1 - pc, 3);
-      var nr = ease * Math.min(W, H) * 0.12 + 2;
-      var ny = H * 0.5 - (1 - ease) * H * 0.3;
-      cx2d.save();
-      cx2d.globalAlpha = ease;
-      cx2d.beginPath();
-      cx2d.arc(W/2, ny, nr, 0, Math.PI*2);
-      var ng = cx2d.createRadialGradient(W/2, ny, nr*0.1, W/2, ny, nr);
-      ng.addColorStop(0, toColor);
-      ng.addColorStop(0.5, toColor + 'aa');
-      ng.addColorStop(1, 'transparent');
-      cx2d.fillStyle = ng;
-      cx2d.fill();
-      // 링
-      cx2d.beginPath();
-      cx2d.arc(W/2, ny, nr + 6, 0, Math.PI*2);
-      cx2d.strokeStyle = toColor;
-      cx2d.globalAlpha = ease * 0.4;
-      cx2d.lineWidth = 1;
-      cx2d.setLineDash([4, 6]);
-      cx2d.stroke();
-      cx2d.setLineDash([]);
-      // 행성 이름
-      cx2d.globalAlpha = ease;
-      cx2d.textAlign = 'center'; cx2d.textBaseline = 'middle';
-      cx2d.font = 'bold 14px "Courier New", monospace';
-      cx2d.fillStyle = toColor;
-      cx2d.shadowColor = toColor; cx2d.shadowBlur = 10;
-      cx2d.fillText(toName + ' 도달', W/2, ny - nr - 18);
-      cx2d.shadowBlur = 0;
-      cx2d.font = '11px "Courier New", monospace';
-      cx2d.fillStyle = '#94a3b8';
-      cx2d.fillText('새로운 행성이 해금되었습니다', W/2, ny + nr + 22);
-      cx2d.restore();
-    }
-
-    requestAnimationFrame(_ptFrame);
+    requestAnimationFrame(_frame);
   }
-  requestAnimationFrame(_ptFrame);
+  requestAnimationFrame(_frame);
 }
 
 function triggerGameOver() {
@@ -6221,6 +6245,12 @@ function openShop() {
   if (window._startHomeBg) window._startHomeBg();
   // 해금 연출 (전투 후 홈 복귀 시)
   setTimeout(function() { _showPendingUnlocks(); }, 600);
+  // 행성 이동 연출 (티어 클리어 후 홈 복귀 시)
+  var _ptPending = localStorage.getItem('_pendingPlanetTransit');
+  if (_ptPending) {
+    localStorage.removeItem('_pendingPlanetTransit');
+    setTimeout(function() { _showPlanetTransition(parseInt(_ptPending,10)); }, 800);
+  }
 }
 
 // 네온 자물쇠 해금 SVG
