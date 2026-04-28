@@ -5245,12 +5245,14 @@ function render() {
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      // 타워 물질화 (SVG 스킨 캐시 사용)
+      // 타워 물질화 (고해상도 SVG Image 사용)
       ctx.globalAlpha = ease;
-      if (window._towerSkinCache && window._towerSkinCache._ready) {
+      if (window._towerSkinImg && window._towerSkinImg._ready) {
         var _isz = (TR * 2 + 2) * ease;
         if (_isz > 1) {
-          ctx.drawImage(window._towerSkinCache, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(window._towerSkinImg, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
         }
       }
     }
@@ -5277,29 +5279,27 @@ function render() {
     var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
     var _skinColor = '#00ffff';
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
-    // SVG → 오프스크린 캔버스 캐시 (물리 픽셀 1:1 매핑)
-    var _dpr = window._dpr || 1;
+    // 고해상도 SVG Image 캐시 (오프스크린 캔버스 없이 직접 사용)
     var _drawSz = TR * 2 + 2;
-    var _physSz = Math.round(_drawSz * _dpr);
-    var _cacheKey = _cSkin + '_' + _physSz;
-    if (!window._towerSkinCache || window._towerSkinCache._key !== _cacheKey) {
+    var _svgHiRes = 192;
+    var _cacheKey = _cSkin + '_hr';
+    if (!window._towerSkinImg || window._towerSkinImg._key !== _cacheKey) {
       if (window.getNeonCoreIcon) {
-        var _svgStr = window.getNeonCoreIcon(_physSz, _cSkin);
-        var _oc = document.createElement('canvas'); _oc.width = _physSz; _oc.height = _physSz;
-        var _ox = _oc.getContext('2d');
-        var _svgImg = new Image();
-        _svgImg.onload = function() { _ox.drawImage(_svgImg, 0, 0, _physSz, _physSz); _oc._ready = true; };
-        _svgImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_svgStr);
-        _oc._key = _cacheKey;
-        _oc._ready = false;
-        window._towerSkinCache = _oc;
+        var _img = new Image();
+        _img._key = _cacheKey;
+        _img._ready = false;
+        _img.onload = function() { _img._ready = true; };
+        _img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.getNeonCoreIcon(_svgHiRes, _cSkin));
+        window._towerSkinImg = _img;
       }
     }
     ctx.save();
     var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
-    // SVG 스킨 캐시를 CSS 좌표 기준으로 그리기
-    if (window._towerSkinCache && window._towerSkinCache._ready) {
-      ctx.drawImage(window._towerSkinCache, _tx - _drawSz/2, _ty - _drawSz/2, _drawSz, _drawSz);
+    // 고해상도 SVG Image → CSS 크기로 다운스케일 (브라우저 고품질 보간)
+    if (window._towerSkinImg && window._towerSkinImg._ready) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(window._towerSkinImg, _tx - _drawSz/2, _ty - _drawSz/2, _drawSz, _drawSz);
     }
     // 피격/버프 오버레이
     if (flashHit) {
@@ -6227,21 +6227,16 @@ function startNewGame() {
   if (PERM.settings.music) { AudioManager.stopBGM(); AudioManager.playBGM('battle'); }
   // 행성별 배경색 캐시 갱신
   window._cachedBgColor = null;
-  // 타워 스킨 프리로드 (물리 픽셀 크기로)
+  // 타워 스킨 프리로드 (고해상도 SVG Image)
   try {
     var _preSkin = localStorage.getItem('neoncore_skin') || 'iris0';
-    var _preDpr = window._dpr || 1;
-    var _prePhys = Math.round(48 * _preDpr);
-    var _preCacheKey = _preSkin + '_' + _prePhys;
-    if (window.getNeonCoreIcon && (!window._towerSkinCache || window._towerSkinCache._key !== _preCacheKey)) {
-      var _preSvg = window.getNeonCoreIcon(_prePhys, _preSkin);
-      var _preOc = document.createElement('canvas'); _preOc.width = _prePhys; _preOc.height = _prePhys;
-      var _preOx = _preOc.getContext('2d');
-      var _preSvgImg = new Image();
-      _preSvgImg.onload = function(){ _preOx.drawImage(_preSvgImg, 0, 0, _prePhys, _prePhys); _preOc._ready = true; };
-      _preSvgImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_preSvg);
-      _preOc._key = _preCacheKey; _preOc._ready = false;
-      window._towerSkinCache = _preOc;
+    var _preCacheKey = _preSkin + '_hr';
+    if (window.getNeonCoreIcon && (!window._towerSkinImg || window._towerSkinImg._key !== _preCacheKey)) {
+      var _preImg = new Image();
+      _preImg._key = _preCacheKey; _preImg._ready = false;
+      _preImg.onload = function(){ _preImg._ready = true; };
+      _preImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(window.getNeonCoreIcon(192, _preSkin));
+      window._towerSkinImg = _preImg;
     }
   } catch(_){}
   window._battleBgCache = null;
