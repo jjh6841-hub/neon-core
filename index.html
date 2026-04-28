@@ -13858,7 +13858,7 @@ function _showStatsPopup() {
       rows:[
         ['기본 (강화소)', _fn(Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0))))],
         ['코어랩 연구', rDmgLv>0?'×'+(1+rDmgLv*0.02)._tf2():'-'],
-        ['속성 배율', '×'+(em.atk||1)._tf2()],
+      ].concat(window._getElementDetailRows?window._getElementDetailRows('atk'):[['속성 배율','×'+(em.atk||1)._tf2()]]).concat([
         ['탐사선 스킨', '×'+(sm.shipAtk||1)._tf2()],
         ['배경 스킨', '×'+(sm.bgAtk||1)._tf2()],
         ['프리즘 화력증폭', _prismB.atk>0?'×'+(1+_prismB.atk/100)._tf2():'-'],
@@ -13873,7 +13873,7 @@ function _showStatsPopup() {
       rows:[
         ['기본 (강화소)', _fn(Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0))))],
         ['코어랩 연구', rHpLv>0?'×'+(1+rHpLv*0.02)._tf2():'-'],
-        ['속성 배율', '×'+(em.hp||1)._tf2()],
+      ].concat(window._getElementDetailRows?window._getElementDetailRows('hp'):[['속성 배율','×'+(em.hp||1)._tf2()]]).concat([
         ['탐사선 스킨', '×'+(sm.shipHp||1)._tf2()],
         ['배경 스킨', '×'+(sm.bgHp||1)._tf2()],
         ['프리즘 코어생명력', _prismB.hp>0?'×'+(1+_prismB.hp/100)._tf2():'-'],
@@ -13888,7 +13888,7 @@ function _showStatsPopup() {
       rows:[
         ['기본 (강화소)', _fn(ws.defAbs||0)],
         ['코어랩 연구', rDefLv>0?'×'+(1+rDefLv*0.02)._tf2():'-'],
-        ['속성 배율', '×'+(em.def||1)._tf2()],
+      ].concat(window._getElementDetailRows?window._getElementDetailRows('def'):[['속성 배율','×'+(em.def||1)._tf2()]]).concat([
         ['탐사선 스킨', '×'+(sm.shipDef||1)._tf2()],
         ['배경 스킨', '×'+(sm.bgDef||1)._tf2()],
         ['프리즘 장갑코팅', _prismB.def>0?'×'+(1+_prismB.def/100)._tf2():'-'],
@@ -18164,6 +18164,19 @@ function _getElementMultipliers() {
   if (eHpLv > 0)  m.hp  *= (1 + eHpLv * 0.02);
   return m;
 }
+// 속성별 개별 배율 (통계 상세용)
+function _getElementDetailRows(statKey) {
+  var rows = [];
+  ELEMENTS.forEach(function(el) {
+    var lv = _getElemLv(el.id, statKey);
+    if (lv > 0) {
+      var mult = (1 + lv * 0.03);
+      rows.push([el.name + ' ' + (statKey==='atk'?'공격력':statKey==='def'?'방어력':'체력'), '×' + mult._tf2()]);
+    }
+  });
+  return rows;
+}
+window._getElementDetailRows = _getElementDetailRows;
 
 /* ── 속성 탭 렌더링 (강화 워크샵 내) ── */
 var _elemActiveTab = 'fire';
