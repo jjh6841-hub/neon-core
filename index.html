@@ -7987,7 +7987,7 @@ if (dailyPopup) {
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     스크립트: 숫자 포맷 + 게임 확장 (넉백/구체/지뢰/궁극무기)
+     스크립트: 숫자 포맷 + 게임 확장 (넉백/구체)
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
@@ -8182,12 +8182,7 @@ window.createState = function() {
   g.thornDamage     = Math.min(0.99, ((ws.thornDamage || 0) + parseInt(localStorage.getItem('res_r_reflect')||'0',10)) * 0.01);
   g.deathDefy       = (ws.deathDefy   || 0) * 0.001;
   g.defenseAbs      = _getDefAbs(ws.defenseAbsolute || 0);
-  // Mine state
-  g.mineChance      = (ws.mineChance  || 0) * 0.003;
-  g.mineDamageM     = 1 + (ws.mineDamage || 0) * 0.05;
-  g.mineRadius      = (0.5 + (ws.mineRadius || 0) * 0.02) * 30;
   g.mines           = [];
-  g.mineSpawnTimer  = 0;
   // Utility
   // cashBonusM 제거됨 (새 유틸 시스템으로 대체)
   // cashPerWaveExt 제거됨 (새 유틸 시스템 대체)
@@ -8224,7 +8219,6 @@ window.update = function(dt) {
   _origUpdate.apply(this, arguments);
   if (!G || G.phase !== 'playing') return;
   _updateOrbs(dt);
-  _updateMines(dt);
   _updateThorn(dt);
   _updateUltimates(dt);
   _updateUltHUD();
@@ -8258,52 +8252,6 @@ function _updateOrbs(dt) {
   }
 }
 
-function _updateMines(dt) {
-  if (!G.mineChance) return;
-  G.mineSpawnTimer += dt;
-  if (G.mineSpawnTimer >= 2500 && G.mines.length < 15) {
-    G.mineSpawnTimer = 0;
-    if (Math.random() < G.mineChance * 8) {
-      var ang = Math.random() * Math.PI * 2;
-      var dist = G.tower.range * 0.3 + Math.random() * G.tower.range * 0.5;
-      G.mines.push({ x: G.cx + Math.cos(ang) * dist, y: G.cy + Math.sin(ang) * dist, life: 18000, armed: false, armTimer: 800 });
-    }
-  }
-  for (var mi = G.mines.length - 1; mi >= 0; mi--) {
-    var mine = G.mines[mi];
-    mine.life -= dt;
-    if (!mine.armed) { mine.armTimer -= dt; if (mine.armTimer <= 0) mine.armed = true; }
-    if (mine.life <= 0) { G.mines.splice(mi, 1); continue; }
-    if (!mine.armed) continue;
-    for (var emi = G.enemies.length - 1; emi >= 0; emi--) {
-      var em = G.enemies[emi];
-      var mDx = em.x - mine.x, mDy = em.y - mine.y;
-      if (mDx * mDx + mDy * mDy < (em.r + 10) * (em.r + 10)) {
-        var mR = G.mineRadius, mDmg = G.tower.dmg * G.mineDamageM;
-        try { addFx(mine.x, mine.y, mR, '#00ff88'); triggerShake(3); } catch(_) {}
-        for (var eki = G.enemies.length - 1; eki >= 0; eki--) {
-          var ek = G.enemies[eki];
-          var ekDx = ek.x - mine.x, ekDy = ek.y - mine.y;
-          if (ekDx * ekDx + ekDy * ekDy < mR * mR) {
-            ek.hp -= mDmg;
-            if (ek.hp <= 0) {
-              var _mc = ek.boss ? 0 : Math.ceil((ek.gold||1)*0.1*(1+(G._prismChipKillBonus||0))); coreChips += _mc;
-              G.killCount++; PERM.totalKills++; _infKill(ek.type);
-              var _mkG = ek.gold || 1; var _mkGb = _mkG; var _mkTGM = [1,1,1.8,2.7,3.6,4.5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
-              _mkG = Math.round(_mkG * _mkTGM * (G.goldMult||1));
-              if (_mkG > 0) { G.gold += _mkG; G.goldEarned += _mkG; G.goldBaseEarned += _mkGb; PERM.gold += _mkG; }
-              if (ek.boss) { PERM.bossKills++; }
-              try { spawnDeathParticles(ek.x, ek.y, '#00ff88', 5); } catch(_) {}
-              G.enemies.splice(eki, 1);
-              if (eki <= emi) emi--;
-            }
-          }
-        }
-        G.mines.splice(mi, 1); break;
-      }
-    }
-  }
-}
 
 function _updateThorn(dt) {
   if (!G.thornDamage) return;
@@ -8342,22 +8290,6 @@ window.render = function() {
   ctx.scale(G.zoom, G.zoom);
   ctx.translate(-CW / 2, -CH / 2);
 
-  // Mines
-  for (var mi = 0; mi < G.mines.length; mi++) {
-    var mine = G.mines[mi];
-    ctx.save(); ctx.translate(mine.x, mine.y);
-    if (mine.armed) {
-      var pulse = 0.5 + Math.sin(Date.now() * 0.012) * 0.35;
-      ctx.strokeStyle = 'rgba(0,255,136,' + pulse + ')'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = '#00ff88'; ctx.font = 'bold 9px Courier New';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('×', 0, 0);
-    } else {
-      ctx.strokeStyle = '#334455'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke();
-    }
-    ctx.restore();
-  }
 
   // Orbs
   if (G.orbCount > 0) {
@@ -8438,9 +8370,6 @@ var NEW_ITEMS = {
   orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (1+lv*0.1)._tf1();},   nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
   orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 5단계
-  mineChance:      { tab:'def', name:'에너지 지뢰 확률', tier:5, maxLv:99, cost:function(lv){return 18+Math.floor(lv*3);},   cur:function(lv){return (lv*0.3)._tf1();},    nxt:function(lv){return ((lv+1)*0.3)._tf1();} },
-  mineDamage:      { tab:'def', name:'에너지 지뢰 피해', tier:5, maxLv:99, cost:function(lv){return 16+Math.floor(lv*2.8);}, cur:function(lv){return (1+lv*0.05)._tf2();},  nxt:function(lv){return (1+(lv+1)*0.05)._tf2();} },
-  mineRadius:      { tab:'def', name:'에너지 지뢰 범위', tier:5, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.5);}, cur:function(lv){return (0.5+lv*0.02)._tf2();},nxt:function(lv){return (0.5+(lv+1)*0.02)._tf2();} },
   deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1)._tf1();},     nxt:function(lv){return ((lv+1)*0.1)._tf1();} },
 
 };
@@ -8561,7 +8490,7 @@ function _appendTierCard(container, tab, nextTier, cost, ws) {
   var tierNames = ['','1단계','2단계','3단계','4단계','5단계'];
   var tierDescs = {
     atk: ['','기본','범위/거리피해','분열탄','연사','도약탄'],
-    def: ['','기본','절대방어/가시','넉백','에너지구체','지뢰/방어막'],
+    def: ['','기본','절대방어/가시','넉백','에너지구체','방어막'],
     spc: ['','기본','크레딧','처치보너스','—','이자율'],
   };
   var desc    = (tierDescs[tab] && tierDescs[tab][nextTier]) || '';
