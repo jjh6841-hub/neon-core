@@ -3256,6 +3256,7 @@ window.checkAchievements = checkAchievements;
 function resizeCanvas() {
   const aw = areaEl.clientWidth  || window.innerWidth;
   const ah = areaEl.clientHeight || Math.floor(window.innerHeight * 0.75);
+  if (aw < 10 || ah < 10) return; // 레이아웃 미완료 시 스킵
   let w, h;
   if (aw / ah < 9 / 16) {
     w = aw;
@@ -3272,6 +3273,7 @@ function resizeCanvas() {
   canvas.style.height = h + 'px';
   if (G) {
     G.cx = w / 2;
+    G.cy = h * 0.48;
     var _baseRange = Math.min(w, h) * 0.45;
     if (!G.tower.range || G.tower.range < _baseRange) G.tower.range = _baseRange;
   }
@@ -6253,8 +6255,12 @@ function startNewGame() {
   } catch(_){}
   window._battleBgCache = null;
   loopGen++;
+  // 레이아웃 완료 후 캔버스 크기 설정 (안드로이드 타이밍 이슈 방지)
   window.resizeCanvas();
-  startGame();
+  requestAnimationFrame(function() {
+    window.resizeCanvas();
+    startGame();
+  });
 }
 
 /* ─── 버튼 이벤트 (touch + click) ─────────────────────────────── */
