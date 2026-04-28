@@ -5164,19 +5164,18 @@ function render() {
   }
 
   // Tower (hexagon) — 인트로 배치 연출 / 일반
-  // ── 공통: tower/range DOM 위치 (캔버스 CSS 크기 기준) ──
+  // ── 공통: tower/range DOM 위치 ──
   var _tDom = document.getElementById('tower-dom');
   var _rDom = document.getElementById('range-dom');
   var _zm = G.zoom || 1;
-  // 캔버스 CSS px와 게임 좌표가 1:1이므로, 캔버스의 부모 내 오프셋만 보정
+  // getBoundingClientRect 대신 CSS 크기 직접 사용 (안드로이드 레이아웃 지연 방지)
   var _canvasEl = document.getElementById('gameCanvas');
-  var _domCX = 0, _domCY = 0;
-  if (_canvasEl) {
-    var _cRect = _canvasEl.getBoundingClientRect();
-    var _pRect = _canvasEl.parentElement.getBoundingClientRect();
-    _domCX = (_cRect.left - _pRect.left) + (CW/2 + (G.cx - CW/2) * _zm);
-    _domCY = (_cRect.top  - _pRect.top)  + (CH/2 + (G.cy - CH/2) * _zm);
-  }
+  var _areaEl = _canvasEl ? _canvasEl.parentElement : null;
+  var _canvasW = CW, _areaW = _areaEl ? _areaEl.clientWidth : CW;
+  var _offX = Math.max(0, (_areaW - _canvasW) / 2); // justify-content:center
+  var _offY = 0; // align-items:flex-start
+  var _domCX = _offX + (CW/2 + (G.cx - CW/2) * _zm);
+  var _domCY = _offY + (CH/2 + (G.cy - CH/2) * _zm);
   var _TR = 23, _drawSz = _TR * 2 + 2;
   var _cSkin = localStorage.getItem('neoncore_skin') || 'iris0';
 
@@ -5290,7 +5289,7 @@ function render() {
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
     // 타워·범위 DOM 표시
     if (_tDom) { _tDom.style.display = 'block'; _tDom.style.opacity = '1'; _tDom.style.transform = 'translate(-50%,-50%)'; }
-    if (_rDom) { _rDom.style.display = 'block'; }
+    if (_rDom) { _rDom.style.display = 'block'; _rDom.style.transform = 'translate(-50%,-50%)'; }
     ctx.save();
     var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
     // 피격/버프 오버레이
