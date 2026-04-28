@@ -4645,9 +4645,10 @@ function triggerGameOver() {
   var clearedWave = Math.max(0, G.wave - 1);
   if (clearedWave > PERM.bestWave) PERM.bestWave = clearedWave;
   var _battleGoldEarned = (G.goldEarned||0);
-  var _battleGemsEarned = G.gems - (G.initialGems||0);
-  PERM.gold = G.gold;
-  PERM.gems = G.gems;
+  var _battleGemsEarned = Math.max(0, G.gems - (G.initialGems||0));
+  // 전투 중 외부에서 변경된 재화(오프라인 보상/임무 등)를 보존: 전투 획득분만 반영
+  PERM.gold = Math.max(PERM.gold, G.gold);
+  PERM.gems = PERM.gems + _battleGemsEarned;
   if (_battleGoldEarned > 0) logCurrency('gold', _battleGoldEarned, '전투 (W' + G.wave + ')');
   if (_battleGemsEarned > 0) logCurrency('gems', _battleGemsEarned, '전투 보석 (W' + G.wave + ')');
   savePerm();
