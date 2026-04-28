@@ -10117,7 +10117,7 @@ if (resultsEl) {
       // _lastBaseGold = 총 골드 (광고 2배 계산용)
       setTimeout(function() {
         var totEl = document.getElementById('r-total-gold');
-        _lastBaseGold = totEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(totEl.textContent) : (parseInt(totEl.textContent, 10) || 0)) : 0;
+        _lastBaseGold = (window.G && window.G.goldEarned) || 0;
       }, 50);
     }
   }).observe(resultsEl, { attributes:true, attributeFilter:['class','style'] });
@@ -10125,8 +10125,7 @@ if (resultsEl) {
 
 window._showAdDoublePopup = function() {
   if (_adDoubleUsed) return;
-  var totEl = document.getElementById('r-total-gold');
-  _lastBaseGold = totEl ? (window.parseFormattedNumber ? window.parseFormattedNumber(totEl.textContent) : (parseInt(totEl.textContent, 10) || 0)) : 0;
+  _lastBaseGold = (window.G && window.G.goldEarned) || 0;
   var amEl = document.getElementById('addbl-amount');
   var dbEl = document.getElementById('addbl-doubled');
   if (amEl) amEl.textContent = _lastBaseGold;
