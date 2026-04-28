@@ -4379,7 +4379,7 @@ function onWaveComplete() {
   var _wcTier = parseInt(localStorage.getItem('td_tier')||'1',10);
   // 웨이브 클리어 골드 (행성 배율은 적 생성 시 이미 적용됨, 클리어 보상에는 별도 적용 안 함)
   var _wcBaseGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
-  var _wcGold = Math.round(_wcBaseGold * (G.goldMult||1) * (1 + (G._goldWaveBonus||0)));
+  var _wcGold = Math.round(_wcBaseGold * (G.goldMult||1));
   G.gold += _wcGold; G.goldEarned += _wcGold; G.goldBaseEarned += _wcBaseGold; PERM.gold += _wcGold;
   AudioManager.playSfx('wave_clear');
   triggerShake(3);
@@ -6865,11 +6865,7 @@ if (dailyPopup) {
       cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
       cur:  function(lv) { return '+' + (lv * 2) + '%'; },
       nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
-    goldKillBonus: { tab:'utl', name:'골드 보너스', maxLv:50, utlGroup:1,
-      cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
-      cur:  function(lv) { return '+' + (lv * 2) + '%'; },
-      nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
-    goldWaveBonus: { tab:'utl', name:'골드 웨이브', maxLv:50, utlGroup:1,
+    goldBoost: { tab:'utl', name:'골드 강화', maxLv:50, utlGroup:1,
       cost: function(lv) { return 8 + Math.floor(lv * 1.5); },
       cur:  function(lv) { return '+' + (lv * 2) + '%'; },
       nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
@@ -9773,8 +9769,7 @@ function _getWsBonus() {
   if (!window.PERM || !window.PERM.ws) return 1.0;
   var ws = window.PERM.ws;
   var bonus = 1.0;
-  if (ws.goldKillBonus) bonus *= (1 + (ws.goldKillBonus||0) * 0.02);
-  if (ws.goldWaveBonus) bonus *= (1 + (ws.goldWaveBonus||0) * 0.02);
+  if (ws.goldBoost) bonus *= (1 + (ws.goldBoost||0) * 0.02);
   return bonus;
 }
 
@@ -14454,8 +14449,7 @@ window.createState = function() {
   g._wsChipKillBonus = (ws.chipKillBonus || 0) * 0.02;  // 강화소 코어칩 보너스
   g._wsChipWaveBonus = (ws.chipWaveBonus || 0) * 0.02;  // 강화소 코어칩 웨이브
   // 골드
-  g._goldKillBonus   = (ws.goldKillBonus || 0) * 0.02;  // 골드 보너스
-  g._goldWaveBonus   = (ws.goldWaveBonus || 0) * 0.02;  // 골드 웨이브
+  g._goldBoost       = (ws.goldBoost     || 0) * 0.02;  // 골드 강화
   // 무료 업글: 프리즘 freeUpgChance에 WS 값 합산
   g._wsFreeUpgChance = (ws.freeUpgrade   || 0) * 0.01;  // 강화소 무료 업그레이드
   // 자동 업글
@@ -14480,7 +14474,7 @@ window.applyPermStats = function() {
   // 무료 업글: 프리즘 행운의 강화 + 강화소 무료 업그레이드 (합연산)
   G.freeUpgChance = (G.freeUpgChance || 0) + (G._wsFreeUpgChance || 0);
   // 골드 보너스 → G.goldMult에 곱연산
-  if (G._goldKillBonus > 0) G.goldMult = (G.goldMult || 1) * (1 + G._goldKillBonus);
+  if (G._goldBoost > 0) G.goldMult = (G.goldMult || 1) * (1 + G._goldBoost);
 };
 
 /* ── startWave 확장: 자동 업그레이드 ── */
@@ -16112,9 +16106,9 @@ window.showCoinBonusPopup = function () {
   var tierIdx = parseInt(localStorage.getItem('td_tier') || '1', 10);
   var tierMults = [1.0, 1.0, 2.0, 3.0, 4.0, 5.0];
   var tierMult = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
-  var _gkb=ws.goldKillBonus||0, _gwb=ws.goldWaveBonus||0;
+  var _gb=ws.goldBoost||0;
   var wsVal=1;
-  if(_gkb>0)wsVal*=(1+_gkb*0.02); if(_gwb>0)wsVal*=(1+_gwb*0.02);
+  if(_gb>0)wsVal*=(1+_gb*0.02);
   var wsOn=wsVal>1;
   var rG=parseInt(localStorage.getItem('res_r_gold_gain')||'0',10);
   var rW=parseInt(localStorage.getItem('res_r_wave_cash')||'0',10);
