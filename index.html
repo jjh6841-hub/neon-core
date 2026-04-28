@@ -4830,10 +4830,10 @@ function render() {
   if (G.introTimer < 0) {
   ctx.save();
   ctx.beginPath();
-  ctx.arc(G.cx, G.cy, G.tower.range, 0, Math.PI * 2);
-  ctx.setLineDash([5, 5]);
-  ctx.strokeStyle = 'rgba(0,255,255,0.25)';
-  ctx.lineWidth = 1.5;
+  ctx.arc(Math.round(G.cx), Math.round(G.cy), Math.round(G.tower.range), 0, Math.PI * 2);
+  ctx.setLineDash([6, 8]);
+  ctx.strokeStyle = 'rgba(0,255,255,0.3)';
+  ctx.lineWidth = 2;
   ctx.stroke();
   ctx.restore();
   }
@@ -5203,7 +5203,7 @@ function render() {
     if (t < 500) {
       var p1 = t / 500;
       ctx.strokeStyle = _ac;
-      ctx.lineWidth = 0.5;
+      ctx.lineWidth = 1;
       for (var si = 0; si < 6; si++) {
         var sa = Math.PI/3*si + t*0.005;
         ctx.globalAlpha = 0.5*(1-p1*0.5);
@@ -5289,8 +5289,10 @@ function render() {
         _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
       }
       _tDom.style.display = 'block';
-      _tDom.style.width = _drawSz + 'px';
-      _tDom.style.height = _drawSz + 'px';
+      var _zm = G.zoom || 1;
+      var _domSz = _drawSz * _zm;
+      _tDom.style.width = _domSz + 'px';
+      _tDom.style.height = _domSz + 'px';
       // 캔버스 내 CSS 좌표를 캔버스 요소 기준 위치로 변환
       var _cv = document.getElementById('gameCanvas');
       if (_cv) {
