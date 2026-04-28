@@ -3435,7 +3435,10 @@ function startGame() {
   G.introTimer = 0;
   G.gold  = PERM.gold;
   G.gems  = PERM.gems;
+  var _gsLv = parseInt(localStorage.getItem('res_game_speed')||'0',10);
+  var _maxSpd = [1, 1.5, 2, 2.5, 3][Math.min(4, _gsLv)];
   gameSpeed = parseFloat(localStorage.getItem('neoncore_speed') || '1') || 1;
+  if (gameSpeed > _maxSpd) gameSpeed = _maxSpd;
   G.speed = gameSpeed;
   coreChips = baseStartChips;
   killCountForGold = 0;
@@ -5886,7 +5889,8 @@ function closePauseMenu() {
 
 function cycleSpeed() {
   if (!G) return;
-  var steps = [1, 1.5, 2, 2.5, 3];
+  var gsLv = parseInt(localStorage.getItem('res_game_speed')||'0',10);
+  var steps = [1, 1.5, 2, 2.5, 3].slice(0, Math.min(5, 1 + gsLv));
   var idx = steps.indexOf(G.speed);
   G.speed = steps[(idx + 1) % steps.length];
   gameSpeed = G.speed;
@@ -9498,9 +9502,17 @@ if (storeBtn) {
 (function() {
 'use strict';
 
-var SPEED_STEPS = [1, 1.5, 2, 2.5, 3];
+var _ALL_SPEED_STEPS = [1, 1.5, 2, 2.5, 3];
+// 코어랩 게임 속도 연구 레벨에 따라 해금된 배속만 사용
+function _getUnlockedSpeedSteps() {
+  var gsLv = parseInt(localStorage.getItem('res_game_speed') || '0', 10);
+  // 0Lv=1x만, 1Lv=~1.5x, 2Lv=~2x, 3Lv=~2.5x, 4Lv=~3x
+  return _ALL_SPEED_STEPS.slice(0, Math.min(_ALL_SPEED_STEPS.length, 1 + gsLv));
+}
+var SPEED_STEPS = _getUnlockedSpeedSteps();
 var _savedSpd = parseFloat(localStorage.getItem('neoncore_speed') || '1') || 1;
-var _sIdx = Math.max(0, SPEED_STEPS.indexOf(_savedSpd) !== -1 ? SPEED_STEPS.indexOf(_savedSpd) : 0);
+if (SPEED_STEPS.indexOf(_savedSpd) === -1) _savedSpd = SPEED_STEPS[SPEED_STEPS.length - 1] || 1;
+var _sIdx = Math.max(0, SPEED_STEPS.indexOf(_savedSpd));
 
 function _updateDisplay() {
   var v = SPEED_STEPS[_sIdx];
@@ -9520,11 +9532,17 @@ function _syncBtnColors() {
   if (minus) minus.style.color = _sIdx === 0 ? '#334455' : '#00ffff';
   if (plus) plus.style.color = _sIdx === SPEED_STEPS.length - 1 ? '#334455' : '#00ffff';
 }
+function _refreshSpeedSteps() {
+  SPEED_STEPS = _getUnlockedSpeedSteps();
+  if (_sIdx >= SPEED_STEPS.length) _sIdx = SPEED_STEPS.length - 1;
+}
 function _speedDown() {
+  _refreshSpeedSteps();
   if (_sIdx > 0) { _sIdx--; _updateDisplay(); }
   _syncBtnColors();
 }
 function _speedUp() {
+  _refreshSpeedSteps();
   if (_sIdx < SPEED_STEPS.length - 1) { _sIdx++; _updateDisplay(); }
   _syncBtnColors();
 }
