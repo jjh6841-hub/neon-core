@@ -4150,10 +4150,11 @@ function update(dt) {
     sb.y += sb.dy * 2.5 * (dt / 16.667);
     var sbdx = sb.x - G.cx, sbdy = sb.y - G.cy;
     if (sbdx * sbdx + sbdy * sbdy < 18 * 18) {
-      // 방어 % + 절대 방어 적용
+      // 회피 확률 + 절대 방어 적용
       var _sEvadeChance = (G.tower && G.tower.defense) || 0;
+      if (Math.random() < _sEvadeChance) { G.floatTexts.push({x:G.cx,y:G.cy-30,text:'MISS',color:'#3b82f6',timer:0}); G.sniperBullets.splice(sbi, 1); continue; }
       var _sDefAbs = G.defenseAbs || 0;
-      var _sbDmg = Math.max(0, sb.dmg * (1 - _sEvadeChance) - _sDefAbs);
+      var _sbDmg = Math.max(1, Math.round(sb.dmg - _sDefAbs));
       if (_sbDmg <= 0) { G.sniperBullets.splice(sbi, 1); continue; }
       // 스나이퍼 탄 실드 흡수 처리
       var _sRem = _sbDmg;
