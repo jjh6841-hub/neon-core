@@ -941,7 +941,11 @@ function runAnomalyDetection() {
     // ④ 로그 기반 분석
     if (logs.length > 0) {
       // 단일 대량 획득 (한 번에 골드 10000 이상 또는 보석 100 이상)
+      // 정상 사유 목록 (오프라인 보상 등 시스템 지급은 제외)
+      var _safeReasons = ['오프라인 보상','임무 보상','업적 보상','시즌패스','쿠폰','관리자 지급'];
       logs.forEach(function(log){
+        var _isSafe = _safeReasons.indexOf(log.r) !== -1;
+        if (_isSafe) return;
         if (log.t==='gold' && log.a >= 10000) {
           alerts.push({uid:u.id, level:'mid', user:u,
             desc:'골드 +'+log.a.toLocaleString()+' 단일 획득 ('+log.r+')',
