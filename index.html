@@ -11046,7 +11046,6 @@ var NEW_MAX = {
   defense:   80,
   hpRegen:   999,
   lifeSteal: 150,
-  goldGain:  99,
   enhCritChance: 30,
   enhCritMult:   999,
   defAbs:    999,
@@ -11301,7 +11300,7 @@ function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
 /* §6 — WS 영구 강화 기본 비용 */
 var WS_BASE_COSTS = {
   damage:8, atkspd:10, critChance:12, critMult:15, enhCritChance:20, enhCritMult:30,
-  maxHp:10, defense:9, hpRegen:10, lifeSteal:14, goldGain:13,
+  maxHp:10, defense:9, hpRegen:10, lifeSteal:14,
 };
 
 /* ════════════════════════════════════════════════════════
@@ -11423,7 +11422,7 @@ function _patchApplyPermStats() {
     G.lifeSteal  = (ws.vampChance || 0) * 0.1;                       // 0.1%/lv
     G.reflectPct = (ws.reflectDmg || 0) * 0.01;                      // 1%/lv
     G.knockbackChance = (ws.knockChance || 0) * 0.005;               // 0.5%/lv
-    G.goldMult = 1 + (ws.goldGain || 0) * 0.1;                       // 10%/lv (UI와 일치)
+    G.goldMult = 1;
     G.gemMult  = 1;
   };
   window.applyPermStats._fBal = true;
@@ -11508,10 +11507,6 @@ function _applyWsCostPatches() {
   if (items.vampChance) {
     items.vampChance.cur = function(lv) { return (lv * 0.1)._tf1() + '%'; };
     items.vampChance.nxt = function(lv) { return ((lv + 1) * 0.1)._tf1() + '%'; };
-  }
-  if (items.goldGain) {
-    items.goldGain.cur = function(lv) { return 'x' + (1 + lv * 0.1)._tf1(); };
-    items.goldGain.nxt = function(lv) { return 'x' + (1 + (lv + 1) * 0.1)._tf1(); };
   }
 }
 
@@ -13403,7 +13398,6 @@ function _showStatsPopup() {
   var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5)._tf1()+'%');
   var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1)._tf1()+'%');
   var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, (_shl*10));
-  var _ggl=ws.goldGain||0;  h+=_row('골드 획득 Lv.'+_ggl, 'x'+(1+_ggl*0.1)._tf1());
 
   // ── 코어랩 연구 ──
   h+=_section('코어랩 연구');
@@ -14355,22 +14349,20 @@ function _mechBounceDmg(fromX, fromY, count, range, dmg) {
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     스크립트: 미구현 워크샵 메카닉 패치
-     (dmgPerMeter / multiChance+multiTargets /
-      deathDefy / coinsPerWave)
+     스크립트: 워크샵 메카닉 패치
+     (dmgPerMeter / multiChance+multiTargets / deathDefy)
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
 'use strict';
 
-/* ── createState 확장: 분열탄·데스디파이·웨이브골드 ── */
+/* ── createState 확장: 분열탄·데스디파이 ── */
 var _origCS_p = window.createState;
 window.createState = function() {
   var g = _origCS_p.apply(this, arguments);
   var ws = PERM.ws || {};
   g.multiChance      = (ws.multiChance   || 0) * 0.005;
   g.multiTargets     = 1 + (ws.multiTargets || 0);
-  g.coinsPerWaveExt2 = (ws.coinsPerWave  || 0) * 5;
   g._deathDefyCD     = 0; // 코어 방어막 쿨다운 (ms)
   return g;
 };
@@ -14412,14 +14404,6 @@ window.fireTower = function() {
   }
 };
 
-/* ── startWave 확장: coinsPerWave 골드 지급 ── */
-var _origSW_p = window.startWave;
-window.startWave = function() {
-  _origSW_p.apply(this, arguments);
-  if (G && G.coinsPerWaveExt2 > 0) {
-    coreChips += G.coinsPerWaveExt2;
-  }
-};
 
 /* ── triggerGameOver 확장: deathDefy 코어 방어막 ── */
 var _origTGO_p = window.triggerGameOver;
