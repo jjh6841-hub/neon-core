@@ -3423,9 +3423,7 @@ function applyPermStats() {
   var _rEnhCritLv = parseInt(localStorage.getItem('res_r_enh_crit')||'0',10);
   var _rEnhCritMLv = parseInt(localStorage.getItem('res_r_enh_crit_m')||'0',10);
   G.enhCritChance = (ws.enhCritChance || 0) * 0.005 + _rEnhCritLv * 0.005;  // 강화소+코어랩 각 0.5%/Lv
-  G.enhCritMult   = (ws.enhCritMult || 0) > 0 || _rEnhCritMLv > 0
-    ? 1.5 + (ws.enhCritMult || 0) * 0.1 + _rEnhCritMLv * 0.1
-    : 0;  // 기본 1.5x + 강화소 + 코어랩 각 0.1/Lv
+  G.enhCritMult   = 1.5 + (ws.enhCritMult || 0) * 0.1 + _rEnhCritMLv * 0.1;  // 기본 1.5x + 강화소 + 코어랩 각 0.1/Lv
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
   G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
   G.gemMult    = 1;
@@ -3863,18 +3861,18 @@ function update(dt) {
         if (b.crit) {
           dmg = Math.round(dmg * (G.critMult || 1.5));
           // 강화 치명타 (치명타 발동 시에만 추가 확률 판정)
-          if (G.enhCritChance && G.enhCritMult && Math.random() < G.enhCritChance) {
+          if (G.enhCritChance > 0 && Math.random() < G.enhCritChance) {
             dmg = Math.round(dmg * G.enhCritMult);
             e.hitFlash = 3;
           }
         }
         // 모듈 치명타 (독립 판정 — 일반/강화와 별개로 발동)
-        if (G.modCritChance && G.modCritMult && Math.random() < G.modCritChance) {
+        if (G.modCritChance > 0 && Math.random() < G.modCritChance) {
           dmg = Math.round(dmg * G.modCritMult);
           e.hitFlash = 2;
         }
         // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
-        if (G.modLvCritChance && G.modLvCritMult && Math.random() < G.modLvCritChance) {
+        if (G.modLvCritChance > 0 && Math.random() < G.modLvCritChance) {
           dmg = Math.round(dmg * G.modLvCritMult);
           e.hitFlash = 2;
         }
@@ -12639,7 +12637,7 @@ function _applyPrismEffects() {
       case 'p_atk_spd':    G._prismSpdBonus = (G._prismSpdBonus||0) + val; break;         // #8 합연산 0.2씩
       case 'p_range':      t.range = t.range + val; break;
       case 'p_crit_rate2': G.enhCritChance = Math.min(1.0, (G.enhCritChance||0) + val/100); break; // 강화소 값에 합산
-      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||0) > 0 ? G.enhCritMult + val : 1.5 + val; break; // 기본 1.5x + 프리즘 추가분
+      case 'p_crit_dmg2':  G.enhCritMult = (G.enhCritMult||1.5) + val; break; // 기본 1.5x + 프리즘 추가분
       case 'p_splash':     G.splashPct = (G.splashPct||0) + val/100; break;
       case 'p_hp_regen':   G.regenRate = (G.regenRate||0) * (1 + val/100); break; // #6 곱연산 20%씩 (기본 0이면 0 유지)
       case 'p_crit_rate':  G.critChance = Math.min(1.0, (G.critChance||0) + val/100); break;
@@ -13684,15 +13682,15 @@ function _showStatsPopup() {
   var _rEnhCLv=parseInt(localStorage.getItem('res_r_enh_crit')||'0',10);
   var _rEnhMLv=parseInt(localStorage.getItem('res_r_enh_crit_m')||'0',10);
   var wsEnhCritChance=(ws.enhCritChance||0)*0.5+_rEnhCLv*0.5; // 강화소+코어랩: 각 0.5%/Lv
-  var wsEnhCritMult=(ws.enhCritMult||0)>0||_rEnhMLv>0?1.5+(ws.enhCritMult||0)*0.1+_rEnhMLv*0.1:0; // 강화소+코어랩: 기본 1.5x + 각 0.1/Lv
+  var wsEnhCritMult=1.5+(ws.enhCritMult||0)*0.1+_rEnhMLv*0.1; // 기본 1.5x + 강화소 + 코어랩 각 0.1/Lv
   var enhCritChance=wsEnhCritChance+(_prismB.enhCritRate||0); // +프리즘 합연산
-  var enhCritMult=wsEnhCritMult>0&&(_prismB.enhCritMult||0)>0?wsEnhCritMult+_prismB.enhCritMult:wsEnhCritMult||((_prismB.enhCritMult||0)>0?1.5+_prismB.enhCritMult:0); // +프리즘 합연산
-  // 3. 모듈 치명타 (독립 판정)
+  var enhCritMult=wsEnhCritMult+(_prismB.enhCritMult||0); // +프리즘 합연산
+  // 3. 모듈 치명타 (독립 판정, 기본 1.5x)
   var modCritChance=_modB.crit||0;
-  var modCritMult=_modB.cdmg||0;
-  // 4. 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
+  var modCritMult=_modB.cdmg>0?_modB.cdmg:1.5;
+  // 4. 모듈 레벨 치명타 (독립 판정, 기본 1.5x)
   var modLvCritChance=_modLv.crit||0;
-  var modLvCritMult=_modLv.cdmg>0?1+_modLv.cdmg/100:0;
+  var modLvCritMult=_modLv.cdmg>0?1+_modLv.cdmg/100:1.5;
   // 전부 터졌을 때 최대 치명타 피해
   var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1));
 
@@ -19918,7 +19916,7 @@ if (typeof _prevApplyMod === 'function') {
     if (b.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + b.hp/100)); G.tower.hp = G.tower.maxHp; }
     if (b.def > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + b.def/100));
     // 모듈 치명타 (독립 판정 — 일반/강화 치명타와 별개)
-    if (b.cdmg > 0) G.modCritMult = b.cdmg;
+    G.modCritMult = b.cdmg > 0 ? b.cdmg : 1.5;
     if (b.crit > 0) G.modCritChance = Math.min(1.0, b.crit/100);
     // 합연산: 골드 획득
     if (b.gold > 0) G.goldMult = (G.goldMult||1) * (1 + b.gold/100);
@@ -19928,7 +19926,7 @@ if (typeof _prevApplyMod === 'function') {
     if (lv.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + lv.hp/100)); G.tower.hp = G.tower.maxHp; }
     if (lv.def > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + lv.def/100));
     // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
-    if (lv.cdmg > 0) G.modLvCritMult = 1 + lv.cdmg/100;
+    G.modLvCritMult = lv.cdmg > 0 ? 1 + lv.cdmg/100 : 1.5;
     if (lv.crit > 0) G.modLvCritChance = Math.min(1.0, lv.crit/100);
     if (lv.gold > 0) G.goldMult = (G.goldMult||1) * (1 + lv.gold/100);
   };
