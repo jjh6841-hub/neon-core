@@ -7247,6 +7247,7 @@ if (dailyPopup) {
     { id:'starter',   name:'스타터 팩',     desc:'1회 한정', rewards:[{icon:'◈',text:'골드 1,000',color:'#f59e0b'},{icon:'❖',text:'보석 100',color:'#00ffff'}], price:'₩3,300', once:true },
     { id:'growth',    name:'성장 팩',       desc:'1회 한정', rewards:[{icon:'◈',text:'골드 3,000',color:'#f59e0b'},{icon:'❖',text:'보석 300',color:'#00ffff'}], price:'₩9,900', once:true },
     { id:'monthly',   name:'월간 팩',       desc:'30일간 매일 지급', rewards:[{icon:'◈',text:'골드 300/일',color:'#f59e0b'},{icon:'❖',text:'보석 30/일',color:'#00ffff'}], price:'₩16,500', once:false },
+    { id:'lab_boost', name:'코어랩 가속',   desc:'연구 시간 10% 영구 감소', rewards:[{icon:'⏱',text:'연구 시간 -10%',color:'#5bc0de'}], price:'₩9,900', once:true },
   ];
 
   function syncStoreHUD() {
@@ -7591,6 +7592,12 @@ if (dailyPopup) {
         localStorage.setItem('pkg_pcore_'+pcM, bc+1);
         try{savePerm();}catch(_){}
         if(window.showRewardPopup) showRewardPopup([{icon:'⊕',label:'파워 코어',amount:100,color:'#ff8822'}],'파워 코어 팩');
+        renderStoreTab('package');
+      });
+    } else if (pkgId === 'lab_boost') {
+      if(window._showSlotConfirm) _showSlotConfirm('코어랩 가속','₩9,900을 결제하시겠습니까?\n코어랩 연구 시간 10% 영구 감소\n(최대 감소율 80% → 90%)\n\n* 테스트 모드: 무료 활성화', function(){
+        localStorage.setItem('pkg_lab_boost','1');
+        if(window.showRewardPopup) showRewardPopup([{icon:'⏱',label:'연구 시간',amount:'-10%',color:'#5bc0de'}],'코어랩 가속 활성화');
         renderStoreTab('package');
       });
     } else if (pkgId === 'acode') {
@@ -8871,7 +8878,9 @@ function _buildLabPopupList() {
           var labData = _loadLab();
           var slotKey = 'slot' + _labSelectSlot;
           if (!labData[slotKey]) labData[slotKey] = { bought: true };
-          var labSpeedMult = 1 - Math.min(0.8, (labData.research && labData.research.lab_speed || 0) * 0.02);
+          var _labBoostPkg = localStorage.getItem('pkg_lab_boost')==='1' ? 0.10 : 0;
+          var _labSpeedCap = 0.8 + _labBoostPkg; // 기본 80%, 패키지 구매 시 90%
+          var labSpeedMult = 1 - Math.min(_labSpeedCap, (labData.research && labData.research.lab_speed || 0) * 0.02 + _labBoostPkg);
           labData[slotKey].researchId = research.id;
           var _resDelay = Math.floor(time * 1000 * labSpeedMult);
           labData[slotKey].endTime    = Date.now() + _resDelay;
