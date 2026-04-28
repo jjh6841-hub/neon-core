@@ -4160,12 +4160,15 @@ function mkEnemy(etype) {
   var _planetAtkMult = [1, 1, 4, 16, 64, 256][_tier] || 1;
   var _planetSpdMult = [1, 1, 1.1, 1.2, 1.3, 1.4][_tier] || 1;
   var w = G ? G.wave : 1;
-  var baseHp  = 4 * Math.pow(1.12, w - 1) * _planetHpMult;
-  var baseSpd = Math.min(5.0, 0.8 + w * 0.0042) * _planetSpdMult;
+  // 적 레벨 건너뛰기: 확률 적중 시 이전 웨이브 스탯으로 생성
+  var _effW = w;
+  if (G && G._enemySkipChance > 0 && w > 1 && Math.random() < G._enemySkipChance) _effW = w - 1;
+  var baseHp  = 4 * Math.pow(1.12, _effW - 1) * _planetHpMult;
+  var baseSpd = Math.min(5.0, 0.8 + _effW * 0.0042) * _planetSpdMult;
   var baseR   = 9;
   var _planetGoldMult = [1, 1, 2, 3, 4, 5][_tier] || 1;
   var baseGold = Math.round((({basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500}[etype]) || 1) * _planetGoldMult);
-  var baseAtk = Math.max(1, Math.round(1 * Math.pow(1.08, w - 1) * _planetAtkMult));
+  var baseAtk = Math.max(1, Math.round(1 * Math.pow(1.08, _effW - 1) * _planetAtkMult));
 
   var hp, spd, r, gold, gem = 0;
   var _isBoss = etype==='boss'||etype==='boss_elite'||etype==='boss_hyper'||etype==='boss_galaxy';
@@ -4376,7 +4379,7 @@ function onWaveComplete() {
   var _wcTier = parseInt(localStorage.getItem('td_tier')||'1',10);
   // 웨이브 클리어 골드 (행성 배율은 적 생성 시 이미 적용됨, 클리어 보상에는 별도 적용 안 함)
   var _wcBaseGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
-  var _wcGold = Math.round(_wcBaseGold * (G.goldMult||1));
+  var _wcGold = Math.round(_wcBaseGold * (G.goldMult||1) * (1 + (G._goldWaveBonus||0)));
   G.gold += _wcGold; G.goldEarned += _wcGold; G.goldBaseEarned += _wcBaseGold; PERM.gold += _wcGold;
   AudioManager.playSfx('wave_clear');
   triggerShake(3);
@@ -14635,25 +14638,36 @@ var _origCS_utl = window.createState;
 window.createState = function() {
   var g = _origCS_utl.apply(this, arguments);
   var ws = PERM.ws || {};
-  g._chipKillBonus  = (ws.chipKillBonus  || 0) * 0.02; // 코어칩 보너스
-  g._chipWaveBonus  = (ws.chipWaveBonus  || 0) * 0.02; // 코어칩 웨이브
-  g._goldKillBonus  = (ws.goldKillBonus  || 0) * 0.02; // 골드 보너스
-  g._goldWaveBonus  = (ws.goldWaveBonus  || 0) * 0.02; // 골드 웨이브
-  g._freeUpgChance  = (ws.freeUpgrade    || 0) * 0.01; // 무료 업그레이드
-  g._autoAtkChance  = (ws.autoAtkUpg     || 0) * 0.01; // 공격 자동 업글
-  g._autoDefChance  = (ws.autoDefUpg     || 0) * 0.01; // 방어 자동 업글
-  g._autoUtlChance  = (ws.autoUtlUpg     || 0) * 0.01; // 유틸 자동 업글
-  g._enemySkipChance= Math.min(0.15, (ws.enemySkip || 0) * 0.0005); // 적 레벨 건너뛰기 (15% 캡)
-  g._protoCdReduce  = (ws.protoCdReduce  || 0) * 0.005; // 프로토콜 쿨타임 감소
+  // 코어칩: 프리즘 변수에 WS 값 합산 (프리즘 적용 후 이 값에 더해짐)
+  g._wsChipKillBonus = (ws.chipKillBonus || 0) * 0.02;  // 강화소 코어칩 보너스
+  g._wsChipWaveBonus = (ws.chipWaveBonus || 0) * 0.02;  // 강화소 코어칩 웨이브
+  // 골드
+  g._goldKillBonus   = (ws.goldKillBonus || 0) * 0.02;  // 골드 보너스
+  g._goldWaveBonus   = (ws.goldWaveBonus || 0) * 0.02;  // 골드 웨이브
+  // 무료 업글: 프리즘 freeUpgChance에 WS 값 합산
+  g._wsFreeUpgChance = (ws.freeUpgrade   || 0) * 0.01;  // 강화소 무료 업그레이드
+  // 자동 업글
+  g._autoAtkChance   = (ws.autoAtkUpg    || 0) * 0.01;
+  g._autoDefChance   = (ws.autoDefUpg    || 0) * 0.01;
+  g._autoUtlChance   = (ws.autoUtlUpg    || 0) * 0.01;
+  // 특수
+  g._enemySkipChance = Math.min(0.15, (ws.enemySkip    || 0) * 0.0005);
+  g._protoCdReduce   = (ws.protoCdReduce || 0) * 0.005;
   return g;
 };
 
-/* ── applyPermStats 확장: 골드 배율 합산 ── */
+/* ── applyPermStats 확장: 프리즘 변수에 강화소 값 합산 ── */
 var _origAP_utl = window.applyPermStats;
 window.applyPermStats = function() {
   _origAP_utl.apply(this, arguments);
   if (!G) return;
-  // 골드 보너스 → G.goldMult에 합산
+  // 코어칩 보너스: 프리즘 자원 약탈 + 강화소 코어칩 보너스 (합연산)
+  G._prismChipKillBonus = (G._prismChipKillBonus || 0) + (G._wsChipKillBonus || 0);
+  // 코어칩 웨이브: 프리즘 코어 수확 + 강화소 코어칩 웨이브 (합연산)
+  G._prismChipWaveBonus = (G._prismChipWaveBonus || 0) + (G._wsChipWaveBonus || 0);
+  // 무료 업글: 프리즘 행운의 강화 + 강화소 무료 업그레이드 (합연산)
+  G.freeUpgChance = (G.freeUpgChance || 0) + (G._wsFreeUpgChance || 0);
+  // 골드 보너스 → G.goldMult에 곱연산
   if (G._goldKillBonus > 0) G.goldMult = (G.goldMult || 1) * (1 + G._goldKillBonus);
 };
 
