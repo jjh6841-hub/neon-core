@@ -5243,66 +5243,20 @@ function render() {
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      // 타워 물질화 (캔버스 직접 그리기 — lineWidth 최소 1 이상)
+      // 타워 물질화 (SVG 스킨 캐시 사용)
       ctx.globalAlpha = ease;
-      var _eR = TR * ease;
-      // 외곽 헥사곤 (채움)
-      ctx.beginPath();
-      for (var hi = 0; hi < 6; hi++) {
-        var ha = Math.PI/3*hi - Math.PI/6;
-        if (hi===0) ctx.moveTo(G.cx+_eR*Math.cos(ha), G.cy+_eR*Math.sin(ha));
-        else ctx.lineTo(G.cx+_eR*Math.cos(ha), G.cy+_eR*Math.sin(ha));
-      }
-      ctx.closePath();
-      ctx.fillStyle = '#06061a'; ctx.fill();
-      ctx.strokeStyle = _ac; ctx.lineWidth = 2; ctx.stroke();
-      // 내부 장식 헥사곤
-      ctx.beginPath();
-      for (var hi2 = 0; hi2 < 6; hi2++) {
-        var ha2 = Math.PI/3*hi2 - Math.PI/6;
-        if (hi2===0) ctx.moveTo(G.cx+_eR*0.8*Math.cos(ha2), G.cy+_eR*0.8*Math.sin(ha2));
-        else ctx.lineTo(G.cx+_eR*0.8*Math.cos(ha2), G.cy+_eR*0.8*Math.sin(ha2));
-      }
-      ctx.closePath();
-      ctx.strokeStyle = _ac; ctx.globalAlpha = ease*0.4; ctx.lineWidth = 1; ctx.stroke();
-      ctx.globalAlpha = ease;
-      // 코어 중심원
-      if (ease > 0.3) {
-        var _cA = (ease-0.3)/0.7;
-        ctx.globalAlpha = _cA;
-        ctx.beginPath(); ctx.arc(G.cx, G.cy, Math.max(2, _eR*0.18), 0, Math.PI*2);
-        ctx.fillStyle = '#06061a'; ctx.fill();
-        ctx.strokeStyle = _ac; ctx.lineWidth = 1.5; ctx.stroke();
-        ctx.beginPath(); ctx.arc(G.cx, G.cy, Math.max(1, _eR*0.08), 0, Math.PI*2);
-        ctx.fillStyle = _ac; ctx.fill();
-        ctx.globalAlpha = ease;
-      }
-      // 크로스헤어
-      if (ease > 0.5) {
-        var ca = (ease-0.5)/0.5;
-        ctx.strokeStyle = _ac;
-        ctx.globalAlpha = ca*0.6;
-        ctx.lineWidth = 1;
+      if (window._towerSkinCache && window._towerSkinCache._ready) {
+        var _idpr = window._dpr || 1;
+        var _ipsz = window._towerSkinCache.width;
+        var _isz = _ipsz / _idpr * ease;
+        if (_isz > 1) {
+          ctx.drawImage(window._towerSkinCache, G.cx - _isz/2, G.cy - _isz/2, _isz, _isz);
+        }
+      } else {
+        var _eR = TR * ease;
         ctx.beginPath();
-        ctx.moveTo(G.cx, G.cy-8); ctx.lineTo(G.cx, G.cy+8);
-        ctx.moveTo(G.cx-8, G.cy); ctx.lineTo(G.cx+8, G.cy);
-        ctx.stroke();
-      }
-      // 코너 브래킷
-      if (ease > 0.7) {
-        var ba = (ease-0.7)/0.3;
-        var bk = 6;
-        ctx.strokeStyle = _ac; ctx.globalAlpha = ba; ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR+bk,G.cy-TR);
-        ctx.moveTo(G.cx-TR,G.cy-TR); ctx.lineTo(G.cx-TR,G.cy-TR+bk);
-        ctx.moveTo(G.cx+TR,G.cy-TR); ctx.lineTo(G.cx+TR-bk,G.cy-TR);
-        ctx.moveTo(G.cx+TR,G.cy-TR); ctx.lineTo(G.cx+TR,G.cy-TR+bk);
-        ctx.moveTo(G.cx-TR,G.cy+TR); ctx.lineTo(G.cx-TR+bk,G.cy+TR);
-        ctx.moveTo(G.cx-TR,G.cy+TR); ctx.lineTo(G.cx-TR,G.cy+TR-bk);
-        ctx.moveTo(G.cx+TR,G.cy+TR); ctx.lineTo(G.cx+TR-bk,G.cy+TR);
-        ctx.moveTo(G.cx+TR,G.cy+TR); ctx.lineTo(G.cx+TR,G.cy+TR-bk);
-        ctx.stroke();
+        for (var hi=0;hi<6;hi++){var ha=Math.PI/3*hi-Math.PI/6;if(hi===0)ctx.moveTo(G.cx+_eR*Math.cos(ha),G.cy+_eR*Math.sin(ha));else ctx.lineTo(G.cx+_eR*Math.cos(ha),G.cy+_eR*Math.sin(ha));}
+        ctx.closePath(); ctx.fillStyle='#06061a'; ctx.fill(); ctx.strokeStyle=_ac; ctx.lineWidth=2; ctx.stroke();
       }
     }
 
