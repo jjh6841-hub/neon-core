@@ -5990,19 +5990,8 @@ window.togglePause = togglePause;
       if (_bgmWasPlaying && PERM && PERM.settings && PERM.settings.music) {
         AudioManager.playBGM();
       }
-      // 포그라운드 복귀 시 오프라인 보상 자동 팝업 (Android 백그라운드 복귀 대응)
-      // 전투 중이 아닐 때만 표시
-      if (!window.G || !G.phase || G.phase === 'gameover') {
-        setTimeout(function() {
-          try {
-            var _rd = _calcOfflineReward();
-            if (_rd && (_rd.gold > 0 || _rd.gems > 0)) {
-              _showOfflinePopup(_rd);
-            }
-            _updateOfflineBtn();
-          } catch(_){}
-        }, 500);
-      }
+      // 포그라운드 복귀 시 오프라인 보상 버튼만 갱신 (자동 수령 안 함 — 재화 덮어쓰기 방지)
+      setTimeout(function() { try { _updateOfflineBtn(); } catch(_){} }, 500);
     }
   });
 })();
