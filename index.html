@@ -5309,85 +5309,64 @@ function render() {
       }
     } catch(_){}
     const _towerAccent = _skinColor;
-    // 오프스크린 캔버스 캐시 — 매 프레임 path 연산 대신 비트맵 1회 그리기
-    var _tcKey = _towerAccent + '_' + (window._dpr||1);
-    if (!window._towerCache || window._towerCache._key !== _tcKey) {
-      var _sc = window._dpr || 1;
-      var _cssSize = TR*2+6;
-      var _ts = Math.round(_cssSize * _sc);
-      var _tc = document.createElement('canvas'); _tc.width = _ts; _tc.height = _ts;
-      var _tx = _tc.getContext('2d');
-      _tx.setTransform(_sc, 0, 0, _sc, 0, 0);
-      var _cx = _cssSize/2, _cy = _cssSize/2;
-      // 외곽 육각형 (채움)
-      _tx.beginPath();
-      for (var _hi = 0; _hi < 6; _hi++) {
-        var _ha = Math.PI / 3 * _hi - Math.PI / 6;
-        if (_hi === 0) _tx.moveTo(_cx + TR * Math.cos(_ha), _cy + TR * Math.sin(_ha));
-        else _tx.lineTo(_cx + TR * Math.cos(_ha), _cy + TR * Math.sin(_ha));
-      }
-      _tx.closePath();
-      _tx.fillStyle = '#06061a'; _tx.fill();
-      _tx.strokeStyle = _towerAccent; _tx.lineWidth = 2; _tx.stroke();
-      // 내부 장식 육각형
-      _tx.beginPath();
-      for (var _hi2 = 0; _hi2 < 6; _hi2++) {
-        var _ha2 = Math.PI / 3 * _hi2 - Math.PI / 6;
-        if (_hi2 === 0) _tx.moveTo(_cx + TR*0.8*Math.cos(_ha2), _cy + TR*0.8*Math.sin(_ha2));
-        else _tx.lineTo(_cx + TR*0.8*Math.cos(_ha2), _cy + TR*0.8*Math.sin(_ha2));
-      }
-      _tx.closePath();
-      _tx.strokeStyle = _towerAccent; _tx.globalAlpha = 0.4; _tx.lineWidth = 1; _tx.stroke();
-      _tx.globalAlpha = 1;
-      // 코어 중심원
-      _tx.beginPath(); _tx.arc(_cx, _cy, 4, 0, Math.PI*2);
-      _tx.fillStyle = '#06061a'; _tx.fill();
-      _tx.strokeStyle = _towerAccent; _tx.lineWidth = 1.5; _tx.stroke();
-      _tx.beginPath(); _tx.arc(_cx, _cy, 1.5, 0, Math.PI*2);
-      _tx.fillStyle = _towerAccent; _tx.fill();
-      // 크로스헤어
-      _tx.globalAlpha = 0.5; _tx.strokeStyle = _towerAccent; _tx.lineWidth = 1;
-      _tx.beginPath();
-      _tx.moveTo(_cx, _cy-8); _tx.lineTo(_cx, _cy+8);
-      _tx.moveTo(_cx-8, _cy); _tx.lineTo(_cx+8, _cy);
-      _tx.stroke();
-      // 코너 브래킷
-      _tx.globalAlpha = 0.4; _tx.lineWidth = 1;
-      _tx.beginPath();
-      _tx.moveTo(_cx-TR,_cy-TR); _tx.lineTo(_cx-TR+6,_cy-TR);
-      _tx.moveTo(_cx-TR,_cy-TR); _tx.lineTo(_cx-TR,_cy-TR+6);
-      _tx.moveTo(_cx+TR,_cy-TR); _tx.lineTo(_cx+TR-6,_cy-TR);
-      _tx.moveTo(_cx+TR,_cy-TR); _tx.lineTo(_cx+TR,_cy-TR+6);
-      _tx.moveTo(_cx-TR,_cy+TR); _tx.lineTo(_cx-TR+6,_cy+TR);
-      _tx.moveTo(_cx-TR,_cy+TR); _tx.lineTo(_cx-TR,_cy+TR-6);
-      _tx.moveTo(_cx+TR,_cy+TR); _tx.lineTo(_cx+TR-6,_cy+TR);
-      _tx.moveTo(_cx+TR,_cy+TR); _tx.lineTo(_cx+TR,_cy+TR-6);
-      _tx.stroke();
-      _tc._key = _tcKey;
-      window._towerCache = _tc;
-    }
-    // 캐시된 타워 비트맵을 메인 캔버스에 1:1 픽셀 매핑으로 그리기
     ctx.save();
-    var _d2 = window._dpr || 1;
-    var _tsz = window._towerCache.width;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(window._towerCache, Math.round(G.cx * _d2) - Math.round(_tsz / 2), Math.round(G.cy * _d2) - Math.round(_tsz / 2));
-    ctx.setTransform(_d2, 0, 0, _d2, 0, 0);
-    ctx.imageSmoothingEnabled = true;
-    // 피격/버프 오버레이 (동적 효과만 직접 그리기)
+    var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
+    // 외곽 육각형 (채움)
+    ctx.beginPath();
+    for (var _hi = 0; _hi < 6; _hi++) {
+      var _ha = Math.PI / 3 * _hi - Math.PI / 6;
+      var _px = _tx + Math.round(TR * Math.cos(_ha));
+      var _py = _ty + Math.round(TR * Math.sin(_ha));
+      if (_hi === 0) ctx.moveTo(_px, _py); else ctx.lineTo(_px, _py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#06061a'; ctx.fill();
+    ctx.strokeStyle = flashHit ? '#ef4444' : (buffed ? '#f97316' : _towerAccent);
+    ctx.lineWidth = 2; ctx.stroke();
+    // 내부 장식 육각형
+    ctx.beginPath();
+    for (var _hi2 = 0; _hi2 < 6; _hi2++) {
+      var _ha2 = Math.PI / 3 * _hi2 - Math.PI / 6;
+      var _px2 = _tx + Math.round(TR * 0.8 * Math.cos(_ha2));
+      var _py2 = _ty + Math.round(TR * 0.8 * Math.sin(_ha2));
+      if (_hi2 === 0) ctx.moveTo(_px2, _py2); else ctx.lineTo(_px2, _py2);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = _towerAccent; ctx.globalAlpha = 0.4; ctx.lineWidth = 1; ctx.stroke();
+    ctx.globalAlpha = 1;
+    // 코어 중심원
+    ctx.beginPath(); ctx.arc(_tx, _ty, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#06061a'; ctx.fill();
+    ctx.strokeStyle = _towerAccent; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(_tx, _ty, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = _towerAccent; ctx.fill();
+    // 피격/버프 오버레이
     if (flashHit) {
       ctx.globalAlpha = 0.4; ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      for (var _fh=0;_fh<6;_fh++){var _fa=Math.PI/3*_fh-Math.PI/6;if(_fh===0)ctx.moveTo(G.cx+TR*Math.cos(_fa),G.cy+TR*Math.sin(_fa));else ctx.lineTo(G.cx+TR*Math.cos(_fa),G.cy+TR*Math.sin(_fa));}
-      ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
-      // 외곽선 빨간색
-      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(_tx, _ty, TR, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
     }
     if (buffed) {
       ctx.globalAlpha = 0.3; ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(G.cx, G.cy, TR+4, 0, Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(_tx, _ty, TR + 4, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
     }
+    // 크로스헤어
+    ctx.globalAlpha = 0.5; ctx.strokeStyle = _towerAccent; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(_tx, _ty - 8); ctx.lineTo(_tx, _ty + 8);
+    ctx.moveTo(_tx - 8, _ty); ctx.lineTo(_tx + 8, _ty);
+    ctx.stroke();
+    // 코너 브래킷
+    ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(_tx-TR,_ty-TR); ctx.lineTo(_tx-TR+6,_ty-TR);
+    ctx.moveTo(_tx-TR,_ty-TR); ctx.lineTo(_tx-TR,_ty-TR+6);
+    ctx.moveTo(_tx+TR,_ty-TR); ctx.lineTo(_tx+TR-6,_ty-TR);
+    ctx.moveTo(_tx+TR,_ty-TR); ctx.lineTo(_tx+TR,_ty-TR+6);
+    ctx.moveTo(_tx-TR,_ty+TR); ctx.lineTo(_tx-TR+6,_ty+TR);
+    ctx.moveTo(_tx-TR,_ty+TR); ctx.lineTo(_tx-TR,_ty+TR-6);
+    ctx.moveTo(_tx+TR,_ty+TR); ctx.lineTo(_tx+TR-6,_ty+TR);
+    ctx.moveTo(_tx+TR,_ty+TR); ctx.lineTo(_tx+TR,_ty+TR-6);
+    ctx.stroke(); ctx.globalAlpha = 1;
     // 프리즘 쉴드 시각효과 (에너지 쉴드)
     if (G.pShieldMax > 0 && G.pShieldCur > 0) {
       var _shPct = G.pShieldCur / G.pShieldMax;
