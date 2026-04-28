@@ -3411,7 +3411,7 @@ function applyPermStats() {
   G.enhCritChance = (ws.enhCritChance || 0) * 0.005 + _rEnhCritLv * 0.005;  // 강화소+코어랩 각 0.5%/Lv
   G.enhCritMult   = 1.5 + (ws.enhCritMult || 0) * 0.1 + _rEnhCritMLv * 0.1;  // 기본 1.5x + 강화소 + 코어랩 각 0.1/Lv
   G.lifeSteal  = (ws.vampChance || 0) * 0.1;                 // 흡혈 0.1%/lv (최대 15%)
-  G.goldMult   = 1 + (ws.goldGain || 0) * 0.1;
+  G.goldMult   = 1;
   G.gemMult    = 1;
   G.rangeLevel = 5 + PERM.rngLv;
   G.zoom       = getTargetZoom();
@@ -8190,7 +8190,7 @@ window.createState = function() {
   g.mineSpawnTimer  = 0;
   // Utility
   // cashBonusM 제거됨 (새 유틸 시스템으로 대체)
-  g.cashPerWaveExt  = (ws.cashPerWave     || 0) * 2;
+  // cashPerWaveExt 제거됨 (새 유틸 시스템 대체)
   // coinsPerKillM 제거됨 (새 유틸 시스템으로 대체)
   g.interestRate    = (ws.interest        || 0) * 0.001;
   return g;
@@ -8215,9 +8215,6 @@ window.startWave = function() {
   if (G.interestRate > 0) {
     var interest = Math.floor(coreChips * G.interestRate);
     if (interest > 0) { coreChips += interest; }
-  }
-  if (G.cashPerWaveExt > 0) {
-    coreChips += G.cashPerWaveExt;
   }
 };
 
@@ -9849,9 +9846,8 @@ function _getWsBonus() {
   if (!window.PERM || !window.PERM.ws) return 1.0;
   var ws = window.PERM.ws;
   var bonus = 1.0;
-  if (ws.cashBonus)   bonus *= (1 + (ws.cashBonus||0) * 0.05);
-  if (ws.cashPerWave) bonus *= (1 + (ws.cashPerWave||0) * 0.02);
-  if (ws.goldBoostPct) bonus *= (1 + (ws.goldBoostPct||0) * 0.02);
+  if (ws.goldKillBonus) bonus *= (1 + (ws.goldKillBonus||0) * 0.02);
+  if (ws.goldWaveBonus) bonus *= (1 + (ws.goldWaveBonus||0) * 0.02);
   return bonus;
 }
 
@@ -10435,103 +10431,7 @@ setTimeout(_updateBadge, 500);
 (function() {
 'use strict';
 
-/* ════════════════════════════════════════
-   [F5] 유틸리티 탭 (5번째 워크샵 탭)
-════════════════════════════════════════ */
-(function() {
-  var UTL_ITEMS = [
-    { key:'coinBoost',      name:'골드 부스트',        desc:'골드 획득량 영구 증가',        maxLv:10, unlockCost:40,
-      cost:function(lv){return 15+lv*10;}, cur:function(lv){return ''+lv*5;}, nxt:function(lv){return ''+((lv+1)*5);} },
-    { key:'waveBonusGold',  name:'웨이브 클리어 보너스', desc:'웨이브 클리어 시 추가 골드',   maxLv:10, unlockCost:80,
-      cost:function(lv){return 20+lv*12;}, cur:function(lv){return ''+lv*10;}, nxt:function(lv){return ''+((lv+1)*10);} },
-  ];
-
-  function _injectTab() {
-    var bar = document.getElementById('ws-tab-bar');
-    if (!bar || bar.querySelector('[data-tab="utl"]')) return;
-    var btn = document.createElement('button');
-    btn.className = 'ws-tab';
-    btn.setAttribute('data-tab', 'utl');
-    btn.setAttribute('data-tabcolor', '#a78bfa');
-    btn.style.cssText = 'flex:1;height:40px;background:none;border:none;border-bottom:3px solid transparent;color:#4a7a8a;font-size:9px;font-family:\'Courier New\',monospace;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1;padding:0;';
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" style="display:block;"><circle cx="7" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7" cy="7" r="1" fill="currentColor"/><line x1="7" y1="0.5" x2="7" y2="3" stroke="currentColor" stroke-width="1.2"/><line x1="7" y1="11" x2="7" y2="13.5" stroke="currentColor" stroke-width="1.2"/><line x1="0.5" y1="7" x2="3" y2="7" stroke="currentColor" stroke-width="1.2"/><line x1="11" y1="7" x2="13.5" y2="7" stroke="currentColor" stroke-width="1.2"/><line x1="2.4" y1="2.4" x2="4.2" y2="4.2" stroke="currentColor" stroke-width="1"/><line x1="9.8" y1="9.8" x2="11.6" y2="11.6" stroke="currentColor" stroke-width="1"/><line x1="11.6" y1="2.4" x2="9.8" y2="4.2" stroke="currentColor" stroke-width="1"/><line x1="4.2" y1="9.8" x2="2.4" y2="11.6" stroke="currentColor" stroke-width="1"/></svg><span style="letter-spacing:1px;">유틸</span>';
-    bar.appendChild(btn);
-  }
-
-  function _buildCard(item) {
-    var ws       = (window.PERM && window.PERM.ws) ? window.PERM.ws : {};
-    var unlocked = !!ws['utl_' + item.key + '_u'];
-    var lv       = ws['utl_' + item.key] || 0;
-    var maxed    = unlocked && lv >= item.maxLv;
-    var gold     = window.PERM ? window.PERM.gold : 0;
-    var afford   = gold >= (unlocked ? item.cost(lv) : item.unlockCost);
-    var card     = document.createElement('div');
-    card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;border-left:2px solid rgba(167,139,250,'+(unlocked?'0.5':'0.15')+');padding:12px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px;min-width:0;overflow:hidden;transition:border-color 0.2s;-webkit-tap-highlight-color:transparent;';
-    var rhs;
-    if (!unlocked) {
-      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;"><span style="font-size:10px;color:#556677;font-family:monospace;">🔒 잠금</span><button data-u-un="'+item.key+'" style="background:#030b10;border:1px solid '+(afford?'#a78bfa44':'#ef4444')+';color:'+(afford?'#a78bfa':'#ef4444')+';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;">◈'+item.unlockCost+' 해금</button></div>';
-    } else if (maxed) {
-      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;"><span style="font-size:16px;color:#00ffff;font-family:monospace;font-weight:bold;">'+item.cur(lv)+'</span><span style="font-size:14px;color:#cc44ff;font-family:monospace;font-weight:bold;">MAX</span></div>';
-    } else {
-      rhs = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;"><span style="font-family:monospace;white-space:nowrap;"><span style="font-size:16px;color:#00ffff;font-weight:bold;">'+item.nxt(lv)+'</span><span style="font-size:11px;color:#334455;"> → </span><span style="font-size:11px;color:#445566;">'+item.cur(lv)+'</span></span><button data-u-up="'+item.key+'" style="background:#030b10;border:1px solid '+(afford?'#0a3344':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-size:11px;font-family:monospace;padding:4px 8px;cursor:pointer;-webkit-appearance:none;margin-top:3px;">◈'+item.cost(lv)+'</button></div>';
-    }
-    card.innerHTML = '<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;"><span style="font-size:11px;color:#7aacac;font-family:monospace;word-break:keep-all;word-wrap:break-word;white-space:normal;line-height:1.4;width:100%;">'+item.name+'</span><span style="font-size:10px;color:#556677;font-family:monospace;">Lv.'+(unlocked?lv:'?')+'</span><span style="font-size:9px;color:#334455;font-family:monospace;word-break:keep-all;line-height:1.4;">'+item.desc+'</span></div>'+rhs;
-
-    var uBtn = card.querySelector('[data-u-un]');
-    if (uBtn) (function(it) {
-      uBtn.addEventListener('click', function() {
-        if (!window.PERM || window.PERM.gold < it.unlockCost) { card.style.borderColor='#ef4444'; setTimeout(function(){card.style.borderColor='';},300); return; }
-        window.PERM.gold -= it.unlockCost;
-        if (!window.PERM.ws) window.PERM.ws = {};
-        window.PERM.ws['utl_'+it.key+'_u'] = 1;
-        window.savePerm();
-        try { window._wsExt.sync(); } catch(_) {}
-        _render();
-      });
-    })(item);
-
-    var upBtn = card.querySelector('[data-u-up]');
-    if (upBtn) (function(it) {
-      upBtn.addEventListener('click', function() {
-        var ws2 = window.PERM.ws||{};
-        var lv2 = ws2['utl_'+it.key]||0;
-        if (lv2 >= it.maxLv) return;
-        var co = it.cost(lv2);
-        if (window.PERM.gold < co) { card.style.borderColor='#ef4444'; setTimeout(function(){card.style.borderColor='';},300); return; }
-        window.PERM.gold -= co;
-        window.PERM.ws['utl_'+it.key] = lv2+1;
-        window.savePerm();
-        try { window._wsExt.sync(); } catch(_) {}
-        _render();
-      });
-    })(item);
-
-    return card;
-  }
-
-  function _render() {
-    var container = document.getElementById('ws-content');
-    if (!container) return;
-    if (window._wsExt && window._wsExt.activeTab() !== 'utl') return;
-    var old = container.querySelectorAll('[data-utl-ext]');
-    for (var i = 0; i < old.length; i++) old[i].remove();
-    UTL_ITEMS.forEach(function(item) { var c = _buildCard(item); c.setAttribute('data-utl-ext','1'); container.appendChild(c); });
-  }
-
-  function _init() {
-    _injectTab();
-    var bar = document.getElementById('ws-tab-bar');
-    if (bar) {
-      bar.addEventListener('click', function(e) {
-        var t = e.target.closest ? e.target.closest('.ws-tab') : (e.target.classList && e.target.classList.contains('ws-tab') ? e.target : null);
-        if (t && t.getAttribute('data-tab') === 'utl') setTimeout(_render, 5);
-      });
-    }
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _init);
-  else setTimeout(_init, 200);
-}());
+/* [F5] 유틸리티 탭 — 골드 부스트/클리어 보너스 제거됨 (새 WS 아이템으로 대체) */
 
 
 /* ════════════════════════════════════════
@@ -16301,9 +16201,9 @@ window.showCoinBonusPopup = function () {
   var tierIdx = parseInt(localStorage.getItem('td_tier') || '1', 10);
   var tierMults = [1.0, 1.0, 2.0, 3.0, 4.0, 5.0];
   var tierMult = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
-  var cb=ws.cashBonus||0, cpw=ws.cashPerWave||0, gb=ws.goldBoostPct||0, gg=ws.goldGain||0;
+  var _gkb=ws.goldKillBonus||0, _gwb=ws.goldWaveBonus||0;
   var wsVal=1;
-  if(cb>0)wsVal*=(1+cb*0.05); if(cpw>0)wsVal*=(1+cpw*0.02); if(gb>0)wsVal*=(1+gb*0.02); if(gg>0)wsVal*=(1+gg*0.1);
+  if(_gkb>0)wsVal*=(1+_gkb*0.02); if(_gwb>0)wsVal*=(1+_gwb*0.02);
   var wsOn=wsVal>1;
   var rG=parseInt(localStorage.getItem('res_r_gold_gain')||'0',10);
   var rW=parseInt(localStorage.getItem('res_r_wave_cash')||'0',10);
