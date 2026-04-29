@@ -3432,6 +3432,8 @@ function startGame() {
   if (_obEl) { _obEl.style.display = 'none'; _obEl.remove(); }
 
   G = createState();
+  G.cx = CW / 2;
+  G.cy = CH * 0.48;
   G.introTimer = 0;
   G.gold  = PERM.gold;
   G.gems  = PERM.gems;
@@ -16788,7 +16790,9 @@ window.resizeCanvas = function() {
     if (cv) {
       var w = area.clientWidth || window.innerWidth;
       var h = canvasH;
-      cv.width = w; cv.height = h;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      window._dpr = dpr;
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
       if (window.G) { G.cx = w / 2; G.cy = h * 0.48; var _br2=Math.min(w,h)*0.45; if(!G.tower.range||G.tower.range<_br2) G.tower.range=_br2; }
@@ -16797,8 +16801,7 @@ window.resizeCanvas = function() {
   }
   if (typeof _origResize === 'function') _origResize.apply(this, arguments);
   if (window.G) {
-    var cv = document.getElementById('gameCanvas');
-    if (cv) { G.cx = cv.width / 2; G.cy = cv.height * 0.48; }
+    G.cx = window.CW / 2; G.cy = window.CH * 0.48;
   }
 };
 
