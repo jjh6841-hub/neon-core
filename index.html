@@ -6108,6 +6108,8 @@ function openShop() {
   if (window._startHomeBg) window._startHomeBg();
   // 해금 연출 (전투 후 홈 복귀 시)
   setTimeout(function() { _showPendingUnlocks(); }, 600);
+  // 출석 보상 재확인 (세션 중 웨이브 50 해금 시 즉시 DAY 1 반영)
+  setTimeout(function() { checkDailyReward(); }, 900);
   // 행성 이동 연출 (티어 클리어 후 홈 복귀 시)
   var _ptPending = localStorage.getItem('_pendingPlanetTransit');
   if (_ptPending) {
@@ -16370,7 +16372,11 @@ window._updateAchieveBadge = _updateAchieveBadge;
     attendBtn.addEventListener('click', function() {
       var w = (typeof PERM !== 'undefined') ? (PERM.bestWave || 0) : 0;
       if (w >= 50) {
-        _openAttendPopup(false);
+        // 미수령이면 즉시 수령 처리 후 팝업
+        var _today = new Date().toDateString();
+        var _claimed = localStorage.getItem('td_daily_login') === _today;
+        if (!_claimed) { checkDailyReward(); }
+        _openAttendPopup(_claimed ? false : true);
       } else {
         showNavToast('\uCD9C\uC11D \u2014 \uC6E8\uC774\uBE0C 50 \uB2EC\uC131 \uC2DC \uD574\uAE08', 'attendance');
       }
