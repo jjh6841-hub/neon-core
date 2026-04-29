@@ -5210,7 +5210,7 @@ function render() {
       if (_tDom) {
         _tDom.style.display = 'block';
         _tDom.style.opacity = String(ease);
-        _tDom.style.transform = 'translate(-50%,-50%) scale(' + ease.toFixed(3) + ')';
+        _tDom.style.transform = 'translate(-50%,-50%) scale(' + (ease * _zm).toFixed(3) + ')';
       }
     } else {
       if (_tDom) _tDom.style.display = 'none';
@@ -5235,7 +5235,7 @@ function render() {
     var _skinColor = '#00ffff';
     try { if (window.IRIS_SKINS) { var _found = window.IRIS_SKINS.filter(function(s){return s.id===_cSkin;})[0]; if (_found) _skinColor = _found.color; } } catch(_){}
     // 타워·범위 DOM 표시
-    if (_tDom) { _tDom.style.display = 'block'; _tDom.style.opacity = '1'; _tDom.style.transform = 'translate(-50%,-50%)'; }
+    if (_tDom) { _tDom.style.display = 'block'; _tDom.style.opacity = '1'; _tDom.style.transform = 'translate(-50%,-50%) scale(' + _zm.toFixed(3) + ')'; }
     if (_rDom) { _rDom.style.display = 'block'; _rDom.style.transform = 'translate(-50%,-50%)'; }
     ctx.save();
     var _tx = Math.round(G.cx), _ty = Math.round(G.cy);
