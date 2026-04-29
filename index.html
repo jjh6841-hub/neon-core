@@ -7017,6 +7017,15 @@ if (dailyPopup) {
       prevBtn.style.cursor  = disabled ? 'default' : 'pointer';
       prevBtn.style.pointerEvents = disabled ? 'none' : 'auto';
     }
+    // 마지막 행성(오메가)일 때 우측 화살표 비활성화
+    var nextBtn = document.getElementById('tier-next');
+    if (nextBtn) {
+      var disabledR = (curTier >= TIERS.length - 1);
+      nextBtn.disabled = disabledR;
+      nextBtn.style.opacity = disabledR ? '0.25' : '1';
+      nextBtn.style.cursor  = disabledR ? 'default' : 'pointer';
+      nextBtn.style.pointerEvents = disabledR ? 'none' : 'auto';
+    }
   }
 
   function refreshHomeData() {
