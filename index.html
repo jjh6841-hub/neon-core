@@ -6652,12 +6652,28 @@ function getNewUnlocks() {
   var unlocked = [];
   try {
     var saved = JSON.parse(localStorage.getItem('td_nav_unlocked') || '{}');
+    // 하단 네비 탭
     for (var i = 0; i < navTabs.length; i++) {
       var tab = navTabs[i];
       if (_isContentUnlocked(tab.unlock) && tab.unlock !== 0 && !saved[tab.id]) {
         saved[tab.id] = true;
         unlocked.push(tab.label);
       }
+    }
+    // 좌측 아이콘 (토너먼트, 길드, 이벤트, 탐사 등)
+    if (window.LEFT_ICONS) {
+      for (var j = 0; j < LEFT_ICONS.length; j++) {
+        var li = LEFT_ICONS[j];
+        if (_isContentUnlocked(li.unlockCond) && li.unlockCond !== 0 && !saved[li.id]) {
+          saved[li.id] = true;
+          unlocked.push(li.label);
+        }
+      }
+    }
+    // 랭킹 (웨이브 70 해금)
+    if (_isContentUnlocked(70) && !saved['ranking']) {
+      saved['ranking'] = true;
+      unlocked.push('랭킹');
     }
     localStorage.setItem('td_nav_unlocked', JSON.stringify(saved));
   } catch(e) {}
