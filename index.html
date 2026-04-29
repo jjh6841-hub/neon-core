@@ -545,27 +545,7 @@ canvas {
 }
 #screen-loading.fade-out { opacity: 0; pointer-events: none; }
 
-/* radial glow overlay — 성운 */
-#screen-loading::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 30% 25%, rgba(0,180,255,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 70%, rgba(120,50,200,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(0,255,255,0.04) 0%, transparent 70%);
-  pointer-events: none;
-}
-/* 우하단 보조 성운 */
-#screen-loading::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 80% 20%, rgba(0,255,200,0.04) 0%, transparent 40%),
-    radial-gradient(ellipse at 15% 80%, rgba(200,100,255,0.03) 0%, transparent 45%);
-  pointer-events: none;
-}
+/* 캔버스가 전체 배경 — CSS 오버레이 불필요 */
 
 /* version badge */
 #ld-version {
@@ -1149,9 +1129,9 @@ canvas {
 
 <!-- ── 로딩 화면 ── -->
 <div id="screen-loading">
+  <canvas id="ld-ship-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
   <span id="ld-version">v1.0.0</span>
   <div id="ld-center">
-    <div id="loading-icon" style="display:flex; justify-content:center; margin-bottom:16px;"><canvas id="ld-ship-canvas" width="300" height="240" style="width:300px;height:240px;"></canvas></div>
     <div id="ld-title">NEON CORE</div>
   </div>
   <div id="ld-bottom">
@@ -6293,55 +6273,67 @@ document.addEventListener('touchend', function(e) {
    LOADING SCREEN
 ═══════════════════════════════════════════════════════════════ */
 (function() {
-  /* ── 탐사선 애니메이션 (HD + DPR 대응) ── */
+  /* ── 탐사선 애니메이션 (전체 화면 캔버스 + DPR 대응) ── */
   var _sc = document.getElementById('ld-ship-canvas');
   if (_sc) {
-    var _dpr = Math.min(window.devicePixelRatio || 1, 3);
-    var _cssW = 300, _cssH = 240;
-    _sc.width  = Math.round(_cssW * _dpr);
-    _sc.height = Math.round(_cssH * _dpr);
-    _sc.style.width  = _cssW + 'px';
-    _sc.style.height = _cssH + 'px';
     var _sx = _sc.getContext('2d');
     var _ss = performance.now();
-    var _sDur = 3600;
+    var _sDur = 4000;
+    var _cssW, _cssH, _dpr;
 
-    // ── 다층 별 필드 (근거리 · 중거리 · 원거리) ──
+    function _ldResize() {
+      _cssW = window.innerWidth;
+      _cssH = window.innerHeight;
+      _dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      _sc.width  = Math.round(_cssW * _dpr);
+      _sc.height = Math.round(_cssH * _dpr);
+      // 별 위치 재계산
+      _ldInitStars();
+    }
+
+    // ── 다층 별 필드 ──
     var _starLayers = [];
     var _seed = 42;
     function _ldseed() { _seed = (_seed * 1103515245 + 12345) & 0x7fffffff; return (_seed % 10000) / 10000; }
-    for (var li = 0; li < 3; li++) {
-      var cnt = [80, 50, 25][li];
-      var layer = [];
-      for (var si = 0; si < cnt; si++) {
-        var r = _ldseed(), g = _ldseed(), b = _ldseed();
-        // 별 색상: 백색/청백/담청/담황
-        var hue = [0, 0, 1, 1, 2][Math.floor(b * 5)];
-        var cols = ['#ffffff', '#ccddff', '#aaeeff', '#ffeedd'];
-        layer.push({
-          x: r * _cssW, y: g * _cssH,
-          sz: [0.4 + b * 0.6, 0.8 + b * 1.0, 1.2 + b * 1.8][li],
-          sp: [0.3, 0.7, 1.4][li],
-          twinkle: _ldseed() * 6.28,
-          col: cols[hue] || '#ffffff',
-          bright: 0.25 + _ldseed() * 0.55
-        });
+    function _ldInitStars() {
+      _starLayers = [];
+      _seed = 42;
+      for (var li = 0; li < 3; li++) {
+        var cnt = [120, 60, 30][li];
+        var layer = [];
+        for (var si = 0; si < cnt; si++) {
+          var r = _ldseed(), g = _ldseed(), b = _ldseed();
+          var hue = [0, 0, 1, 1, 2][Math.floor(b * 5)];
+          var cols = ['#ffffff', '#ccddff', '#aaeeff', '#ffeedd'];
+          layer.push({
+            x: r * _cssW, y: g * _cssH,
+            sz: [0.5 + b * 0.8, 1.0 + b * 1.2, 1.5 + b * 2.0][li],
+            sp: [0.3, 0.8, 1.6][li],
+            twinkle: _ldseed() * 6.28,
+            col: cols[hue] || '#ffffff',
+            bright: 0.2 + _ldseed() * 0.6
+          });
+        }
+        _starLayers.push(layer);
       }
-      _starLayers.push(layer);
     }
+    _ldResize();
+    window.addEventListener('resize', _ldResize);
 
-    // ── 엔진 파티클 풀 ──
+    // ── 엔진 파티클 ──
     var _exhaust = [];
-    for (var ei = 0; ei < 30; ei++) _exhaust.push({ x:0, y:0, vx:0, vy:0, life:0, max:1 });
+    for (var ei = 0; ei < 40; ei++) _exhaust.push({ x:0, y:0, vx:0, vy:0, life:0, max:1, sz:1 });
     var _exIdx = 0;
     function _emitExhaust(x, y, sc) {
-      var p = _exhaust[_exIdx++ % _exhaust.length];
-      p.x = x + (_ldseed() - 0.5) * 4 * sc;
-      p.y = y + 6 * sc;
-      p.vx = (_ldseed() - 0.5) * 0.8;
-      p.vy = 1.2 + _ldseed() * 1.5;
-      p.life = 0; p.max = 300 + _ldseed() * 400;
-      p.sz = (1 + _ldseed() * 2) * Math.min(sc, 2.5);
+      for (var n = 0; n < 2; n++) {
+        var p = _exhaust[_exIdx++ % _exhaust.length];
+        p.x = x + (_ldseed() - 0.5) * 6 * sc;
+        p.y = y + 8 * sc;
+        p.vx = (_ldseed() - 0.5) * 1.2;
+        p.vy = 2 + _ldseed() * 3;
+        p.life = 0; p.max = 400 + _ldseed() * 600;
+        p.sz = (1.5 + _ldseed() * 3) * Math.min(sc, 3);
+      }
     }
 
     function _drawShipFrame(now) {
@@ -6351,160 +6343,174 @@ document.addEventListener('touchend', function(e) {
       var raw = now - _ss;
       var t = (raw % _sDur) / _sDur;
       var w = _cssW, h = _cssH;
-      var d = _dpr;
 
-      _sx.setTransform(d, 0, 0, d, 0, 0);
+      _sx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
       _sx.clearRect(0, 0, w, h);
 
-      // ── 배경: 깊은 우주 그라데이션 ──
-      var bgG = _sx.createRadialGradient(w*0.4, h*0.35, 0, w*0.5, h*0.5, w*0.8);
-      bgG.addColorStop(0, '#061220');
-      bgG.addColorStop(0.5, '#030b14');
-      bgG.addColorStop(1, '#010508');
+      // ── 배경: 깊은 우주 ──
+      var bgG = _sx.createRadialGradient(w*0.35, h*0.3, 0, w*0.5, h*0.5, Math.max(w, h)*0.8);
+      bgG.addColorStop(0, '#081828');
+      bgG.addColorStop(0.4, '#040e18');
+      bgG.addColorStop(1, '#020810');
       _sx.fillStyle = bgG;
       _sx.fillRect(0, 0, w, h);
 
-      // 성운 글로우
+      // 성운
       _sx.save();
-      var nb1 = _sx.createRadialGradient(w*0.25, h*0.3, 0, w*0.25, h*0.3, w*0.4);
-      nb1.addColorStop(0, 'rgba(0,140,255,0.06)');
+      var nb1 = _sx.createRadialGradient(w*0.2, h*0.25, 0, w*0.2, h*0.25, w*0.5);
+      nb1.addColorStop(0, 'rgba(0,120,255,0.08)');
+      nb1.addColorStop(0.5, 'rgba(0,80,180,0.03)');
       nb1.addColorStop(1, 'transparent');
       _sx.fillStyle = nb1; _sx.fillRect(0, 0, w, h);
-      var nb2 = _sx.createRadialGradient(w*0.75, h*0.65, 0, w*0.75, h*0.65, w*0.35);
-      nb2.addColorStop(0, 'rgba(140,60,220,0.05)');
+      var nb2 = _sx.createRadialGradient(w*0.8, h*0.6, 0, w*0.8, h*0.6, w*0.45);
+      nb2.addColorStop(0, 'rgba(160,50,240,0.06)');
+      nb2.addColorStop(0.5, 'rgba(100,20,180,0.02)');
       nb2.addColorStop(1, 'transparent');
       _sx.fillStyle = nb2; _sx.fillRect(0, 0, w, h);
+      var nb3 = _sx.createRadialGradient(w*0.6, h*0.15, 0, w*0.6, h*0.15, w*0.3);
+      nb3.addColorStop(0, 'rgba(0,255,200,0.04)');
+      nb3.addColorStop(1, 'transparent');
+      _sx.fillStyle = nb3; _sx.fillRect(0, 0, w, h);
       _sx.restore();
 
-      // ── 별 필드 (3층 패럴랙스 + 깜빡임) ──
+      // ── 별 필드 (3층 + 깜빡임) ──
       for (var li2 = 0; li2 < 3; li2++) {
         var stars = _starLayers[li2];
         for (var i = 0; i < stars.length; i++) {
           var st = stars[i];
-          var sy = (st.y + raw * 0.012 * st.sp) % h;
+          var sy = (st.y + raw * 0.015 * st.sp) % h;
           var twk = 0.5 + 0.5 * Math.sin(raw * 0.003 + st.twinkle);
-          var alpha = st.bright * (0.6 + twk * 0.4);
+          var alpha = st.bright * (0.5 + twk * 0.5);
           _sx.globalAlpha = alpha;
           _sx.fillStyle = st.col;
-          if (st.sz > 1.4) {
-            // 큰 별: 십자 글로우
-            _sx.beginPath();
-            _sx.arc(st.x, sy, st.sz * 0.5, 0, Math.PI * 2);
-            _sx.fill();
-            _sx.globalAlpha = alpha * 0.25;
-            _sx.fillRect(st.x - st.sz * 1.5, sy - 0.3, st.sz * 3, 0.6);
-            _sx.fillRect(st.x - 0.3, sy - st.sz * 1.5, 0.6, st.sz * 3);
+          if (st.sz > 1.8) {
+            _sx.beginPath(); _sx.arc(st.x, sy, st.sz * 0.5, 0, Math.PI*2); _sx.fill();
+            _sx.globalAlpha = alpha * 0.2;
+            _sx.fillRect(st.x - st.sz*2, sy - 0.4, st.sz*4, 0.8);
+            _sx.fillRect(st.x - 0.4, sy - st.sz*2, 0.8, st.sz*4);
           } else {
-            _sx.beginPath();
-            _sx.arc(st.x, sy, st.sz * 0.5, 0, Math.PI * 2);
-            _sx.fill();
+            _sx.beginPath(); _sx.arc(st.x, sy, st.sz * 0.5, 0, Math.PI*2); _sx.fill();
           }
         }
       }
       _sx.globalAlpha = 1;
 
-      // ── 우주선 애니메이션 ──
-      var dt = 16.7; // ~60fps
-      if (t < 0.50) {
-        // 접근: 멀리서 점점 가까이 + 미세 흔들림
-        var p = t / 0.50;
-        var ep = p * p * (3 - 2 * p); // smoothstep
-        var scale = 0.10 + ep * 2.0;
+      // ── 탐사선 위치 (화면 중앙 상단 근처) ──
+      var shipX = w / 2;
+      var shipBaseY = h * 0.38;
+      var dt = 16.7;
+
+      if (t < 0.45) {
+        // 접근: 멀리서 점점 가까이
+        var p = t / 0.45;
+        var ep = p * p * (3 - 2 * p);
+        var scale = 0.15 + ep * 2.5;
         var alpha = Math.min(1, p * 3);
-        var wobX = Math.sin(raw * 0.006) * 2.5 * (1 - p);
-        var wobY = Math.cos(raw * 0.009) * 1.5 * (1 - p);
-        var sx = w/2 + wobX, sy2 = h/2 + 10 + wobY;
-        _neonShipHD(_sx, sx, sy2, scale, alpha, raw);
-        // 엔진 파티클 방출
-        if (p > 0.15 && Math.random() < 0.6) _emitExhaust(sx, sy2, scale);
-      } else if (t < 0.72) {
-        // 워프: 스윽 지나감 + 속도선
-        var p = (t - 0.50) / 0.22;
-        var ep = p * p;
-        var scale = 2.0 + ep * 10;
-        var yy = h/2 + 10 - ep * 300;
-        var alpha = 1 - ep;
-        _neonShipHD(_sx, w/2, yy, Math.min(scale, 8), alpha, raw);
-        // 워프 속도선
+        var wobX = Math.sin(raw * 0.005) * 4 * (1 - p);
+        var wobY = Math.cos(raw * 0.007) * 3 * (1 - p);
+        _neonShipHD(_sx, shipX + wobX, shipBaseY + wobY, scale, alpha, raw);
+        if (p > 0.1 && Math.random() < 0.7) _emitExhaust(shipX + wobX, shipBaseY + wobY, scale);
+      } else if (t < 0.65) {
+        // 워프: 가속 후 위로 날아감
+        var p = (t - 0.45) / 0.20;
+        var ep = p * p * p;
+        var scale = 2.5 + ep * 12;
+        var yy = shipBaseY - ep * h * 0.9;
+        var alpha = 1 - ep * ep;
+        _neonShipHD(_sx, shipX, yy, Math.min(scale, 10), alpha, raw);
+
+        // 속도선 (화면 전체)
         _sx.save();
-        _sx.globalAlpha = alpha * 0.5;
-        for (var sl = 0; sl < 8; sl++) {
-          var slx = w*0.15 + (sl * 37.7) % (w*0.7);
-          var sly = (h*0.2 + (sl * 61.3) % (h*0.6));
-          var slLen = 15 + ep * 60;
+        _sx.globalAlpha = alpha * 0.4;
+        var lineCount = 14;
+        for (var sl = 0; sl < lineCount; sl++) {
+          var slx = w * 0.08 + ((sl * 73.7) % (w * 0.84));
+          var sly = h * 0.05 + ((sl * 127.3) % (h * 0.9));
+          var slLen = 20 + ep * h * 0.25;
           var slg = _sx.createLinearGradient(slx, sly, slx, sly + slLen);
           slg.addColorStop(0, 'rgba(0,255,255,0)');
-          slg.addColorStop(0.5, 'rgba(0,255,255,0.4)');
+          slg.addColorStop(0.3, 'rgba(0,255,255,0.5)');
+          slg.addColorStop(0.7, 'rgba(100,200,255,0.3)');
           slg.addColorStop(1, 'rgba(0,255,255,0)');
           _sx.strokeStyle = slg;
-          _sx.lineWidth = 0.8;
-          _sx.beginPath();
-          _sx.moveTo(slx, sly);
-          _sx.lineTo(slx, sly + slLen);
-          _sx.stroke();
+          _sx.lineWidth = 0.6 + ep * 0.8;
+          _sx.beginPath(); _sx.moveTo(slx, sly); _sx.lineTo(slx + (_ldseed()-0.5)*2, sly + slLen); _sx.stroke();
         }
         _sx.restore();
-        // 엔진 잔상 (워프 트레일)
+
+        // 엔진 워프 트레일
         _sx.save();
-        _sx.globalAlpha = alpha * 0.7;
-        var tw = Math.min(scale, 4) * 5;
-        var tg = _sx.createLinearGradient(w/2, yy + 10, w/2, yy + 140);
-        tg.addColorStop(0, '#00ffff');
-        tg.addColorStop(0.3, '#0088cc');
-        tg.addColorStop(0.6, '#4400aa');
+        _sx.globalAlpha = alpha * 0.8;
+        var tw = Math.min(scale, 5) * 6;
+        var trailLen = h * 0.4;
+        var tg = _sx.createLinearGradient(shipX, yy + 12, shipX, yy + trailLen);
+        tg.addColorStop(0, 'rgba(255,255,255,0.6)');
+        tg.addColorStop(0.1, 'rgba(0,255,255,0.7)');
+        tg.addColorStop(0.4, 'rgba(0,100,200,0.3)');
+        tg.addColorStop(0.7, 'rgba(80,0,180,0.1)');
         tg.addColorStop(1, 'transparent');
         _sx.fillStyle = tg;
         _sx.beginPath();
-        _sx.moveTo(w/2 - tw * 0.3, yy + 10);
-        _sx.quadraticCurveTo(w/2 - tw, yy + 70, w/2 - tw * 0.1, yy + 140);
-        _sx.lineTo(w/2 + tw * 0.1, yy + 140);
-        _sx.quadraticCurveTo(w/2 + tw, yy + 70, w/2 + tw * 0.3, yy + 10);
+        _sx.moveTo(shipX - tw*0.2, yy + 12);
+        _sx.quadraticCurveTo(shipX - tw, yy + trailLen*0.5, shipX, yy + trailLen);
+        _sx.quadraticCurveTo(shipX + tw, yy + trailLen*0.5, shipX + tw*0.2, yy + 12);
         _sx.closePath();
         _sx.fill();
         _sx.restore();
-        // 파티클 대량 방출
-        for (var em = 0; em < 3; em++) _emitExhaust(w/2, yy, Math.min(scale, 3));
+
+        for (var em = 0; em < 3; em++) _emitExhaust(shipX, yy, Math.min(scale, 4));
       } else {
         // 잔광 + 충격파
-        var p = (t - 0.72) / 0.28;
+        var p = (t - 0.65) / 0.35;
         if (p < 0.5) {
           var fp = p / 0.5;
+          var maxR = Math.min(w, h) * 0.35;
           // 충격파 링
           _sx.save();
-          _sx.globalAlpha = 0.4 * (1 - fp);
+          _sx.globalAlpha = 0.5 * (1 - fp);
           _sx.strokeStyle = '#00ffff';
-          _sx.lineWidth = 2 - fp * 1.5;
+          _sx.lineWidth = 2.5 - fp * 2;
           _sx.beginPath();
-          _sx.arc(w/2, h/2 - 20, fp * 80, 0, Math.PI * 2);
+          _sx.arc(shipX, shipBaseY - h*0.05, fp * maxR, 0, Math.PI * 2);
           _sx.stroke();
-          // 내부 글로우
-          var rg = _sx.createRadialGradient(w/2, h/2 - 20, 0, w/2, h/2 - 20, fp * 70);
-          rg.addColorStop(0, 'rgba(0,255,255,0.15)');
-          rg.addColorStop(0.5, 'rgba(80,0,200,0.06)');
-          rg.addColorStop(1, 'transparent');
-          _sx.fillStyle = rg;
+          // 2차 링
+          if (fp > 0.2) {
+            _sx.globalAlpha = 0.2 * (1 - fp);
+            _sx.strokeStyle = '#8844ff';
+            _sx.lineWidth = 1.5 - fp;
+            _sx.beginPath();
+            _sx.arc(shipX, shipBaseY - h*0.05, (fp - 0.2) * maxR * 0.8, 0, Math.PI * 2);
+            _sx.stroke();
+          }
+          // 중심 플래시
+          var fg = _sx.createRadialGradient(shipX, shipBaseY - h*0.05, 0, shipX, shipBaseY - h*0.05, fp * maxR * 0.6);
+          fg.addColorStop(0, 'rgba(255,255,255,' + (0.15 * (1-fp)) + ')');
+          fg.addColorStop(0.3, 'rgba(0,255,255,' + (0.08 * (1-fp)) + ')');
+          fg.addColorStop(1, 'transparent');
+          _sx.fillStyle = fg;
+          _sx.globalAlpha = 1;
           _sx.fillRect(0, 0, w, h);
           _sx.restore();
         }
       }
 
-      // ── 엔진 파티클 업데이트 + 렌더 ──
+      // ── 파티클 ──
       for (var pi = 0; pi < _exhaust.length; pi++) {
         var pp = _exhaust[pi];
         if (pp.life >= pp.max) continue;
         pp.life += dt;
         pp.x += pp.vx; pp.y += pp.vy;
-        pp.vx *= 0.97;
+        pp.vx *= 0.96;
         var lf = pp.life / pp.max;
+        var pSz = pp.sz * (1 - lf * 0.4);
         _sx.save();
-        _sx.globalAlpha = (1 - lf) * 0.6;
-        var pSz = pp.sz * (1 - lf * 0.5);
+        _sx.globalAlpha = (1 - lf) * 0.7;
         var pg = _sx.createRadialGradient(pp.x, pp.y, 0, pp.x, pp.y, pSz);
-        pg.addColorStop(0, 'rgba(0,255,255,0.8)');
-        pg.addColorStop(0.5, 'rgba(0,120,200,0.3)');
+        pg.addColorStop(0, 'rgba(0,255,255,0.9)');
+        pg.addColorStop(0.4, 'rgba(0,140,220,0.4)');
         pg.addColorStop(1, 'transparent');
         _sx.fillStyle = pg;
-        _sx.fillRect(pp.x - pSz, pp.y - pSz, pSz * 2, pSz * 2);
+        _sx.fillRect(pp.x - pSz, pp.y - pSz, pSz*2, pSz*2);
         _sx.restore();
       }
 
@@ -6512,151 +6518,119 @@ document.addEventListener('touchend', function(e) {
       requestAnimationFrame(_drawShipFrame);
     }
 
-    // ── 고퀄리티 네온 우주선 ──
+    // ── 네온 우주선 (HD) ──
     function _neonShipHD(ctx, x, y, sc, al, time) {
       ctx.save();
       ctx.translate(x, y);
-      var drawSc = Math.min(sc, 6);
+      var drawSc = Math.min(sc, 8);
       ctx.scale(drawSc, drawSc);
       ctx.globalAlpha = al;
 
-      // 엔진 외부 글로우 (큰 범위)
-      var eg = ctx.createRadialGradient(0, 9, 0, 0, 9, 14);
-      eg.addColorStop(0, 'rgba(0,255,255,0.25)');
-      eg.addColorStop(0.5, 'rgba(0,100,200,0.08)');
+      // 엔진 외부 글로우
+      var eg = ctx.createRadialGradient(0, 10, 0, 0, 10, 18);
+      eg.addColorStop(0, 'rgba(0,255,255,0.3)');
+      eg.addColorStop(0.4, 'rgba(0,100,200,0.1)');
       eg.addColorStop(1, 'transparent');
       ctx.fillStyle = eg;
-      ctx.fillRect(-14, -5, 28, 28);
+      ctx.fillRect(-18, -8, 36, 36);
 
-      // 메인 동체 (유선형)
+      // 메인 동체
       ctx.beginPath();
-      ctx.moveTo(0, -18);
-      ctx.bezierCurveTo(-2, -14, -4, -8, -5, -2);
-      ctx.lineTo(-4.5, 5);
-      ctx.lineTo(-3, 8);
-      ctx.lineTo(0, 10);
-      ctx.lineTo(3, 8);
-      ctx.lineTo(4.5, 5);
-      ctx.lineTo(5, -2);
-      ctx.bezierCurveTo(4, -8, 2, -14, 0, -18);
+      ctx.moveTo(0, -20);
+      ctx.bezierCurveTo(-2.5, -16, -5, -8, -6, -2);
+      ctx.lineTo(-5.5, 6);
+      ctx.lineTo(-3.5, 10);
+      ctx.lineTo(0, 12);
+      ctx.lineTo(3.5, 10);
+      ctx.lineTo(5.5, 6);
+      ctx.lineTo(6, -2);
+      ctx.bezierCurveTo(5, -8, 2.5, -16, 0, -20);
       ctx.closePath();
       ctx.fillStyle = '#0c1e30';
       ctx.fill();
       ctx.strokeStyle = '#00ccee';
-      ctx.lineWidth = 0.8;
+      ctx.lineWidth = 0.7;
       ctx.stroke();
 
-      // 동체 하이라이트 (중앙선)
-      ctx.beginPath();
-      ctx.moveTo(0, -16);
-      ctx.lineTo(0, 7);
-      ctx.strokeStyle = 'rgba(0,255,255,0.15)';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
+      // 동체 하이라이트
+      ctx.beginPath(); ctx.moveTo(0, -18); ctx.lineTo(0, 9);
+      ctx.strokeStyle = 'rgba(0,255,255,0.12)'; ctx.lineWidth = 0.4; ctx.stroke();
 
       // 좌측 날개
       ctx.beginPath();
-      ctx.moveTo(-4, -2);
-      ctx.lineTo(-12, 5);
-      ctx.lineTo(-11, 7);
-      ctx.lineTo(-8, 6);
-      ctx.lineTo(-4.5, 4);
+      ctx.moveTo(-5, -3); ctx.lineTo(-14, 5); ctx.lineTo(-13, 8);
+      ctx.lineTo(-9, 7); ctx.lineTo(-5.5, 5);
       ctx.closePath();
-      ctx.fillStyle = '#081828';
-      ctx.fill();
-      ctx.strokeStyle = '#00aadd';
-      ctx.lineWidth = 0.6;
-      ctx.stroke();
+      ctx.fillStyle = '#081828'; ctx.fill();
+      ctx.strokeStyle = '#00aadd'; ctx.lineWidth = 0.5; ctx.stroke();
 
       // 우측 날개
       ctx.beginPath();
-      ctx.moveTo(4, -2);
-      ctx.lineTo(12, 5);
-      ctx.lineTo(11, 7);
-      ctx.lineTo(8, 6);
-      ctx.lineTo(4.5, 4);
+      ctx.moveTo(5, -3); ctx.lineTo(14, 5); ctx.lineTo(13, 8);
+      ctx.lineTo(9, 7); ctx.lineTo(5.5, 5);
       ctx.closePath();
-      ctx.fillStyle = '#081828';
-      ctx.fill();
-      ctx.strokeStyle = '#00aadd';
-      ctx.lineWidth = 0.6;
-      ctx.stroke();
+      ctx.fillStyle = '#081828'; ctx.fill();
+      ctx.strokeStyle = '#00aadd'; ctx.lineWidth = 0.5; ctx.stroke();
 
-      // 날개 끝 라이트 (좌/우 깜빡임)
+      // 날개 끝 라이트
       var blink = 0.5 + 0.5 * Math.sin(time * 0.008);
-      ctx.globalAlpha = al * (0.4 + blink * 0.6);
+      ctx.globalAlpha = al * (0.3 + blink * 0.7);
       ctx.fillStyle = '#ff4466';
-      ctx.beginPath(); ctx.arc(-11.5, 6, 1, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(-13.5, 6.5, 1.2, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#44ff66';
-      ctx.beginPath(); ctx.arc(11.5, 6, 1, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(13.5, 6.5, 1.2, 0, Math.PI*2); ctx.fill();
       ctx.globalAlpha = al;
 
-      // 콕핏 (그라데이션 유리)
+      // 콕핏
       ctx.beginPath();
-      ctx.moveTo(0, -13);
-      ctx.bezierCurveTo(-1.8, -10, -2.2, -5, -1.8, -2);
+      ctx.moveTo(0, -15);
+      ctx.bezierCurveTo(-2, -12, -2.5, -6, -2, -2);
       ctx.lineTo(0, -1);
-      ctx.lineTo(1.8, -2);
-      ctx.bezierCurveTo(2.2, -5, 1.8, -10, 0, -13);
+      ctx.lineTo(2, -2);
+      ctx.bezierCurveTo(2.5, -6, 2, -12, 0, -15);
       ctx.closePath();
-      var cg = ctx.createLinearGradient(0, -13, 0, -1);
-      cg.addColorStop(0, 'rgba(0,255,255,0.6)');
+      var cg = ctx.createLinearGradient(0, -15, 0, -1);
+      cg.addColorStop(0, 'rgba(0,255,255,0.7)');
       cg.addColorStop(0.4, 'rgba(0,180,255,0.4)');
-      cg.addColorStop(1, 'rgba(0,60,120,0.2)');
-      ctx.fillStyle = cg;
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,255,255,0.5)';
-      ctx.lineWidth = 0.4;
-      ctx.stroke();
+      cg.addColorStop(1, 'rgba(0,60,120,0.15)');
+      ctx.fillStyle = cg; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,255,255,0.4)'; ctx.lineWidth = 0.35; ctx.stroke();
 
-      // 패널 디테일 (수평 라인)
-      ctx.strokeStyle = 'rgba(0,200,255,0.12)';
-      ctx.lineWidth = 0.3;
+      // 패널 라인
+      ctx.strokeStyle = 'rgba(0,200,255,0.10)'; ctx.lineWidth = 0.25;
       for (var dl = 0; dl < 3; dl++) {
-        var dy = 1 + dl * 2.5;
-        ctx.beginPath();
-        ctx.moveTo(-3.5 + dl * 0.5, dy);
-        ctx.lineTo(3.5 - dl * 0.5, dy);
-        ctx.stroke();
+        var dy = 1 + dl * 2.8;
+        ctx.beginPath(); ctx.moveTo(-4+dl*0.5, dy); ctx.lineTo(4-dl*0.5, dy); ctx.stroke();
       }
 
-      // 메인 엔진 (듀얼)
+      // 듀얼 엔진
       for (var en = -1; en <= 1; en += 2) {
-        var ex = en * 1.8;
-        // 엔진 노즐
-        ctx.beginPath();
-        ctx.arc(ex, 9, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = '#001a33';
-        ctx.fill();
-        ctx.strokeStyle = '#00aacc';
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
-        // 엔진 화염
-        var flicker = 0.7 + 0.3 * Math.sin(time * 0.015 + en);
+        var ex = en * 2.2;
+        ctx.beginPath(); ctx.arc(ex, 10.5, 2, 0, Math.PI*2);
+        ctx.fillStyle = '#001a33'; ctx.fill();
+        ctx.strokeStyle = '#00aacc'; ctx.lineWidth = 0.45; ctx.stroke();
+        var flicker = 0.7 + 0.3 * Math.sin(time * 0.015 + en * 3);
         ctx.globalAlpha = al * 0.9 * flicker;
-        var fg = ctx.createRadialGradient(ex, 9.5, 0, ex, 10, 4);
+        var fg = ctx.createRadialGradient(ex, 11, 0, ex, 11.5, 5);
         fg.addColorStop(0, '#ffffff');
-        fg.addColorStop(0.2, '#00ffff');
-        fg.addColorStop(0.6, '#0066cc');
+        fg.addColorStop(0.15, '#00ffff');
+        fg.addColorStop(0.5, '#0066cc');
         fg.addColorStop(1, 'transparent');
         ctx.fillStyle = fg;
-        ctx.beginPath(); ctx.arc(ex, 10, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(ex, 11.5, 5, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = al;
       }
 
-      // 쉴드 육각형 (미세한 보호막)
-      ctx.globalAlpha = al * (0.08 + 0.05 * Math.sin(time * 0.004));
-      ctx.strokeStyle = '#00ffff';
-      ctx.lineWidth = 0.4;
+      // 쉴드
+      ctx.globalAlpha = al * (0.06 + 0.04 * Math.sin(time * 0.004));
+      ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 0.35;
       ctx.beginPath();
       for (var hi = 0; hi < 6; hi++) {
-        var ha = Math.PI / 3 * hi - Math.PI / 2;
-        var hx = Math.cos(ha) * 16, hy = Math.sin(ha) * 16 - 2;
-        if (hi === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+        var ha = Math.PI/3*hi - Math.PI/2;
+        var hx = Math.cos(ha)*18, hy = Math.sin(ha)*18 - 2;
+        if (hi===0) ctx.moveTo(hx,hy); else ctx.lineTo(hx,hy);
       }
-      ctx.closePath();
-      ctx.stroke();
-      ctx.globalAlpha = al;
+      ctx.closePath(); ctx.stroke();
 
       ctx.restore();
     }
