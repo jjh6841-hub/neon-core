@@ -5133,9 +5133,8 @@ function render() {
       _tDom._skinKey = _cSkin;
       _tDom.innerHTML = window.getNeonCoreIcon ? window.getNeonCoreIcon(_drawSz, _cSkin) : '';
     }
-    var _tSz = Math.round(_drawSz * _zm);
-    _tDom.style.width  = _tSz + 'px';
-    _tDom.style.height = _tSz + 'px';
+    _tDom.style.width  = _drawSz + 'px';
+    _tDom.style.height = _drawSz + 'px';
     _tDom.style.left   = _domCX + 'px';
     _tDom.style.top    = _domCY + 'px';
   }
