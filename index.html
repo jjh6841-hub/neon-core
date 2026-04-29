@@ -19089,6 +19089,12 @@ function _renderModuleContent() {
           '</div>';
         (function(idx, cost) {
           slot.addEventListener('click', function() {
+            var currentBought = _getModSlotsBought();
+            // 이전 슬롯이 해금되지 않았으면 보석 해금 불가
+            if (idx > currentBought) {
+              if(window._showSlotConfirm) _showSlotConfirm('모듈 슬롯 해금', '슬롯 '+(currentBought+1)+'번을 먼저 해금하세요', null);
+              return;
+            }
             var condInfo = MOD_SLOT_COND[idx];
             var hasGems = (PERM.gems||0) >= cost;
             if (!hasGems) {
@@ -19104,6 +19110,11 @@ function _renderModuleContent() {
               : '보석 ❖'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?';
             if(window._showSlotConfirm) _showSlotConfirm('모듈 슬롯 해금', desc, function(){
               if((PERM.gems||0)<cost)return;
+              // 동시 클릭 방지: 다시 순서 체크
+              if(idx>_getModSlotsBought()){
+                if(window.showToastMsg) showToastMsg('슬롯 '+(_getModSlotsBought()+1)+'번을 먼저 해금하세요','#ef4444');
+                return;
+              }
               PERM.gems-=cost; logCurrency('gems', -cost, '모듈 슬롯 해금'); savePerm();
               var d=_loadMods(); d.slotsBought=Math.max(d.slotsBought||1,idx+1); _saveMods(d);
               _renderModuleContent();
