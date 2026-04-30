@@ -256,9 +256,11 @@ tr { cursor:pointer; }
     <div class="modal-tabs">
       <button class="modal-tab active" data-tab="info">정보</button>
       <button class="modal-tab" data-tab="log">재화 로그</button>
+      <button class="modal-tab" data-tab="purchase">결제 테스트</button>
     </div>
     <div id="modal-tab-info"></div>
     <div id="modal-tab-log" style="display:none;"></div>
+    <div id="modal-tab-purchase" style="display:none;"></div>
     <div id="modal-actions-wrap" class="modal-actions">
       <button class="btn-save" id="modal-save">저장</button>
       <button class="btn-cancel" id="modal-cancel">닫기</button>
@@ -606,6 +608,126 @@ function renderModal() {
 
   document.getElementById('modal-tab-log').innerHTML = logHtml;
 
+  /* ── 결제 테스트 탭 ── */
+  var STORE_PACKAGES = [
+    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 영구 제거', price:'₩11,000', once:true, color:'#00ffff',
+      rewards:{ gems:100 }, rewardLabel:'보석 100' },
+    { id:'starter', name:'스타터 팩', desc:'1회 한정', price:'₩3,300', once:true, color:'#cc44ff',
+      rewards:{ gold:1000, gems:100 }, rewardLabel:'골드 1,000 + 보석 100' },
+    { id:'growth', name:'성장 팩', desc:'1회 한정', price:'₩9,900', once:true, color:'#cc44ff',
+      rewards:{ gold:3000, gems:300 }, rewardLabel:'골드 3,000 + 보석 300' },
+    { id:'monthly', name:'월간 팩', desc:'30일간 매일 지급', price:'₩16,500', once:false, color:'#10b981',
+      rewards:{ gold:300, gems:30 }, rewardLabel:'골드 300/일 + 보석 30/일 (활성화)' },
+    { id:'lab_boost', name:'코어랩 가속', desc:'연구 시간 10% 영구 감소', price:'₩9,900', once:true, color:'#5bc0de',
+      rewards:{}, rewardLabel:'연구 시간 -10% (기능 활성화)', flag:'lab_boost' },
+    { id:'pcore', name:'파워 코어 팩', desc:'월 최대 5회', price:'₩11,000', once:false, maxPerMonth:5, color:'#ff8822',
+      rewards:{ powerCores:100 }, rewardLabel:'파워 코어 100' },
+    { id:'acode', name:'접근 코드 팩', desc:'월 최대 5회', price:'₩1,100', once:false, maxPerMonth:5, color:'#bb44ff',
+      rewards:{ accessCodes:100 }, rewardLabel:'접근 코드 100' },
+  ];
+
+  var purchases = (currentUser.data.perm && currentUser.data.perm.purchases) || {};
+  var purchHtml = '<div style="color:#556677;font-size:10px;margin-bottom:12px;">유저에게 패키지를 구매 시뮬레이션합니다. 보상이 우편함으로 발송됩니다.</div>';
+  STORE_PACKAGES.forEach(function(pkg){
+    var bought = purchases[pkg.id] || 0;
+    var statusText = '';
+    if (pkg.once) {
+      statusText = bought ? '<span style="color:#00ff88;">구매됨</span>' : '<span style="color:#334455;">미구매</span>';
+    } else if (pkg.maxPerMonth) {
+      statusText = '<span style="color:#94a3b8;">이번 달 ' + bought + '/' + pkg.maxPerMonth + '회</span>';
+    } else {
+      statusText = bought ? '<span style="color:#00ff88;">활성</span>' : '<span style="color:#334455;">비활성</span>';
+    }
+    purchHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;margin-bottom:4px;background:#0a1520;border:1px solid #1a2a3a;border-left:3px solid '+pkg.color+';">';
+    purchHtml += '<div style="flex:1;min-width:0;">';
+    purchHtml += '<div style="color:'+pkg.color+';font-size:11px;font-weight:bold;">'+pkg.name+'</div>';
+    purchHtml += '<div style="color:#556677;font-size:9px;margin-top:2px;">'+pkg.desc+' · '+pkg.price+'</div>';
+    purchHtml += '<div style="color:#94a3b8;font-size:9px;margin-top:2px;">보상: '+pkg.rewardLabel+'</div>';
+    purchHtml += '<div style="margin-top:3px;">상태: '+statusText+'</div>';
+    purchHtml += '</div>';
+    var canBuy = true;
+    if (pkg.once && bought) canBuy = false;
+    if (pkg.maxPerMonth && bought >= pkg.maxPerMonth) canBuy = false;
+    if (canBuy) {
+      purchHtml += '<button data-buy-pkg="'+pkg.id+'" style="background:#030b10;border:1px solid '+pkg.color+';color:'+pkg.color+';font-family:monospace;font-size:10px;padding:6px 12px;cursor:pointer;white-space:nowrap;margin-left:8px;">구매</button>';
+    } else {
+      purchHtml += '<span style="color:#334455;font-family:monospace;font-size:9px;margin-left:8px;">'+(pkg.once?'구매 완료':'한도 초과')+'</span>';
+    }
+    purchHtml += '</div>';
+  });
+  // 초기화 버튼
+  purchHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #1a2a3a;">';
+  purchHtml += '<button id="pkg-reset-all" style="background:#030b10;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:10px;padding:6px 12px;cursor:pointer;">전체 구매 상태 초기화</button>';
+  purchHtml += '</div>';
+  document.getElementById('modal-tab-purchase').innerHTML = purchHtml;
+
+  // 구매 버튼 이벤트
+  document.querySelectorAll('[data-buy-pkg]').forEach(function(btn){
+    btn.addEventListener('click', async function(){
+      var pkgId = btn.dataset.buyPkg;
+      var pkg = STORE_PACKAGES.find(function(p){ return p.id===pkgId; });
+      if (!pkg || !currentUser) return;
+      if (!confirm(currentUser.id + ' 유저에게 ['+pkg.name+'] 구매를 시뮬레이션하시겠습니까?\n보상이 우편함으로 발송됩니다.')) return;
+
+      // 1) 우편함에 보상 발송
+      var mailRewards = {};
+      if (pkg.rewards.gold) mailRewards.gold = pkg.rewards.gold;
+      if (pkg.rewards.gems) mailRewards.gems = pkg.rewards.gems;
+      if (pkg.rewards.powerCores) mailRewards.powerCores = pkg.rewards.powerCores;
+      if (pkg.rewards.accessCodes) mailRewards.accessCodes = pkg.rewards.accessCodes;
+
+      if (Object.keys(mailRewards).length > 0) {
+        await db.collection('mails').add({
+          type: 'personal',
+          targetUid: currentUser.id,
+          title: '[테스트] ' + pkg.name + ' 구매 보상',
+          body: '관리자 결제 테스트로 발송된 보상입니다.',
+          rewards: mailRewards,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      // 2) 구매 상태 Firestore 저장
+      var purchPath = 'perm.purchases.' + pkgId;
+      var updateData = {};
+      if (pkg.once) {
+        updateData[purchPath] = 1;
+      } else if (pkg.maxPerMonth) {
+        var cur = (purchases[pkgId] || 0);
+        updateData[purchPath] = cur + 1;
+      } else {
+        updateData[purchPath] = 1;
+      }
+      // 월간 팩: 활성화 정보도 저장
+      if (pkgId === 'monthly') {
+        var now = Date.now();
+        updateData['perm.purchases.monthly_start'] = now;
+        updateData['perm.purchases.monthly_end'] = now + 30*86400000;
+      }
+      // lab_boost: 플래그 저장
+      if (pkgId === 'lab_boost') {
+        updateData['perm.purchases.lab_boost'] = 1;
+      }
+
+      await db.collection('users').doc(currentUser.id).update(updateData);
+      showToast('['+pkg.name+'] 구매 완료 → 우편 발송');
+      // 모달 새로고침
+      openModal(currentUser);
+    });
+  });
+
+  // 초기화 버튼 이벤트
+  var resetBtn = document.getElementById('pkg-reset-all');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async function(){
+      if (!currentUser) return;
+      if (!confirm(currentUser.id + ' 유저의 모든 패키지 구매 상태를 초기화하시겠습니까?')) return;
+      await db.collection('users').doc(currentUser.id).update({ 'perm.purchases': {} });
+      showToast('구매 상태 초기화 완료');
+      openModal(currentUser);
+    });
+  }
+
   // 출처별 페이지네이션 렌더
   var SRC_PER=50, _srcPage=0;
   function renderSrcPage(){
@@ -700,6 +822,7 @@ function switchModalTab(tabName) {
   document.querySelectorAll('.modal-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===tabName); });
   document.getElementById('modal-tab-info').style.display = tabName==='info' ? '' : 'none';
   document.getElementById('modal-tab-log').style.display = tabName==='log' ? '' : 'none';
+  document.getElementById('modal-tab-purchase').style.display = tabName==='purchase' ? '' : 'none';
   document.getElementById('modal-actions-wrap').style.display = tabName==='info' ? '' : 'none';
 }
 

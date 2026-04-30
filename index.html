@@ -2791,6 +2791,26 @@ function syncFromFirebase() {
       if ((cExp.tickets||0) > parseInt(localStorage.getItem('explore_tickets')||'0',10))
         localStorage.setItem('explore_tickets', cExp.tickets);
     }
+    // 관리자 결제 테스트: Firestore purchases → localStorage 동기화
+    var cPurch = cloud && cloud.purchases;
+    if (cPurch && typeof cPurch === 'object') {
+      if (cPurch.ad_remove) localStorage.setItem('pkg_ad_remove','1');
+      if (cPurch.starter)   localStorage.setItem('pkg_starter','1');
+      if (cPurch.growth)    localStorage.setItem('pkg_growth','1');
+      if (cPurch.lab_boost) localStorage.setItem('pkg_lab_boost','1');
+      if (cPurch.monthly && cPurch.monthly_start && cPurch.monthly_end) {
+        localStorage.setItem('pkg_monthly_start', cPurch.monthly_start);
+        localStorage.setItem('pkg_monthly_end', cPurch.monthly_end);
+      }
+      if (cPurch.pcore) {
+        var pcM = (new Date()).getFullYear()+'-'+((new Date()).getMonth()+1);
+        localStorage.setItem('pkg_pcore_'+pcM, cPurch.pcore);
+      }
+      if (cPurch.acode) {
+        var acM = (new Date()).getFullYear()+'-'+((new Date()).getMonth()+1);
+        localStorage.setItem('pkg_acode_'+acM, cPurch.acode);
+      }
+    }
     window._fbSyncDone = true;
     // sync 완료 후 로컬 데이터를 Firestore에 반영
     try { savePerm(); } catch(_){}
@@ -6340,6 +6360,9 @@ document.addEventListener('touchend', function(e) {
       if (!_sc.parentNode) return;
       var ldEl = document.getElementById('screen-loading');
       if (!ldEl || ldEl.style.display === 'none') return;
+      requestAnimationFrame(_drawShipFrame);
+      if (!_sx) return;
+      if (!_cssW || !_cssH) { _ldResize(); return; }
       var raw = now - _ss;
       var t = (raw % _sDur) / _sDur;
       var w = _cssW, h = _cssH;
@@ -6515,7 +6538,6 @@ document.addEventListener('touchend', function(e) {
       }
 
       _sx.globalAlpha = 1;
-      requestAnimationFrame(_drawShipFrame);
     }
 
     // ── 네온 우주선 (HD) ──
@@ -8188,67 +8210,105 @@ if (dailyPopup) {
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     토너먼트 화면
+     토너먼트 화면 (컨텐츠 선택 허브)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-tournament" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
   <!-- HUD -->
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid rgba(0,255,255,0.15); flex-shrink:0; background:#040c14;">
+  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid rgba(187,68,255,0.2); flex-shrink:0; background:#040c14;">
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="trn-gem">0</span></span>
     </div>
   </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#00ffff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(0,255,255,0.10); flex-shrink:0;">토너먼트</div>
-  <!-- 콘텐츠 -->
-  <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px; display:flex; flex-direction:column; gap:10px; padding-bottom:calc(10px + var(--sab));">
-    <!-- 리그 아이콘 -->
-    <div style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px;">
-      <div id="trn-trophy" style="font-size:48px; text-align:center;">🥉</div>
-      <div id="trn-league-name" style="color:#cd7f32; font-family:'Courier New',monospace; font-size:18px; font-weight:bold; letter-spacing:2px;">브론즈 리그</div>
-      <div style="color:#334455; font-family:monospace; font-size:10px;">최대 100명 참가 · 최고 웨이브 경쟁</div>
+  <div style="text-align:center; padding:5px; font-size:10px; color:#bb44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(187,68,255,0.10); flex-shrink:0;">토너먼트</div>
+  <!-- 콘텐츠 선택 -->
+  <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; display:flex; flex-direction:column; gap:14px; padding-bottom:calc(10px + var(--sab));">
+    <div style="text-align:center; padding:12px 0 4px;">
+      <div style="font-size:14px; letter-spacing:4px; color:#bb44ff; font-family:'Courier New',monospace;">TOURNAMENT</div>
+      <div style="font-size:9px; color:#445566; margin-top:4px; letter-spacing:1px;">컨텐츠를 선택하세요</div>
     </div>
-    <!-- 참가 시간 -->
-    <div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
-      <span style="color:#94a3b8; font-family:monospace; font-size:11px;">다음 토너먼트까지</span>
-      <span id="trn-timer" style="color:#00ffff; font-family:'Courier New',monospace; font-size:14px; font-weight:bold;">00h 00m</span>
+
+    <!-- 1. 주파수 전쟁 -->
+    <div id="trn-card-fw" style="cursor:pointer; background:linear-gradient(135deg, #0a0a22 0%, #0c1030 100%); border:1px solid #4444cc; border-radius:10px; overflow:hidden; position:relative;">
+      <div style="padding:16px; display:flex; align-items:center; gap:14px;">
+        <!-- 탐사선 전쟁 일러스트 (SVG) -->
+        <div style="width:64px; height:64px; flex-shrink:0; position:relative;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 배경 원 -->
+            <circle cx="32" cy="32" r="30" fill="#080820" stroke="#2244aa" stroke-width="0.5"/>
+            <!-- 별 -->
+            <circle cx="10" cy="12" r="0.8" fill="#fff" opacity="0.5"/>
+            <circle cx="50" cy="8" r="0.6" fill="#aaeeff" opacity="0.4"/>
+            <circle cx="55" cy="50" r="0.7" fill="#fff" opacity="0.3"/>
+            <circle cx="8" cy="45" r="0.5" fill="#ccddff" opacity="0.4"/>
+            <!-- 좌측 탐사선 (아군 - 시안) -->
+            <g transform="translate(16,30) rotate(-25)">
+              <path d="M0,-8 L-3,0 L-2,4 L0,5 L2,4 L3,0 Z" fill="#0c1e30" stroke="#00ccee" stroke-width="0.6"/>
+              <path d="M-3,0 L-7,3 L-6,5 L-3,3 Z" fill="#081828" stroke="#00aadd" stroke-width="0.4"/>
+              <path d="M3,0 L7,3 L6,5 L3,3 Z" fill="#081828" stroke="#00aadd" stroke-width="0.4"/>
+              <ellipse cx="0" cy="-5" rx="1.2" ry="3" fill="url(#fw-cockpit)" opacity="0.8"/>
+              <!-- 엔진 글로우 -->
+              <circle cx="-1.2" cy="5" r="2" fill="#00ffff" opacity="0.4"/>
+              <circle cx="1.2" cy="5" r="2" fill="#00ffff" opacity="0.4"/>
+            </g>
+            <!-- 우측 탐사선 (적 - 레드) -->
+            <g transform="translate(48,28) rotate(155)">
+              <path d="M0,-8 L-3,0 L-2,4 L0,5 L2,4 L3,0 Z" fill="#1e0c0c" stroke="#ee3333" stroke-width="0.6"/>
+              <path d="M-3,0 L-7,3 L-6,5 L-3,3 Z" fill="#1a0808" stroke="#dd4444" stroke-width="0.4"/>
+              <path d="M3,0 L7,3 L6,5 L3,3 Z" fill="#1a0808" stroke="#dd4444" stroke-width="0.4"/>
+              <ellipse cx="0" cy="-5" rx="1.2" ry="3" fill="#ff4444" opacity="0.3"/>
+              <circle cx="-1.2" cy="5" r="2" fill="#ff4444" opacity="0.4"/>
+              <circle cx="1.2" cy="5" r="2" fill="#ff4444" opacity="0.4"/>
+            </g>
+            <!-- 레이저 빔 (시안) -->
+            <line x1="22" y1="25" x2="40" y2="24" stroke="#00ffff" stroke-width="1.2" opacity="0.7"/>
+            <line x1="22" y1="25" x2="40" y2="24" stroke="#ffffff" stroke-width="0.4" opacity="0.5"/>
+            <!-- 레이저 빔 (레드) -->
+            <line x1="42" y1="30" x2="24" y2="33" stroke="#ff4444" stroke-width="1" opacity="0.6"/>
+            <line x1="42" y1="30" x2="24" y2="33" stroke="#ffaaaa" stroke-width="0.3" opacity="0.4"/>
+            <!-- 폭발 파티클 -->
+            <circle cx="32" cy="28" r="3" fill="#ffcc00" opacity="0.25"/>
+            <circle cx="31" cy="27" r="1.5" fill="#ffffff" opacity="0.3"/>
+            <defs>
+              <radialGradient id="fw-cockpit"><stop offset="0%" stop-color="#00ffff" stop-opacity="0.7"/><stop offset="100%" stop-color="#004466" stop-opacity="0.1"/></radialGradient>
+            </defs>
+          </svg>
+        </div>
+        <div style="flex:1;">
+          <div style="color:#6688ff; font-family:'Courier New',monospace; font-size:14px; font-weight:bold; letter-spacing:2px;">주파수 전쟁</div>
+          <div style="color:#445588; font-family:monospace; font-size:9px; margin-top:4px; line-height:1.5;">FREQUENCY WARS<br>탐사선끼리 주파수를 두고 전쟁!</div>
+        </div>
+        <div style="color:#4444cc; font-size:16px;">▶</div>
+      </div>
+      <div style="height:2px; background:linear-gradient(90deg, transparent, #4444cc, transparent);"></div>
     </div>
-    <!-- 닉네임 -->
-    <div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px;">
-      <div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-bottom:6px;">플레이어 이름</div>
-      <div style="display:flex; gap:6px;">
-        <input id="trn-name-input" type="text" maxlength="12" placeholder="닉네임 입력"
-          style="flex:1; background:#030b10; border:1px solid #0a3344; color:#00ffff; font-family:'Courier New',monospace; font-size:12px; padding:6px 8px; outline:none;">
-        <button id="trn-name-save" style="background:#030b10; border:1px solid #00ffff; color:#00ffff; font-family:monospace; font-size:10px; padding:6px 10px; cursor:pointer;">저장</button>
+
+    <!-- 2. COMING SOON #1 -->
+    <div id="trn-card-soon1" style="cursor:pointer; background:#060e18; border:1px solid #1a2a3a; border-radius:10px; overflow:hidden; opacity:0.6;">
+      <div style="padding:16px; display:flex; align-items:center; gap:14px;">
+        <div style="width:64px; height:64px; flex-shrink:0; background:#0a1520; border:1px solid #1a2a3a; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+          <span style="color:#334455; font-size:24px;">?</span>
+        </div>
+        <div style="flex:1;">
+          <div style="color:#334455; font-family:'Courier New',monospace; font-size:13px; font-weight:bold; letter-spacing:2px;">COMING SOON</div>
+          <div style="color:#1a2a3a; font-family:monospace; font-size:9px; margin-top:4px;">새로운 컨텐츠 준비 중</div>
+        </div>
       </div>
     </div>
-    <!-- 상금 보기 -->
-    <button id="trn-prize-btn" style="background:#0a1a2a; border:1px solid #0a3344; color:#f59e0b; font-family:'Courier New',monospace; font-size:11px; padding:10px; cursor:pointer; text-align:left;">
-      ◈ 상금 목록 보기 ▶
-    </button>
-    <!-- 순위표 -->
-    <div style="background:#0a1a2a; border:1px solid #0a3344; padding:10px 12px;">
-      <div style="color:#94a3b8; font-family:monospace; font-size:10px; margin-bottom:8px; letter-spacing:1px;">현재 순위</div>
-      <div id="trn-leaderboard" style="display:flex; flex-direction:column; gap:4px;"></div>
+
+    <!-- 3. COMING SOON #2 -->
+    <div id="trn-card-soon2" style="cursor:pointer; background:#060e18; border:1px solid #1a2a3a; border-radius:10px; overflow:hidden; opacity:0.6;">
+      <div style="padding:16px; display:flex; align-items:center; gap:14px;">
+        <div style="width:64px; height:64px; flex-shrink:0; background:#0a1520; border:1px solid #1a2a3a; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+          <span style="color:#334455; font-size:24px;">?</span>
+        </div>
+        <div style="flex:1;">
+          <div style="color:#334455; font-family:'Courier New',monospace; font-size:13px; font-weight:bold; letter-spacing:2px;">COMING SOON</div>
+          <div style="color:#1a2a3a; font-family:monospace; font-size:9px; margin-top:4px;">새로운 컨텐츠 준비 중</div>
+        </div>
+      </div>
     </div>
-    <!-- 참가 버튼 -->
-    <button id="trn-join-btn" style="width:100%; background:#030b10; border:2px solid #cc44ff; color:#ffffff; font-family:'Courier New',monospace; font-size:16px; font-weight:bold; padding:14px; cursor:pointer; letter-spacing:2px; text-shadow:0 0 8px #cc44ff;">
-      참가하기
-    </button>
   </div>
-</div>
-<!-- 상금 팝업 -->
-<div id="trn-prize-popup" style="display:none; position:fixed; inset:0; background:rgba(3,11,16,0.97); z-index:2000; flex-direction:column; overflow:hidden;">
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid #0a3344; background:#040c14; flex-shrink:0;">
-    <span style="color:#f59e0b; font-family:monospace; font-size:13px; letter-spacing:2px;">PRIZES</span>
-    <button id="trn-prize-close" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">✕</button>
-  </div>
-  <div id="trn-prize-tabs" style="display:flex; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
-    <button class="trn-ptab" data-league="bronze"   style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid #cd7f32; color:#cd7f32; font-family:monospace; font-size:9px; cursor:pointer;">🥉브론즈</button>
-    <button class="trn-ptab" data-league="silver"   style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-family:monospace; font-size:9px; cursor:pointer;">🥈실버</button>
-    <button class="trn-ptab" data-league="gold"     style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-family:monospace; font-size:9px; cursor:pointer;">🥇골드</button>
-    <button class="trn-ptab" data-league="platinum" style="flex:1; height:34px; background:none; border:none; border-bottom:2px solid transparent; color:#334455; font-family:monospace; font-size:9px; cursor:pointer;">💎플래티넘</button>
-  </div>
-  <div id="trn-prize-content" style="flex:1; overflow-y:auto; padding:10px 12px;"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
@@ -9293,43 +9353,11 @@ window.openLab = openLab;
 </script>
 
 <!-- ══════════════════════════════════════════════════════
-     스크립트: 토너먼트 시스템
+     스크립트: 토너먼트 허브 (컨텐츠 선택)
 ══════════════════════════════════════════════════════ -->
 <script>
 (function() {
 'use strict';
-
-var TOURNAMENTS = [
-  { id:'bronze',   name:'브론즈 리그', icon:'🥉', color:'#cd7f32',
-    prizes:[ {rank:'1',gem:50,crystal:20},{rank:'2',gem:35,crystal:14},{rank:'3-4',gem:25,crystal:10},{rank:'5-8',gem:15,crystal:6},{rank:'9-16',gem:10,crystal:3} ] },
-  { id:'silver',   name:'실버 리그',   icon:'🥈', color:'#94a3b8',
-    prizes:[ {rank:'1',gem:150,crystal:60},{rank:'2',gem:100,crystal:40},{rank:'3-4',gem:70,crystal:28},{rank:'5-8',gem:40,crystal:16},{rank:'9-16',gem:20,crystal:8} ] },
-  { id:'gold',     name:'골드 리그',   icon:'🥇', color:'#f59e0b',
-    prizes:[ {rank:'1',gem:250,crystal:100},{rank:'2',gem:170,crystal:68},{rank:'3-4',gem:120,crystal:48},{rank:'5-8',gem:70,crystal:28},{rank:'9-16',gem:35,crystal:14} ] },
-  { id:'platinum', name:'플래티넘 리그', icon:'💎', color:'#00ffff',
-    prizes:[ {rank:'1',gem:400,crystal:175},{rank:'2',gem:280,crystal:120},{rank:'3-4',gem:200,crystal:85},{rank:'5-8',gem:120,crystal:50},{rank:'9-16',gem:60,crystal:25} ] },
-];
-
-var _activePrizeLeague = 'bronze';
-
-function _loadTrn() { try { return JSON.parse(localStorage.getItem('td_trn') || '{}'); } catch(_) { return {}; } }
-function _saveTrn(d) { try { localStorage.setItem('td_trn', JSON.stringify(d)); } catch(_) {} }
-
-function _hideAll() {
-  ['screen-home','screen-workshop','screen-store','screen-lab','screen-tournament'].forEach(function(id) {
-    var el = document.getElementById(id); if (el) el.style.display = 'none';
-  });
-}
-
-function openTournament() {
-  _hideAll();
-  document.getElementById('screen-tournament').style.display = 'flex';
-  _syncTrnHUD();
-  _renderTrnLeague();
-  _renderLeaderboard();
-  _updateTrnTimer();
-  renderNavTabs('home');
-}
 
 function _syncTrnHUD() {
   try {
@@ -9337,186 +9365,30 @@ function _syncTrnHUD() {
     document.getElementById('trn-gem').textContent  = PERM.gems;
   } catch(_) {}
 }
+window._syncTrnHUD = _syncTrnHUD;
 
-function _getPlayerLeague() {
-  var best = PERM.bestWave || 0;
-  if (best >= 60) return TOURNAMENTS[3]; // platinum
-  if (best >= 40) return TOURNAMENTS[2]; // gold
-  if (best >= 20) return TOURNAMENTS[1]; // silver
-  return TOURNAMENTS[0]; // bronze
-}
-
-function _renderTrnLeague() {
-  var league = _getPlayerLeague();
-  document.getElementById('trn-trophy').textContent     = league.icon;
-  document.getElementById('trn-league-name').textContent = league.name;
-  document.getElementById('trn-league-name').style.color = league.color;
-
-  // 닉네임
-  var trn = _loadTrn();
-  var nameInput = document.getElementById('trn-name-input');
-  if (nameInput) nameInput.value = trn.playerName || '';
-}
-
-function _makeFakeScore(base, spread) {
-  return Math.max(1, Math.round(base + (Math.random() - 0.5) * spread));
-}
-
-function _renderLeaderboard() {
-  var container = document.getElementById('trn-leaderboard'); if (!container) return;
-  var trn        = _loadTrn();
-  var playerName = trn.playerName || '나';
-  var playerScore= trn.lastScore  || 0;
-  var best       = PERM.bestWave  || 0;
-  var league     = _getPlayerLeague();
-
-  // 가상 상대 생성 (시드 기반으로 일관성 유지)
-  var seed  = Math.floor(Date.now() / (1000 * 60 * 60 * 24)); // daily seed
-  var fakeNames = ['NEON_001','SHADOW_X','VORTEX_7','LASER_9','CORE_21','PHASE_3','VOID_77','APEX_5','FLUX_44','ECHO_16'];
-  var scores = [];
-  for (var i = 0; i < fakeNames.length; i++) {
-    var fakeSeed = (seed + i * 31337) % 1000;
-    scores.push({ name: fakeNames[i], score: _makeFakeScore(best * 0.8 + 5, best * 0.6 + 10) });
-  }
-  if (playerScore > 0) scores.push({ name: playerName, score: playerScore, isPlayer: true });
-  scores.sort(function(a, b) { return b.score - a.score; });
-
-  container.innerHTML = scores.slice(0, 10).map(function(s, idx) {
-    var rankColor = idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : idx === 2 ? '#cd7f32' : '#334455';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #0a2233;">' +
-      '<div style="display:flex;align-items:center;gap:8px;">' +
-        '<span style="font-family:monospace;font-size:11px;color:' + rankColor + ';width:20px;">' + (idx+1) + '</span>' +
-        '<span style="font-family:monospace;font-size:11px;color:' + (s.isPlayer ? '#00ffff' : '#94a3b8') + ';">' + s.name + '</span>' +
-      '</div>' +
-      '<span style="font-family:monospace;font-size:11px;color:#f59e0b;">웨이브 ' + s.score + '</span>' +
-      '</div>';
-  }).join('');
-}
-
-function _updateTrnTimer() {
-  var el = document.getElementById('trn-timer'); if (!el) return;
-  // 매일 오전 8시 리셋
-  var now   = new Date();
-  var reset = new Date(now);
-  reset.setHours(8, 0, 0, 0);
-  if (now.getTime() > reset.getTime()) reset.setDate(reset.getDate() + 1);
-  var diff  = Math.max(0, Math.floor((reset - now) / 1000));
-  var hh    = Math.floor(diff / 3600), mm = Math.floor((diff % 3600) / 60);
-  el.textContent = ('0'+hh).slice(-2) + 'h ' + ('0'+mm).slice(-2) + 'm';
-  setTimeout(_updateTrnTimer, 30000);
-}
-
-function _buildPrizeContent(leagueId) {
-  var league = TOURNAMENTS.filter(function(t){return t.id===leagueId;})[0];
-  if (!league) return '';
-  var html = '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #0a2233;">' +
-    '<span style="font-family:monospace;font-size:10px;color:#334455;">순위</span>' +
-    '<span style="font-family:monospace;font-size:10px;color:#334455;">보석 ❖</span>' +
-    '</div>';
-  league.prizes.forEach(function(p) {
-    html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #0a1520;">' +
-      '<span style="font-family:monospace;font-size:11px;color:#94a3b8;">' + p.rank + '등</span>' +
-      '<span style="font-family:monospace;font-size:11px;color:#00ffff;">' + p.gem + '</span>' +
-      '</div>';
-  });
-  return html;
-}
-
-// 토너먼트 nav 바인딩
-var trnNavBtns = document.querySelectorAll('#h-nav-tournament');
-for (var ti = 0; ti < trnNavBtns.length; ti++) {
-  (function(btn) {
-    btn.addEventListener('click', function() {
-      if (btn.getAttribute('data-locked') === 'true') return;
-      openTournament();
-    });
-  }(trnNavBtns[ti]));
-}
-
-document.getElementById('trn-nav-home') && document.getElementById('trn-nav-home').addEventListener('click', function() {
-  _hideAll();
-  document.getElementById('screen-home').style.display = 'flex';
-  try { syncShopUI(); } catch(_) {}
-  try { fixIconPositions(); } catch(_) {}
-});
-document.getElementById('trn-nav-workshop') && document.getElementById('trn-nav-workshop').addEventListener('click', function() {
-  _hideAll();
-  document.getElementById('screen-workshop').style.display = 'flex';
-});
-document.getElementById('trn-nav-store') && document.getElementById('trn-nav-store').addEventListener('click', function() {
-  _hideAll();
-  document.getElementById('screen-store').style.display = 'flex';
-});
-
-// 닉네임 저장
-document.getElementById('trn-name-save') && document.getElementById('trn-name-save').addEventListener('click', function() {
-  var val = (document.getElementById('trn-name-input').value || '').trim().slice(0, 12);
-  if (!val) return;
-  var trn = _loadTrn(); trn.playerName = val; _saveTrn(trn);
-});
-
-// 참가하기
-document.getElementById('trn-join-btn') && document.getElementById('trn-join-btn').addEventListener('click', function() {
-  var trn = _loadTrn(); trn.participating = true; _saveTrn(trn);
-  // 게임 시작
-  _hideAll();
-  try {
-    document.getElementById('screen-game').style.display = 'flex';
-    startNewGame && startNewGame();
-  } catch(_) {
-    try {
-      document.getElementById('screen-home').style.display = 'flex';
-      document.getElementById('btn-start-game').click();
-    } catch(__) {}
-  }
-});
-
-// 상금 팝업
-document.getElementById('trn-prize-btn') && document.getElementById('trn-prize-btn').addEventListener('click', function() {
-  _activePrizeLeague = _getPlayerLeague().id;
-  document.getElementById('trn-prize-content').innerHTML = _buildPrizeContent(_activePrizeLeague);
-  _updatePrizeTabs();
-  document.getElementById('trn-prize-popup').style.display = 'flex';
-});
-document.getElementById('trn-prize-close') && document.getElementById('trn-prize-close').addEventListener('click', function() {
-  document.getElementById('trn-prize-popup').style.display = 'none';
-});
-
-var prizeTabs = document.querySelectorAll('.trn-ptab');
-for (var pi = 0; pi < prizeTabs.length; pi++) {
-  (function(btn) {
-    btn.addEventListener('click', function() {
-      _activePrizeLeague = btn.getAttribute('data-league');
-      document.getElementById('trn-prize-content').innerHTML = _buildPrizeContent(_activePrizeLeague);
-      _updatePrizeTabs();
-    });
-  }(prizeTabs[pi]));
-}
-
-function _updatePrizeTabs() {
-  var league = TOURNAMENTS.filter(function(t){return t.id===_activePrizeLeague;})[0];
-  if (!league) return;
-  prizeTabs.forEach(function(b) {
-    var isAct = b.getAttribute('data-league') === _activePrizeLeague;
-    b.style.borderBottomColor = isAct ? league.color : 'transparent';
-    b.style.color             = isAct ? league.color : '#334455';
+// 주파수 전쟁 카드 클릭 → 주파수 전쟁 화면 진입
+var fwCard = document.getElementById('trn-card-fw');
+if (fwCard) {
+  fwCard.addEventListener('click', function() {
+    if (window.showScreen) showScreen('frequency-wars');
   });
 }
 
-// 게임 종료 시 토너먼트 점수 저장 (triggerGameOver 래핑)
-var _origTGO = window.triggerGameOver;
-if (_origTGO) {
-  window.triggerGameOver = function() {
-    _origTGO.apply(this, arguments);
-    var trn = _loadTrn();
-    if (trn.participating && G) {
-      var score = G.wave || 0;
-      if (score > (trn.lastScore || 0)) { trn.lastScore = score; }
-      trn.participating = false;
-      _saveTrn(trn);
-    }
-  };
+// COMING SOON 카드 클릭 → 토스트 팝업
+var soonCard1 = document.getElementById('trn-card-soon1');
+var soonCard2 = document.getElementById('trn-card-soon2');
+function _showComingSoonToast() {
+  if (window.showToastMsg) showToastMsg('준비 중인 컨텐츠입니다. 조금만 기다려 주세요!', '#bb44ff');
 }
+if (soonCard1) soonCard1.addEventListener('click', _showComingSoonToast);
+if (soonCard2) soonCard2.addEventListener('click', _showComingSoonToast);
+
+// 하위 호환용 stub 함수 (이벤트 추적 등에서 참조될 수 있음)
+function _loadTrn() { try { return JSON.parse(localStorage.getItem('td_trn') || '{}'); } catch(_) { return {}; } }
+function _saveTrn(d) { try { localStorage.setItem('td_trn', JSON.stringify(d)); } catch(_) {} }
+window._loadTrn = _loadTrn;
+window._saveTrn = _saveTrn;
 
 }());
 </script>
@@ -15552,7 +15424,7 @@ window.showScreen = function (name) {
   } else if (name === 'research' || name === 'lab') {
     try { _syncLabHUD(); _buildLabSlots(); } catch(_) {}
   } else if (name === 'tournament') {
-    try { _syncTrnHUD(); _renderTrnLeague(); _renderLeaderboard(); _updateTrnTimer(); } catch(_) {}
+    try { if(window._syncTrnHUD) _syncTrnHUD(); } catch(_) {}
   } else {
     try { syncPulse(); } catch(_) {}
   }
@@ -19058,7 +18930,7 @@ function _renderModuleContent() {
         slot.innerHTML =
           '<div style="width:100%;height:100%;background:#060e18;border:1px solid #1a2a3a;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">' +
             '<svg width="14" height="14" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#334455" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#334455" stroke-width="1.2"/><circle cx="8" cy="11.5" r="1" fill="#334455"/></svg>' +
-            (lockLabel ? '<div style="font-size:6px;color:#334455;text-align:center;line-height:1.2;">'+lockLabel+'</div>' : '') +
+            (lockLabel ? '<div style="font-size:7px;color:#7aaccc;text-align:center;line-height:1.2;text-shadow:0 0 4px rgba(122,172,204,0.3);">'+lockLabel+'</div>' : '') +
             '<div style="font-size:8px;color:#00ffff;">❖ ' + gemCost + '</div>' +
           '</div>';
         (function(idx, cost) {
