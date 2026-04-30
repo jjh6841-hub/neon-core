@@ -1658,6 +1658,7 @@ canvas {
   <div id="store-tab-bar" style="display:flex; background:#040c14; border-bottom:1px solid #0a2233; flex-shrink:0;">
     <button class="store-tab active" data-tab="gem" style="flex:1; height:34px; background:none; border:none; color:#00ffff; font-family:monospace; font-size:10px; border-bottom:2px solid #00ffff; cursor:pointer;">❖ 보석</button>
     <button class="store-tab" data-tab="package" style="flex:1; height:34px; background:none; border:none; color:#334455; font-family:monospace; font-size:10px; border-bottom:2px solid transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px;"><svg width="11" height="11" viewBox="0 0 16 16" style="vertical-align:middle;"><rect x="2" y="4" width="12" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M2,7 L8,7 L8,4 M8,7 L14,7" fill="none" stroke="currentColor" stroke-width="1"/><path d="M5,4 C5,2 11,2 11,4" fill="none" stroke="currentColor" stroke-width="1.1"/></svg> 패키지</button>
+    <button class="store-tab" data-tab="event" style="flex:1; height:34px; background:none; border:none; color:#334455; font-family:monospace; font-size:10px; border-bottom:2px solid transparent; cursor:pointer;">★ 이벤트</button>
     <button class="store-tab" data-tab="exchange" style="flex:1; height:34px; background:none; border:none; color:#334455; font-family:monospace; font-size:10px; border-bottom:2px solid transparent; cursor:pointer;">⇄ 교환</button>
   </div>
   <!-- 콘텐츠 -->
@@ -7552,7 +7553,6 @@ if (dailyPopup) {
     { id:'starter',   name:'스타터 팩',     desc:'1회 한정', rewards:[{icon:'◈',text:'골드 1,000',color:'#f59e0b'},{icon:'❖',text:'보석 100',color:'#00ffff'}], price:'₩3,300', once:true },
     { id:'growth',    name:'성장 팩',       desc:'1회 한정', rewards:[{icon:'◈',text:'골드 3,000',color:'#f59e0b'},{icon:'❖',text:'보석 300',color:'#00ffff'}], price:'₩9,900', once:true },
     { id:'monthly',   name:'월간 팩',       desc:'30일간 매일 지급', rewards:[{icon:'◈',text:'골드 300/일',color:'#f59e0b'},{icon:'❖',text:'보석 30/일',color:'#00ffff'}], price:'₩16,500', once:false },
-    { id:'lab_boost', name:'코어랩 가속',   desc:'연구 시간 10% 영구 감소', rewards:[{icon:'⏱',text:'연구 시간 -10%',color:'#5bc0de'}], price:'₩9,900', once:true },
   ];
 
   function syncStoreHUD() {
@@ -7778,6 +7778,13 @@ if (dailyPopup) {
           });
         });
       },0);
+    } else if (tabKey === 'event') {
+      content.innerHTML = _buildEventTab();
+      setTimeout(function(){
+        content.querySelectorAll('[data-evt-pkg]').forEach(function(btn){
+          btn.addEventListener('click', function(){ _handleEvtPkgBuy(btn.getAttribute('data-evt-pkg')); });
+        });
+      },0);
     } else if (tabKey === 'exchange') {
       content.innerHTML = _buildExchangeTab();
       setTimeout(function(){ _bindExchangeButtons(content); },0);
@@ -7789,6 +7796,59 @@ if (dailyPopup) {
       var isActive = tabs[i].getAttribute('data-tab') === tabKey;
       tabs[i].style.color = isActive ? '#00ffff' : '#334455';
       tabs[i].style.borderBottom = isActive ? '2px solid #00ffff' : '2px solid transparent';
+    }
+  }
+
+  /* ── 이벤트 탭 ── */
+  function _buildEventTab() {
+    var html = '<div style="padding:8px; display:flex; flex-direction:column; gap:8px;">';
+    html += '<div style="color:#ffc800;font-family:monospace;font-size:11px;text-align:center;padding:6px 0;letter-spacing:1px;">★ 기간 한정 특별 상품</div>';
+
+    // 1) 바이탈 드레인 (구 흡혈 코어 팩)
+    var absOwned = !!localStorage.getItem('shop_absorb_bonus');
+    html += '<div style="background:#0a1a2a;border:1px solid #cc0044;border-left:4px solid #cc0044;padding:12px;display:flex;justify-content:space-between;align-items:center;">';
+    html += '<div style="flex:1;min-width:0;"><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">바이탈 드레인</div>';
+    html += '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;"><span style="color:#00ff88;font-weight:bold;">에너지 흡수율 영구 +5%</span></div>';
+    html += '<div style="color:#556677;font-family:monospace;font-size:9px;margin-top:3px;">레이저 적중 시 추가 체력 회복</div></div>';
+    if (absOwned) {
+      html += '<span style="color:#00ff88;font-family:monospace;font-size:10px;flex-shrink:0;margin-left:8px;">보유중</span>';
+    } else {
+      html += '<button data-evt-pkg="absorb" style="background:#030b10;border:1px solid #cc0044;color:#cc0044;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;">₩6,900</button>';
+    }
+    html += '</div>';
+
+    // 2) 코어랩 가속
+    var labOwned = localStorage.getItem('pkg_lab_boost')==='1';
+    html += '<div style="background:#0a1a2a;border:1px solid #5bc0de;border-left:4px solid #5bc0de;padding:12px;display:flex;justify-content:space-between;align-items:center;">';
+    html += '<div style="flex:1;min-width:0;"><div style="color:#5bc0de;font-family:monospace;font-size:12px;font-weight:bold;">코어랩 가속</div>';
+    html += '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;"><span style="color:#5bc0de;font-weight:bold;">⏱ 연구 시간 -10%</span></div>';
+    html += '<div style="color:#556677;font-family:monospace;font-size:9px;margin-top:3px;">코어랩 연구 시간 10% 영구 감소</div></div>';
+    if (labOwned) {
+      html += '<span style="color:#00ff88;font-family:monospace;font-size:10px;flex-shrink:0;margin-left:8px;">보유중</span>';
+    } else {
+      html += '<button data-evt-pkg="lab_boost" style="background:#030b10;border:1px solid #5bc0de;color:#5bc0de;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;">₩9,900</button>';
+    }
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
+  function _handleEvtPkgBuy(pkgId) {
+    if (pkgId === 'absorb') {
+      if (localStorage.getItem('shop_absorb_bonus')) return;
+      if(window._showSlotConfirm) _showSlotConfirm('바이탈 드레인','₩6,900을 결제하시겠습니까?\n에너지 흡수율 영구 +5%\n\n* 테스트 모드: 무료 활성화', function(){
+        localStorage.setItem('shop_absorb_bonus', '0.05');
+        if(window.showRewardPopup) showRewardPopup([{icon:'♥',label:'에너지 흡수',amount:'+5%',color:'#00ff88'}],'바이탈 드레인 활성화');
+        renderStoreTab('event');
+      });
+    } else if (pkgId === 'lab_boost') {
+      if (localStorage.getItem('pkg_lab_boost')==='1') return;
+      if(window._showSlotConfirm) _showSlotConfirm('코어랩 가속','₩9,900을 결제하시겠습니까?\n코어랩 연구 시간 10% 영구 감소\n(최대 감소율 80% → 90%)\n\n* 테스트 모드: 무료 활성화', function(){
+        localStorage.setItem('pkg_lab_boost','1');
+        if(window.showRewardPopup) showRewardPopup([{icon:'⏱',label:'연구 시간',amount:'-10%',color:'#5bc0de'}],'코어랩 가속 활성화');
+        renderStoreTab('event');
+      });
     }
   }
 
@@ -16470,111 +16530,184 @@ function _getPC(){ return parseInt(localStorage.getItem('powerCores')||'0',10); 
 function _getActiveBuffs(){ try{return JSON.parse(localStorage.getItem('activeLabBuffs')||'[]');}catch(_){return [];} }
 function _saveActiveBuffs(arr){ localStorage.setItem('activeLabBuffs',JSON.stringify(arr)); }
 
-/* ── HTML 삽입 ── */
+/* ═══════════════════════════════════════════════════
+   프로토콜 제조 시스템 (가챠 + 전투 스킬)
+═══════════════════════════════════════════════════ */
+
+/* ── 프로토콜 정의 ── */
+var PROTOCOLS = window.PROTOCOLS = [
+  {id:'pt_burst',    name:'에너지 폭발',   desc:'모든 적에게 공격력 기반 피해',     icon:'✺', color:'#ff4444', cd:15, lvEff:[300,400,500,600,700],  unit:'%'},
+  {id:'pt_repair',   name:'긴급 수리',     desc:'최대 체력 비례 즉시 회복',         icon:'✚', color:'#00ff88', cd:20, lvEff:[20,25,30,35,40],       unit:'%'},
+  {id:'pt_overload', name:'과부하 모드',   desc:'5초간 공격력 대폭 증가',           icon:'⚡', color:'#ffcc00', cd:25, lvEff:[200,250,300,350,400],  unit:'%'},
+  {id:'pt_slow',     name:'시간 감속',     desc:'5초간 적 이동속도 감소',           icon:'◎', color:'#3b82f6', cd:18, lvEff:[50,55,60,65,70],       unit:'%'},
+  {id:'pt_emp',      name:'EMP 충격',      desc:'모든 적 일시 정지',               icon:'⊘', color:'#8b5cf6', cd:30, lvEff:[1.5,2.0,2.5,3.0,3.5], unit:'초'},
+  {id:'pt_shield',   name:'플라즈마 방벽', desc:'일정 시간 피해 무시',              icon:'◆', color:'#00dddd', cd:35, lvEff:[3,3.5,4,4.5,5],       unit:'초'},
+  {id:'pt_rapid',    name:'레이저 과충전', desc:'5초간 발사 속도 증가',             icon:'»', color:'#ff8822', cd:20, lvEff:[100,120,140,160,180],  unit:'%'},
+  {id:'pt_swarm',    name:'나노 스웜',     desc:'8초간 주변 적에게 지속 피해',      icon:'∴', color:'#10b981', cd:22, lvEff:[50,75,100,125,150],    unit:'%'},
+  {id:'pt_gravity',  name:'중력장',        desc:'적을 중앙으로 끌어당김',           icon:'◉', color:'#6366f1', cd:28, lvEff:[3,3.5,4,4.5,5],       unit:'초'},
+  {id:'pt_regen',    name:'재생 필드',     desc:'10초간 매초 체력 회복',            icon:'♻', color:'#22cc88', cd:30, lvEff:[2,3,4,5,6],            unit:'%'},
+];
+
+var PROTO_COST = 5; // 1회 제조 접근코드 비용
+var PROTO_DUP_NEEDED = [0,3,3,4,5]; // Lv1→2:3개, Lv2→3:3개, Lv3→4:4개, Lv4→5:5개
+
+/* ── 데이터 저장/로드 ── */
+function _loadProto(){ try{return JSON.parse(localStorage.getItem('td_protocols')||'{}');}catch(_){return {};} }
+function _saveProto(d){ localStorage.setItem('td_protocols',JSON.stringify(d)); }
+window._loadProto=_loadProto; window._saveProto=_saveProto;
+
+function _addProtoDrop(id){
+  var d=_loadProto();
+  if(!d[id]) { d[id]={lv:1,dup:0}; _saveProto(d); return {isNew:true,lv:1}; }
+  var p=d[id];
+  if(p.lv>=5){
+    // 만렙 → 접근코드 2개 반환
+    var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
+    localStorage.setItem('accessCodes',ac+2);
+    _saveProto(d);
+    return {isNew:false,lv:p.lv,maxConvert:true};
+  }
+  p.dup=(p.dup||0)+1;
+  var needed=PROTO_DUP_NEEDED[p.lv]||99;
+  if(p.dup>=needed){ p.lv++; p.dup=0; }
+  _saveProto(d);
+  return {isNew:false,lv:p.lv};
+}
+
+function _doProtoDraw(n){
+  var cost=PROTO_COST*n;
+  var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
+  if(ac<cost) return null;
+  localStorage.setItem('accessCodes',ac-cost);
+  try{logCurrency('accessCodes',-cost,'프로토콜 제조 '+n+'회');}catch(_){}
+  var drawn=[];
+  for(var i=0;i<n;i++){
+    var p=PROTOCOLS[Math.floor(Math.random()*PROTOCOLS.length)];
+    drawn.push(p);
+    _addProtoDrop(p.id);
+  }
+  try{savePerm();}catch(_){}
+  return drawn;
+}
+
+/* ── 제조 결과 팝업 ── */
+function _showProtoResult(drawn){
+  var old=document.getElementById('proto-result-popup'); if(old) old.remove();
+  var ov=document.createElement('div');
+  ov.id='proto-result-popup';
+  ov.style.cssText='display:flex;position:fixed;inset:0;background:rgba(3,11,16,0.95);z-index:10001;align-items:center;justify-content:center;font-family:Courier New,monospace;';
+  var d=_loadProto();
+  var html='<div style="background:#0d1520;border:1px solid #bb44ff;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 0 30px rgba(187,68,255,0.2);">'+
+    '<div style="padding:12px;text-align:center;border-bottom:1px solid #1a2a3a;color:#bb44ff;font-size:12px;letter-spacing:2px;">'+
+    (drawn.length===1?'프로토콜 획득':'5연 제조 결과')+'</div><div style="padding:10px;">';
+  drawn.forEach(function(p){
+    var pd=d[p.id]||{lv:1,dup:0};
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #0a1520;">'+
+      '<div style="width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:'+p.color+';flex-shrink:0;">'+p.icon+'</div>'+
+      '<div style="flex:1;"><div style="color:#f1f5f9;font-size:11px;">'+p.name+'</div>'+
+      '<div style="color:#556677;font-size:9px;">Lv.'+pd.lv+' ('+pd.dup+'/'+((PROTO_DUP_NEEDED[pd.lv])||'MAX')+')</div></div>'+
+      '<span style="color:'+p.color+';font-size:10px;">Lv.'+pd.lv+'</span></div>';
+  });
+  html+='</div><div style="padding:8px;"><button id="proto-result-close" style="width:100%;padding:10px;background:#030b10;border:1px solid #bb44ff;color:#bb44ff;font-family:monospace;font-size:11px;cursor:pointer;">확인</button></div></div>';
+  ov.innerHTML=html;
+  document.body.appendChild(ov);
+  document.getElementById('proto-result-close').addEventListener('click',function(){ ov.remove(); renderLab(); });
+  ov.addEventListener('click',function(e){ if(e.target===ov){ ov.remove(); renderLab(); } });
+}
+
+/* ── 화면 삽입 ── */
 function _injectLabScreen(){
   if(document.getElementById('screen-corelab')) return;
   var sc=document.createElement('div');
   sc.id='screen-corelab';
-  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:\"Courier New\",monospace;';
+  sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:"Courier New",monospace;';
   sc.innerHTML=
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + var(--sat)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + var(--sat)) 12px 8px;border-bottom:1px solid rgba(187,68,255,0.15);flex-shrink:0;background:#040c14;">'+
       '<div style="display:flex;flex-direction:row;align-items:center;gap:8px;">'+
         '<span style="color:#bb44ff;font-size:13px;font-family:monospace;">⌘ <span id="cl-ac">0</span></span>'+
       '</div>'+
     '</div>'+
-    '<div style="text-align:center;padding:5px;font-size:10px;color:#00ffff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(0,255,255,0.10);flex-shrink:0;">프로토콜</div>'+
-    '<div style="padding:14px;">'+
-      '<div style="font-size:10px;color:#334455;margin-bottom:12px;line-height:1.6;">접근 코드를 소모하여 전투 스킬을 해금·강화합니다.<br>스킬은 전투 중 쿨타임마다 자동 발동됩니다.</div>'+
-      '<div id="lab-list"></div>'+
-    '</div>';
+    '<div style="text-align:center;padding:5px;font-size:10px;color:#bb44ff;font-family:Courier New,monospace;letter-spacing:3px;background:#040c14;border-bottom:1px solid rgba(187,68,255,0.10);flex-shrink:0;">프로토콜</div>'+
+    '<div id="proto-main" style="padding:14px;"></div>';
   document.body.appendChild(sc);
-  document.getElementById('lab-back').addEventListener('click',function(){
-    sc.style.display='none';
-    var home=document.getElementById('screen-home');
-    if(home) home.style.display='flex';
-  });
 }
 
-/* ── 렌더링 (궁극기 스킬) ── */
+/* ── 렌더링 ── */
 function renderLab(){
   _injectLabScreen();
-  var list=document.getElementById('lab-list');
-  if(!list) return;
+  var main=document.getElementById('proto-main'); if(!main) return;
   var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
-  var uw=window._loadUW?window._loadUW():{};
+  var acEl=document.getElementById('cl-ac'); if(acEl) acEl.textContent=ac;
+  var d=_loadProto();
+  var owned=Object.keys(d);
 
-  // 헤더: 접근 코드 표시
-  list.innerHTML='<div style="display:flex;justify-content:flex-end;margin-bottom:10px;"><span style="color:#bb44ff;font-family:monospace;font-size:12px;">⌘ '+ac+'</span></div>';
+  var html='';
+  // 제조 버튼
+  html+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
+  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #bb44ff;color:#bb44ff;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+    '<span>1회 제조</span><span style="font-size:10px;color:#94a3b8;">⌘ '+PROTO_COST+'</span></button>';
+  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+    '<span>5연 제조</span><span style="font-size:10px;color:#94a3b8;">⌘ '+(PROTO_COST*5)+'</span></button>';
+  html+='</div>';
 
-  if(typeof ULTIMATE_WEAPONS==='undefined') return;
-  ULTIMATE_WEAPONS.forEach(function(wep){
-    var uwData=uw[wep.id]||{};
-    var unlocked=!!uwData.unlocked;
-    var card=document.createElement('div');
-    card.style.cssText='background:#0c0c22;border:1px solid '+(unlocked?wep.color+'44':'#1a3444')+';padding:12px;margin-bottom:8px;';
+  // 보유 프로토콜 목록
+  html+='<div style="color:#556677;font-size:10px;margin-bottom:8px;letter-spacing:1px;border-bottom:1px solid #1a2a3a;padding-bottom:4px;">보유 프로토콜 ('+owned.length+'/'+PROTOCOLS.length+')</div>';
+  if(owned.length===0){
+    html+='<div style="color:#334455;font-size:10px;padding:16px 0;text-align:center;">제조를 통해 프로토콜을 획득하세요</div>';
+  }
+  PROTOCOLS.forEach(function(p){
+    var pd=d[p.id];
+    if(!pd) return;
+    var lv=pd.lv, dup=pd.dup;
+    var maxLv=lv>=5;
+    var needed=PROTO_DUP_NEEDED[lv]||0;
+    html+='<div style="display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:4px;background:#0c0c22;border:1px solid '+p.color+'33;">'+
+      '<div style="width:36px;height:36px;border:2px solid '+p.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:'+p.color+';flex-shrink:0;box-shadow:0 0 8px '+p.color+'33;">'+p.icon+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<span style="color:#f1f5f9;font-size:11px;font-weight:bold;">'+p.name+'</span>'+
+          '<span style="color:'+(maxLv?'#f59e0b':p.color)+';font-size:10px;font-weight:bold;">Lv.'+lv+(maxLv?' MAX':'')+'</span>'+
+        '</div>'+
+        '<div style="color:#556677;font-size:9px;margin-top:2px;">'+p.desc+'</div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">'+
+          '<span style="color:'+p.color+';font-size:9px;">효과: '+p.lvEff[lv-1]+p.unit+' · 쿨타임: '+p.cd+'초</span>'+
+          (!maxLv?'<span style="color:#4a6a7a;font-size:8px;">중복 '+dup+'/'+needed+'</span>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  });
 
-    var top='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
-      '<div style="width:40px;height:40px;border:2px solid '+wep.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:'+wep.color+';flex-shrink:0;'+(unlocked?'box-shadow:0 0 10px '+wep.color+'44;':'opacity:0.4;')+'">'+wep.icon+'</div>'+
-      '<div style="flex:1;"><div style="font-family:monospace;font-size:13px;color:'+(unlocked?'#f1f5f9':'#334455')+';font-weight:bold;">'+wep.name+'</div>'+
-      '<div style="font-size:10px;color:#334455;font-family:monospace;margin-top:2px;">'+wep.desc+'</div></div>';
-    if(!unlocked){
-      top+='<button data-proto-unlock="'+wep.id+'" style="background:#030b10;border:1px solid '+wep.color+';color:'+wep.color+';font-family:monospace;font-size:10px;padding:5px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;">⌘'+wep.unlockCost+' 해금</button>';
-    } else {
-      top+='<span style="font-size:10px;color:#00ff88;font-family:monospace;flex-shrink:0;">✓ 해금</span>';
-    }
-    top+='</div>';
+  // 미보유 목록
+  var unowned=PROTOCOLS.filter(function(p){return !d[p.id];});
+  if(unowned.length>0){
+    html+='<div style="color:#334455;font-size:9px;margin-top:12px;margin-bottom:6px;">미보유</div>';
+    unowned.forEach(function(p){
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:3px;background:#060a14;border:1px solid #0a1520;opacity:0.5;">'+
+        '<div style="width:28px;height:28px;border:1.5px solid #334455;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#334455;flex-shrink:0;">?</div>'+
+        '<div style="color:#334455;font-size:10px;">???</div></div>';
+    });
+  }
 
-    var statsHTML='';
-    if(unlocked){
-      statsHTML='<div style="display:flex;flex-direction:column;gap:4px;">';
-      wep.stats.forEach(function(st){
-        var lv=uwData[st.key]||0;
-        var afford=ac>=3;
-        statsHTML+='<div style="display:flex;justify-content:space-between;align-items:center;">'+
-          '<div style="font-size:10px;color:#94a3b8;font-family:monospace;">'+st.name+' <span style="color:'+wep.color+';">'+st.fmt(lv)+'</span>'+
-          '<span style="color:#4a6a7a;"> → '+st.fmt(lv+1)+'</span></div>'+
-          '<button data-proto-up="'+wep.id+'" data-proto-stat="'+st.key+'" style="background:#030b10;border:1px solid '+(afford?'#334455':'#ef4444')+';color:'+(afford?'#bb44ff':'#ef4444')+';font-family:monospace;font-size:9px;padding:3px 6px;cursor:pointer;">⌘3</button></div>';
-      });
-      statsHTML+='</div>';
-    }
-    card.innerHTML=top+statsHTML;
+  main.innerHTML=html;
 
-    // 해금 버튼
-    var ubtn=card.querySelector('[data-proto-unlock]');
-    if(ubtn)(function(id){
-      ubtn.addEventListener('click',function(){
-        var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
-        var w=ULTIMATE_WEAPONS.filter(function(x){return x.id===id;})[0];
-        if(!w||cur<w.unlockCost) return;
-        localStorage.setItem('accessCodes',cur-w.unlockCost);
-        var s=window._loadUW(); if(!s[id])s[id]={}; s[id].unlocked=true; window._saveUW(s);
-        try{savePerm();}catch(_){}
-        renderLab();
-        if(window.showToastMsg) showToastMsg(w.name+' 해금!', '#00ff88');
-      });
-    })(wep.id);
-
-    // 강화 버튼
-    var upBtns=card.querySelectorAll('[data-proto-up]');
-    for(var i=0;i<upBtns.length;i++)(function(btn){
-      btn.addEventListener('click',function(){
-        var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
-        if(cur<3) return;
-        var uid=btn.getAttribute('data-proto-up');
-        var skey=btn.getAttribute('data-proto-stat');
-        localStorage.setItem('accessCodes',cur-3);
-        var s=window._loadUW(); if(!s[uid])s[uid]={unlocked:true}; s[uid][skey]=(s[uid][skey]||0)+1; window._saveUW(s);
-        try{savePerm();}catch(_){}
-        renderLab();
-      });
-    })(upBtns[i]);
-
-    list.appendChild(card);
+  // 제조 버튼 바인딩
+  document.getElementById('proto-draw-1').addEventListener('click',function(){
+    var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
+    if(cur<PROTO_COST){ if(window.showToastMsg) showToastMsg('접근 코드가 부족합니다 (보유: ⌘'+cur+')','#ef4444'); return; }
+    var res=_doProtoDraw(1);
+    if(res) _showProtoResult(res);
+  });
+  document.getElementById('proto-draw-5').addEventListener('click',function(){
+    var cost5=PROTO_COST*5;
+    var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
+    if(cur<cost5){ if(window.showToastMsg) showToastMsg('접근 코드가 부족합니다 (보유: ⌘'+cur+')','#ef4444'); return; }
+    var res=_doProtoDraw(5);
+    if(res) _showProtoResult(res);
   });
 }
 window.renderLab=renderLab;
 
-/* ── 시즌(코어 랩) nav 버튼 → 화면 열기 ── */
+/* ── nav 바인딩 ── */
 function _openCoreLab(){
   ['screen-home','screen-workshop','screen-store'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.style.display='none';
@@ -16582,7 +16715,6 @@ function _openCoreLab(){
   renderLab();
   document.getElementById('screen-corelab').style.display='flex';
 }
-// season navlock 버튼들에 바인딩
 document.querySelectorAll('[data-navlock="season"]').forEach(function(btn){
   btn.addEventListener('click',function(){
     if(btn.getAttribute('data-locked')==='true') return;
@@ -16590,7 +16722,201 @@ document.querySelectorAll('[data-navlock="season"]').forEach(function(btn){
   });
 });
 
-/* ── 게임 시작 시 랩 버프 적용 ── */
+/* ═══════════════════════════════════════════════════
+   전투 중 프로토콜 스킬 버튼 + 자동 사용
+═══════════════════════════════════════════════════ */
+var _protoAutoMode=false;
+var _protoCooldowns={}; // {id: {ready:true, timer:0}}
+var _protoActiveEffects={}; // {id: {remaining:0}}
+
+function _getOwnedProtocols(){
+  var d=_loadProto();
+  return PROTOCOLS.filter(function(p){return !!d[p.id];}).map(function(p){
+    var pd=d[p.id];
+    return {id:p.id, name:p.name, icon:p.icon, color:p.color, cd:p.cd, lv:pd.lv, eff:p.lvEff[pd.lv-1], unit:p.unit, desc:p.desc};
+  });
+}
+
+function _injectProtoBar(){
+  var shop=document.getElementById('screen-shop'); if(!shop) return;
+  if(document.getElementById('proto-battle-bar')) return;
+  var owned=_getOwnedProtocols();
+  if(owned.length===0) return;
+
+  var bar=document.createElement('div');
+  bar.id='proto-battle-bar';
+  bar.style.cssText='display:flex;align-items:center;gap:4px;padding:4px 6px;background:#030b10;border-bottom:1px solid #1a2a3a;overflow-x:auto;flex-shrink:0;';
+
+  owned.forEach(function(p){
+    _protoCooldowns[p.id]={ready:true,timer:0};
+    var btn=document.createElement('button');
+    btn.id='proto-btn-'+p.id;
+    btn.style.cssText='width:36px;height:36px;border:1.5px solid '+p.color+';border-radius:50%;background:#0a0a22;display:flex;align-items:center;justify-content:center;font-size:14px;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
+    btn.innerHTML=p.icon+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>';
+    btn.addEventListener('click',function(){ _useProtocol(p.id); });
+    bar.appendChild(btn);
+  });
+
+  // 자동 버튼
+  var autoBtn=document.createElement('button');
+  autoBtn.id='proto-auto-btn';
+  autoBtn.style.cssText='margin-left:auto;padding:4px 8px;border:1px solid #334455;background:#030b10;color:#334455;font-family:monospace;font-size:9px;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;';
+  autoBtn.textContent='AUTO';
+  autoBtn.addEventListener('click',function(){
+    _protoAutoMode=!_protoAutoMode;
+    autoBtn.style.borderColor=_protoAutoMode?'#00ff88':'#334455';
+    autoBtn.style.color=_protoAutoMode?'#00ff88':'#334455';
+  });
+  bar.appendChild(autoBtn);
+
+  // tab-bar 위에 삽입
+  var tabBar=document.getElementById('tab-bar');
+  if(tabBar) shop.insertBefore(bar,tabBar);
+}
+
+function _removeProtoBar(){
+  var bar=document.getElementById('proto-battle-bar');
+  if(bar) bar.remove();
+  _protoCooldowns={};
+  _protoActiveEffects={};
+  _protoAutoMode=false;
+}
+
+function _useProtocol(id){
+  if(!window.G||G.phase!=='playing') return;
+  var cd=_protoCooldowns[id];
+  if(!cd||!cd.ready) return;
+  var owned=_getOwnedProtocols();
+  var p=owned.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+
+  cd.ready=false;
+  cd.timer=p.cd;
+
+  // 효과 적용
+  var t=G.tower;
+  if(id==='pt_burst'){
+    // 모든 적에게 공격력 기반 피해
+    var dmg=Math.round(t.dmg*(p.eff/100));
+    if(G.enemies) G.enemies.forEach(function(e){ if(e.hp>0) e.hp-=dmg; });
+  } else if(id==='pt_repair'){
+    // 체력 회복
+    var heal=Math.round(t.maxHp*(p.eff/100));
+    t.hp=Math.min(t.maxHp,t.hp+heal);
+  } else if(id==='pt_overload'){
+    _protoActiveEffects.pt_overload={remaining:5,mult:p.eff/100};
+    t.dmg=Math.round(t.dmg*(1+p.eff/100));
+  } else if(id==='pt_slow'){
+    _protoActiveEffects.pt_slow={remaining:5,rate:p.eff/100};
+    if(G.enemies) G.enemies.forEach(function(e){ if(e.hp>0) e.speed*=(1-p.eff/100); });
+  } else if(id==='pt_emp'){
+    _protoActiveEffects.pt_emp={remaining:p.eff};
+    if(G.enemies) G.enemies.forEach(function(e){ if(e.hp>0) e.frozen=(e.frozen||0)+p.eff; });
+  } else if(id==='pt_shield'){
+    _protoActiveEffects.pt_shield={remaining:p.eff};
+    G._protoShield=true;
+  } else if(id==='pt_rapid'){
+    _protoActiveEffects.pt_rapid={remaining:5,rate:p.eff/100};
+    t.fireRate=t.fireRate*(1+p.eff/100);
+  } else if(id==='pt_swarm'){
+    _protoActiveEffects.pt_swarm={remaining:8,dmgPct:p.eff/100};
+  } else if(id==='pt_gravity'){
+    _protoActiveEffects.pt_gravity={remaining:p.eff};
+  } else if(id==='pt_regen'){
+    _protoActiveEffects.pt_regen={remaining:10,pct:p.eff/100};
+  }
+
+  // 쿨다운 표시 업데이트
+  _updateProtoCdDisplay(id);
+  if(window.showToastMsg) showToastMsg(p.icon+' '+p.name+' 발동!',p.color);
+}
+
+function _updateProtoCdDisplay(id){
+  var cdEl=document.getElementById('proto-cd-'+id);
+  var btn=document.getElementById('proto-btn-'+id);
+  var cd=_protoCooldowns[id];
+  if(!cdEl||!btn||!cd) return;
+  if(cd.ready){
+    cdEl.style.display='none';
+    btn.style.opacity='1';
+  } else {
+    cdEl.style.display='flex';
+    cdEl.textContent=Math.ceil(cd.timer)+'s';
+    btn.style.opacity='0.5';
+  }
+}
+
+// 매 프레임 쿨다운 틱 + 자동 사용
+var _protoTickInterval=null;
+function _startProtoTick(){
+  if(_protoTickInterval) return;
+  _protoTickInterval=setInterval(function(){
+    if(!window.G||G.phase!=='playing') return;
+    var dt=0.5; // 500ms 간격
+    // 쿨다운 감소
+    Object.keys(_protoCooldowns).forEach(function(id){
+      var cd=_protoCooldowns[id];
+      if(!cd.ready){
+        cd.timer-=dt;
+        if(cd.timer<=0){ cd.ready=true; cd.timer=0; }
+        _updateProtoCdDisplay(id);
+      }
+      // 자동 모드: 쿨다운 완료 시 자동 발동
+      if(_protoAutoMode&&cd.ready){ _useProtocol(id); }
+    });
+    // 지속 효과 처리
+    var eff=_protoActiveEffects;
+    if(eff.pt_swarm&&eff.pt_swarm.remaining>0){
+      eff.pt_swarm.remaining-=dt;
+      if(G.enemies&&G.tower){
+        var swDmg=Math.round(G.tower.dmg*eff.pt_swarm.dmgPct*dt);
+        G.enemies.forEach(function(e){ if(e.hp>0) e.hp-=swDmg; });
+      }
+    }
+    if(eff.pt_gravity&&eff.pt_gravity.remaining>0){
+      eff.pt_gravity.remaining-=dt;
+      if(G.enemies&&G.tower){
+        var cx=G.tower.x,cy=G.tower.y;
+        G.enemies.forEach(function(e){
+          if(e.hp>0){
+            var dx=cx-e.x,dy=cy-e.y,dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist>20){ e.x+=dx/dist*3; e.y+=dy/dist*3; }
+          }
+        });
+      }
+    }
+    if(eff.pt_regen&&eff.pt_regen.remaining>0){
+      eff.pt_regen.remaining-=dt;
+      if(G.tower){ G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.round(G.tower.maxHp*eff.pt_regen.pct*dt)); }
+    }
+    if(eff.pt_shield&&eff.pt_shield.remaining>0){
+      eff.pt_shield.remaining-=dt;
+      if(eff.pt_shield.remaining<=0) G._protoShield=false;
+    }
+  },500);
+}
+function _stopProtoTick(){
+  if(_protoTickInterval){ clearInterval(_protoTickInterval); _protoTickInterval=null; }
+}
+
+// 게임 시작/종료 시 프로토콜 바 주입/제거
+var _origStartProto=window.startNewGame;
+if(typeof _origStartProto==='function'){
+  window.startNewGame=function(){
+    _origStartProto.apply(this,arguments);
+    setTimeout(function(){ _injectProtoBar(); _startProtoTick(); },200);
+  };
+}
+var _origGameOverProto=window.triggerGameOver;
+if(typeof _origGameOverProto==='function'){
+  window.triggerGameOver=function(){
+    _origGameOverProto.apply(this,arguments);
+    _removeProtoBar();
+    _stopProtoTick();
+  };
+}
+
+/* ── 기존 랩 버프 호환 ── */
 var _origApplyLab=window.applyPermStats;
 if(typeof _origApplyLab==='function'){
   window.applyPermStats=function(){
@@ -16608,7 +16934,6 @@ if(typeof _origApplyLab==='function'){
       if(e.type==='start_gold') coreChips+=e.value;
       if(e.type==='absorb_add') localStorage.setItem('lab_absorb_bonus',(parseFloat(localStorage.getItem('lab_absorb_bonus')||'0')+e.value).toFixed(3));
     });
-    // 적용 후 소멸
     _saveActiveBuffs([]);
     localStorage.removeItem('lab_absorb_bonus');
   };
@@ -16785,54 +17110,7 @@ if (typeof _origUpdate_ac === 'function') {
 <script>
 (function(){
 
-/* ── 스토어 패키지 탭에 흡혈 코어 팩 주입 ── */
-var _origRenderStore = window.renderStoreTab;
-// renderStoreTab이 IIFE 내부 함수라서 직접 래핑 불가.
-// 대신 MutationObserver로 store-content 변경 시 흡혈 팩 주입
-function _injectAbsorbPack() {
-  var content = document.getElementById('store-content');
-  if (!content) return;
-  if (content.querySelector('#absorb-pack-card')) return;
-  // 패키지 탭이 열려있는지 확인
-  var activeTab = document.querySelector('.store-tab[style*="color: rgb(0, 255, 255)"]') ||
-                  document.querySelector('.store-tab[style*="color:#00ffff"]');
-  if (!activeTab || activeTab.getAttribute('data-tab') !== 'package') return;
-
-  var owned = !!localStorage.getItem('shop_absorb_bonus');
-  var card = document.createElement('div');
-  card.id = 'absorb-pack-card';
-  card.style.cssText = 'background:#0a1a2a;border:1px solid #cc0044;border-left:4px solid #cc0044;padding:12px;display:flex;justify-content:space-between;align-items:center;margin:0 8px 8px;position:relative;';
-  card.innerHTML =
-    '' +
-    '<div style="flex:1;min-width:0;"><div style="color:#00ff88;font-family:monospace;font-size:12px;font-weight:bold;">흡혈 코어 팩</div>' +
-    '<div style="font-family:monospace;font-size:11px;margin-top:5px;line-height:1.6;"><span style="color:#00ff88;font-weight:bold;">에너지 흡수율 영구 +5%</span></div>' +
-    '<div style="color:#556677;font-family:monospace;font-size:9px;margin-top:3px;">레이저 적중 시 추가 회복</div></div>' +
-    (owned
-      ? '<span style="color:#00ff88;font-family:monospace;font-size:11px;flex-shrink:0;margin-left:8px;">보유중</span>'
-      : '<button id="buy-absorb-pack" style="background:#030b10;border:1px solid #cc0044;color:#cc0044;font-family:monospace;font-size:10px;padding:6px 10px;cursor:pointer;flex-shrink:0;margin-left:8px;-webkit-appearance:none;">₩6,900</button>');
-  content.appendChild(card);
-
-  if (!owned) {
-    var btn = document.getElementById('buy-absorb-pack');
-    if (btn) btn.addEventListener('click', function() {
-      if (localStorage.getItem('shop_absorb_bonus')) return;
-      // 실제 결제 연동 전 테스트: 즉시 적용
-      localStorage.setItem('shop_absorb_bonus', '0.05');
-      if (window.showToastMsg) showToastMsg('흡혈 코어 팩 구매 완료! +5%');
-      // 리렌더
-      var old = document.getElementById('absorb-pack-card');
-      if (old) old.remove();
-      _injectAbsorbPack();
-    });
-  }
-}
-
-// store-content 변경 감시
-var storeContent = document.getElementById('store-content');
-if (storeContent) {
-  new MutationObserver(function() { setTimeout(_injectAbsorbPack, 100); })
-    .observe(storeContent, { childList: true, subtree: true });
-}
+/* 흡혈 코어 팩은 이벤트 탭으로 이동 (바이탈 드레인) */
 
 /* ── 워크샵 에너지 흡수 카드에 총 흡혈률 표시 ── */
 function _injectAbsorbTotal() {
