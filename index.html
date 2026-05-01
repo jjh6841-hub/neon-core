@@ -9587,7 +9587,7 @@ if (storeBtn) {
       <div style="height:1px;background:#0a3344;margin:8px 14px;"></div>
       <div class="cb-row" style="padding:8px 14px 4px;"><span style="color:#f1f5f9;font-size:12px;font-family:monospace;font-weight:bold;">총 보너스</span><span id="cb-total-val" style="color:#f59e0b;font-size:14px;font-family:monospace;font-weight:bold;">×1.00</span></div>
     </div>
-    <div style="padding:0 14px 12px;font-size:9px;color:#334455;font-family:monospace;">모든 골드 보너스는 곱셈으로 계산됩니다.<br>전투 골드증폭은 인게임에서만 적용됩니다.</div>
+    <div style="padding:0 14px 12px;font-size:9px;color:#334455;font-family:monospace;">모든 골드 보너스는 합산으로 계산됩니다.<br>전투 골드증폭은 인게임에서만 적용됩니다.</div>
   </div>
 </div>
 
@@ -16782,27 +16782,30 @@ window.showCoinBonusPopup = function () {
   var tierMults = [1.0, 1.0, 2.0, 3.0, 4.0, 5.0];
   var tierMult = tierMults[Math.min(tierIdx, tierMults.length - 1)] || 1.0;
   var _gb=ws.goldBoost||0;
-  var wsVal=1;
-  if(_gb>0)wsVal*=(1+_gb*0.02);
-  var wsOn=wsVal>1;
+  var wsBonus=_gb*0.02; // 순수 보너스 (0.02 = 2%)
+  var wsOn=wsBonus>0;
   var rG=parseInt(localStorage.getItem('res_r_gold_gain')||'0',10);
   var rW=parseInt(localStorage.getItem('res_r_wave_cash')||'0',10);
-  var labVal=1; if(rG>0)labVal*=(1+rG*0.02); if(rW>0)labVal*=(1+rW*0.02);
-  var labOn=labVal>1, tierOn=tierMult>1;
-  var prismGold=1;
-  try{var eq=(window.PERM&&window.PERM.prismEquipped)||[];if(eq.indexOf('p_kill_cash')!==-1){var pv=(window.PERM.prisms&&window.PERM.prisms.p_kill_cash)||{};if(pv.lv>0)prismGold*=(1+[20,40,60,80,100,120][pv.lv-1]/100);}}catch(_){}
-  var prismOn=prismGold>1;
+  var labBonus=(rG>0?rG*0.02:0)+(rW>0?rW*0.02:0);
+  var labOn=labBonus>0;
+  var prismBonus=0;
+  try{var eq=(window.PERM&&window.PERM.prismEquipped)||[];if(eq.indexOf('p_kill_cash')!==-1){var pv=(window.PERM.prisms&&window.PERM.prisms.p_kill_cash)||{};if(pv.lv>0)prismBonus=[20,40,60,80,100,120][pv.lv-1]/100;}}catch(_){}
+  var prismOn=prismBonus>0;
+  var adBonus=adActive?0.5:0;
   var items=[
-    {label:'\uAC15\uD654\uC18C \u00b7 \uACE8\uB4DC \uAC15\uD654',value:wsVal,active:wsOn},
-    {label:'\uCF54\uC5B4\uB7A9 \u00b7 \uACE8\uB4DC \uC5F0\uAD6C',value:labVal,active:labOn},
-    {label:'\uD504\uB9AC\uC998 \u00b7 \uC804\uB9AC\uD488 \uC218\uC9D1',value:prismGold,active:prismOn},
-    {label:'\uD589\uC131 \uBCF4\uB108\uC2A4',value:tierMult,active:tierOn},
-    {label:'\uAD11\uACE0 \uACE8\uB4DC \uBCF4\uB108\uC2A4',value:1.5,active:adActive}
+    {label:'강화소 · 골드 강화',bonus:wsBonus,active:wsOn},
+    {label:'코어랩 · 골드 연구',bonus:labBonus,active:labOn},
+    {label:'프리즘 · 전리품 수집',bonus:prismBonus,active:prismOn},
+    {label:'행성 보너스',bonus:tierMult-1,active:true,isTier:true},
+    {label:'광고 골드 보너스',bonus:adBonus,active:adActive}
   ];
   var total=1, rowsHtml='';
   items.forEach(function(it){
-    if(it.active)total*=it.value;
-    var vt=it.active?'x'+it.value._tf2():'\uBE44\uD65C\uC131';
+    if(it.active) total+=it.bonus;
+    var vt;
+    if(it.isTier) vt='x'+((1+it.bonus)._tf2());
+    else if(it.active) vt='+'+(Math.round(it.bonus*100))+'%';
+    else vt='비활성';
     var vc=it.active?'#00ffff':'#556677';
     var lc=it.active?'#c0d8e8':'#445566';
     rowsHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #0a1a2a;"><span style="font-size:12px;color:'+lc+';">'+it.label+'</span><span style="font-size:12px;font-weight:bold;color:'+vc+';">'+vt+'</span></div>';
