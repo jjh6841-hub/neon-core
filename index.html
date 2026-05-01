@@ -17029,6 +17029,17 @@ function _showProtoAnim(drawn){
 
   var firstProto=drawn[0].proto;
 
+  // SVG 아이콘을 캔버스용 Image로 미리 로드
+  var _protoImg=null;
+  var svgFn=PROTO_ICONS[firstProto.id];
+  if(svgFn){
+    var svgStr=svgFn(firstProto.color,64);
+    var blob=new Blob([svgStr],{type:'image/svg+xml'});
+    var url=URL.createObjectURL(blob);
+    _protoImg=new Image();
+    _protoImg.src=url;
+  }
+
   function _frame(now){
     var t=now-_st;
     var p=t/dur;
@@ -17180,14 +17191,18 @@ function _showProtoAnim(drawn){
       grd2.addColorStop(1,'transparent');
       gx.fillStyle=grd2;
       gx.fillRect(-50,-50,100,100);
-      // 아이콘
-      gx.font='bold 36px "Courier New",monospace';
-      gx.fillStyle=firstProto.color;
-      gx.textAlign='center';
-      gx.textBaseline='middle';
+      // 아이콘 (SVG → Canvas)
       gx.shadowColor=firstProto.color;
       gx.shadowBlur=20;
-      gx.fillText(firstProto.icon,0,0);
+      if(_protoImg&&_protoImg.complete&&_protoImg.naturalWidth>0){
+        gx.drawImage(_protoImg,-32,-32,64,64);
+      } else {
+        gx.font='bold 36px "Courier New",monospace';
+        gx.fillStyle=firstProto.color;
+        gx.textAlign='center';
+        gx.textBaseline='middle';
+        gx.fillText(firstProto.icon,0,0);
+      }
       gx.shadowBlur=0;
       gx.restore();
     }
