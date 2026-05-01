@@ -3899,7 +3899,7 @@ function update(dt) {
         }
         e.hp -= dmg;
         // 체인 라이트닝: 적 적중 시 주변 적에게 전기 데미지
-        if(window._protoActiveEffects&&window._protoActiveEffects.chain&&e.hp>0){
+        if(window._protoActiveEffects&&window._protoActiveEffects.chain){
           var _ch=window._protoActiveEffects.chain;
           var _cDmg=Math.round(G.tower.dmg*_ch.dmgPct);
           var _cRange=_ch.chainRange||100;
@@ -17780,7 +17780,7 @@ function _injectProtoBar(){
     btn.style.cssText='width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
     btn.innerHTML=_protoIconHTML(p.id,p.color,18)+
       '<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>'+
-      '<div id="proto-gauge-'+p.id+'" style="display:none;position:absolute;bottom:-4px;left:2px;right:2px;height:3px;background:#1a2a3a;border-radius:2px;pointer-events:none;overflow:hidden;"><div style="height:100%;background:'+p.color+';border-radius:2px;width:100%;transition:width 0.3s;"></div></div>';
+      '<div id="proto-gauge-'+p.id+'" style="display:none;position:absolute;top:-5px;left:2px;right:2px;height:3px;background:#1a2a3a;border-radius:2px;pointer-events:none;overflow:hidden;"><div style="height:100%;background:'+p.color+';border-radius:2px;width:100%;transition:width 0.3s;"></div></div>';
     btn.addEventListener('click',function(){ _useProtocol(p.id); });
     // 길게 누르면 스킬 이름 표시
     (function(proto,b){
