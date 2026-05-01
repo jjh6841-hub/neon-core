@@ -17002,7 +17002,7 @@ var PROTOCOLS = window.PROTOCOLS = [
    desc:'일정 시간 공격력 배율 증가',
    cdReduce:4.5, durBase:5, durPerLv:0.5, multBase:2, multPerLv:0.8},
   {id:'pt_blackhole',  icon:'◉', color:'#8b5cf6', name:'블랙홀',           maxLv:5, baseCd:180,
-   desc:'적을 중앙으로 끌어당김 + 무적',
+   desc:'범위 내 적을 시작 위치로 워프 (보스 제외) + 무적',
    cdReduce:18, durBase:2, durPerLv:0.6},
   {id:'pt_timewarp',   icon:'◎', color:'#6366f1', name:'시간 왜곡',         maxLv:5, baseCd:90,
    desc:'적 이동속도 감소',
@@ -17857,14 +17857,8 @@ function _useProtocol(id){
   /* ── 과열 레이저 ── */
   else if(id==='pt_overheat'){
     var shots=def.shotBase+lv*def.shotPerLv;
-    for(var si=0;si<shots;si++){
-      (function(delay){
-        setTimeout(function(){
-          if(!window.G||G.phase!=='playing') return;
-          if(typeof window.fireTower==='function') window.fireTower();
-        }, delay);
-      })(si*150);
-    }
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    _protoActiveEffects.overheat={remaining:dur, shots:shots, interval:200, fireTimer:0};
     _protoVisualEffects.push({type:'flash',color:'#ff8822',timer:200});
   }
 
@@ -18012,28 +18006,29 @@ function _startProtoTick(){
       }
     }
 
-    /* 지속 효과: 블랙홀 */
+    /* 지속 효과: 블랙홀 (범위 내 적 시작 위치로 워프, 보스 제외) */
     if(_protoActiveEffects.blackhole){
       var bh=_protoActiveEffects.blackhole;
       bh.remaining-=dtMs;
-      // 비율 기반 부드러운 흡인 (매 틱 거리의 15% 접근)
-      var pullRate=0.15*spd;
-      if(t){
-        var tx=t.x||cx, ty=t.y||cy;
-        enemies.forEach(function(e){
-          if(e.hp<=0) return;
-          var dx=tx-e.x, dy=ty-e.y;
-          var dist=Math.sqrt(dx*dx+dy*dy);
-          if(dist>30){
-            var move=dist*pullRate;
-            if(dist-move<30) move=dist-30;
-            e.x+=dx/dist*move;
-            e.y+=dy/dist*move;
+      var bhRange=t.range||162;
+      enemies.forEach(function(e){
+        if(e.hp<=0||e.boss||e._bhWarped) return;
+        var dx=e.x-cx, dy=e.y-cy;
+        var dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<bhRange){
+          // 시작 위치로 워프 (스폰 위치 = 경로 첫 지점)
+          if(e.path&&e.path.length>0){
+            e.x=e.path[0].x; e.y=e.path[0].y; e.pathIdx=0;
+          } else if(e.spawnX!==undefined){
+            e.x=e.spawnX; e.y=e.spawnY;
           }
-        });
-      }
+          e._bhWarped=true; // 같은 블랙홀에 중복 워프 방지
+          e.hitFlash=5;
+        }
+      });
       if(bh.remaining<=0){
         G._ptInvincible=false;
+        enemies.forEach(function(e){delete e._bhWarped;});
         delete _protoActiveEffects.blackhole;
         _startCdAfterEffect('pt_blackhole');
       }
@@ -18105,6 +18100,23 @@ function _startProtoTick(){
       }
     }
 
+    /* 지속 효과: 과열 레이저 (지속 시간동안 다발 발사) */
+    if(_protoActiveEffects.overheat){
+      var oh=_protoActiveEffects.overheat;
+      oh.remaining-=dtMs;
+      oh.fireTimer+=dtMs;
+      while(oh.fireTimer>=oh.interval){
+        oh.fireTimer-=oh.interval;
+        for(var si2=0;si2<oh.shots;si2++){
+          if(typeof window.fireTower==='function') window.fireTower();
+        }
+      }
+      if(oh.remaining<=0){
+        delete _protoActiveEffects.overheat;
+        _startCdAfterEffect('pt_overheat');
+      }
+    }
+
     /* 적 스턴 틱 */
     enemies.forEach(function(e){
       if(e._ptStun&&e._ptStun>0){
@@ -18138,10 +18150,10 @@ function _stopProtoTick(){
 
 /* ── 시각 효과 드로잉 ── */
 (function(){
-  var _origDraw=window.draw;
-  if(typeof _origDraw!=='function') return;
-  window.draw=function(){
-    _origDraw.apply(this,arguments);
+  var _origRender=window.render;
+  if(typeof _origRender!=='function') return;
+  window.render=function(){
+    _origRender.apply(this,arguments);
     if(!window.G||G.phase!=='playing') return;
     var canvas=document.getElementById('gameCanvas');
     if(!canvas) return;
