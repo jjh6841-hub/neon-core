@@ -13156,9 +13156,9 @@ function _buildRankingScreen() {
       '<span style="width:48px;"></span>'+
     '</div>'+
     '<div style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
-      '<button class="rank-tab" data-rtab="global" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">글로벌</button>'+
-      '<button class="rank-tab" data-rtab="weekly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">주간</button>'+
+      '<button class="rank-tab" data-rtab="weekly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">주간</button>'+
       '<button class="rank-tab" data-rtab="monthly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">월간</button>'+
+      '<button class="rank-tab" data-rtab="guild" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">길드</button>'+
     '</div>'+
     '<div id="ranking-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 12px;display:flex;flex-direction:column;gap:3px;padding-bottom:calc(8px + var(--sab));"></div>';
   document.body.appendChild(sc);
@@ -13178,6 +13178,71 @@ function _buildRankingScreen() {
 function _renderRanking() {
   var list=document.getElementById('ranking-list');
   if(!list) return;
+
+  // 현재 활성 탭 확인
+  var activeTab='weekly';
+  var sc=document.getElementById('screen-ranking');
+  if(sc){
+    var tabs=sc.querySelectorAll('.rank-tab');
+    for(var ti=0;ti<tabs.length;ti++){
+      if(tabs[ti].style.borderBottom.indexOf('#00ffff')!==-1){
+        activeTab=tabs[ti].getAttribute('data-rtab');
+        break;
+      }
+    }
+  }
+
+  // 길드 탭 처리
+  if(activeTab==='guild'){
+    if(!window.PERM||!PERM.guildId){
+      list.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;"><div style="font-size:30px;margin-bottom:10px;">⬡</div><div style="color:#ff6644;font-family:monospace;font-size:12px;">길드에 가입하세요</div><div style="color:#334455;font-family:monospace;font-size:10px;margin-top:6px;">길드에 가입하면 길드원 랭킹을 볼 수 있습니다</div></div></div>';
+      return;
+    }
+    // 길드원 랭킹 로드
+    if(!window._fbDb){
+      list.innerHTML='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">로딩 중...</div>';
+      return;
+    }
+    list.innerHTML='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">로딩 중...</div>';
+    _fbDb.collection('guilds').doc(PERM.guildId).get().then(function(doc){
+      if(!doc.exists){ list.innerHTML='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">길드 정보를 찾을 수 없습니다</div>'; return; }
+      var g=doc.data();
+      var members=g.members||[];
+      // 길드원 정보 로드
+      var uids=members.map(function(m){return m.uid;});
+      var promises=uids.map(function(uid){
+        return _fbDb.collection('users').doc(uid).get().then(function(uDoc){
+          if(!uDoc.exists) return {uid:uid,name:'???',bestWave:0};
+          var ud=uDoc.data();
+          var p=ud.perm||{};
+          return {uid:uid, name:p.nickname||'사령관', bestWave:p.bestWave||0};
+        }).catch(function(){return {uid:uid,name:'???',bestWave:0};});
+      });
+      Promise.all(promises).then(function(memberData){
+        memberData.sort(function(a,b){return b.bestWave-a.bestWave;});
+        var medals=['🥇','🥈','🥉'];
+        var html='<div style="text-align:center;color:#ff6644;font-family:monospace;font-size:11px;margin-bottom:8px;letter-spacing:1px;">'+g.icon+' '+g.name+' 길드 랭킹</div>';
+        memberData.forEach(function(m,idx){
+          var rank=idx+1;
+          var isTop3=rank<=3;
+          var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
+          var isMe=m.uid===window._fbUid;
+          var bg=isMe?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
+          var nameColor=isMe?'#00ffff':'#94a3b8';
+          html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
+            '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
+            '<span style="flex:1;font-family:monospace;font-size:11px;color:'+nameColor+';">'+m.name+'</span>'+
+            '<span style="font-family:monospace;font-size:11px;color:#00ffff;">웨이브 <span style="color:#f59e0b;font-weight:bold;">'+m.bestWave+'</span></span>'+
+          '</div>';
+        });
+        list.innerHTML=html;
+      });
+    }).catch(function(){
+      list.innerHTML='<div style="text-align:center;color:#ef4444;font-family:monospace;font-size:11px;padding:40px;">길드 정보를 불러올 수 없습니다</div>';
+    });
+    return;
+  }
+
   var playerWave=(window.PERM&&window.PERM.bestWave)||0;
   var rows=_genRanking(playerWave);
   var medals=['🥇','🥈','🥉'];
@@ -19357,6 +19422,13 @@ window.showScreen = function(name) {
     var evEl = document.getElementById('screen-event');
     if (evEl) evEl.style.display = 'flex';
   }
+  if (name === 'guild') {
+    if (!document.getElementById('screen-guild')) {
+      _createGuildScreen();
+    }
+    var gsc = document.getElementById('screen-guild');
+    if (gsc) { gsc.style.display = 'flex'; _renderGuild(); }
+  }
   // 좌측 아이콘 화면 진입 시 하단탭 숨기기
   var _bn = document.getElementById('bottom-nav');
   if (_bn) {
@@ -21178,7 +21250,7 @@ if (_gemAdBtn) {
 
     // 서브 화면 → 홈
     var subs = ['workshop','store','lab','tournament','module','research','corelab','skin','mods','explore',
-                'frequency-wars','signal-market','event','ranking'];
+                'frequency-wars','signal-market','event','ranking','guild'];
     for (var i = 0; i < subs.length; i++) {
       var sub = document.getElementById('screen-' + subs[i]);
       if (sub && (sub.style.display === 'flex' || sub.style.display === 'block')) {
@@ -21212,5 +21284,415 @@ if (_gemAdBtn) {
     <button onclick="document.getElementById('lab-help-popup').style.display='none';" style="width:100%;margin-top:14px;height:36px;background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">닫기</button>
   </div>
 </div>
+<!-- ══════════════════════════════════════════════════════
+     길드 시스템
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── 길드 화면 DOM 생성 ── */
+function _createGuildScreen() {
+  if (document.getElementById('screen-guild')) return;
+  var sc = document.createElement('div');
+  sc.id = 'screen-guild';
+  sc.style.cssText = 'display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:600;overflow:hidden;font-family:"Courier New",monospace;';
+  sc.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
+      '<button id="guild-back-btn" style="background:none;border:none;color:#ff6644;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;">◀ 뒤로</button>'+
+      '<span style="font-size:13px;letter-spacing:2px;color:#ff6644;">길드</span>'+
+      '<span style="width:48px;"></span>'+
+    '</div>'+
+    '<div id="guild-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(8px + var(--sab));"></div>';
+  document.body.appendChild(sc);
+  document.getElementById('guild-back-btn').addEventListener('click', function(){
+    if (window.showScreen) showScreen('home');
+  });
+}
+window._createGuildScreen = _createGuildScreen;
+
+/* ── 길드 렌더링 (상태별 분기) ── */
+function _renderGuild() {
+  var content = document.getElementById('guild-content');
+  if (!content) return;
+
+  if (window.PERM && PERM.guildId) {
+    _renderGuildMain(content);
+  } else {
+    _renderGuildJoin(content);
+  }
+}
+window._renderGuild = _renderGuild;
+
+/* ── 미가입: 가입/생성 화면 ── */
+function _renderGuildJoin(container) {
+  container.innerHTML =
+    '<div style="padding:14px;">'+
+      '<div style="text-align:center;margin-bottom:20px;">'+
+        '<div style="font-size:30px;margin-bottom:8px;">⬡</div>'+
+        '<div style="color:#ff6644;font-size:15px;font-weight:bold;">길드에 가입하세요</div>'+
+        '<div style="color:#556677;font-size:9px;margin-top:4px;">동료와 함께 더 강해지세요</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:12px;">'+
+        '<input id="guild-search-input" type="text" placeholder="길드 이름 검색..." style="flex:1;background:#0a1520;border:1px solid #1a3444;border-radius:8px;color:#00ffff;font-family:monospace;font-size:11px;padding:8px 10px;outline:none;">'+
+        '<button id="guild-search-btn" style="background:#030b10;border:1px solid #ff6644;border-radius:8px;color:#ff6644;font-family:monospace;font-size:10px;padding:8px 12px;cursor:pointer;">검색</button>'+
+      '</div>'+
+      '<div id="guild-search-results" style="margin-bottom:16px;"></div>'+
+      '<div style="border-top:1px solid #1a3444;padding-top:14px;">'+
+        '<div style="color:#ff6644;font-size:11px;margin-bottom:10px;letter-spacing:1px;">길드 생성</div>'+
+        '<input id="guild-create-name" type="text" maxlength="12" placeholder="길드 이름 (2~12자)" style="width:100%;background:#0a1520;border:1px solid #1a3444;border-radius:8px;color:#f1f5f9;font-family:monospace;font-size:11px;padding:8px 10px;margin-bottom:6px;outline:none;box-sizing:border-box;">'+
+        '<input id="guild-create-tag" type="text" maxlength="4" placeholder="태그 (2~4자)" style="width:100%;background:#0a1520;border:1px solid #1a3444;border-radius:8px;color:#f1f5f9;font-family:monospace;font-size:11px;padding:8px 10px;margin-bottom:8px;outline:none;box-sizing:border-box;">'+
+        '<button id="guild-create-btn" style="width:100%;background:#030b10;border:2px solid #ff6644;border-radius:10px;color:#ff6644;font-family:monospace;font-size:12px;font-weight:bold;padding:12px;cursor:pointer;letter-spacing:1px;">❖ 100 보석으로 길드 생성</button>'+
+      '</div>'+
+    '</div>';
+
+  // 검색 버튼 이벤트
+  var searchBtn = document.getElementById('guild-search-btn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', function(){
+      var q = (document.getElementById('guild-search-input')||{}).value||'';
+      _searchGuilds(q.trim());
+    });
+  }
+  // 엔터키 검색
+  var searchInput = document.getElementById('guild-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        _searchGuilds(searchInput.value.trim());
+      }
+    });
+  }
+  // 생성 버튼 이벤트
+  var createBtn = document.getElementById('guild-create-btn');
+  if (createBtn) {
+    createBtn.addEventListener('click', function(){
+      var nameInput = document.getElementById('guild-create-name');
+      var tagInput = document.getElementById('guild-create-tag');
+      var gName = (nameInput?nameInput.value:'').trim();
+      var gTag = (tagInput?tagInput.value:'').trim();
+      if (gName.length < 2 || gName.length > 12) { showToastMsg('길드 이름은 2~12자입니다','#ef4444'); return; }
+      if (gTag.length < 2 || gTag.length > 4) { showToastMsg('태그는 2~4자입니다','#ef4444'); return; }
+      _createGuild(gName, gTag);
+    });
+  }
+  // 초기 검색 (전체 목록)
+  _searchGuilds('');
+}
+
+/* ── 가입 상태: 길드 메인 화면 ── */
+function _renderGuildMain(container) {
+  container.innerHTML = '<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">로딩 중...</div>';
+  if (!window._fbDb || !window.PERM || !PERM.guildId) {
+    container.innerHTML = '<div style="text-align:center;color:#ef4444;font-family:monospace;font-size:11px;padding:40px;">길드 정보를 불러올 수 없습니다</div>';
+    return;
+  }
+  _fbDb.collection('guilds').doc(PERM.guildId).get().then(function(doc){
+    if (!doc.exists) {
+      // 길드가 삭제된 경우
+      PERM.guildId = null;
+      savePerm();
+      _renderGuild();
+      return;
+    }
+    var g = doc.data();
+    var isLeader = g.leaderUid === window._fbUid;
+    var members = g.members || [];
+    var expPct = g.exp ? Math.min(100, Math.round(g.exp / (g.level * 100) * 100)) : 0;
+
+    var html = '';
+    // 길드 헤더
+    html += '<div style="text-align:center;padding:20px 14px 14px;">'+
+      '<div style="font-size:36px;margin-bottom:6px;">'+(g.icon||'⬡')+'</div>'+
+      '<div style="color:#ff6644;font-size:16px;font-weight:bold;letter-spacing:1px;">'+g.name+'</div>'+
+      '<div style="color:#556677;font-size:9px;margin-top:2px;">['+g.tag+']</div>'+
+      '<div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;">'+
+        '<span style="color:#94a3b8;font-size:10px;">Lv.'+g.level+'</span>'+
+        '<div style="width:120px;height:6px;background:#0a1520;border-radius:3px;overflow:hidden;">'+
+          '<div style="width:'+expPct+'%;height:100%;background:linear-gradient(90deg,#ff6644,#ff8866);border-radius:3px;"></div>'+
+        '</div>'+
+        '<span style="color:#556677;font-size:9px;">'+g.exp+'/'+(g.level*100)+'</span>'+
+      '</div>'+
+      '<div style="color:#334455;font-size:9px;margin-top:6px;">멤버 '+members.length+'/'+(g.maxMembers||30)+'</div>'+
+    '</div>';
+
+    // 멤버 목록 헤더
+    html += '<div style="padding:0 14px;margin-bottom:6px;">'+
+      '<div style="color:#ff6644;font-size:10px;letter-spacing:1px;border-bottom:1px solid #1a2a3a;padding-bottom:6px;">멤버 목록</div>'+
+    '</div>';
+
+    // 멤버 정보 로드
+    var uids = members.map(function(m){ return m.uid; });
+    var promises = uids.map(function(uid){
+      return _fbDb.collection('users').doc(uid).get().then(function(uDoc){
+        if (!uDoc.exists) return { uid: uid, bestWave: 0, lastLogin: '' };
+        var ud = uDoc.data();
+        var p = ud.perm || {};
+        return { uid: uid, bestWave: p.bestWave || 0, lastLogin: ud.lastLogin || '' };
+      }).catch(function(){ return { uid: uid, bestWave: 0, lastLogin: '' }; });
+    });
+
+    Promise.all(promises).then(function(userData){
+      var userMap = {};
+      userData.forEach(function(u){ userMap[u.uid] = u; });
+
+      var memberHtml = '';
+      members.forEach(function(m){
+        var u = userMap[m.uid] || {};
+        var roleIcon = m.role === 'leader' ? '👑' : '⬡';
+        var roleColor = m.role === 'leader' ? '#ffc800' : '#556677';
+        var isMe = m.uid === window._fbUid;
+        var nameColor = isMe ? '#00ffff' : '#94a3b8';
+        var lastLogin = u.lastLogin ? _formatLastLogin(u.lastLogin) : '-';
+        memberHtml += '<div style="display:flex;align-items:center;padding:8px 14px;gap:8px;'+(isMe?'background:#0a1520;':'')+'">'+
+          '<span style="font-size:12px;min-width:20px;">'+roleIcon+'</span>'+
+          '<div style="flex:1;">'+
+            '<div style="color:'+nameColor+';font-size:11px;">'+m.name+(isMe?' (나)':'')+'</div>'+
+            '<div style="color:#334455;font-size:8px;margin-top:1px;">최고 웨이브: '+(u.bestWave||0)+' · '+lastLogin+'</div>'+
+          '</div>'+
+          '<span style="color:'+roleColor+';font-size:9px;">'+( m.role==='leader'?'길드장':'멤버')+'</span>'+
+        '</div>';
+      });
+      html += '<div style="margin-bottom:16px;">'+memberHtml+'</div>';
+
+      // 길드 설명
+      if (g.desc) {
+        html += '<div style="padding:0 14px;margin-bottom:16px;">'+
+          '<div style="background:#0a1520;border:1px solid #1a3444;border-radius:8px;padding:10px;color:#94a3b8;font-size:10px;">'+g.desc+'</div>'+
+        '</div>';
+      }
+
+      // 탈퇴/해산 버튼
+      html += '<div style="padding:14px;">';
+      if (isLeader) {
+        html += '<button id="guild-disband-btn" style="width:100%;background:#030b10;border:2px solid #ef4444;border-radius:10px;color:#ef4444;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;margin-bottom:8px;">길드 해산</button>';
+      }
+      html += '<button id="guild-leave-btn" style="width:100%;background:#030b10;border:1px solid #334455;border-radius:10px;color:#556677;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;">길드 탈퇴</button>';
+      html += '</div>';
+
+      container.innerHTML = html;
+
+      // 탈퇴 버튼 이벤트
+      var leaveBtn = document.getElementById('guild-leave-btn');
+      if (leaveBtn) {
+        leaveBtn.addEventListener('click', function(){
+          if (confirm('정말 길드를 탈퇴하시겠습니까?')) {
+            _leaveGuild();
+          }
+        });
+      }
+      // 해산 버튼 이벤트
+      var disbandBtn = document.getElementById('guild-disband-btn');
+      if (disbandBtn) {
+        disbandBtn.addEventListener('click', function(){
+          if (confirm('정말 길드를 해산하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+            _disbandGuild();
+          }
+        });
+      }
+    });
+
+  }).catch(function(){
+    container.innerHTML = '<div style="text-align:center;color:#ef4444;font-family:monospace;font-size:11px;padding:40px;">길드 정보를 불러올 수 없습니다</div>';
+  });
+}
+
+/* ── 마지막 접속 포맷 ── */
+function _formatLastLogin(dateStr) {
+  try {
+    var d = new Date(dateStr);
+    var now = new Date();
+    var diff = now - d;
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return '방금 전';
+    if (mins < 60) return mins + '분 전';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + '시간 전';
+    var days = Math.floor(hrs / 24);
+    if (days < 7) return days + '일 전';
+    return Math.floor(days / 7) + '주 전';
+  } catch(_) { return '-'; }
+}
+
+/* ── 길드 검색 ── */
+function _searchGuilds(query) {
+  if (!window._fbDb) {
+    _renderSearchResults([]);
+    return;
+  }
+  _fbDb.collection('guilds').limit(20).get().then(function(snap){
+    var results = [];
+    snap.forEach(function(doc){
+      var g = doc.data();
+      if (!query || g.name.indexOf(query) !== -1 || (g.tag && g.tag.indexOf(query) !== -1)) {
+        results.push({id:doc.id, data:g});
+      }
+    });
+    _renderSearchResults(results);
+  }).catch(function(){
+    _renderSearchResults([]);
+  });
+}
+
+/* ── 검색 결과 렌더링 ── */
+function _renderSearchResults(results) {
+  var container = document.getElementById('guild-search-results');
+  if (!container) return;
+  if (results.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#334455;font-size:10px;padding:12px;">검색 결과가 없습니다</div>';
+    return;
+  }
+  var html = '';
+  results.forEach(function(r){
+    var g = r.data;
+    var memberCount = (g.members||[]).length;
+    var full = memberCount >= (g.maxMembers||30);
+    html += '<div style="display:flex;align-items:center;padding:10px;background:#0a1520;border:1px solid #1a3444;border-radius:8px;margin-bottom:6px;gap:10px;">'+
+      '<div style="font-size:20px;min-width:30px;text-align:center;">'+(g.icon||'⬡')+'</div>'+
+      '<div style="flex:1;">'+
+        '<div style="color:#f1f5f9;font-size:11px;font-weight:bold;">'+g.name+' <span style="color:#556677;font-size:9px;">['+g.tag+']</span></div>'+
+        '<div style="color:#334455;font-size:9px;margin-top:2px;">Lv.'+g.level+' · 멤버 '+memberCount+'/'+(g.maxMembers||30)+'</div>'+
+      '</div>'+
+      (full
+        ? '<span style="color:#334455;font-size:9px;">가득 참</span>'
+        : '<button data-guild-join="'+r.id+'" style="background:#030b10;border:1px solid #ff6644;border-radius:6px;color:#ff6644;font-family:monospace;font-size:9px;padding:6px 10px;cursor:pointer;">가입</button>')+
+    '</div>';
+  });
+  container.innerHTML = html;
+
+  // 가입 버튼 이벤트 바인딩
+  var joinBtns = container.querySelectorAll('[data-guild-join]');
+  for (var i = 0; i < joinBtns.length; i++) {
+    (function(btn){
+      btn.addEventListener('click', function(){
+        var guildId = btn.getAttribute('data-guild-join');
+        _joinGuild(guildId);
+      });
+    })(joinBtns[i]);
+  }
+}
+
+/* ── 길드 생성 ── */
+function _createGuild(name, tag) {
+  if (!window._fbDb || !window._fbUid) { showToastMsg('로그인이 필요합니다','#ef4444'); return; }
+  if ((PERM.gems||0) < 100) { showToastMsg('보석이 부족합니다 (필요: ❖100)','#ef4444'); return; }
+
+  var guildId = 'g_' + Date.now();
+  var nickname = PERM.nickname || '사령관';
+
+  _fbDb.collection('guilds').doc(guildId).set({
+    name: name,
+    tag: tag,
+    desc: '',
+    icon: '⬡',
+    leaderUid: _fbUid,
+    members: [{uid:_fbUid, name:nickname, role:'leader', joinedAt:new Date().toISOString()}],
+    level: 1,
+    exp: 0,
+    createdAt: new Date().toISOString(),
+    maxMembers: 30
+  }).then(function(){
+    PERM.gems -= 100;
+    PERM.guildId = guildId;
+    logCurrency('gems', -100, '길드 생성');
+    savePerm();
+    _fbDb.collection('users').doc(_fbUid).update({'perm.guildId': guildId});
+    showToastMsg('길드가 생성되었습니다!','#00ff88');
+    _renderGuild();
+  }).catch(function(){
+    showToastMsg('길드 생성에 실패했습니다','#ef4444');
+  });
+}
+
+/* ── 길드 가입 ── */
+function _joinGuild(guildId) {
+  if (!window._fbDb || !window._fbUid) { showToastMsg('로그인이 필요합니다','#ef4444'); return; }
+  var nickname = PERM.nickname || '사령관';
+
+  _fbDb.collection('guilds').doc(guildId).get().then(function(doc){
+    if (!doc.exists) { showToastMsg('존재하지 않는 길드입니다','#ef4444'); return; }
+    var g = doc.data();
+    if (g.members.length >= (g.maxMembers||30)) { showToastMsg('길드 인원이 가득 찼습니다','#ef4444'); return; }
+    // 이미 가입 체크
+    for (var i = 0; i < g.members.length; i++) {
+      if (g.members[i].uid === _fbUid) { showToastMsg('이미 가입된 길드입니다','#ef4444'); return; }
+    }
+
+    g.members.push({uid:_fbUid, name:nickname, role:'member', joinedAt:new Date().toISOString()});
+    _fbDb.collection('guilds').doc(guildId).update({members: g.members}).then(function(){
+      PERM.guildId = guildId;
+      savePerm();
+      _fbDb.collection('users').doc(_fbUid).update({'perm.guildId': guildId});
+      showToastMsg(g.name + ' 길드에 가입했습니다!','#00ff88');
+      _renderGuild();
+    });
+  }).catch(function(){
+    showToastMsg('길드 가입에 실패했습니다','#ef4444');
+  });
+}
+
+/* ── 길드 탈퇴 ── */
+function _leaveGuild() {
+  if (!window._fbDb || !window._fbUid || !PERM.guildId) return;
+  var guildId = PERM.guildId;
+  _fbDb.collection('guilds').doc(guildId).get().then(function(doc){
+    if (!doc.exists) {
+      PERM.guildId = null;
+      savePerm();
+      _renderGuild();
+      return;
+    }
+    var g = doc.data();
+    g.members = g.members.filter(function(m){ return m.uid !== _fbUid; });
+    if (g.members.length === 0) {
+      _fbDb.collection('guilds').doc(guildId).delete();
+    } else {
+      if (g.leaderUid === _fbUid && g.members.length > 0) {
+        g.leaderUid = g.members[0].uid;
+        g.members[0].role = 'leader';
+      }
+      _fbDb.collection('guilds').doc(guildId).update({members: g.members, leaderUid: g.leaderUid});
+    }
+    PERM.guildId = null;
+    savePerm();
+    _fbDb.collection('users').doc(_fbUid).update({'perm.guildId': null});
+    showToastMsg('길드를 탈퇴했습니다','#94a3b8');
+    _renderGuild();
+  });
+}
+
+/* ── 길드 해산 (길드장 전용) ── */
+function _disbandGuild() {
+  if (!window._fbDb || !window._fbUid || !PERM.guildId) return;
+  var guildId = PERM.guildId;
+  _fbDb.collection('guilds').doc(guildId).get().then(function(doc){
+    if (!doc.exists) {
+      PERM.guildId = null;
+      savePerm();
+      _renderGuild();
+      return;
+    }
+    var g = doc.data();
+    if (g.leaderUid !== _fbUid) { showToastMsg('길드장만 해산할 수 있습니다','#ef4444'); return; }
+
+    // 모든 멤버의 guildId 초기화
+    var memberUids = g.members.map(function(m){ return m.uid; });
+    var updatePromises = memberUids.map(function(uid){
+      return _fbDb.collection('users').doc(uid).update({'perm.guildId': null}).catch(function(){});
+    });
+
+    Promise.all(updatePromises).then(function(){
+      _fbDb.collection('guilds').doc(guildId).delete().then(function(){
+        PERM.guildId = null;
+        savePerm();
+        showToastMsg('길드가 해산되었습니다','#94a3b8');
+        _renderGuild();
+      });
+    });
+  });
+}
+
+}());
+</script>
 </body>
 </html>
