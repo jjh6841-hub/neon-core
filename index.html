@@ -18314,26 +18314,26 @@ function _stopProtoTick(){
       delete canvas.dataset._gigantoShake;
     }
 
-    /* 레이저 오버드라이브 (붉은 글로우) */
+    /* 레이저 오버드라이브 (타워 아래 붉은 글로우) */
     if(_protoActiveEffects.overdrive){
       ctx.save();
       ctx.shadowColor='#ff4444';
       ctx.shadowBlur=25+8*Math.sin(performance.now()*0.005);
       ctx.globalAlpha=0.3;
       ctx.fillStyle='#ff4444';
-      ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy+12,14,0,Math.PI*2); ctx.fill();
       ctx.shadowBlur=0;
       ctx.restore();
     }
 
-    /* 과열 레이저 (주황 글로우) */
+    /* 과열 레이저 (타워 아래 주황 글로우) */
     if(_protoActiveEffects.overheat){
       ctx.save();
       ctx.shadowColor='#ff8822';
       ctx.shadowBlur=25+8*Math.sin(performance.now()*0.007);
       ctx.globalAlpha=0.3;
       ctx.fillStyle='#ff8822';
-      ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy+12,14,0,Math.PI*2); ctx.fill();
       ctx.shadowBlur=0;
       ctx.restore();
     }
