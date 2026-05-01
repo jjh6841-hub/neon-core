@@ -15808,24 +15808,17 @@ function _mktToast(msg, color) {
   setTimeout(function () { el.style.display = 'none'; }, 2200);
 }
 
-/* 주파수 전쟁 카운트다운 */
-function _updateFWTimer() {
-  var el = document.getElementById('fw-timer'); if (!el) return;
-  var now = new Date();
-  var kst = new Date(now.getTime() + 9 * 3600000);
-  var day = kst.getUTCDay(), h = kst.getUTCHours(), m = kst.getUTCMinutes(), s = kst.getUTCSeconds();
-  var best = Infinity;
-  [1, 4].forEach(function (t) {
-    var d = ((t - day + 7) % 7) * 86400 + (22 - h) * 3600 - m * 60 - s;
-    if (d <= 0) d += 604800;
-    if (d < best) best = d;
-  });
-  var dd = Math.floor(best / 86400), hh = Math.floor((best % 86400) / 3600);
-  var mm = Math.floor((best % 3600) / 60), ss = best % 60;
-  var p = function (n) { return String(n).length < 2 ? '0' + n : String(n); };
-  el.textContent = dd > 0
-    ? dd + 'd ' + p(hh) + ':' + p(mm) + ':' + p(ss)
-    : p(hh) + ':' + p(mm) + ':' + p(ss);
+/* 주파수 전쟁 카운트다운 — 다음 월요일 01:00 기준 */
+function _updateFWTimer(){
+  var el=document.getElementById('fw-timer'); if(!el) return;
+  var next=_getNextMondayReset();
+  var diff=Math.max(0,Math.floor((next-new Date())/1000));
+  var d=Math.floor(diff/86400);
+  var h=Math.floor((diff%86400)/3600);
+  var m=Math.floor((diff%3600)/60);
+  var s=diff%60;
+  if(d>0) el.textContent=d+'\uC77C '+('0'+h).slice(-2)+':'+('0'+m).slice(-2)+':'+('0'+s).slice(-2);
+  else el.textContent=('0'+h).slice(-2)+':'+('0'+m).slice(-2)+':'+('0'+s).slice(-2);
 }
 setInterval(_updateFWTimer, 1000);
 
@@ -15852,13 +15845,207 @@ function _hookFWButtons() {
       showScreen('signal-market');
     });
   }
+
+  /* 참가하기 버튼 (하루 3회 제한) */
+  var fwJoinBtn=document.getElementById('fw-join-btn');
+  if(fwJoinBtn){
+    fwJoinBtn.addEventListener('click',function(){
+      if(_isSettlementPeriod()){ if(window.showToastMsg) showToastMsg('랭킹 정산 중입니다. 잠시 후 다시 시도해주세요.','#ef4444'); return; }
+      // 하루 3회 입장 제한
+      var dayKey='fw_entry_'+new Date().toDateString();
+      var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
+      if(dayCount>=3){ if(window.showToastMsg) showToastMsg('오늘 입장 횟수를 모두 사용했습니다 (3/3)','#ef4444'); return; }
+      localStorage.setItem(dayKey, dayCount+1);
+      var rule=_getCurrentRule();
+      window._fwMode={active:true, rule:rule.id};
+      var fw=_loadFW();
+      fw.participating=true;
+      _saveFW(fw);
+      showScreen('home');
+      setTimeout(function(){
+        try{
+          var startBtn=document.getElementById('btn-start-game');
+          if(startBtn) startBtn.click();
+        }catch(_){}
+      },200);
+    });
+  }
 }
+
+/* ── 주파수 전쟁 데이터 ── */
+var FW_RULES = [
+  {id:'defense_trial', name:'\uBC29\uC5B4\uC758 \uC2DC\uD5D8', desc:'\uACF5\uACA9 \uD0ED \uBE44\uD65C\uC131, \uBC29\uC5B4/\uC720\uD2F8\uB9CC \uAC00\uB2A5', icon:'\uD83D\uDEE1'},
+  {id:'frenzy_wave', name:'\uD3ED\uC8FC \uC6E8\uC774\uBE0C', desc:'\uC801 \uC18D\uB3C4 2\uBC30, \uCF54\uC5B4\uCE69 2\uBC30', icon:'\uD83D\uDCA8'},
+  {id:'boss_rush', name:'\uBCF4\uC2A4 \uB7EC\uC2DC', desc:'5\uC6E8\uC774\uBE0C\uB9C8\uB2E4 \uB4DC\uB808\uB4DC\uB178\uD2B8 2\uB9C8\uB9AC', icon:'\uD83D\uDC80'},
+  {id:'last_resource', name:'\uCD5C\uD6C4\uC758 \uC790\uC6D0', desc:'\uCF54\uC5B4\uCE69 10000 \uACE0\uC815, \uCD94\uAC00 \uD68D\uB4DD \uBD88\uAC00', icon:'\uD83D\uDCB0'},
+  {id:'extreme_survival', name:'\uC0DD\uC874\uC758 \uADF9\uD55C', desc:'\uBAA8\uB4E0 HP \uD68C\uBCF5 \uCC28\uB2E8, \uC804\uD22C \uC99D\uAC15\xB7\uD68C\uBCF5 \uC5C5\uADF8\uB808\uC774\uB4DC \uC5C6\uC74C', icon:'\u2620'},
+  {id:'silent_core', name:'\uCE68\uBB35\uC758 \uCF54\uC5B4', desc:'\uD504\uB85C\uD1A0\uCF5C \uBE44\uD65C\uC131, \uB204\uC801 \uC2A4\uD0EF\uB9CC', icon:'\uD83D\uDD07'},
+  {id:'skill_rebellion', name:'\uC2A4\uD0AC\uC758 \uBC18\uB780', desc:'\uD504\uB85C\uD1A0\uCF5C+\uC804\uD22C \uC5C5\uADF8\uB808\uC774\uB4DC\uB9CC, \uAC15\uD654\uC18C/\uBAA8\uB4C8/\uCF54\uC5B4\uB7A9 \uBBF8\uC801\uC6A9', icon:'\u2694'},
+];
+
+var FW_TIERS = [
+  {id:'iron',     name:'\uC544\uC774\uC5B8',     color:'#8B9AA8', icon:'\u2B21'},
+  {id:'bronze',   name:'\uBE0C\uB860\uC988',     color:'#CD7F32', icon:'\uD83E\uDD49'},
+  {id:'silver',   name:'\uC2E4\uBC84',       color:'#C0C0C0', icon:'\uD83E\uDD48'},
+  {id:'gold',     name:'\uACE8\uB4DC',       color:'#FFD700', icon:'\uD83E\uDD47'},
+  {id:'platinum', name:'\uD50C\uB798\uD2F0\uB118',   color:'#00BFFF', icon:'\uD83D\uDC8E'},
+];
+
+window._fwMode = { active:false, rule:null };
+window.FW_RULES = FW_RULES;
+window.FW_TIERS = FW_TIERS;
+
+function _loadFW(){ try{return JSON.parse(localStorage.getItem('td_fw')||'{}');}catch(_){return {};} }
+function _saveFW(d){ localStorage.setItem('td_fw',JSON.stringify(d)); }
+window._loadFW = _loadFW;
+window._saveFW = _saveFW;
+
+var _fwOverrideRule=null; // Firestore에서 관리자가 설정한 규칙
+function _getCurrentRule(){
+  // 관리자 수동 설정 우선
+  if(_fwOverrideRule){
+    var found=FW_RULES.filter(function(r){return r.id===_fwOverrideRule;})[0];
+    if(found) return found;
+  }
+  // 자동: 주간 교체
+  var now=new Date();
+  var jan1=new Date(now.getFullYear(),0,1);
+  var weekNum=Math.floor(((now-jan1)/86400000+jan1.getDay())/7);
+  return FW_RULES[weekNum % FW_RULES.length];
+}
+window._getCurrentRule = _getCurrentRule;
+// Firestore에서 관리자 규칙 로드
+function _loadFWRuleOverride(){
+  if(!window._fbDb) return;
+  try{
+    window._fbDb.collection('system').doc('fw_rule').get().then(function(doc){
+      if(doc.exists&&doc.data().ruleId) _fwOverrideRule=doc.data().ruleId;
+      else _fwOverrideRule=null;
+    }).catch(function(){});
+  }catch(_){}
+}
+setTimeout(_loadFWRuleOverride,2000);
+
+function _getPlayerTier(){
+  var fw=_loadFW();
+  var tierIdx=fw.tier||0;
+  return FW_TIERS[Math.min(tierIdx, FW_TIERS.length-1)];
+}
+window._getPlayerTier = _getPlayerTier;
+
+function _isSettlementPeriod(){
+  var now=new Date();
+  return now.getDay()===1 && now.getHours()<1;
+}
+window._isSettlementPeriod = _isSettlementPeriod;
+
+function _getNextMondayReset(){
+  var now=new Date();
+  var day=now.getDay();
+  var daysUntilMon=(8-day)%7;
+  if(daysUntilMon===0 && now.getHours()>=1) daysUntilMon=7;
+  if(daysUntilMon===0 && now.getHours()<1) daysUntilMon=0;
+  var next=new Date(now);
+  next.setDate(next.getDate()+daysUntilMon);
+  next.setHours(1,0,0,0);
+  return next;
+}
+window._getNextMondayReset = _getNextMondayReset;
+
+/* ── 주파수 전쟁 UI 렌더링 ── */
+function renderFW(){
+  var fw=_loadFW();
+  var rule=_getCurrentRule();
+  var tier=_getPlayerTier();
+
+  var leagueIcon=document.getElementById('fw-league-icon');
+  var leagueName=document.getElementById('fw-league-name');
+  if(leagueIcon) leagueIcon.textContent=tier.icon;
+  if(leagueName){ leagueName.textContent=tier.name; leagueName.style.color=tier.color; }
+
+  var winsEl=document.getElementById('fw-wins');
+  var lossEl=document.getElementById('fw-losses');
+  var rankEl=document.getElementById('fw-rank');
+  if(winsEl) winsEl.textContent=fw.wins||0;
+  if(lossEl) lossEl.textContent=fw.losses||0;
+  if(rankEl) rankEl.textContent=fw.rank||'-';
+
+  var ruleCard=document.getElementById('fw-rule-card');
+  if(!ruleCard){
+    ruleCard=document.createElement('div');
+    ruleCard.id='fw-rule-card';
+    ruleCard.style.cssText='background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:12px;';
+    var leagueCard=document.getElementById('fw-league-card');
+    if(leagueCard&&leagueCard.nextSibling) leagueCard.parentNode.insertBefore(ruleCard,leagueCard.nextSibling);
+    else if(leagueCard) leagueCard.parentNode.appendChild(ruleCard);
+  }
+  ruleCard.innerHTML=
+    '<div style="color:#7aacac;font-size:10px;margin-bottom:6px;letter-spacing:1px;">\uC774\uBC88 \uC8FC \uADDC\uCE59</div>'+
+    '<div style="display:flex;align-items:center;gap:10px;">'+
+      '<span style="font-size:24px;">'+rule.icon+'</span>'+
+      '<div><div style="color:#00dddd;font-size:13px;font-weight:bold;">'+rule.name+'</div>'+
+      '<div style="color:#556677;font-size:9px;margin-top:2px;">'+rule.desc+'</div></div>'+
+    '</div>';
+
+  var lb=document.getElementById('fw-leaderboard');
+  if(lb){
+    var playerWave=fw.seasonScore||0;
+    var seed=Math.floor(Date.now()/(7*86400000));
+    var names=['SIGNAL_01','FREQ_07','WAVE_X','NEON_33','PULSE_9','CORE_77','VOID_21','ARC_55','FLUX_42','ECHO_88'];
+    var scores=[];
+    var tierBase=[20,40,70,120,200];
+    var base=tierBase[fw.tier||0]||20;
+    for(var i=0;i<10;i++){
+      var fakeSeed=((seed+i*31337)%1000)/1000;
+      scores.push({name:names[i], score:Math.max(1,Math.round(base*(0.5+fakeSeed*1.2)))});
+    }
+    if(playerWave>0) scores.push({name:fw.playerName||'\uB098', score:playerWave, isPlayer:true});
+    scores.sort(function(a,b){return b.score-a.score;});
+    var html='';
+    scores.slice(0,10).forEach(function(s,idx){
+      var rc=idx===0?'#ffc800':idx===1?'#C0C0C0':idx===2?'#CD7F32':'#334455';
+      html+='<div style="display:flex;justify-content:space-between;padding:5px 4px;border-bottom:1px solid #0a1a2a;">'+
+        '<div style="display:flex;gap:8px;align-items:center;">'+
+          '<span style="color:'+rc+';font-size:11px;width:18px;font-weight:bold;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;">'+s.name+'</span>'+
+        '</div>'+
+        '<span style="color:#ffc800;font-size:11px;">\uC6E8\uC774\uBE0C '+s.score+'</span>'+
+      '</div>';
+    });
+    lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
+  }
+
+  var rwEl=document.getElementById('fw-rewards');
+  if(rwEl){
+    var tierRewards=[[50,30,20],[100,60,40],[200,120,80],[400,250,150],[800,500,300]];
+    var rw=tierRewards[fw.tier||0]||tierRewards[0];
+    rwEl.innerHTML=
+      '<div style="text-align:center;"><div style="color:#ffc800;font-size:9px;">1\uC704</div><div style="color:#ffc800;font-size:11px;">\u2726 '+rw[0]+'</div></div>'+
+      '<div style="text-align:center;"><div style="color:#94a3b8;font-size:9px;">2\uC704</div><div style="color:#94a3b8;font-size:11px;">\u2726 '+rw[1]+'</div></div>'+
+      '<div style="text-align:center;"><div style="color:#cd7f32;font-size:9px;">3\uC704</div><div style="color:#cd7f32;font-size:11px;">\u2726 '+rw[2]+'</div></div>';
+  }
+
+  // 남은 입장 횟수 표시
+  var joinBtn=document.getElementById('fw-join-btn');
+  if(joinBtn){
+    var dayKey='fw_entry_'+new Date().toDateString();
+    var used=parseInt(localStorage.getItem(dayKey)||'0',10);
+    var remain=Math.max(0,3-used);
+    joinBtn.textContent='참가하기 ('+remain+'/3)';
+    if(remain<=0){ joinBtn.style.opacity='0.4'; joinBtn.style.borderColor='#334455'; joinBtn.style.textShadow='none'; }
+    else { joinBtn.style.opacity='1'; joinBtn.style.borderColor='#00dddd'; joinBtn.style.textShadow='0 0 8px #00dddd'; }
+  }
+
+  syncPulse();
+}
+window.renderFW=renderFW;
 
 /* ── §F. 초기화 ── */
 function _initFW() {
   _injectScreens();
   _hookFWButtons();
   _updateFWTimer();
+  try { renderFW(); } catch(_) {}
   syncPulse();
 }
 
@@ -17446,6 +17633,120 @@ _injectLabScreen();
 }());
 </script>
 
+<!-- ══════════════════════════════════════════════════════
+     주파수 전쟁: 게임 수정 훅 (startNewGame / triggerGameOver 래핑)
+══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── startNewGame 래핑: 주파수 전쟁 규칙 적용 ── */
+var _origStartFW=window.startNewGame;
+if(typeof _origStartFW==='function'){
+  window.startNewGame=function(){
+    _origStartFW.apply(this,arguments);
+    if(!window._fwMode||!window._fwMode.active) return;
+    var rule=window._fwMode.rule;
+
+    setTimeout(function(){
+      if(!window.G) return;
+
+      /* ── 공통: 전투 증강 차단 (주파수 전쟁 전체) ── */
+      G._fwNoAugment=true;
+      // 전투 증강 버튼 숨김
+      var augBtn=document.getElementById('aug-btn')||document.getElementById('btn-augment');
+      if(augBtn) augBtn.style.display='none';
+      try{document.querySelectorAll('[data-augment]').forEach(function(b){b.style.display='none';});}catch(_){}
+
+      /* ── 규칙별 수정 ── */
+      if(rule==='defense_trial'){
+        var atkTab=document.getElementById('tab-atk');
+        if(atkTab){ atkTab.style.opacity='0.3'; atkTab.style.pointerEvents='none'; }
+        var defTab=document.getElementById('tab-def');
+        if(defTab) defTab.click();
+      }
+
+      if(rule==='frenzy_wave'){
+        G._fwSpeedMult=2;
+        G.goldMult=(G.goldMult||1)*2;
+      }
+
+      if(rule==='boss_rush'){
+        G._fwBossRush=true;
+      }
+
+      if(rule==='last_resource'){
+        if(typeof coreChips!=='undefined') coreChips=10000;
+        G._fwNoGoldGain=true;
+      }
+
+      if(rule==='extreme_survival'){
+        G._fwNoHeal=true;
+        G.regenRate=0;
+        G.lifeSteal=0;
+        var healUpgs=['hpRegen','vamp','maxhp'];
+        healUpgs.forEach(function(key){
+          var card=document.getElementById('upg-card-'+key);
+          if(card){ card.style.opacity='0.3'; card.style.pointerEvents='none'; }
+        });
+        // 프로토콜도 차단
+        var protoBar=document.getElementById('proto-battle-bar');
+        if(protoBar) protoBar.style.display='none';
+      }
+
+      if(rule==='silent_core'){
+        var protoBar2=document.getElementById('proto-battle-bar');
+        if(protoBar2) protoBar2.style.display='none';
+      }
+
+      if(rule==='skill_rebellion'){
+        if(G.tower){
+          G.tower.dmg=10;
+          G.tower.maxHp=100;
+          G.tower.hp=100;
+          G.tower.range=120;
+          G.tower.fireRate=1;
+        }
+        G.regenRate=0;
+        G.lifeSteal=0;
+      }
+
+    },300);
+  };
+}
+
+/* ── triggerGameOver 래핑: 주파수 전쟁 결과 처리 ── */
+var _origGameOverFW=window.triggerGameOver;
+if(typeof _origGameOverFW==='function'){
+  window.triggerGameOver=function(){
+    _origGameOverFW.apply(this,arguments);
+    if(!window._fwMode||!window._fwMode.active) return;
+    window._fwMode.active=false;
+
+    var fw=window._loadFW?window._loadFW():{};
+    var wave=G?G.wave||0:0;
+    if(wave>(fw.seasonScore||0)) fw.seasonScore=wave;
+    fw.participating=false;
+    var tierBase=[20,40,70,120,200];
+    var base=tierBase[fw.tier||0]||20;
+    if(wave>=base){ fw.wins=(fw.wins||0)+1; }
+    else { fw.losses=(fw.losses||0)+1; }
+    if(window._saveFW) window._saveFW(fw);
+
+    // 공격 탭 복원 (방어의 시험)
+    var atkTab=document.getElementById('tab-atk');
+    if(atkTab){ atkTab.style.opacity='1'; atkTab.style.pointerEvents='auto'; }
+    // 회복 업그레이드 카드 복원 (생존의 극한)
+    var healUpgs=['hpRegen','vamp','maxhp'];
+    healUpgs.forEach(function(key){
+      var card=document.getElementById('upg-card-'+key);
+      if(card){ card.style.opacity='1'; card.style.pointerEvents='auto'; }
+    });
+  };
+}
+
+}());
+</script>
 
 <!-- ══════════════════════════════════════════════════════
      에너지 흡수(피해량 기반 %) + 치명타 통계
@@ -20486,6 +20787,9 @@ if (typeof _origShowMod === 'function') {
         var mf2=document.getElementById('mods-frag'); if(mf2){ try{mf2.textContent=(JSON.parse(localStorage.getItem('td_modules')||'{}').moduleFragments||0);}catch(_){mf2.textContent=0;} }
       } catch(_){}
       _renderModuleContent();
+    }
+    if (name === 'frequency-wars') {
+      try { if(window.renderFW) renderFW(); } catch(_) {}
     }
   };
 }
