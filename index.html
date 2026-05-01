@@ -8014,8 +8014,8 @@ if (dailyPopup) {
       <div id="fw-league-name" style="color:#4488ff; font-size:16px; font-weight:bold; letter-spacing:2px;">TIER F</div>
       <div style="color:#445566; font-size:9px; margin-top:4px;">현재 리그</div>
       <div style="display:flex; justify-content:center; gap:16px; margin-top:10px;">
-        <div style="text-align:center;"><div style="color:#445566; font-size:8px;">승</div><div id="fw-wins" style="color:#00ff88; font-size:14px; font-weight:bold;">0</div></div>
-        <div style="text-align:center;"><div style="color:#445566; font-size:8px;">패</div><div id="fw-losses" style="color:#ef4444; font-size:14px; font-weight:bold;">0</div></div>
+        <div style="text-align:center;"><div style="color:#445566; font-size:8px;">최고 웨이브</div><div id="fw-best" style="color:#00dddd; font-size:14px; font-weight:bold;">0</div></div>
+        <div style="text-align:center;"><div style="color:#445566; font-size:8px;">참가</div><div id="fw-plays" style="color:#94a3b8; font-size:14px; font-weight:bold;">0</div></div>
         <div style="text-align:center;"><div style="color:#445566; font-size:8px;">순위</div><div id="fw-rank" style="color:#ffc800; font-size:14px; font-weight:bold;">-</div></div>
       </div>
     </div>
@@ -15521,7 +15521,7 @@ window.pulseFragments = parseInt(localStorage.getItem('pulseFragments') || '0') 
 
 /* ── §B. showScreen() — 새 화면 전환 함수 ── */
 var _FW_SCREENS = ['screen-frequency-wars', 'screen-signal-market',
-                   'screen-event', 'screen-ranking'];
+                   'screen-event', 'screen-ranking', 'screen-guild'];
 window.showScreen = function (name) {
   // 토너먼트는 팝업 오버레이 — 아래 화면 숨기지 않고 팝업만 토글
   if (name === 'tournament') {
@@ -15667,8 +15667,8 @@ function _injectScreens() {
           '<div id="fw-league-name" style="color:#4488ff;font-size:16px;font-weight:bold;letter-spacing:2px;">TIER F</div>' +
           '<div style="color:#445566;font-size:9px;margin-top:4px;">현재 리그</div>' +
           '<div style="display:flex;justify-content:center;gap:16px;margin-top:10px;">' +
-            '<div style="text-align:center;"><div style="color:#445566;font-size:8px;">승</div><div id="fw-wins" style="color:#00ff88;font-size:14px;font-weight:bold;">0</div></div>' +
-            '<div style="text-align:center;"><div style="color:#445566;font-size:8px;">패</div><div id="fw-losses" style="color:#ef4444;font-size:14px;font-weight:bold;">0</div></div>' +
+            '<div style="text-align:center;"><div style="color:#445566;font-size:8px;">최고 웨이브</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>' +
+            '<div style="text-align:center;"><div style="color:#445566;font-size:8px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>' +
             '<div style="text-align:center;"><div style="color:#445566;font-size:8px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:14px;font-weight:bold;">-</div></div>' +
           '</div>' +
         '</div>' +
@@ -16114,11 +16114,11 @@ function renderFW(){
   if(leagueIcon) leagueIcon.textContent=tier.icon;
   if(leagueName){ leagueName.textContent=tier.name; leagueName.style.color=tier.color; }
 
-  var winsEl=document.getElementById('fw-wins');
-  var lossEl=document.getElementById('fw-losses');
+  var bestEl=document.getElementById('fw-best');
+  var playsEl=document.getElementById('fw-plays');
   var rankEl=document.getElementById('fw-rank');
-  if(winsEl) winsEl.textContent=fw.wins||0;
-  if(lossEl) lossEl.textContent=fw.losses||0;
+  if(bestEl) bestEl.textContent=fw.seasonScore||0;
+  if(playsEl) playsEl.textContent=fw.plays||0;
   if(rankEl) rankEl.textContent=fw.rank||'-';
 
   var ruleCard=document.getElementById('fw-rule-card');
@@ -16176,15 +16176,20 @@ function renderFW(){
       '<div style="text-align:center;"><div style="color:#cd7f32;font-size:9px;">3\uC704</div><div style="color:#cd7f32;font-size:11px;">\u2726 '+rw[2]+'</div></div>';
   }
 
-  // 남은 입장 횟수 표시
+  // 남은 입장 횟수 + 정산 상태 표시
   var joinBtn=document.getElementById('fw-join-btn');
   if(joinBtn){
-    var dayKey='fw_entry_'+new Date().toDateString();
-    var used=parseInt(localStorage.getItem(dayKey)||'0',10);
-    var remain=Math.max(0,3-used);
-    joinBtn.textContent='참가하기 ('+remain+'/3)';
-    if(remain<=0){ joinBtn.style.opacity='0.4'; joinBtn.style.borderColor='#334455'; joinBtn.style.textShadow='none'; }
-    else { joinBtn.style.opacity='1'; joinBtn.style.borderColor='#00dddd'; joinBtn.style.textShadow='0 0 8px #00dddd'; }
+    if(_isSettlementPeriod()){
+      joinBtn.textContent='랭킹 정산 중...';
+      joinBtn.style.opacity='0.4'; joinBtn.style.borderColor='#334455'; joinBtn.style.textShadow='none';
+    } else {
+      var dayKey='fw_entry_'+new Date().toDateString();
+      var used=parseInt(localStorage.getItem(dayKey)||'0',10);
+      var remain=Math.max(0,3-used);
+      joinBtn.textContent='참가하기 ('+remain+'/3)';
+      if(remain<=0){ joinBtn.style.opacity='0.4'; joinBtn.style.borderColor='#334455'; joinBtn.style.textShadow='none'; }
+      else { joinBtn.style.opacity='1'; joinBtn.style.borderColor='#00dddd'; joinBtn.style.textShadow='0 0 8px #00dddd'; }
+    }
   }
 
   syncPulse();
@@ -16198,6 +16203,66 @@ function _initFW() {
   _updateFWTimer();
   try { renderFW(); } catch(_) {}
   syncPulse();
+  _checkFWSettlement();
+}
+
+/* ── 주파수 전쟁 정산 처리 ── */
+function _checkFWSettlement(){
+  var fw=_loadFW();
+  var now=new Date();
+  // 마지막 정산 주차 확인
+  var lastSettle=fw.lastSettleWeek||'';
+  // 이번 주 월요일 날짜 키 생성
+  var d=new Date(now);
+  d.setHours(0,0,0,0);
+  var day=d.getDay(); var diff2=day===0?6:day-1;
+  d.setDate(d.getDate()-diff2);
+  var weekKey=d.toISOString().slice(0,10);
+
+  // 이미 이번 주 정산 완료면 스킵
+  if(lastSettle===weekKey) return;
+  // 월요일 01시 이후에만 정산 실행 (정산 완료 시점)
+  if(now.getDay()!==1 || now.getHours()<1) return;
+  // 시즌 기록이 없으면 스킵
+  if(!fw.seasonScore || fw.seasonScore<=0) return;
+
+  // 정산 실행: 순위 계산 → 보상 발송
+  var score=fw.seasonScore;
+  var tier=fw.tier||0;
+  // 티어별 보상 (1위~10위 차등, 나머지 참가 보상)
+  var tierRewards=[[50,30,20,10],[100,60,40,20],[200,120,80,40],[400,250,150,60],[800,500,300,100]];
+  var rw=tierRewards[tier]||tierRewards[0];
+  // 가상 순위 계산 (시즌 점수 기반)
+  var tierBase=[20,40,70,120,200];
+  var base=tierBase[tier]||20;
+  var rank=score>=base*2?1:score>=base*1.5?2:score>=base?3:10;
+  var pulse=rank<=3?rw[rank-1]:rw[3];
+
+  // 우편함으로 보상 발송
+  if(window._fbDb&&window._fbUid){
+    window._fbDb.collection('mails').add({
+      type:'personal',
+      targetUid:window._fbUid,
+      title:'주파수 전쟁 시즌 보상',
+      body:'시즌 최고 웨이브: '+score+' ('+FW_TIERS[tier].name+' '+rank+'위)',
+      rewards:{pulseFragments:pulse},
+      createdAt:new Date().toISOString()
+    }).catch(function(){});
+  }
+  // 로컬 펄스 조각도 즉시 지급
+  window.pulseFragments=(window.pulseFragments||0)+pulse;
+  try{localStorage.setItem('pulseFragments',window.pulseFragments);}catch(_){}
+
+  // 시즌 리셋
+  fw.seasonScore=0;
+  fw.plays=0;
+  fw.rank=rank;
+  fw.lastSettleWeek=weekKey;
+  _saveFW(fw);
+
+  // 보상 알림
+  if(window.showRewardPopup) showRewardPopup([{icon:'✦',label:'펄스 조각',amount:pulse,color:'#ffc800'}],'주파수 전쟁 보상');
+  try{syncPulse();}catch(_){}
 }
 
 setTimeout(_initFW, 1000);
@@ -18397,8 +18462,7 @@ if(typeof _origGameOverFW==='function'){
     fw.participating=false;
     var tierBase=[20,40,70,120,200];
     var base=tierBase[fw.tier||0]||20;
-    if(wave>=base){ fw.wins=(fw.wins||0)+1; }
-    else { fw.losses=(fw.losses||0)+1; }
+    fw.plays=(fw.plays||0)+1;
     if(window._saveFW) window._saveFW(fw);
 
     // 공격 탭 복원 (방어의 시험)
