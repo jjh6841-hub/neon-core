@@ -3920,7 +3920,7 @@ function update(dt) {
           _cTargets.slice(0,_cMax).forEach(function(ct){
             ct.e.hp-=_cDmg; ct.e.hitFlash=3;
             if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
-            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:350});
+            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:600});
             addFx(ct.e.x,ct.e.y,6,'#ffc800');
           });
         }
@@ -18229,12 +18229,7 @@ function _startProtoTick(){
       }
     });
 
-    /* 시각 효과 감소 */
-    var _vfx=window._protoVisualEffects||[];
-    for(var vi=_vfx.length-1;vi>=0;vi--){
-      _vfx[vi].timer-=dtMs;
-      if(_vfx[vi].timer<=0) _vfx.splice(vi,1);
-    }
+    /* 시각 효과 감소 → render에서 처리 (틱에서 제거) */
   },500);
 }
 function _stopProtoTick(){
@@ -18266,8 +18261,15 @@ function _stopProtoTick(){
     if(!ctx) return;
     var cx=G.cx, cy=G.cy;
 
+    /* VFX 타이머 감소 (매 프레임, ~16ms) */
+    var _vfxArr=window._protoVisualEffects||[];
+    for(var _vi=_vfxArr.length-1;_vi>=0;_vi--){
+      _vfxArr[_vi].timer-=16;
+      if(_vfxArr[_vi].timer<=0) _vfxArr.splice(_vi,1);
+    }
+
     /* 플래시 효과 */
-    (window._protoVisualEffects||[]).forEach(function(vfx){
+    _vfxArr.forEach(function(vfx){
       if(vfx.type==='flash'){
         var alpha=Math.min(1, vfx.timer/200)*0.3;
         ctx.fillStyle=vfx.color;
