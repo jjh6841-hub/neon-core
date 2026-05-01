@@ -17809,12 +17809,14 @@ function _useProtocol(id){
       nearest.hp-=mainDmg;
       nearest.hitFlash=3;
       addFx(nearest.x,nearest.y,30,'#ffc800');
+      // 타워 → 첫 적 번개선
+      _protoVisualEffects.push({type:'chain',x1:cx,y1:cy,x2:nearest.x,y2:nearest.y,color:'#ffc800',timer:500});
       var hit=new Set(); hit.add(nearest);
       var cur=nearest;
       for(var ci=0;ci<chainCount;ci++){
         var next=null, nDist=Infinity;
         enemies.forEach(function(e){
-          if(hit.has(e)) return;
+          if(hit.has(e)||e.hp<=0) return;
           var dx2=e.x-cur.x, dy2=e.y-cur.y;
           var d2=Math.sqrt(dx2*dx2+dy2*dy2);
           if(d2<nDist&&d2<200){nDist=d2;next=e;}
@@ -17823,7 +17825,7 @@ function _useProtocol(id){
         next.hp-=chainDmg;
         next.hitFlash=3;
         hit.add(next);
-        _protoVisualEffects.push({type:'chain',x1:cur.x,y1:cur.y,x2:next.x,y2:next.y,color:'#ffc800',timer:300});
+        _protoVisualEffects.push({type:'chain',x1:cur.x,y1:cur.y,x2:next.x,y2:next.y,color:'#ffc800',timer:500});
         addFx(next.x,next.y,20,'#ffc800');
         cur=next;
       }
@@ -18025,14 +18027,61 @@ function _stopProtoTick(){
       }
       else if(vfx.type==='chain'){
         var alpha=Math.min(1, vfx.timer/200);
-        ctx.strokeStyle=vfx.color;
-        ctx.globalAlpha=alpha;
-        ctx.lineWidth=2;
+        var dx=vfx.x2-vfx.x1, dy=vfx.y2-vfx.y1;
+        var dist=Math.sqrt(dx*dx+dy*dy);
+        var segs=Math.max(4, Math.floor(dist/12));
+        var nx=-dy/dist, ny=dx/dist; // 법선 벡터
+        ctx.save();
+        // 외부 글로우
+        ctx.strokeStyle='#ffc800';
+        ctx.lineWidth=6;
+        ctx.globalAlpha=alpha*0.15;
         ctx.beginPath();
-        ctx.moveTo(vfx.x1, vfx.y1);
-        ctx.lineTo(vfx.x2, vfx.y2);
+        ctx.moveTo(vfx.x1,vfx.y1);
+        ctx.lineTo(vfx.x2,vfx.y2);
         ctx.stroke();
-        ctx.globalAlpha=1;
+        // 메인 번개 (지그재그)
+        ctx.lineWidth=2.5;
+        ctx.globalAlpha=alpha*0.9;
+        ctx.strokeStyle='#fff8dd';
+        ctx.beginPath();
+        ctx.moveTo(vfx.x1,vfx.y1);
+        // 시드 기반 지그재그 (vfx마다 고유 패턴)
+        var _cseed=Math.floor(vfx.x1*7+vfx.y1*13+vfx.timer);
+        for(var si=1;si<segs;si++){
+          var frac=si/segs;
+          var bx=vfx.x1+dx*frac, by=vfx.y1+dy*frac;
+          _cseed=(_cseed*1103515245+12345)&0x7fffffff;
+          var jitter=((_cseed%1000)/500-1)*12*(1-Math.abs(frac-0.5)*2);
+          ctx.lineTo(bx+nx*jitter, by+ny*jitter);
+        }
+        ctx.lineTo(vfx.x2,vfx.y2);
+        ctx.stroke();
+        // 코어 번개 (더 얇고 밝은)
+        ctx.lineWidth=1;
+        ctx.globalAlpha=alpha;
+        ctx.strokeStyle='#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(vfx.x1,vfx.y1);
+        _cseed=Math.floor(vfx.x1*7+vfx.y1*13+vfx.timer);
+        for(var si2=1;si2<segs;si2++){
+          var frac2=si2/segs;
+          var bx2=vfx.x1+dx*frac2, by2=vfx.y1+dy*frac2;
+          _cseed=(_cseed*1103515245+12345)&0x7fffffff;
+          var jitter2=((_cseed%1000)/500-1)*12*(1-Math.abs(frac2-0.5)*2);
+          ctx.lineTo(bx2+nx*jitter2, by2+ny*jitter2);
+        }
+        ctx.lineTo(vfx.x2,vfx.y2);
+        ctx.stroke();
+        // 연결점 스파크
+        ctx.fillStyle='#ffffff';
+        ctx.globalAlpha=alpha*0.8;
+        ctx.beginPath(); ctx.arc(vfx.x1,vfx.y1,3,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(vfx.x2,vfx.y2,4,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='#ffc800';
+        ctx.globalAlpha=alpha*0.4;
+        ctx.beginPath(); ctx.arc(vfx.x2,vfx.y2,8,0,Math.PI*2); ctx.fill();
+        ctx.restore();
       }
       else if(vfx.type==='blackhole'){
         var progress=1-vfx.timer/vfx.maxTimer;
