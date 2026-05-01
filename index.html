@@ -17038,7 +17038,7 @@ var PROTOCOLS = window.PROTOCOLS = [
    desc:'지속 범위 피해',
    cdReduce:3, durBase:2, durPerLv:0.8, dmgBase:100, dmgPerLv:40},
   {id:'pt_chain',      icon:'↯', color:'#ffc800', name:'체인 라이트닝',     maxLv:10, baseCd:45,
-   desc:'지속 연쇄 번개 피해',
+   desc:'공격 시 연쇄 번개 추가 발동',
    cdReduce:2, dmgBase:200, dmgPerLv:30, chainBase:3, chainPerLv:1, durBase:3, durPerLv:0.3}
 ];
 
@@ -18111,43 +18111,10 @@ function _startProtoTick(){
       }
     }
 
-    /* 지속 효과: 체인 라이트닝 (0.8초마다 연쇄 번개) */
+    /* 지속 효과: 체인 라이트닝 (지속시간 감소만, 발동은 fireTower 래핑) */
     if(_protoActiveEffects.chain){
       var ch=_protoActiveEffects.chain;
       ch.remaining-=dtMs;
-      ch.fireTimer+=dtMs;
-      if(ch.fireTimer>=800){
-        ch.fireTimer-=800;
-        var cMainDmg=Math.round(t.dmg*ch.dmgPct);
-        var cChainDmg=Math.round(cMainDmg*0.8);
-        var cNearest=null, cNd=Infinity;
-        enemies.forEach(function(e2){
-          if(e2.hp<=0) return;
-          var dx3=e2.x-cx, dy3=e2.y-cy;
-          var d3=Math.sqrt(dx3*dx3+dy3*dy3);
-          if(d3<cNd){cNd=d3;cNearest=e2;}
-        });
-        if(cNearest){
-          cNearest.hp-=cMainDmg; cNearest.hitFlash=3;
-          _protoVisualEffects.push({type:'chain',x1:cx,y1:cy,x2:cNearest.x,y2:cNearest.y,color:'#ffc800',timer:500});
-          var cHit=new Set(); cHit.add(cNearest);
-          var cCur=cNearest;
-          for(var cci=0;cci<ch.chainCount;cci++){
-            var cNext=null, cND2=Infinity;
-            enemies.forEach(function(e3){
-              if(cHit.has(e3)||e3.hp<=0) return;
-              var dx4=e3.x-cCur.x, dy4=e3.y-cCur.y;
-              var d4=Math.sqrt(dx4*dx4+dy4*dy4);
-              if(d4<cND2&&d4<200){cND2=d4;cNext=e3;}
-            });
-            if(!cNext) break;
-            cNext.hp-=cChainDmg; cNext.hitFlash=3;
-            cHit.add(cNext);
-            _protoVisualEffects.push({type:'chain',x1:cCur.x,y1:cCur.y,x2:cNext.x,y2:cNext.y,color:'#ffc800',timer:500});
-            cCur=cNext;
-          }
-        }
-      }
       if(ch.remaining<=0){
         delete _protoActiveEffects.chain;
         _startCdAfterEffect('pt_chain');
@@ -18686,6 +18653,49 @@ if (typeof _origFireT === 'function') {
         var prev = parseFloat(localStorage.getItem('stat_crit_dmg')||'0');
         localStorage.setItem('stat_crit_dmg', (prev + dmg)._tf1());
       }
+    }
+  };
+}
+
+/* ── 체인 라이트닝: 공격 시 연쇄 번개 발동 (fireTower 래핑) ── */
+var _origFireChain = window.fireTower;
+if (typeof _origFireChain === 'function') {
+  window.fireTower = function() {
+    _origFireChain.apply(this, arguments);
+    if (!window._protoActiveEffects || !_protoActiveEffects.chain) return;
+    if (!window.G || G.phase !== 'playing') return;
+    var ch = _protoActiveEffects.chain;
+    var t2 = G.tower;
+    var enemies2 = G.enemies || [];
+    var cx2 = G.cx, cy2 = G.cy;
+    var cMainDmg = Math.round(t2.dmg * ch.dmgPct);
+    var cChainDmg = Math.round(cMainDmg * 0.8);
+    // 가장 가까운 적 찾기
+    var cNearest = null, cNd = Infinity;
+    enemies2.forEach(function(e) {
+      if (e.hp <= 0) return;
+      var dx = e.x - cx2, dy = e.y - cy2;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < cNd) { cNd = d; cNearest = e; }
+    });
+    if (!cNearest) return;
+    cNearest.hp -= cMainDmg; cNearest.hitFlash = 3;
+    if (window._protoVisualEffects) _protoVisualEffects.push({type:'chain', x1:cx2, y1:cy2, x2:cNearest.x, y2:cNearest.y, color:'#ffc800', timer:400});
+    var cHit = new Set(); cHit.add(cNearest);
+    var cCur = cNearest;
+    for (var cci = 0; cci < ch.chainCount; cci++) {
+      var cNext = null, cND2 = Infinity;
+      enemies2.forEach(function(e3) {
+        if (cHit.has(e3) || e3.hp <= 0) return;
+        var dx4 = e3.x - cCur.x, dy4 = e3.y - cCur.y;
+        var d4 = Math.sqrt(dx4 * dx4 + dy4 * dy4);
+        if (d4 < cND2 && d4 < 200) { cND2 = d4; cNext = e3; }
+      });
+      if (!cNext) break;
+      cNext.hp -= cChainDmg; cNext.hitFlash = 3;
+      cHit.add(cNext);
+      if (window._protoVisualEffects) _protoVisualEffects.push({type:'chain', x1:cCur.x, y1:cCur.y, x2:cNext.x, y2:cNext.y, color:'#ffc800', timer:400});
+      cCur = cNext;
     }
   };
 }
