@@ -17714,8 +17714,8 @@ document.querySelectorAll('[data-navlock="season"]').forEach(function(btn){
 ═══════════════════════════════════════════════════ */
 var _protoAutoMode=localStorage.getItem('proto_auto')==='1';
 var _protoCooldowns={};
-var _protoActiveEffects={};
-var _protoVisualEffects=[];
+var _protoActiveEffects=window._protoActiveEffects={};
+var _protoVisualEffects=window._protoVisualEffects=[];
 
 /* 장착된 프로토콜만 반환 */
 function _getEquippedProtocols(){
@@ -17759,11 +17759,26 @@ function _injectProtoBar(){
       var _holdTimer=null;
       b.addEventListener('touchstart',function(e){
         _holdTimer=setTimeout(function(){
-          if(window.showToastMsg) showToastMsg(proto.name,proto.color);
+          var rect=b.getBoundingClientRect();
+          var tip=document.createElement('div');
+          tip.className='proto-tip';
+          tip.style.cssText='position:fixed;z-index:9999;background:#0d1520;border:1px solid '+proto.color+';border-radius:4px;color:'+proto.color+';font-family:monospace;font-size:9px;padding:3px 8px;pointer-events:none;white-space:nowrap;';
+          tip.style.left=(rect.left+rect.width/2)+'px';
+          tip.style.top=(rect.top-24)+'px';
+          tip.style.transform='translateX(-50%)';
+          tip.textContent=proto.name;
+          document.body.appendChild(tip);
+          setTimeout(function(){tip.remove();},1200);
         },400);
       },{passive:true});
-      b.addEventListener('touchend',function(){ clearTimeout(_holdTimer); },{passive:true});
-      b.addEventListener('touchcancel',function(){ clearTimeout(_holdTimer); },{passive:true});
+      b.addEventListener('touchend',function(){
+        clearTimeout(_holdTimer);
+        document.querySelectorAll('.proto-tip').forEach(function(t){t.remove();});
+      },{passive:true});
+      b.addEventListener('touchcancel',function(){
+        clearTimeout(_holdTimer);
+        document.querySelectorAll('.proto-tip').forEach(function(t){t.remove();});
+      },{passive:true});
     })(p,btn);
     bar.appendChild(btn);
   });
@@ -18230,17 +18245,18 @@ function _stopProtoTick(){
       /* blackhole, giganto는 _protoActiveEffects 기반 렌더링으로 이동 */
     });
 
-    /* 분열 레이저 빔 드로잉 */
+    /* 분열 레이저 빔 드로잉 (실시간 회전) */
     if(_protoActiveEffects.splitlaser){
       var sl=_protoActiveEffects.splitlaser;
       var range=G.tower.range||162;
+      var realAngle=-(performance.now()-sl.startTime)/1000*Math.PI/3; // 실시간 계산
       ctx.save();
       ctx.globalAlpha=0.7;
       ctx.lineWidth=3;
       ctx.shadowColor='#00ffff';
       ctx.shadowBlur=10;
       for(var bi=0;bi<sl.beamCount;bi++){
-        var bAngle=sl.angle+(Math.PI*2/sl.beamCount)*bi;
+        var bAngle=realAngle+(Math.PI*2/sl.beamCount)*bi;
         ctx.strokeStyle='#00ffff';
         ctx.beginPath();
         ctx.moveTo(cx,cy);
@@ -18292,7 +18308,9 @@ function _stopProtoTick(){
       ctx.save();
       // 화면 흔들림
       ctx.translate(Math.sin(gT*40)*3, Math.cos(gT*33)*2.5);
-      // 바닥 균열선 (불규칙 지그재그)
+      // 클리핑: 공격 범위 원 안에서만 렌더링
+      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.clip();
+      // 바닥 균열선
       ctx.strokeStyle='#ef4444';
       for(var gc=0;gc<5;gc++){
         var gcA=gc*(Math.PI*2/5)+0.3;
@@ -18300,26 +18318,25 @@ function _stopProtoTick(){
         ctx.globalAlpha=0.35;
         ctx.beginPath();
         ctx.moveTo(cx,cy);
-        var segLen=gRange*0.18;
+        var segLen=gRange*0.2;
         var gx2=cx, gy2=cy;
         for(var gs=0;gs<4;gs++){
-          gx2+=Math.cos(gcA)*segLen+(gs%2===0?5:-5);
-          gy2+=Math.sin(gcA)*segLen+(gs%2===0?-4:4);
+          gx2+=Math.cos(gcA)*segLen+(gs%2===0?4:-4);
+          gy2+=Math.sin(gcA)*segLen+(gs%2===0?-3:3);
           ctx.lineTo(gx2,gy2);
         }
         ctx.stroke();
       }
-      // 범위 테두리 (미세 진동)
-      ctx.globalAlpha=0.1;
-      ctx.strokeStyle='#ff4444';
-      ctx.lineWidth=1;
-      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.stroke();
-      // 먼지/파편 (위로 튀어오르는 점)
+      // 범위 영역 틴트
+      ctx.globalAlpha=0.06;
+      ctx.fillStyle='#ef4444';
+      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.fill();
+      // 먼지/파편
       ctx.globalAlpha=0.5;
       for(var gd=0;gd<10;gd++){
         var gdA=gd*(Math.PI*2/10)+gT*0.3;
-        var gdR=gRange*(0.15+0.5*Math.abs(Math.sin(gT*2+gd)));
-        var gdY=cy+Math.sin(gdA)*gdR-Math.abs(Math.sin(gT*5+gd*2))*8;
+        var gdR=gRange*(0.15+0.45*Math.abs(Math.sin(gT*2+gd)));
+        var gdY=cy+Math.sin(gdA)*gdR-Math.abs(Math.sin(gT*5+gd*2))*6;
         ctx.fillStyle=gd%3===0?'#ff8844':'#cc4444';
         ctx.fillRect(cx+Math.cos(gdA)*gdR-1,gdY-1,2,2);
       }
