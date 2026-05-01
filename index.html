@@ -17622,37 +17622,30 @@ function _getEquippedProtocols(){
 }
 
 function _injectProtoBar(){
-  var adWrap=document.getElementById('gem-ad-wrap'); if(!adWrap) return;
+  var shop=document.getElementById('screen-shop'); if(!shop) return;
   if(document.getElementById('proto-battle-bar')) return;
   var equipped=_getEquippedProtocols();
   if(equipped.length===0) return;
 
-  // gem-ad-wrap을 flex 컨테이너로 설정
-  adWrap.style.display='flex';
-  adWrap.style.alignItems='center';
-  adWrap.style.gap='4px';
-
-  // 스킬 버튼들을 광고 우측에 배치
+  // 독립 바: screen-shop 내부, 광고와 같은 높이에 우측 배치
   var bar=document.createElement('div');
   bar.id='proto-battle-bar';
-  bar.style.cssText='display:flex;align-items:center;gap:3px;margin-left:4px;';
+  bar.style.cssText='position:absolute;top:-28px;right:6px;z-index:10;display:flex;align-items:center;gap:3px;pointer-events:auto;';
 
   equipped.forEach(function(p){
     _protoCooldowns[p.id]={ready:true,timer:0};
     var btn=document.createElement('button');
     btn.id='proto-btn-'+p.id;
-    btn.style.cssText='width:28px;height:28px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
-    btn.innerHTML=_protoIconHTML(p.id,p.color,16)+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:7px;color:#94a3b8;pointer-events:none;"></div>';
+    btn.style.cssText='width:26px;height:26px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
+    btn.innerHTML=_protoIconHTML(p.id,p.color,14)+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:7px;color:#94a3b8;pointer-events:none;"></div>';
     btn.addEventListener('click',function(){ _useProtocol(p.id); });
     bar.appendChild(btn);
   });
 
-  adWrap.appendChild(bar);
-
   // AUTO 버튼 (제일 우측)
   var autoBtn=document.createElement('button');
   autoBtn.id='proto-auto-btn';
-  autoBtn.style.cssText='padding:2px 6px;border:1px solid '+(_protoAutoMode?'#00ff88':'#334455')+';background:#0a1520;color:'+(_protoAutoMode?'#00ff88':'#334455')+';font-family:monospace;font-size:8px;font-weight:bold;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;line-height:1.2;';
+  autoBtn.style.cssText='padding:2px 5px;border:1px solid '+(_protoAutoMode?'#00ff88':'#334455')+';background:rgba(10,21,32,0.85);color:'+(_protoAutoMode?'#00ff88':'#334455')+';font-family:monospace;font-size:7px;font-weight:bold;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;line-height:1.2;';
   autoBtn.textContent='AUTO';
   autoBtn.addEventListener('click',function(){
     _protoAutoMode=!_protoAutoMode;
@@ -17660,7 +17653,9 @@ function _injectProtoBar(){
     autoBtn.style.borderColor=_protoAutoMode?'#00ff88':'#334455';
     autoBtn.style.color=_protoAutoMode?'#00ff88':'#334455';
   });
-  adWrap.appendChild(autoBtn);
+  bar.appendChild(autoBtn);
+
+  shop.appendChild(bar);
 }
 
 function _removeProtoBar(){
