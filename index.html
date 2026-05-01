@@ -17856,8 +17856,9 @@ function _startProtoTick(){
   if(_protoTickInterval) return;
   _protoTickInterval=setInterval(function(){
     if(!window.G||G.phase!=='playing') return;
-    var dtSec=0.5;
-    var dtMs=500;
+    var spd=G.speed||1;
+    var dtSec=0.5*spd;
+    var dtMs=500*spd;
     var t=G.tower;
     var enemies=G.enemies||[];
     var cx=G.cx, cy=G.cy;
@@ -17887,15 +17888,20 @@ function _startProtoTick(){
     if(_protoActiveEffects.blackhole){
       var bh=_protoActiveEffects.blackhole;
       bh.remaining-=dtMs;
-      var pullStr=3;
-      enemies.forEach(function(e){
-        var dx=cx-e.x, dy=cy-e.y;
-        var dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist>40&&dist>1){
-          e.x+=dx/dist*pullStr;
-          e.y+=dy/dist*pullStr;
-        }
-      });
+      var pullStr=8*spd; // 배속 반영 + 강도 증가
+      if(t){
+        var tx=t.x||cx, ty=t.y||cy;
+        enemies.forEach(function(e){
+          if(e.hp<=0) return;
+          var dx=tx-e.x, dy=ty-e.y;
+          var dist=Math.sqrt(dx*dx+dy*dy);
+          if(dist>30&&dist>1){ // 타워 30px 이내에는 접근 불가
+            var pull=Math.min(pullStr, dist-30);
+            e.x+=dx/dist*pull;
+            e.y+=dy/dist*pull;
+          }
+        });
+      }
       if(bh.remaining<=0){
         G._ptInvincible=false;
         delete _protoActiveEffects.blackhole;
@@ -18031,17 +18037,52 @@ function _stopProtoTick(){
       }
       else if(vfx.type==='blackhole'){
         var progress=1-vfx.timer/vfx.maxTimer;
-        var radius=30+progress*20;
+        var bTime=performance.now()*0.001;
+        var maxR=80+progress*30;
         ctx.save();
-        ctx.globalAlpha=0.4;
-        ctx.strokeStyle='#8b5cf6';
-        ctx.lineWidth=3;
-        ctx.beginPath();
-        ctx.arc(cx,cy,radius,0,Math.PI*2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx,cy,radius*0.6,0,Math.PI*2);
-        ctx.stroke();
+        // 검은 중심 (이벤트 호라이즌)
+        var coreR=20+progress*10;
+        var coreGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
+        coreGrd.addColorStop(0,'rgba(0,0,0,0.95)');
+        coreGrd.addColorStop(0.6,'rgba(10,0,30,0.8)');
+        coreGrd.addColorStop(1,'rgba(20,0,50,0)');
+        ctx.fillStyle=coreGrd;
+        ctx.beginPath(); ctx.arc(cx,cy,coreR,0,Math.PI*2); ctx.fill();
+        // 흡수 소용돌이 (회전 나선)
+        for(var si=0;si<4;si++){
+          var sAngle=bTime*2+si*(Math.PI/2);
+          ctx.strokeStyle='#8b5cf6';
+          ctx.lineWidth=2-si*0.3;
+          ctx.globalAlpha=0.5-si*0.1;
+          ctx.beginPath();
+          for(var st=0;st<30;st++){
+            var frac=st/30;
+            var r=coreR+frac*(maxR-coreR);
+            var a=sAngle+frac*Math.PI*2.5;
+            var px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r;
+            if(st===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+          }
+          ctx.stroke();
+        }
+        // 외곽 왜곡 링들
+        for(var ri=0;ri<3;ri++){
+          var rr=maxR*(0.5+ri*0.25);
+          ctx.globalAlpha=0.25-ri*0.07;
+          ctx.strokeStyle=ri===0?'#bb77ff':ri===1?'#6644cc':'#4422aa';
+          ctx.lineWidth=2.5-ri*0.5;
+          ctx.beginPath(); ctx.arc(cx,cy,rr,0,Math.PI*2); ctx.stroke();
+        }
+        // 흡수 파티클 (안쪽으로 빨려드는 점)
+        ctx.globalAlpha=0.6;
+        for(var pi=0;pi<12;pi++){
+          var pa=bTime*3+pi*(Math.PI*2/12);
+          var pDist=maxR*(0.4+0.6*((Math.sin(bTime*4+pi)*0.5+0.5)));
+          var px2=cx+Math.cos(pa)*pDist, py2=cy+Math.sin(pa)*pDist;
+          var pSz=1.5+Math.sin(bTime*5+pi)*0.5;
+          ctx.fillStyle='#cc88ff';
+          ctx.beginPath(); ctx.arc(px2,py2,pSz,0,Math.PI*2); ctx.fill();
+        }
+        ctx.globalAlpha=1;
         ctx.restore();
       }
       else if(vfx.type==='giganto'){
