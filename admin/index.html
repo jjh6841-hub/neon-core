@@ -610,25 +610,47 @@ function renderModal() {
 
   /* ── 결제 테스트 탭 ── */
   var STORE_PACKAGES = [
-    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 영구 제거', price:'₩11,000', once:true, color:'#00ffff',
+    // ── 보석 탭 ──
+    { id:'gem_110',  name:'보석 110개',  desc:'보석 탭', price:'₩5,500',   once:false, color:'#00ffff', section:'보석',
+      rewards:{ gems:110 },  rewardLabel:'보석 110' },
+    { id:'gem_330',  name:'보석 330개',  desc:'보석 탭', price:'₩14,000',  once:false, color:'#00ffff', section:'보석',
+      rewards:{ gems:330 },  rewardLabel:'보석 330' },
+    { id:'gem_660',  name:'보석 660개',  desc:'보석 탭 (+20%)', price:'₩27,500',  once:false, color:'#00ffff', section:'보석',
+      rewards:{ gems:660 },  rewardLabel:'보석 660' },
+    { id:'gem_1100', name:'보석 1,100개', desc:'보석 탭 (+33%)', price:'₩44,000',  once:false, color:'#00ffff', section:'보석',
+      rewards:{ gems:1100 }, rewardLabel:'보석 1,100' },
+    { id:'gem_1870', name:'보석 1,870개', desc:'보석 탭 (+40%)', price:'₩66,000',  once:false, color:'#00ffff', section:'보석',
+      rewards:{ gems:1870 }, rewardLabel:'보석 1,870' },
+    { id:'gem_3850', name:'보석 3,850개', desc:'보석 탭 (+50% BEST)', price:'₩132,000', once:false, color:'#00ffff', section:'보석',
+      rewards:{ gems:3850 }, rewardLabel:'보석 3,850' },
+    // ── 패키지 탭 ──
+    { id:'ad_remove', name:'광고 영구제거', desc:'모든 광고 영구 제거', price:'₩11,000', once:true, color:'#cc44ff', section:'패키지',
       rewards:{ gems:100 }, rewardLabel:'보석 100' },
-    { id:'starter', name:'스타터 팩', desc:'1회 한정', price:'₩3,300', once:true, color:'#cc44ff',
+    { id:'starter', name:'스타터 팩', desc:'1회 한정', price:'₩3,300', once:true, color:'#cc44ff', section:'패키지',
       rewards:{ gold:1000, gems:100 }, rewardLabel:'골드 1,000 + 보석 100' },
-    { id:'growth', name:'성장 팩', desc:'1회 한정', price:'₩9,900', once:true, color:'#cc44ff',
+    { id:'growth', name:'성장 팩', desc:'1회 한정', price:'₩9,900', once:true, color:'#cc44ff', section:'패키지',
       rewards:{ gold:3000, gems:300 }, rewardLabel:'골드 3,000 + 보석 300' },
-    { id:'monthly', name:'월간 팩', desc:'30일간 매일 지급', price:'₩16,500', once:false, color:'#10b981',
+    { id:'monthly', name:'월간 팩', desc:'30일간 매일 지급', price:'₩16,500', once:false, color:'#10b981', section:'패키지',
       rewards:{ gold:300, gems:30 }, rewardLabel:'골드 300/일 + 보석 30/일 (활성화)' },
-    { id:'lab_boost', name:'코어랩 가속', desc:'연구 시간 10% 영구 감소', price:'₩9,900', once:true, color:'#5bc0de',
-      rewards:{}, rewardLabel:'연구 시간 -10% (기능 활성화)', flag:'lab_boost' },
-    { id:'pcore', name:'파워 코어 팩', desc:'월 최대 5회', price:'₩11,000', once:false, maxPerMonth:5, color:'#ff8822',
+    { id:'pcore', name:'파워 코어 팩', desc:'월 최대 5회', price:'₩11,000', once:false, maxPerMonth:5, color:'#ff8822', section:'패키지',
       rewards:{ powerCores:100 }, rewardLabel:'파워 코어 100' },
-    { id:'acode', name:'접근 코드 팩', desc:'월 최대 5회', price:'₩1,100', once:false, maxPerMonth:5, color:'#bb44ff',
+    { id:'acode', name:'접근 코드 팩', desc:'월 최대 5회', price:'₩1,100', once:false, maxPerMonth:5, color:'#bb44ff', section:'패키지',
       rewards:{ accessCodes:100 }, rewardLabel:'접근 코드 100' },
+    // ── 이벤트 탭 ──
+    { id:'absorb', name:'바이탈 드레인', desc:'에너지 흡수율 영구 +5%', price:'₩6,900', once:true, color:'#cc0044', section:'이벤트',
+      rewards:{}, rewardLabel:'에너지 흡수율 +5% (기능 활성화)', flag:'absorb' },
+    { id:'lab_boost', name:'코어랩 가속', desc:'연구 시간 10% 영구 감소', price:'₩9,900', once:true, color:'#5bc0de', section:'이벤트',
+      rewards:{}, rewardLabel:'연구 시간 -10% (기능 활성화)', flag:'lab_boost' },
   ];
 
   var purchases = (currentUser.data.perm && currentUser.data.perm.purchases) || {};
   var purchHtml = '<div style="color:#556677;font-size:10px;margin-bottom:12px;">유저에게 패키지를 구매 시뮬레이션합니다. 보상이 우편함으로 발송됩니다.</div>';
+  var _lastSection = '';
   STORE_PACKAGES.forEach(function(pkg){
+    if (pkg.section && pkg.section !== _lastSection) {
+      _lastSection = pkg.section;
+      purchHtml += '<div style="color:#00ffff;font-size:10px;letter-spacing:1px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #0a3344;">'+pkg.section+'</div>';
+    }
     var bought = purchases[pkg.id] || 0;
     var statusText = '';
     if (pkg.once) {
@@ -707,6 +729,10 @@ function renderModal() {
       // lab_boost: 플래그 저장
       if (pkgId === 'lab_boost') {
         updateData['perm.purchases.lab_boost'] = 1;
+      }
+      // absorb: 플래그 저장
+      if (pkgId === 'absorb') {
+        updateData['perm.purchases.absorb'] = 1;
       }
 
       await db.collection('users').doc(currentUser.id).update(updateData);

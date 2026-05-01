@@ -2799,6 +2799,7 @@ function syncFromFirebase() {
       if (cPurch.starter)   localStorage.setItem('pkg_starter','1');
       if (cPurch.growth)    localStorage.setItem('pkg_growth','1');
       if (cPurch.lab_boost) localStorage.setItem('pkg_lab_boost','1');
+      if (cPurch.absorb)   localStorage.setItem('shop_absorb_bonus','0.05');
       if (cPurch.monthly && cPurch.monthly_start && cPurch.monthly_end) {
         localStorage.setItem('pkg_monthly_start', cPurch.monthly_start);
         localStorage.setItem('pkg_monthly_end', cPurch.monthly_end);
