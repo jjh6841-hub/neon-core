@@ -13350,12 +13350,19 @@ function _renderRanking() {
 function _openRanking() {
   var sc=document.getElementById('screen-ranking');
   if(!sc) return;
-  var gem=document.getElementById('ranking-gem');
-  if(gem) gem.textContent=(window.PERM&&window.PERM.gems)||0;
   sc.style.display='flex';
   var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
+  // 항상 웨이브 탭으로 리셋
+  _activeRankTab='wave';
+  var rtabs=sc.querySelectorAll('.rank-tab');
+  for(var i=0;i<rtabs.length;i++){
+    var isWave=rtabs[i].getAttribute('data-rtab')==='wave';
+    rtabs[i].style.color=isWave?'#00ffff':'#334455';
+    rtabs[i].style.borderBottom=isWave?'2px solid #00ffff':'2px solid transparent';
+  }
   _renderRanking();
 }
+window._openRanking = _openRanking;
 
 function _closeRanking() {
   if(window.showScreen) showScreen('home');
@@ -20941,6 +20948,9 @@ if (typeof _origShowMod === 'function') {
     }
     if (name === 'frequency-wars') {
       try { if(window.renderFW) renderFW(); } catch(_) {}
+    }
+    if (name === 'ranking') {
+      try { if(window._openRanking) _openRanking(); } catch(_) {}
     }
   };
 }
