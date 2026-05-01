@@ -3337,6 +3337,8 @@ function createState() {
     killCount:    0,   // enemies killed this run
     goldEarned:   0,   // gold earned this run
     goldBaseEarned: 0, // base gold (1x, before multipliers)
+    _goldFrac: 0,     // 골드 소수점 누적
+    _goldBaseFrac: 0, // 기본 골드 소수점 누적
     upgLvl:       {},  // in-game upgrade purchase counts
 
     tower: {
@@ -3940,8 +3942,16 @@ function update(dt) {
           PERM.totalKills++;
           _infKill(e.type);
           var _eGold = e.gold || 1;
-          var _eBase = Math.round(_eGold * 0.5);
-          _eGold = Math.round(_eGold * (G.goldMult||1) * 0.5);
+          var _eBaseRaw = e.baseGold || Math.round(_eGold / (e._planetGoldMult||1));
+          // 골드 소수점 누적 (2마리당 1골드 구현)
+          var _rawBase = _eBaseRaw * 0.5;
+          var _rawTotal = _eGold * (G.goldMult||1) * 0.5;
+          G._goldFrac = (G._goldFrac||0) + _rawTotal;
+          _eGold = Math.floor(G._goldFrac);
+          G._goldFrac -= _eGold;
+          G._goldBaseFrac = (G._goldBaseFrac||0) + _rawBase;
+          var _eBase = Math.floor(G._goldBaseFrac);
+          G._goldBaseFrac -= _eBase;
           if (_eGold > 0) { G.gold += _eGold; G.goldEarned += _eGold; G.goldBaseEarned += _eBase; PERM.gold += _eGold; var _gx=(e.x+G.cx)/2, _gy=(e.y+G.cy)/2; G.floatTexts.push({x:_gx,y:_gy+12,text:'+'+_eGold+' \u25C8',color:'#f59e0b',timer:0}); }
           // 분열 적: 죽으면 기본 드론 2개 소환
           if (e.type === 'split' && !e._isSplitChild) {
@@ -4266,6 +4276,8 @@ function mkEnemy(etype) {
     r:         r,
     spd:       spd,
     gold:      Math.ceil(gold),
+    baseGold:  Math.ceil(gold / (_planetGoldMult||1)),
+    _planetGoldMult: _planetGoldMult,
     gem:       gem,
     atkTimer:  0,
     enraged:   false,
