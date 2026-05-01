@@ -17261,7 +17261,7 @@ function _showProtoResult(drawn){
       dupInfo=' <span style="color:#4a6a7a;font-size:8px;">('+((pd.dup||0))+'/'+dn+')</span>';
     }
     html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #0a1520;">'+
-      '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_protoIconHTML(p.id,p.color,28)+'</div>'+
+      '<div style="width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_protoIconHTML(p.id,p.color,20)+'</div>'+
       '<div style="flex:1;"><div style="color:#f1f5f9;font-size:11px;">'+p.name+'</div>'+
       '<div style="color:#556677;font-size:9px;">Lv.'+pd.lv+'/'+p.maxLv+dupInfo+'</div></div>'+
       '<span style="color:'+(r.isNew?'#00ff88':r.maxConvert?'#f59e0b':p.color)+';font-size:10px;">'+label+'</span></div>';
@@ -17358,7 +17358,7 @@ function renderLab(){
     var equipped=false;
     for(var ei=0;ei<6;ei++){if(slots.equipped[ei]===p.id){equipped=true;break;}}
     html+='<div data-proto-id="'+p.id+'" style="display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:4px;background:'+(equipped?'#0c1428':'#0c0c22')+';border:1px solid '+p.color+'33;cursor:pointer;'+(equipped?'border-left:3px solid '+p.color+';':'')+'">'+
-      '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;filter:drop-shadow(0 0 6px '+p.color+'44);">'+_protoIconHTML(p.id,p.color,36)+'</div>'+
+      '<div style="width:36px;height:36px;border:2px solid '+p.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 8px '+p.color+'33;">'+_protoIconHTML(p.id,p.color,24)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;">'+
           '<span style="color:#f1f5f9;font-size:11px;font-weight:bold;">'+p.name+'</span>'+
@@ -17503,7 +17503,7 @@ function _showProtoDetailPopup(pid){
 
   var box='<div style="background:#0d1520;border:2px solid '+p.color+'44;border-radius:12px;width:290px;max-width:92%;padding:20px;text-align:center;">';
   // 아이콘
-  box+='<div style="margin:8px auto;filter:drop-shadow(0 0 10px '+(owned?p.color:'#445566')+'66);">'+_protoIconHTML(pid, owned?p.color:'#445566', 64)+'</div>';
+  box+='<div style="width:64px;height:64px;margin:8px auto;border:2px solid '+(owned?p.color:'#445566')+';border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px '+(owned?p.color:'#445566')+'44;">'+_protoIconHTML(pid, owned?p.color:'#445566', 40)+'</div>';
   // 이름
   box+='<div style="font-size:15px;color:#f1f5f9;font-weight:bold;margin-bottom:4px;">'+p.name+'</div>';
   // 레벨 별
