@@ -17587,7 +17587,7 @@ document.querySelectorAll('[data-navlock="season"]').forEach(function(btn){
 /* ═══════════════════════════════════════════════════
    전투 중 프로토콜 스킬 버튼 + 자동 사용 + 효과
 ═══════════════════════════════════════════════════ */
-var _protoAutoMode=false;
+var _protoAutoMode=localStorage.getItem('proto_auto')==='1';
 var _protoCooldowns={};
 var _protoActiveEffects={};
 var _protoVisualEffects=[];
@@ -17640,10 +17640,11 @@ function _injectProtoBar(){
   if(adWrap){
     var autoBtn=document.createElement('button');
     autoBtn.id='proto-auto-btn';
-    autoBtn.style.cssText='padding:2px 6px;border:1px solid #334455;background:#0a1520;color:#334455;font-family:monospace;font-size:8px;font-weight:bold;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;margin-left:4px;line-height:1.2;';
+    autoBtn.style.cssText='padding:2px 6px;border:1px solid '+(_protoAutoMode?'#00ff88':'#334455')+';background:#0a1520;color:'+(_protoAutoMode?'#00ff88':'#334455')+';font-family:monospace;font-size:8px;font-weight:bold;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;margin-left:4px;line-height:1.2;';
     autoBtn.textContent='AUTO';
     autoBtn.addEventListener('click',function(){
       _protoAutoMode=!_protoAutoMode;
+      localStorage.setItem('proto_auto',_protoAutoMode?'1':'0');
       autoBtn.style.borderColor=_protoAutoMode?'#00ff88':'#334455';
       autoBtn.style.color=_protoAutoMode?'#00ff88':'#334455';
     });
@@ -17662,7 +17663,7 @@ function _removeProtoBar(){
   _protoCooldowns={};
   _protoActiveEffects={};
   _protoVisualEffects=[];
-  _protoAutoMode=false;
+  // _protoAutoMode는 유지 (localStorage에 저장됨)
 }
 
 /* ── 스킬 효과 구현 ── */
@@ -17864,10 +17865,17 @@ function _startProtoTick(){
     var enemies=G.enemies||[];
     var cx=G.cx, cy=G.cy;
 
-    /* 쿨다운 감소 */
+    /* 쿨다운 감소 (지속 효과 발동 중인 스킬은 쿨다운 정지) */
+    var _activeIds={};
+    if(_protoActiveEffects.overdrive) _activeIds.pt_overdrive=true;
+    if(_protoActiveEffects.blackhole) _activeIds.pt_blackhole=true;
+    if(_protoActiveEffects.timewarp) _activeIds.pt_timewarp=true;
+    if(_protoActiveEffects.splitlaser) _activeIds.pt_splitlaser=true;
+    if(_protoActiveEffects.overheat) _activeIds.pt_overheat=true;
+    if(_protoActiveEffects.giganto) _activeIds.pt_giganto=true;
     Object.keys(_protoCooldowns).forEach(function(id){
       var cd=_protoCooldowns[id];
-      if(!cd.ready){
+      if(!cd.ready&&!_activeIds[id]){
         cd.timer-=dtSec;
         if(cd.timer<=0){ cd.ready=true; cd.timer=0; }
         _updateProtoCdDisplay(id);
