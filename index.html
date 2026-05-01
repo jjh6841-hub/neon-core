@@ -18249,8 +18249,8 @@ function _stopProtoTick(){
     });
 
     /* 분열 레이저 빔 드로잉 (실시간 회전) */
-    if(_protoActiveEffects.splitlaser){
-      var sl=_protoActiveEffects.splitlaser;
+    if(window._protoActiveEffects&&window._protoActiveEffects.splitlaser){
+      var sl=window._protoActiveEffects.splitlaser;
       var range=G.tower.range||162;
       var realAngle=-(performance.now()-sl.startTime)/1000*Math.PI/3; // 실시간 계산
       ctx.save();
@@ -18271,7 +18271,7 @@ function _stopProtoTick(){
     }
 
     /* 블랙홀 드로잉 (타워+15px, 워프 포탈) */
-    if(_protoActiveEffects.blackhole){
+    if(window._protoActiveEffects&&window._protoActiveEffects.blackhole){
       var bTime=performance.now()*0.001;
       var towerR=(G.tower&&G.tower.r)||12;
       var bhR=towerR*2+15; // 타워 지름 + 15px
@@ -18304,11 +18304,11 @@ function _stopProtoTick(){
       ctx.restore();
     }
 
-    /* 기간토마키아 (지진 — 캔버스 전체 흔들림) */
-    if(_protoActiveEffects.giganto){
+    /* 기간토마키아 (지진 — 캔버스 흔들림) */
+    var _aeGi=window._protoActiveEffects&&window._protoActiveEffects.giganto;
+    if(_aeGi){
       var _gt=performance.now()*0.001;
-      // 캔버스 흔들림 (다음 프레임에서 리셋됨)
-      canvas.style.transform='translate('+Math.sin(_gt*40)*2+'px,'+Math.cos(_gt*33)*1.5+'px)';
+      canvas.style.transform='translate('+Math.sin(_gt*35)*4+'px,'+Math.cos(_gt*28)*3+'px)';
       canvas.dataset._gigantoShake='1';
     } else if(canvas.dataset._gigantoShake){
       canvas.style.transform='';
@@ -18316,7 +18316,7 @@ function _stopProtoTick(){
     }
 
     /* 레이저 오버드라이브 (타워 아래 붉은 글로우) */
-    if(_protoActiveEffects.overdrive){
+    if(window._protoActiveEffects&&window._protoActiveEffects.overdrive){
       ctx.save();
       ctx.shadowColor='#ff4444';
       ctx.shadowBlur=25+8*Math.sin(performance.now()*0.005);
@@ -18328,7 +18328,7 @@ function _stopProtoTick(){
     }
 
     /* 과열 레이저 (타워 아래 주황 글로우) */
-    if(_protoActiveEffects.overheat){
+    if(window._protoActiveEffects&&window._protoActiveEffects.overheat){
       ctx.save();
       ctx.shadowColor='#ff8822';
       ctx.shadowBlur=25+8*Math.sin(performance.now()*0.007);
