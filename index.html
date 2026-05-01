@@ -13192,12 +13192,38 @@ function _getActiveRankTab(){
 }
 
 function _getPlayerPower(){
+  // 통계에서 이미 계산된 값이 있으면 사용
+  if(window._statAllDmg!==undefined){
+    return (window._statAllDmg||0)+(window._statAllHp||0)+(window._statAllDef||0);
+  }
+  // 없으면 직접 계산 (통계와 동일 공식)
   if(!window.PERM) return 0;
   var ws=PERM.ws||{};
-  var dmg=10+(ws.damage||0)*5;
-  var hp=100+(ws.maxHp||0)*20;
-  var def=(ws.defense||0)*3;
-  return dmg+hp+def;
+  var baseDmg=Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0)));
+  var baseHp=Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0)));
+  var baseDefAbs=ws.defAbs||0;
+  var rDmgLv=parseInt(localStorage.getItem('res_r_damage')||'0',10);
+  var rHpLv=parseInt(localStorage.getItem('res_r_health')||'0',10);
+  var rDefLv=parseInt(localStorage.getItem('res_r_defense')||'0',10);
+  if(rDmgLv>0) baseDmg=Math.round(baseDmg*(1+rDmgLv*0.03));
+  if(rHpLv>0) baseHp=Math.round(baseHp*(1+rHpLv*0.03));
+  if(rDefLv>0) baseDefAbs=Math.round(baseDefAbs*(1+rDefLv*0.03));
+  var em=window._getElementMultipliers?window._getElementMultipliers():{atk:1,def:1,hp:1};
+  baseDmg=Math.round(baseDmg*em.atk); baseHp=Math.round(baseHp*em.hp); baseDefAbs=Math.round(baseDefAbs*em.def);
+  var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
+  var finalDmg=Math.round(baseDmg*(sm.atk||1));
+  var finalHp=Math.round(baseHp*(sm.hp||1));
+  var finalDef=Math.round(baseDefAbs*(sm.def||1));
+  // 프리즘/모듈 보너스
+  var _prismB=window._getPrismBonuses?window._getPrismBonuses():{atk:0,hp:0,def:0};
+  var _modB=window._getModBonuses?window._getModBonuses():{atk:0,hp:0,def:0};
+  if(_prismB.atk>0) finalDmg=Math.round(finalDmg*(1+_prismB.atk/100));
+  if(_modB.atk>0) finalDmg=Math.round(finalDmg*(1+_modB.atk/100));
+  if(_prismB.hp>0) finalHp=Math.round(finalHp*(1+_prismB.hp/100));
+  if(_modB.hp>0) finalHp=Math.round(finalHp*(1+_modB.hp/100));
+  if(_prismB.def>0) finalDef=Math.round(finalDef*(1+_prismB.def/100));
+  if(_modB.def>0) finalDef=Math.round(finalDef*(1+_modB.def/100));
+  return finalDmg+finalHp+finalDef;
 }
 
 function _renderRanking() {
@@ -13657,6 +13683,11 @@ function _showStatsPopup() {
   if(_prismB.def>0)allDefAbs=Math.round(allDefAbs*(1+_prismB.def/100));
   if(_modB.def>0)allDefAbs=Math.round(allDefAbs*(1+_modB.def/100));
   if(_modLv.def>0)allDefAbs=Math.round(allDefAbs*(1+_modLv.def/100));
+
+  // 전역 전투력 저장 (랭킹용)
+  window._statAllDmg=allDmg;
+  window._statAllHp=allHp;
+  window._statAllDef=allDefAbs;
 
   // 1. 일반 치명타
   var baseCritMult=1.5+(ws.critMult||0)*0.1;
