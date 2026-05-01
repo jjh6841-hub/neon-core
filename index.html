@@ -18304,10 +18304,10 @@ function _stopProtoTick(){
     if(_protoActiveEffects.overdrive){
       ctx.save();
       ctx.shadowColor='#ff4444';
-      ctx.shadowBlur=15+5*Math.sin(performance.now()*0.005);
-      ctx.globalAlpha=0.15;
+      ctx.shadowBlur=25+8*Math.sin(performance.now()*0.005);
+      ctx.globalAlpha=0.3;
       ctx.fillStyle='#ff4444';
-      ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fill();
       ctx.shadowBlur=0;
       ctx.restore();
     }
@@ -18316,10 +18316,10 @@ function _stopProtoTick(){
     if(_protoActiveEffects.overheat){
       ctx.save();
       ctx.shadowColor='#ff8822';
-      ctx.shadowBlur=15+5*Math.sin(performance.now()*0.007);
-      ctx.globalAlpha=0.15;
+      ctx.shadowBlur=25+8*Math.sin(performance.now()*0.007);
+      ctx.globalAlpha=0.3;
       ctx.fillStyle='#ff8822';
-      ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fill();
       ctx.shadowBlur=0;
       ctx.restore();
     }
