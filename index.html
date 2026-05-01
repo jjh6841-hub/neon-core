@@ -8010,9 +8010,9 @@ if (dailyPopup) {
     </div>
 
     <!-- 2열: 좌(내 정보+규칙) | 우(순위/보상) -->
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
       <!-- 좌측 -->
-      <div style="width:105px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
+      <div style="flex:4;display:flex;flex-direction:column;gap:6px;">
         <div id="fw-league-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px;text-align:center;">
           <div id="fw-league-icon" style="font-size:22px;">🔵</div>
           <div id="fw-league-name" style="color:#4488ff;font-size:11px;font-weight:bold;margin-top:3px;">TIER F</div>
@@ -8023,14 +8023,9 @@ if (dailyPopup) {
           <div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:7px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:13px;font-weight:bold;">-</div></div>
         </div>
         <div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
-        <!-- 남은 시간 -->
-        <div style="padding:6px 0;text-align:center;">
-          <div style="color:#556677;font-size:7px;">주파수 전쟁 종료</div>
-          <div id="fw-timer" style="color:#00dddd;font-size:11px;font-weight:bold;margin-top:2px;">--:--:--</div>
-        </div>
       </div>
       <!-- 우측: 순위/보상 -->
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+      <div style="flex:6;min-width:0;display:flex;flex-direction:column;">
         <div style="display:flex;border-bottom:1px solid #1a3444;margin-bottom:4px;">
           <button id="fw-tab-rank" style="flex:1;background:none;border:none;border-bottom:2px solid #00dddd;color:#00dddd;font-family:monospace;font-size:9px;padding:5px 0;cursor:pointer;">순위</button>
           <button id="fw-tab-reward" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:9px;padding:5px 0;cursor:pointer;">보상</button>
@@ -8042,6 +8037,12 @@ if (dailyPopup) {
           <div id="fw-rewards" style="display:none;"></div>
         </div>
       </div>
+    </div>
+
+    <!-- 남은 시간 (전체 너비 한 줄) -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="color:#556677;font-size:9px;">주파수 전쟁 종료</span>
+      <span id="fw-timer" style="color:#00dddd;font-size:12px;font-weight:bold;">--:--:--</span>
     </div>
 
     <!-- 버튼: 주파수 상점(4) + 참가하기(6) -->
@@ -16186,15 +16187,15 @@ function renderFW(){
     }
     if(playerWave>0) scores.push({name:fw.playerName||'\uB098', score:playerWave, isPlayer:true});
     scores.sort(function(a,b){return b.score-a.score;});
-    var html='<div style="display:flex;justify-content:space-between;padding:3px 4px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:8px;"><span style="color:#556677;font-size:8px;width:18px;">순위</span><span style="color:#556677;font-size:8px;">닉네임</span></div><span style="color:#556677;font-size:8px;">웨이브</span></div>';
+    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:7px;width:14px;">#</span><span style="color:#556677;font-size:7px;">닉네임</span></div><span style="color:#556677;font-size:7px;">W</span></div>';
     scores.slice(0,10).forEach(function(s,idx){
       var rc=idx===0?'#ffc800':idx===1?'#C0C0C0':idx===2?'#CD7F32':'#334455';
-      html+='<div style="display:flex;justify-content:space-between;padding:4px;border-bottom:1px solid #0a1a2a;">'+
-        '<div style="display:flex;gap:8px;align-items:center;">'+
-          '<span style="color:'+rc+';font-size:10px;width:18px;font-weight:bold;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:10px;">'+s.name+'</span>'+
+      html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;">'+
+        '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
+          '<span style="color:'+rc+';font-size:9px;width:14px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
         '</div>'+
-        '<span style="color:#ffc800;font-size:10px;font-weight:bold;">'+s.score+'</span>'+
+        '<span style="color:#ffc800;font-size:9px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
       '</div>';
     });
     lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
