@@ -9959,7 +9959,8 @@ window._showCoinBonusPopup = function() {
     var eq = PERM.prismEquipped || [];
     if (eq.indexOf('p_kill_cash') !== -1) { var pv3 = (PERM.prisms && PERM.prisms.p_kill_cash) || {}; if (pv3.lv > 0) prismGold *= (1 + [20,40,60,80,100,120][pv3.lv-1]/100); }
   } catch(_) {}
-  var total = wsBonus * wsGoldGain * tierMult * prismGold * adMult;
+  // 합연산: 기본 1 + 각 보너스 (초과분만 합산)
+  var total = 1 + (wsBonus-1) + (wsGoldGain-1) + (tierMult-1) + (prismGold-1) + (adMult-1);
 
   var wsEl   = document.getElementById('cb-ws-val');
   var tierEl = document.getElementById('cb-tier-val');
@@ -12472,7 +12473,7 @@ function _applyPrismEffects() {
       case 'p_crit_dmg':   G.critMult = (G.critMult||1.5) + val; break;
       case 'p_def':        G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + val/100)); break; // 절대 방어 곱연산
       case 'p_cash':       G._prismChipWaveBonus = (G._prismChipWaveBonus||0) + val/100; break; // 웨이브 클리어 코어칩 보너스
-      case 'p_kill_cash':  G.goldMult = (G.goldMult||1) * (1 + val/100); break;            // 전투 골드 추가
+      case 'p_kill_cash':  G.goldMult = (G.goldMult||1) + val/100; break;            // 전투 골드 추가 (합연산)
       case 'p_enemy_stat': G._prismChipKillBonus = (G._prismChipKillBonus||0) + val/100; break; // 적 처치 코어칩 보너스
       case 'p_shield_cd':  break; // 아래에서 maxHp 확정 후 처리
       case 'p_free_upg':   G.freeUpgChance = (G.freeUpgChance||0) + val/100; break;
@@ -14808,9 +14809,9 @@ window.applyPermStats = function() {
   G._prismChipWaveBonus = (G._prismChipWaveBonus || 0) + (G._wsChipWaveBonus || 0) + _rcw * 0.02;
   // 무료 업글: 프리즘 + 강화소 (합연산)
   G.freeUpgChance = (G.freeUpgChance || 0) + (G._wsFreeUpgChance || 0);
-  // 골드 강화: 강화소 + 코어랩 → G.goldMult 곱연산
+  // 골드 강화: 강화소 + 코어랩 → G.goldMult 합연산
   var _totalGoldBoost = (G._goldBoost || 0) + _rgb * 0.02;
-  if (_totalGoldBoost > 0) G.goldMult = (G.goldMult || 1) * (1 + _totalGoldBoost);
+  if (_totalGoldBoost > 0) G.goldMult = (G.goldMult || 1) + _totalGoldBoost;
   // 자동 업글: 강화소 + 코어랩 (합연산)
   G._autoAtkChance = (G._autoAtkChance || 0) + _raa * 0.01;
   G._autoDefChance = (G._autoDefChance || 0) + _rad * 0.01;
@@ -21620,7 +21621,7 @@ if (typeof _prevApplyMod === 'function') {
     G.modCritMult = b.cdmg > 0 ? b.cdmg : 1.5;
     if (b.crit > 0) G.modCritChance = Math.min(1.0, b.crit/100);
     // 합연산: 골드 획득
-    if (b.gold > 0) G.goldMult = (G.goldMult||1) * (1 + b.gold/100);
+    if (b.gold > 0) G.goldMult = (G.goldMult||1) + b.gold/100;
     // ── 모듈 레벨 효과 ──
     // 곱연산: 공격력, 체력, 방어율, 치명타 계수 (레벨당 5%)
     if (lv.atk > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + lv.atk/100));
@@ -21629,7 +21630,7 @@ if (typeof _prevApplyMod === 'function') {
     // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
     G.modLvCritMult = lv.cdmg > 0 ? 1 + lv.cdmg/100 : 1.5;
     if (lv.crit > 0) G.modLvCritChance = Math.min(1.0, lv.crit/100);
-    if (lv.gold > 0) G.goldMult = (G.goldMult||1) * (1 + lv.gold/100);
+    if (lv.gold > 0) G.goldMult = (G.goldMult||1) + lv.gold/100;
   };
 }
 
