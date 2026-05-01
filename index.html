@@ -17306,19 +17306,7 @@ function renderLab(){
 
   var html='';
 
-  /* 제조 버튼 */
-  var canDraw=drawable.length>0;
-  html+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
-  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid '+(canDraw?'#bb44ff':'#334455')+';border-radius:10px;color:'+(canDraw?'#bb44ff':'#334455')+';font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-    '<span>1회 제조</span><span style="font-size:10px;color:#bb44ff;">⌘ '+PROTO_COST+'</span></button>';
-  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid '+(canDraw?'#f59e0b':'#334455')+';border-radius:10px;color:'+(canDraw?'#f59e0b':'#334455')+';font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
-    '<span>5연 제조</span><span style="font-size:10px;color:#bb44ff;">⌘ '+(PROTO_COST*5)+'</span></button>';
-  html+='</div>';
-  if(!canDraw){
-    html+='<div style="color:#f59e0b;font-size:9px;text-align:center;margin:-10px 0 12px;">모든 프로토콜 만레벨 도달!</div>';
-  }
-
-  /* 장착 슬롯 (6칸) */
+  /* 장착 슬롯 (6칸) — 제조 버튼보다 위에 배치 */
   html+='<div style="color:#556677;font-size:10px;margin-bottom:6px;letter-spacing:1px;border-bottom:1px solid #1a2a3a;padding-bottom:4px;">장착 슬롯 (최대 6)</div>';
   html+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
   for(var si=0;si<6;si++){
@@ -17343,6 +17331,18 @@ function renderLab(){
     }
   }
   html+='</div>';
+
+  /* 제조 버튼 */
+  var canDraw=drawable.length>0;
+  html+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
+  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid '+(canDraw?'#bb44ff':'#334455')+';border-radius:10px;color:'+(canDraw?'#bb44ff':'#334455')+';font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+    '<span>1회 제조</span><span style="font-size:10px;color:#bb44ff;">⌘ '+PROTO_COST+'</span></button>';
+  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid '+(canDraw?'#f59e0b':'#334455')+';border-radius:10px;color:'+(canDraw?'#f59e0b':'#334455')+';font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+    '<span>5연 제조</span><span style="font-size:10px;color:#bb44ff;">⌘ '+(PROTO_COST*5)+'</span></button>';
+  html+='</div>';
+  if(!canDraw){
+    html+='<div style="color:#f59e0b;font-size:9px;text-align:center;margin:-10px 0 12px;">모든 프로토콜 만레벨 도달!</div>';
+  }
 
   /* 보유 프로토콜 목록 */
   html+='<div style="color:#556677;font-size:10px;margin-bottom:8px;letter-spacing:1px;border-bottom:1px solid #1a2a3a;padding-bottom:4px;">보유 프로토콜 ('+owned.length+'/'+PROTOCOLS.length+')</div>';
@@ -17905,17 +17905,19 @@ function _startProtoTick(){
     if(_protoActiveEffects.blackhole){
       var bh=_protoActiveEffects.blackhole;
       bh.remaining-=dtMs;
-      var pullStr=8*spd; // 배속 반영 + 강도 증가
+      // 비율 기반 부드러운 흡인 (매 틱 거리의 15% 접근)
+      var pullRate=0.15*spd;
       if(t){
         var tx=t.x||cx, ty=t.y||cy;
         enemies.forEach(function(e){
           if(e.hp<=0) return;
           var dx=tx-e.x, dy=ty-e.y;
           var dist=Math.sqrt(dx*dx+dy*dy);
-          if(dist>30&&dist>1){ // 타워 30px 이내에는 접근 불가
-            var pull=Math.min(pullStr, dist-30);
-            e.x+=dx/dist*pull;
-            e.y+=dy/dist*pull;
+          if(dist>30){
+            var move=dist*pullRate;
+            if(dist-move<30) move=dist-30;
+            e.x+=dx/dist*move;
+            e.y+=dy/dist*move;
           }
         });
       }
@@ -17954,7 +17956,7 @@ function _startProtoTick(){
           var t2=Math.max(0,Math.min(1,(edx*ldx+edy*ldy)/len2));
           var px=cx+ldx*t2, py=cy+ldy*t2;
           var dd=(e.x-px)*(e.x-px)+(e.y-py)*(e.y-py);
-          if(dd<(e.r+8)*(e.r+8)){
+          if(dd<((e.r||10)+8)*((e.r||10)+8)){
             e.hp-=Math.round(dmg*dtSec);
             e.hitFlash=2;
           }
@@ -18102,10 +18104,10 @@ function _stopProtoTick(){
       else if(vfx.type==='blackhole'){
         var progress=1-vfx.timer/vfx.maxTimer;
         var bTime=performance.now()*0.001;
-        var maxR=80+progress*30;
+        var maxR=120+progress*40;
         ctx.save();
         // 검은 중심 (이벤트 호라이즌)
-        var coreR=20+progress*10;
+        var coreR=30+progress*15;
         var coreGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
         coreGrd.addColorStop(0,'rgba(0,0,0,0.95)');
         coreGrd.addColorStop(0.6,'rgba(10,0,30,0.8)');
@@ -18151,13 +18153,43 @@ function _stopProtoTick(){
       }
       else if(vfx.type==='giganto'){
         var progress=1-vfx.timer/vfx.maxTimer;
-        var range=G.tower.range||162;
+        var gTime=performance.now()*0.001;
         ctx.save();
-        ctx.globalAlpha=0.15+0.1*Math.sin(progress*Math.PI*6);
-        ctx.fillStyle='#ef4444';
-        ctx.beginPath();
-        ctx.arc(cx,cy,range,0,Math.PI*2);
-        ctx.fill();
+        // 화면 흔들림 (지진)
+        var shakeX=Math.sin(gTime*35)*4*(1-progress*0.5);
+        var shakeY=Math.cos(gTime*28)*3*(1-progress*0.5);
+        ctx.translate(shakeX,shakeY);
+        // 바닥 균열선
+        var range=G.tower.range||162;
+        ctx.strokeStyle='#ef4444';
+        ctx.lineWidth=2;
+        for(var ci2=0;ci2<6;ci2++){
+          var ca=ci2*(Math.PI/3)+gTime*0.3;
+          var cLen=range*(0.3+progress*0.7);
+          ctx.globalAlpha=0.4+0.3*Math.sin(gTime*8+ci2);
+          ctx.beginPath();
+          ctx.moveTo(cx,cy);
+          var cpx=cx+Math.cos(ca)*cLen*0.5+(Math.sin(gTime*12+ci2)*8);
+          var cpy=cy+Math.sin(ca)*cLen*0.5+(Math.cos(gTime*10+ci2)*6);
+          ctx.quadraticCurveTo(cpx,cpy,cx+Math.cos(ca)*cLen,cy+Math.sin(ca)*cLen);
+          ctx.stroke();
+        }
+        // 충격파 링 (반복)
+        var ringPhase=(gTime*3)%1;
+        var ringR=range*ringPhase;
+        ctx.globalAlpha=(1-ringPhase)*0.25;
+        ctx.strokeStyle='#ff6644';
+        ctx.lineWidth=3-ringPhase*2;
+        ctx.beginPath(); ctx.arc(cx,cy,ringR,0,Math.PI*2); ctx.stroke();
+        // 먼지 파티클
+        ctx.fillStyle='#ff8844';
+        for(var di=0;di<8;di++){
+          var da=di*(Math.PI/4)+gTime*1.5;
+          var dd2=range*(0.2+0.6*((gTime*2+di*0.7)%1));
+          ctx.globalAlpha=0.3*(1-dd2/range);
+          ctx.beginPath(); ctx.arc(cx+Math.cos(da)*dd2,cy+Math.sin(da)*dd2,2+Math.sin(gTime*6+di),0,Math.PI*2); ctx.fill();
+        }
+        ctx.globalAlpha=1;
         ctx.restore();
       }
     });
