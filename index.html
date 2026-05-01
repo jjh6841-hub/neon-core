@@ -7994,10 +7994,10 @@ if (dailyPopup) {
      주파수 전쟁 화면 (정적 HTML — JS 동적 주입 중복 방지용)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-frequency-wars" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
-  <div style="display:flex; align-items:center; padding:calc(12px + var(--sat)) 16px 12px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
-    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:calc(12px + var(--sat)) 16px 12px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; width:48px; text-align:left;">◀ 뒤로</button>
     <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">주파수 전쟁</span>
-    <span style="margin-left:auto; color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
+    <span style="color:#ffc800; font-size:12px; width:48px; text-align:right;">✦ <span id="fw-pulse-display">0</span></span>
   </div>
   <div style="padding:14px;">
     <div style="text-align:center; margin-bottom:16px;">
@@ -13142,9 +13142,9 @@ function _buildRankingScreen() {
   sc.style.cssText='display:none;flex-direction:column;width:100%;height:100%;background:#030b10;position:fixed;inset:0;z-index:300;overflow:hidden;';
   sc.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + var(--sat)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
-      '<button id="ranking-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
+      '<button id="ranking-back" style="background:none;border:none;color:#00ffff;font-size:12px;font-family:\'Courier New\',monospace;cursor:pointer;">◀ 뒤로</button>'+
       '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">랭킹</span>'+
-      '<span style="color:#00ffff;font-family:monospace;font-size:12px;">❖ <span id="ranking-gem">0</span></span>'+
+      '<span style="width:48px;"></span>'+
     '</div>'+
     '<div style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
       '<button class="rank-tab" data-rtab="global" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">글로벌</button>'+
@@ -15481,10 +15481,10 @@ function _injectScreens() {
       'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
     fw.innerHTML =
       /* 상단 바 */
-      '<div style="display:flex;align-items:center;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
-        '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
+        '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;width:48px;text-align:left;">◀ 뒤로</button>' +
         '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">주파수 전쟁</span>' +
-        '<span style="margin-left:auto;color:#ffc800;font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>' +
+        '<span style="color:#ffc800;font-size:12px;width:48px;text-align:right;">✦ <span id="fw-pulse-display">0</span></span>' +
       '</div>' +
       /* 콘텐츠 */
       '<div style="padding:14px;">' +
@@ -18418,7 +18418,7 @@ function _renderStagePopup() {
 
 // showScreen 확장
 var _origShowScreen = window.showScreen;
-var _LEFT_SCREENS = ['explore','signal-market','tournament','guild','achievements'];
+var _LEFT_SCREENS = ['explore','signal-market','tournament','guild','achievements','ranking','frequency-wars'];
 window.showScreen = function(name) {
   _origShowScreen.apply(this, arguments);
   if (name === 'explore') {
