@@ -17612,43 +17612,54 @@ function _getEquippedProtocols(){
 }
 
 function _injectProtoBar(){
+  var canvasArea=document.getElementById('canvas-area'); if(!canvasArea) return;
   var shop=document.getElementById('screen-shop'); if(!shop) return;
   if(document.getElementById('proto-battle-bar')) return;
   var equipped=_getEquippedProtocols();
   if(equipped.length===0) return;
 
+  // 프로토콜 바: canvas-area 안, screen-shop 바로 위에 배치
   var bar=document.createElement('div');
   bar.id='proto-battle-bar';
-  bar.style.cssText='display:flex;align-items:center;gap:4px;padding:4px 6px;background:#030b10;border-bottom:1px solid #1a2a3a;overflow-x:auto;flex-shrink:0;';
+  bar.style.cssText='position:absolute;bottom:0;left:0;right:0;z-index:15;display:flex;align-items:center;gap:4px;padding:3px 6px;pointer-events:auto;';
 
   equipped.forEach(function(p){
     _protoCooldowns[p.id]={ready:true,timer:0};
     var btn=document.createElement('button');
     btn.id='proto-btn-'+p.id;
-    btn.style.cssText='width:36px;height:36px;border:1.5px solid '+p.color+';border-radius:50%;background:#0a0a22;display:flex;align-items:center;justify-content:center;font-size:14px;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
-    btn.innerHTML=_protoIconHTML(p.id,p.color,22)+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>';
+    btn.style.cssText='width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
+    btn.innerHTML=_protoIconHTML(p.id,p.color,18)+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:7px;color:#94a3b8;pointer-events:none;"></div>';
     btn.addEventListener('click',function(){ _useProtocol(p.id); });
     bar.appendChild(btn);
   });
 
-  var autoBtn=document.createElement('button');
-  autoBtn.id='proto-auto-btn';
-  autoBtn.style.cssText='margin-left:auto;padding:4px 8px;border:1px solid #334455;background:#030b10;color:#334455;font-family:monospace;font-size:9px;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;';
-  autoBtn.textContent='AUTO';
-  autoBtn.addEventListener('click',function(){
-    _protoAutoMode=!_protoAutoMode;
-    autoBtn.style.borderColor=_protoAutoMode?'#00ff88':'#334455';
-    autoBtn.style.color=_protoAutoMode?'#00ff88':'#334455';
-  });
-  bar.appendChild(autoBtn);
+  // canvas-area 안에 삽입 (screen-shop 앞)
+  canvasArea.insertBefore(bar,shop);
 
-  var tabBar=document.getElementById('tab-bar');
-  if(tabBar) shop.insertBefore(bar,tabBar);
+  // AUTO 버튼: 광고 버튼 우측에 배치
+  var adWrap=document.getElementById('gem-ad-wrap');
+  if(adWrap){
+    var autoBtn=document.createElement('button');
+    autoBtn.id='proto-auto-btn';
+    autoBtn.style.cssText='padding:2px 6px;border:1px solid #334455;background:#0a1520;color:#334455;font-family:monospace;font-size:8px;font-weight:bold;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;margin-left:4px;line-height:1.2;';
+    autoBtn.textContent='AUTO';
+    autoBtn.addEventListener('click',function(){
+      _protoAutoMode=!_protoAutoMode;
+      autoBtn.style.borderColor=_protoAutoMode?'#00ff88':'#334455';
+      autoBtn.style.color=_protoAutoMode?'#00ff88':'#334455';
+    });
+    adWrap.appendChild(autoBtn);
+    adWrap.style.display='flex';
+    adWrap.style.alignItems='center';
+    adWrap.style.gap='4px';
+  }
 }
 
 function _removeProtoBar(){
   var bar=document.getElementById('proto-battle-bar');
   if(bar) bar.remove();
+  var autoBtn=document.getElementById('proto-auto-btn');
+  if(autoBtn) autoBtn.remove();
   _protoCooldowns={};
   _protoActiveEffects={};
   _protoVisualEffects=[];
