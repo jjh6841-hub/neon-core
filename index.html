@@ -8276,6 +8276,7 @@ if (dailyPopup) {
 <div id="screen-tournament" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
   <!-- HUD -->
   <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid rgba(187,68,255,0.2); flex-shrink:0; background:#040c14;">
+    <button id="trn-back-btn" style="background:none; border:none; color:#bb44ff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
     <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
       <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
       <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="trn-gem">0</span></span>
@@ -9427,6 +9428,14 @@ function _syncTrnHUD() {
   } catch(_) {}
 }
 window._syncTrnHUD = _syncTrnHUD;
+
+// 뒤로 버튼 → 홈 화면
+var trnBackBtn = document.getElementById('trn-back-btn');
+if (trnBackBtn) {
+  trnBackBtn.addEventListener('click', function() {
+    if (window.showScreen) showScreen('home');
+  });
+}
 
 // 주파수 전쟁 카드 클릭 → 주파수 전쟁 화면 진입
 var fwCard = document.getElementById('trn-card-fw');
