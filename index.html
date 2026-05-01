@@ -8001,17 +8001,12 @@ if (dailyPopup) {
     <span style="color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
   </div>
 
-  <div style="padding:10px;max-width:360px;margin:0 auto;">
+  <div style="padding:10px;">
     <!-- 타이틀 라인: 도움말 | FREQUENCY WARS | 시즌 -->
     <div style="display:flex;align-items:center;margin-bottom:8px;">
       <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;">?</button>
       <span style="flex:1;text-align:center;font-size:12px;letter-spacing:3px;color:#00dddd;">FREQUENCY WARS</span>
       <span style="color:#00dddd;font-size:10px;font-weight:900;letter-spacing:1px;text-shadow:0 0 6px #00dddd44;flex-shrink:0;">시즌 1</span>
-    </div>
-    <!-- 종료 타이머 (한 줄) -->
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;margin-bottom:8px;">
-      <span style="color:#556677;font-size:9px;">주파수 전쟁 종료</span>
-      <span id="fw-timer" style="color:#00dddd;font-size:12px;font-weight:bold;">--:--:--</span>
     </div>
 
     <!-- 2열: 좌(내 정보+규칙) | 우(순위/보상) -->
@@ -8028,6 +8023,11 @@ if (dailyPopup) {
           <div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:7px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:13px;font-weight:bold;">-</div></div>
         </div>
         <div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
+        <!-- 남은 시간 -->
+        <div style="padding:6px 0;text-align:center;">
+          <div style="color:#556677;font-size:7px;">주파수 전쟁 종료</div>
+          <div id="fw-timer" style="color:#00dddd;font-size:11px;font-weight:bold;margin-top:2px;">--:--:--</div>
+        </div>
       </div>
       <!-- 우측: 순위/보상 -->
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
