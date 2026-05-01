@@ -9937,11 +9937,9 @@ function _getTierMult() {
   } catch(_) { return 1.0; }
 }
 function _getWsBonus() {
-  if (!window.PERM || !window.PERM.ws) return 1.0;
+  if (!window.PERM || !window.PERM.ws) return 0;
   var ws = window.PERM.ws;
-  var bonus = 1.0;
-  if (ws.goldBoost) bonus *= (1 + (ws.goldBoost||0) * 0.02);
-  return bonus;
+  return (ws.goldBoost||0) * 0.02; // 순수 보너스 값 (0.02 = 2%)
 }
 
 window._showCoinBonusPopup = function() {
@@ -9959,8 +9957,9 @@ window._showCoinBonusPopup = function() {
     var eq = PERM.prismEquipped || [];
     if (eq.indexOf('p_kill_cash') !== -1) { var pv3 = (PERM.prisms && PERM.prisms.p_kill_cash) || {}; if (pv3.lv > 0) prismGold *= (1 + [20,40,60,80,100,120][pv3.lv-1]/100); }
   } catch(_) {}
-  // 합연산: 기본 1 + 각 보너스 (초과분만 합산)
-  var total = 1 + (wsBonus-1) + (wsGoldGain-1) + (tierMult-1) + (prismGold-1) + (adMult-1);
+  // 합연산: 행성 배율(tierMult) + 각 보너스 합산
+  // wsBonus는 이제 순수 보너스값(0.02 등), prismGold/adMult는 배율(1.x)
+  var total = tierMult + wsBonus + (wsGoldGain-1) + (prismGold-1) + (adMult-1);
 
   var wsEl   = document.getElementById('cb-ws-val');
   var tierEl = document.getElementById('cb-tier-val');
@@ -9969,9 +9968,9 @@ window._showCoinBonusPopup = function() {
   var wsGoldEl = document.getElementById('cb-ws-gold-val');
   var prismEl = document.getElementById('cb-prism-val');
 
-  if (wsEl)     wsEl.textContent  = '×' + wsBonus._tf2();
+  if (wsEl) { wsEl.textContent = wsBonus>0?'+'+((wsBonus*100)._tf0())+'%':'비활성'; wsEl.className=wsBonus>0?'cb-val active':'cb-val inactive'; }
   if (wsGoldEl) { wsGoldEl.textContent = '×' + wsGoldGain._tf2(); wsGoldEl.className = wsGoldGain > 1 ? 'cb-val active' : 'cb-val inactive'; }
-  if (tierEl)   tierEl.textContent = '×' + tierMult._tf2();
+  if (tierEl) { tierEl.textContent = '×' + tierMult._tf2(); tierEl.className = 'cb-val active'; }
   if (prismEl)  { prismEl.textContent = '×' + prismGold._tf2(); prismEl.className = prismGold > 1 ? 'cb-val active' : 'cb-val inactive'; }
   if (adEl) {
     adEl.textContent = adActive ? '×1.50' : '비활성';
@@ -10002,7 +10001,7 @@ if (homeEl) {
         var eq = (window.PERM && window.PERM.prismEquipped) || [];
         if (eq.indexOf('p_kill_cash') !== -1) { var pv = (window.PERM.prisms && window.PERM.prisms.p_kill_cash) || {}; if (pv.lv > 0) prismGold *= (1 + [20,40,60,80,100,120][pv.lv-1]/100); }
       } catch(_) {}
-      var total = wsBonus * wsGoldGain * tierMult * prismGold * (adActive ? 1.5 : 1.0);
+      var total = tierMult + wsBonus + (wsGoldGain-1) + (prismGold-1) + (adActive ? 0.5 : 0);
       var el = document.getElementById('home-total-bonus');
       if (el) el.textContent = '◈ ×' + total._tf2();
     }
