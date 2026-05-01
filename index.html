@@ -17397,19 +17397,27 @@ function renderLab(){
     });
   });
 
-  // 슬롯 해금
+  // 슬롯 해금 (확인 팝업)
   main.querySelectorAll('[data-slot-unlock]').forEach(function(el){
     el.addEventListener('click',function(){
       var idx=parseInt(el.getAttribute('data-slot-unlock'),10);
       var cost=SLOT_UNLOCK_COSTS[idx]||99;
       var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
-      if(cur<cost){if(window.showToastMsg) showToastMsg('접근 코드 부족 (필요: ⌘'+cost+')','#ef4444'); return;}
-      localStorage.setItem('accessCodes',cur-cost);
-      try{logCurrency('accessCodes',-cost,'슬롯 해금 #'+(idx+1));}catch(_){}
-      var sl=_loadSlots();
-      sl.unlocked=Math.max(sl.unlocked,idx+1);
-      _saveSlots(sl);
-      renderLab();
+      if(cur<cost){
+        if(window._showSlotConfirm) _showSlotConfirm('프로토콜 슬롯 해금','접근 코드가 부족합니다\n보유: ⌘'+cur+' / 필요: ⌘'+cost, null);
+        return;
+      }
+      if(window._showSlotConfirm) _showSlotConfirm('프로토콜 슬롯 '+(idx+1)+'번 해금','접근 코드 ⌘'+cost+'을 사용하여\n슬롯을 해금하시겠습니까?',function(){
+        var c2=parseInt(localStorage.getItem('accessCodes')||'0',10);
+        if(c2<cost) return;
+        localStorage.setItem('accessCodes',c2-cost);
+        try{logCurrency('accessCodes',-cost,'슬롯 해금 #'+(idx+1));}catch(_){}
+        var sl=_loadSlots();
+        sl.unlocked=Math.max(sl.unlocked,idx+1);
+        _saveSlots(sl);
+        if(window.showToastMsg) showToastMsg('슬롯 '+(idx+1)+'번 해금 완료!','#00ff88');
+        renderLab();
+      });
     });
   });
 
