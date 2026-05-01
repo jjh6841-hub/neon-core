@@ -15624,7 +15624,7 @@ window.showScreen = function (name) {
   } catch(_) {}
 
   // 하단 탭 — 메인 화면에서만 표시, 오버레이(업적 등)에서는 숨김
-  var _overlayScreens = ['achievements'];
+  var _overlayScreens = ['achievements','guild','ranking','frequency-wars','signal-market','event'];
   var nav = document.getElementById('bottom-nav');
   if (nav) {
     if (_overlayScreens.indexOf(name) === -1) {
@@ -21379,16 +21379,17 @@ function _createGuildScreen() {
   if (document.getElementById('screen-guild')) return;
   var sc = document.createElement('div');
   sc.id = 'screen-guild';
-  sc.style.cssText = 'display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;top:0;left:0;z-index:600;overflow:hidden;font-family:"Courier New",monospace;';
+  sc.style.cssText = 'display:none;flex-direction:column;width:100%;height:100%;background:#06061a;position:fixed;inset:0;z-index:600;font-family:"Courier New",monospace;';
   sc.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">'+
-      '<button id="guild-back-btn" style="background:none;border:none;color:#ff6644;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;">◀ 뒤로</button>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;z-index:1;">'+
+      '<button id="guild-back-btn" style="background:none;border:none;color:#ff6644;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;padding:6px;-webkit-appearance:none;">◀ 뒤로</button>'+
       '<span style="font-size:13px;letter-spacing:2px;color:#ff6644;">길드</span>'+
       '<span style="width:48px;"></span>'+
     '</div>'+
     '<div id="guild-content" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(8px + var(--sab));"></div>';
   document.body.appendChild(sc);
-  document.getElementById('guild-back-btn').addEventListener('click', function(){
+  document.getElementById('guild-back-btn').addEventListener('click', function(e){
+    e.stopPropagation();
     if (window.showScreen) showScreen('home');
   });
 }
