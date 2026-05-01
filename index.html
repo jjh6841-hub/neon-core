@@ -8273,100 +8273,48 @@ if (dailyPopup) {
 <!-- ══════════════════════════════════════════════════════
      토너먼트 화면 (컨텐츠 선택 허브)
 ══════════════════════════════════════════════════════ -->
-<div id="screen-tournament" style="display:none; flex-direction:column; width:100%; height:100%; background:#030b10; position:fixed; inset:0; z-index:100; overflow:hidden;">
-  <!-- HUD -->
-  <div style="display:flex; justify-content:space-between; align-items:center; padding:calc(8px + var(--sat)) 12px 8px; border-bottom:1px solid rgba(187,68,255,0.2); flex-shrink:0; background:#040c14;">
-    <button id="trn-back-btn" style="background:none; border:none; color:#bb44ff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; padding:4px;">◀ 뒤로</button>
-    <div style="display:flex; flex-direction:row; align-items:center; gap:8px;">
-      <span style="color:#f59e0b; font-size:13px; font-family:monospace;">◈ <span id="trn-gold">0</span></span>
-      <span style="color:#00ffff; font-size:13px; font-family:monospace;">❖ <span id="trn-gem">0</span></span>
-    </div>
-  </div>
-  <div style="text-align:center; padding:5px; font-size:10px; color:#bb44ff; font-family:'Courier New',monospace; letter-spacing:3px; background:#040c14; border-bottom:1px solid rgba(187,68,255,0.10); flex-shrink:0;">토너먼트</div>
-  <!-- 콘텐츠 선택 -->
-  <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; display:flex; flex-direction:column; gap:14px; padding-bottom:calc(10px + var(--sab));">
-    <div style="text-align:center; padding:12px 0 4px;">
-      <div style="font-size:14px; letter-spacing:4px; color:#bb44ff; font-family:'Courier New',monospace;">TOURNAMENT</div>
+<div id="screen-tournament" style="display:none; position:fixed; inset:0; z-index:600; background:rgba(3,11,16,0.85); align-items:center; justify-content:center; font-family:'Courier New',monospace;">
+  <div id="trn-popup-box" style="background:#0d1520; border:1px solid #bb44ff; width:90%; max-width:340px; box-shadow:0 0 40px rgba(187,68,255,0.2); display:flex; flex-direction:column; max-height:85vh; overflow:hidden;">
+    <!-- 헤더 -->
+    <div style="padding:14px 16px 10px; border-bottom:1px solid #1a2a3a; text-align:center;">
+      <div style="font-size:14px; letter-spacing:4px; color:#bb44ff;">TOURNAMENT</div>
       <div style="font-size:9px; color:#445566; margin-top:4px; letter-spacing:1px;">컨텐츠를 선택하세요</div>
     </div>
-
-    <!-- 1. 주파수 전쟁 -->
-    <div id="trn-card-fw" style="cursor:pointer; background:linear-gradient(135deg, #0a0a22 0%, #0c1030 100%); border:1px solid #4444cc; border-radius:10px; overflow:hidden; position:relative;">
-      <div style="padding:16px; display:flex; align-items:center; gap:14px;">
-        <!-- 탐사선 전쟁 일러스트 (SVG) -->
-        <div style="width:64px; height:64px; flex-shrink:0; position:relative;">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- 배경 원 -->
-            <circle cx="32" cy="32" r="30" fill="#080820" stroke="#2244aa" stroke-width="0.5"/>
-            <!-- 별 -->
-            <circle cx="10" cy="12" r="0.8" fill="#fff" opacity="0.5"/>
-            <circle cx="50" cy="8" r="0.6" fill="#aaeeff" opacity="0.4"/>
-            <circle cx="55" cy="50" r="0.7" fill="#fff" opacity="0.3"/>
-            <circle cx="8" cy="45" r="0.5" fill="#ccddff" opacity="0.4"/>
-            <!-- 좌측 탐사선 (아군 - 시안) -->
-            <g transform="translate(16,30) rotate(-25)">
-              <path d="M0,-8 L-3,0 L-2,4 L0,5 L2,4 L3,0 Z" fill="#0c1e30" stroke="#00ccee" stroke-width="0.6"/>
-              <path d="M-3,0 L-7,3 L-6,5 L-3,3 Z" fill="#081828" stroke="#00aadd" stroke-width="0.4"/>
-              <path d="M3,0 L7,3 L6,5 L3,3 Z" fill="#081828" stroke="#00aadd" stroke-width="0.4"/>
-              <ellipse cx="0" cy="-5" rx="1.2" ry="3" fill="url(#fw-cockpit)" opacity="0.8"/>
-              <!-- 엔진 글로우 -->
-              <circle cx="-1.2" cy="5" r="2" fill="#00ffff" opacity="0.4"/>
-              <circle cx="1.2" cy="5" r="2" fill="#00ffff" opacity="0.4"/>
-            </g>
-            <!-- 우측 탐사선 (적 - 레드) -->
-            <g transform="translate(48,28) rotate(155)">
-              <path d="M0,-8 L-3,0 L-2,4 L0,5 L2,4 L3,0 Z" fill="#1e0c0c" stroke="#ee3333" stroke-width="0.6"/>
-              <path d="M-3,0 L-7,3 L-6,5 L-3,3 Z" fill="#1a0808" stroke="#dd4444" stroke-width="0.4"/>
-              <path d="M3,0 L7,3 L6,5 L3,3 Z" fill="#1a0808" stroke="#dd4444" stroke-width="0.4"/>
-              <ellipse cx="0" cy="-5" rx="1.2" ry="3" fill="#ff4444" opacity="0.3"/>
-              <circle cx="-1.2" cy="5" r="2" fill="#ff4444" opacity="0.4"/>
-              <circle cx="1.2" cy="5" r="2" fill="#ff4444" opacity="0.4"/>
-            </g>
-            <!-- 레이저 빔 (시안) -->
-            <line x1="22" y1="25" x2="40" y2="24" stroke="#00ffff" stroke-width="1.2" opacity="0.7"/>
-            <line x1="22" y1="25" x2="40" y2="24" stroke="#ffffff" stroke-width="0.4" opacity="0.5"/>
-            <!-- 레이저 빔 (레드) -->
-            <line x1="42" y1="30" x2="24" y2="33" stroke="#ff4444" stroke-width="1" opacity="0.6"/>
-            <line x1="42" y1="30" x2="24" y2="33" stroke="#ffaaaa" stroke-width="0.3" opacity="0.4"/>
-            <!-- 폭발 파티클 -->
-            <circle cx="32" cy="28" r="3" fill="#ffcc00" opacity="0.25"/>
-            <circle cx="31" cy="27" r="1.5" fill="#ffffff" opacity="0.3"/>
-            <defs>
-              <radialGradient id="fw-cockpit"><stop offset="0%" stop-color="#00ffff" stop-opacity="0.7"/><stop offset="100%" stop-color="#004466" stop-opacity="0.1"/></radialGradient>
-            </defs>
-          </svg>
+    <!-- 카드 목록 -->
+    <div style="padding:14px; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
+      <!-- 1. 주파수 전쟁 -->
+      <div id="trn-card-fw" style="cursor:pointer; background:linear-gradient(135deg, #0a0a22 0%, #0c1030 100%); border:1px solid #4444cc; border-radius:10px; overflow:hidden;">
+        <div style="padding:14px; display:flex; align-items:center; gap:12px;">
+          <div style="width:52px; height:52px; flex-shrink:0;">
+            <svg width="52" height="52" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="30" fill="#080820" stroke="#2244aa" stroke-width="0.5"/>
+              <circle cx="10" cy="12" r="0.8" fill="#fff" opacity="0.5"/><circle cx="50" cy="8" r="0.6" fill="#aaeeff" opacity="0.4"/>
+              <g transform="translate(16,30) rotate(-25)"><path d="M0,-8 L-3,0 L-2,4 L0,5 L2,4 L3,0 Z" fill="#0c1e30" stroke="#00ccee" stroke-width="0.6"/><path d="M-3,0 L-7,3 L-6,5 L-3,3 Z" fill="#081828" stroke="#00aadd" stroke-width="0.4"/><path d="M3,0 L7,3 L6,5 L3,3 Z" fill="#081828" stroke="#00aadd" stroke-width="0.4"/><circle cx="-1.2" cy="5" r="2" fill="#00ffff" opacity="0.4"/><circle cx="1.2" cy="5" r="2" fill="#00ffff" opacity="0.4"/></g>
+              <g transform="translate(48,28) rotate(155)"><path d="M0,-8 L-3,0 L-2,4 L0,5 L2,4 L3,0 Z" fill="#1e0c0c" stroke="#ee3333" stroke-width="0.6"/><path d="M-3,0 L-7,3 L-6,5 L-3,3 Z" fill="#1a0808" stroke="#dd4444" stroke-width="0.4"/><path d="M3,0 L7,3 L6,5 L3,3 Z" fill="#1a0808" stroke="#dd4444" stroke-width="0.4"/><circle cx="-1.2" cy="5" r="2" fill="#ff4444" opacity="0.4"/><circle cx="1.2" cy="5" r="2" fill="#ff4444" opacity="0.4"/></g>
+              <line x1="22" y1="25" x2="40" y2="24" stroke="#00ffff" stroke-width="1.2" opacity="0.7"/><line x1="42" y1="30" x2="24" y2="33" stroke="#ff4444" stroke-width="1" opacity="0.6"/>
+              <circle cx="32" cy="28" r="3" fill="#ffcc00" opacity="0.25"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="color:#6688ff; font-size:13px; font-weight:bold; letter-spacing:2px;">주파수 전쟁</div>
+            <div style="color:#445588; font-size:9px; margin-top:3px; line-height:1.4;">FREQUENCY WARS<br>탐사선끼리 주파수를 두고 전쟁!</div>
+          </div>
+          <div style="color:#4444cc; font-size:14px;">▶</div>
         </div>
-        <div style="flex:1;">
-          <div style="color:#6688ff; font-family:'Courier New',monospace; font-size:14px; font-weight:bold; letter-spacing:2px;">주파수 전쟁</div>
-          <div style="color:#445588; font-family:monospace; font-size:9px; margin-top:4px; line-height:1.5;">FREQUENCY WARS<br>탐사선끼리 주파수를 두고 전쟁!</div>
-        </div>
-        <div style="color:#4444cc; font-size:16px;">▶</div>
+        <div style="height:2px; background:linear-gradient(90deg, transparent, #4444cc, transparent);"></div>
       </div>
-      <div style="height:2px; background:linear-gradient(90deg, transparent, #4444cc, transparent);"></div>
-    </div>
-
-    <!-- 2. COMING SOON #1 -->
-    <div id="trn-card-soon1" style="cursor:pointer; background:#060e18; border:1px solid #1a2a3a; border-radius:10px; overflow:hidden; opacity:0.6;">
-      <div style="padding:16px; display:flex; align-items:center; gap:14px;">
-        <div style="width:64px; height:64px; flex-shrink:0; background:#0a1520; border:1px solid #1a2a3a; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-          <span style="color:#334455; font-size:24px;">?</span>
-        </div>
-        <div style="flex:1;">
-          <div style="color:#334455; font-family:'Courier New',monospace; font-size:13px; font-weight:bold; letter-spacing:2px;">COMING SOON</div>
-          <div style="color:#1a2a3a; font-family:monospace; font-size:9px; margin-top:4px;">새로운 컨텐츠 준비 중</div>
+      <!-- 2. COMING SOON #1 -->
+      <div id="trn-card-soon1" style="cursor:pointer; background:#060e18; border:1px solid #1a2a3a; border-radius:10px; opacity:0.6;">
+        <div style="padding:14px; display:flex; align-items:center; gap:12px;">
+          <div style="width:52px; height:52px; flex-shrink:0; background:#0a1520; border:1px solid #1a2a3a; border-radius:8px; display:flex; align-items:center; justify-content:center;"><span style="color:#334455; font-size:20px;">?</span></div>
+          <div><div style="color:#334455; font-size:12px; font-weight:bold; letter-spacing:2px;">COMING SOON</div><div style="color:#1a2a3a; font-size:9px; margin-top:3px;">새로운 컨텐츠 준비 중</div></div>
         </div>
       </div>
-    </div>
-
-    <!-- 3. COMING SOON #2 -->
-    <div id="trn-card-soon2" style="cursor:pointer; background:#060e18; border:1px solid #1a2a3a; border-radius:10px; overflow:hidden; opacity:0.6;">
-      <div style="padding:16px; display:flex; align-items:center; gap:14px;">
-        <div style="width:64px; height:64px; flex-shrink:0; background:#0a1520; border:1px solid #1a2a3a; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-          <span style="color:#334455; font-size:24px;">?</span>
-        </div>
-        <div style="flex:1;">
-          <div style="color:#334455; font-family:'Courier New',monospace; font-size:13px; font-weight:bold; letter-spacing:2px;">COMING SOON</div>
-          <div style="color:#1a2a3a; font-family:monospace; font-size:9px; margin-top:4px;">새로운 컨텐츠 준비 중</div>
+      <!-- 3. COMING SOON #2 -->
+      <div id="trn-card-soon2" style="cursor:pointer; background:#060e18; border:1px solid #1a2a3a; border-radius:10px; opacity:0.6;">
+        <div style="padding:14px; display:flex; align-items:center; gap:12px;">
+          <div style="width:52px; height:52px; flex-shrink:0; background:#0a1520; border:1px solid #1a2a3a; border-radius:8px; display:flex; align-items:center; justify-content:center;"><span style="color:#334455; font-size:20px;">?</span></div>
+          <div><div style="color:#334455; font-size:12px; font-weight:bold; letter-spacing:2px;">COMING SOON</div><div style="color:#1a2a3a; font-size:9px; margin-top:3px;">새로운 컨텐츠 준비 중</div></div>
         </div>
       </div>
     </div>
@@ -9429,11 +9377,11 @@ function _syncTrnHUD() {
 }
 window._syncTrnHUD = _syncTrnHUD;
 
-// 뒤로 버튼 → 홈 화면
-var trnBackBtn = document.getElementById('trn-back-btn');
-if (trnBackBtn) {
-  trnBackBtn.addEventListener('click', function() {
-    if (window.showScreen) showScreen('home');
+// 팝업 바깥 클릭 → 홈 화면으로 닫기
+var trnScreen = document.getElementById('screen-tournament');
+if (trnScreen) {
+  trnScreen.addEventListener('click', function(e) {
+    if (e.target === trnScreen) { if (window.showScreen) showScreen('home'); }
   });
 }
 
@@ -15496,7 +15444,7 @@ window.showScreen = function (name) {
   } else if (name === 'corelab') {
     try { if(window.renderLab) renderLab(); } catch(_) {}
   } else if (name === 'tournament') {
-    try { if(window._syncTrnHUD) _syncTrnHUD(); } catch(_) {}
+    /* 팝업 형식 — 별도 초기화 불필요 */
   } else {
     try { syncPulse(); } catch(_) {}
   }
