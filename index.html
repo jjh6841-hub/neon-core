@@ -17034,7 +17034,7 @@ var PROTOCOLS = window.PROTOCOLS = [
    cdReduce:3, durBase:2, durPerLv:0.8, dmgBase:100, dmgPerLv:40},
   {id:'pt_chain',      icon:'↯', color:'#ffc800', name:'체인 라이트닝',     maxLv:10, baseCd:45,
    desc:'공격 시 연쇄 번개 추가 발동',
-   cdReduce:2, dmgBase:80, dmgPerLv:12, chainBase:3, chainPerLv:1, durBase:3, durPerLv:0.3}
+   cdReduce:2, dmgBase:80, dmgPerLv:12, chainBase:3, chainPerLv:0, chainRange:70, durBase:3, durPerLv:0.3}
 ];
 
 var PROTO_COST = 5;
@@ -17837,13 +17837,22 @@ function _useProtocol(id){
     var stunDur=(def.stunBase+lv*def.stunPerLv)*1000;
     var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
     var dmg=Math.round(t.dmg*dmgPct);
+    var _empKills=[];
     enemies.forEach(function(e){
       if(e.hp<=0) return;
       e.hp-=dmg;
       e._ptStun=Math.max(e._ptStun||0, stunDur);
       e.hitFlash=3;
       if(G.floatTexts) G.floatTexts.push({x:e.x,y:e.y-((e.r||10)+5),text:'-'+dmg,color:'#bb44ff',timer:0});
+      if(e.hp<=0) _empKills.push(e);
     });
+    // EMP로 즉사한 적 처리
+    _empKills.forEach(function(e){
+      G.killCount++; PERM.totalKills++;
+      var _eGold=e.gold||1; G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
+      addFx(e.x,e.y,e.r||10,'#3b82f6');
+    });
+    if(_empKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
     addFx(cx,cy,200,'#3b82f6');
     /* 플래시 제거 */
   }
@@ -18307,94 +18316,42 @@ function _stopProtoTick(){
       ctx.restore();
     }
 
-    /* 기간토마키아 드로잉 (공격 범위 내 지진) */
+    /* 기간토마키아 드로잉 (타워 주위 붉은 링 — 오버드라이브/과열과 동일 방식) */
     if(_protoActiveEffects.giganto){
-      var gT=performance.now()*0.001;
-      // 공격 범위 점선 원과 동일한 반경 사용
-      var gRange=G.tower.range||162;
-      // DPR 보정: 캔버스가 DPR 스케일되어 있으면 range도 같은 좌표계
+      var _tR3=(G.tower&&G.tower.r)||12;
       ctx.save();
-      // 범위 테두리 (붉은 원)
-      ctx.globalAlpha=0.15+0.05*Math.sin(gT*6);
+      // 타워 주위 붉은 맥동 링
+      ctx.globalAlpha=0.3+0.12*Math.sin(performance.now()*0.005);
       ctx.strokeStyle='#ef4444';
+      ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(cx,cy,_tR3+6,0,Math.PI*2); ctx.stroke();
+      // 두 번째 링 (더 크게)
+      ctx.globalAlpha=0.15+0.08*Math.sin(performance.now()*0.007);
       ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.stroke();
-      // 범위 내 붉은 틴트
-      ctx.globalAlpha=0.05+0.03*Math.sin(gT*4);
-      ctx.fillStyle='#ef4444';
-      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.fill();
-      // 균열선 (범위의 80% 이내)
-      var crackLen=gRange*0.7;
-      ctx.strokeStyle='#ef4444';
-      ctx.lineWidth=1;
-      for(var gc=0;gc<4;gc++){
-        var gcA=gc*(Math.PI/2)+gT*0.1;
-        ctx.globalAlpha=0.25;
-        ctx.beginPath();
-        ctx.moveTo(cx,cy);
-        var gx2=cx, gy2=cy;
-        for(var gs=0;gs<3;gs++){
-          var frac=(gs+1)/3;
-          gx2=cx+Math.cos(gcA)*crackLen*frac+(gs%2===0?3:-3);
-          gy2=cy+Math.sin(gcA)*crackLen*frac+(gs%2===0?-2:2);
-          ctx.lineTo(gx2,gy2);
-        }
-        ctx.stroke();
-      }
-      // 먼지 (범위의 60% 이내)
-      ctx.globalAlpha=0.4;
-      for(var gd=0;gd<6;gd++){
-        var gdA=gd*(Math.PI/3)+gT*0.5;
-        var gdR=gRange*0.3*(1+0.3*Math.sin(gT*3+gd));
-        ctx.fillStyle=gd%2===0?'#ff6644':'#cc3333';
-        ctx.fillRect(cx+Math.cos(gdA)*gdR-1,cy+Math.sin(gdA)*gdR-1,2,2);
-      }
+      ctx.beginPath(); ctx.arc(cx,cy,_tR3+14,0,Math.PI*2); ctx.stroke();
       ctx.globalAlpha=1;
       ctx.restore();
     }
 
-    /* 레이저 오버드라이브 드로잉 (붉은 오라) */
+    /* 레이저 오버드라이브 (타워 주위 붉은 링) */
     if(_protoActiveEffects.overdrive){
-      var odT=performance.now()*0.001;
       ctx.save();
-      var odGrd=ctx.createRadialGradient(cx,cy,3,cx,cy,22);
-      odGrd.addColorStop(0,'rgba(255,68,68,'+(.15+.08*Math.sin(odT*6))+')');
-      odGrd.addColorStop(0.6,'rgba(255,30,30,'+(.08+.04*Math.sin(odT*5))+')');
-      odGrd.addColorStop(1,'transparent');
-      ctx.fillStyle=odGrd;
-      ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2); ctx.fill();
-      // 파워 링
-      ctx.globalAlpha=0.3+0.15*Math.sin(odT*8);
+      ctx.globalAlpha=0.25+0.1*Math.sin(performance.now()*0.006);
       ctx.strokeStyle='#ff4444';
-      ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(cx,cy,16+Math.sin(odT*4)*3,0,Math.PI*2); ctx.stroke();
-      ctx.globalAlpha=1;
+      ctx.lineWidth=2;
+      var _tR1=(G.tower&&G.tower.r)||12;
+      ctx.beginPath(); ctx.arc(cx,cy,_tR1+4,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     }
 
-    /* 과열 레이저 드로잉 (타워 위 불꽃) */
+    /* 과열 레이저 (타워 주위 주황 링) */
     if(_protoActiveEffects.overheat){
-      var ohT=performance.now()*0.001;
       ctx.save();
-      // 타워 위에 열기 글로우
-      var tR=(G.tower&&G.tower.r)||12;
-      var ohGrd=ctx.createRadialGradient(cx,cy-tR*0.5,2,cx,cy-tR*0.5,tR+10);
-      ohGrd.addColorStop(0,'rgba(255,160,50,'+(.25+.1*Math.sin(ohT*8))+')');
-      ohGrd.addColorStop(0.5,'rgba(255,80,0,'+(.12+.05*Math.sin(ohT*6))+')');
-      ohGrd.addColorStop(1,'transparent');
-      ctx.fillStyle=ohGrd;
-      ctx.beginPath(); ctx.arc(cx,cy-tR*0.5,tR+10,0,Math.PI*2); ctx.fill();
-      // 불꽃 파티클 (타워 주변 위쪽으로)
-      for(var op=0;op<5;op++){
-        var oa=ohT*5+op*(Math.PI*2/5);
-        var oR=tR*0.8+Math.sin(ohT*6+op*2)*4;
-        var oY=cy-tR*0.3-Math.abs(Math.sin(ohT*7+op*3))*8;
-        var oSz=1.5+Math.sin(ohT*8+op)*0.8;
-        ctx.globalAlpha=0.5+0.3*Math.sin(ohT*5+op);
-        ctx.fillStyle=op%2===0?'#ff8822':'#ffcc44';
-        ctx.beginPath(); ctx.arc(cx+Math.cos(oa)*oR,oY,oSz,0,Math.PI*2); ctx.fill();
-      }
-      ctx.globalAlpha=1;
+      ctx.globalAlpha=0.3+0.1*Math.sin(performance.now()*0.008);
+      ctx.strokeStyle='#ff8822';
+      ctx.lineWidth=2;
+      var _tR2=(G.tower&&G.tower.r)||12;
+      ctx.beginPath(); ctx.arc(cx,cy,_tR2+4,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     }
 
@@ -18700,6 +18657,7 @@ if (typeof _origFireT === 'function') {
 }
 
 /* ── 체인 라이트닝: 공격 시 연쇄 번개 발동 (fireTower 래핑) ── */
+/* ── 체인 라이트닝: 공격 시 적과 적 사이 전기 체인 ── */
 var _origFireChain = window.fireTower;
 if (typeof _origFireChain === 'function') {
   window.fireTower = function() {
@@ -18710,37 +18668,34 @@ if (typeof _origFireChain === 'function') {
     var t2 = G.tower;
     var enemies2 = G.enemies || [];
     var cx2 = G.cx, cy2 = G.cy;
-    var cMainDmg = Math.round(t2.dmg * ch.dmgPct);
-    var cChainDmg = Math.round(cMainDmg * 0.8);
-    // 가장 가까운 적 찾기
-    var cNearest = null, cNd = Infinity;
+    var cDmg = Math.round(t2.dmg * ch.dmgPct);
+    var chainRange = ch.chainRange || 70;
+    var maxChain = ch.chainCount || 3;
+    // 공격 대상 = 가장 가까운 적
+    var target = null, tDist = Infinity;
     enemies2.forEach(function(e) {
       if (e.hp <= 0) return;
       var dx = e.x - cx2, dy = e.y - cy2;
       var d = Math.sqrt(dx * dx + dy * dy);
-      if (d < cNd) { cNd = d; cNearest = e; }
+      if (d < tDist) { tDist = d; target = e; }
     });
-    if (!cNearest) return;
-    cNearest.hp -= cMainDmg; cNearest.hitFlash = 3;
-    if(G.floatTexts) G.floatTexts.push({x:cNearest.x,y:cNearest.y-((cNearest.r||10)+5),text:'-'+cMainDmg,color:'#bb44ff',timer:0});
-    if (window._protoVisualEffects) _protoVisualEffects.push({type:'chain', x1:cx2, y1:cy2, x2:cNearest.x, y2:cNearest.y, color:'#ffc800', timer:400});
-    var cHit = new Set(); cHit.add(cNearest);
-    var cCur = cNearest;
-    for (var cci = 0; cci < ch.chainCount; cci++) {
-      var cNext = null, cND2 = Infinity;
-      enemies2.forEach(function(e3) {
-        if (cHit.has(e3) || e3.hp <= 0) return;
-        var dx4 = e3.x - cCur.x, dy4 = e3.y - cCur.y;
-        var d4 = Math.sqrt(dx4 * dx4 + dy4 * dy4);
-        if (d4 < cND2 && d4 < 200) { cND2 = d4; cNext = e3; }
-      });
-      if (!cNext) break;
-      cNext.hp -= cChainDmg; cNext.hitFlash = 3;
-      if(G.floatTexts) G.floatTexts.push({x:cNext.x,y:cNext.y-((cNext.r||10)+5),text:'-'+cChainDmg,color:'#bb44ff',timer:0});
-      cHit.add(cNext);
-      if (window._protoVisualEffects) _protoVisualEffects.push({type:'chain', x1:cCur.x, y1:cCur.y, x2:cNext.x, y2:cNext.y, color:'#ffc800', timer:400});
-      cCur = cNext;
-    }
+    if (!target) return;
+    // 공격 대상 70px 범위 내 적 최대 3마리에게 추가 데미지
+    var chainTargets = [];
+    enemies2.forEach(function(e) {
+      if (e === target || e.hp <= 0) return;
+      var dx = e.x - target.x, dy = e.y - target.y;
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d <= chainRange) chainTargets.push({e:e, d:d});
+    });
+    chainTargets.sort(function(a,b){return a.d-b.d;});
+    chainTargets = chainTargets.slice(0, maxChain);
+    // 데미지 + 이펙트 (적↔적 전기선)
+    chainTargets.forEach(function(ct) {
+      ct.e.hp -= cDmg; ct.e.hitFlash = 3;
+      if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+cDmg,color:'#bb44ff',timer:0});
+      if(window._protoVisualEffects) _protoVisualEffects.push({type:'chain',x1:target.x,y1:target.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:300});
+    });
   };
 }
 
