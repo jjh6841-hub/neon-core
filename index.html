@@ -3918,7 +3918,8 @@ function update(dt) {
           _cTargets.slice(0,_cMax).forEach(function(ct){
             ct.e.hp-=_cDmg; ct.e.hitFlash=3;
             if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
-            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:200});
+            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:350});
+            addFx(ct.e.x,ct.e.y,6,'#ffc800');
           });
         }
         // 흡혈 드론: 입힌 피해의 30% 회복
@@ -18155,6 +18156,8 @@ function _startProtoTick(){
         gi.tickTimer-=1000;
         var range=t.range||162;
         var dmg=Math.round(t.dmg*gi.dmgPct);
+        // 충격파 이펙트 (독립적으로 지속)
+        if(window._protoVisualEffects) window._protoVisualEffects.push({type:'giganto_wave',cx:cx,cy:cy,range:range,timer:800});
         var _giKills=[];
         enemies.forEach(function(e){
           if(e.hp<=0) return;
@@ -18347,26 +18350,28 @@ function _stopProtoTick(){
       ctx.restore();
     }
 
-    /* 기간토마키아 (지진 흔들림 + 충격파) */
+    /* 기간토마키아 (지진 흔들림) */
     var _aeGi=window._protoActiveEffects&&window._protoActiveEffects.giganto;
     if(_aeGi){
       var _gt=performance.now()*0.001;
-      // 화면 흔들림
       canvas.style.transform='translate('+Math.sin(_gt*35)*4+'px,'+Math.cos(_gt*28)*3+'px)';
       canvas.dataset._gigantoShake='1';
-      // 충격파 링 (타워에서 퍼져나감)
-      var _gRange=G.tower.range||162;
-      var _phase=(_gt*2)%1;
-      ctx.save();
-      ctx.globalAlpha=(1-_phase)*0.2;
-      ctx.strokeStyle='#ef4444';
-      ctx.lineWidth=2-_phase*1.5;
-      ctx.beginPath(); ctx.arc(cx,cy,_gRange*_phase,0,Math.PI*2); ctx.stroke();
-      ctx.restore();
     } else if(canvas.dataset._gigantoShake){
       canvas.style.transform='';
       delete canvas.dataset._gigantoShake;
     }
+    /* 기간토마키아 충격파 링 (VFX — 독립 지속) */
+    (window._protoVisualEffects||[]).forEach(function(vfx){
+      if(vfx.type==='giganto_wave'){
+        var progress=1-vfx.timer/800;
+        ctx.save();
+        ctx.globalAlpha=(1-progress)*0.25;
+        ctx.strokeStyle='#ef4444';
+        ctx.lineWidth=2.5-progress*2;
+        ctx.beginPath(); ctx.arc(vfx.cx,vfx.cy,vfx.range*progress,0,Math.PI*2); ctx.stroke();
+        ctx.restore();
+      }
+    });
 
     /* 오버드라이브/과열 이펙트 없음 (게이지 바로 표시) */
 
