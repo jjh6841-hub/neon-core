@@ -7995,42 +7995,49 @@ if (dailyPopup) {
 ══════════════════════════════════════════════════════ -->
 <div id="screen-frequency-wars" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
   <!-- 헤더 -->
-  <div style="display:flex; align-items:center; justify-content:space-between; padding:calc(12px + var(--sat)) 16px 12px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
-    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; width:48px; text-align:left;">◀ 뒤로</button>
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:calc(12px + var(--sat)) 12px 10px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
     <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">주파수 전쟁</span>
-    <span style="display:flex;align-items:center;gap:6px;">
-      <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button>
-      <span style="color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
-    </span>
+    <span style="color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
   </div>
 
-  <div style="padding:12px;">
-    <!-- 시즌 + 타이머 -->
-    <div style="display:flex;justify-content:space-between;align-items:center;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:10px;">
-      <div><div style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:2px;">FREQUENCY WARS</div><div style="color:#445566;font-size:8px;margin-top:2px;">시즌 1</div></div>
-      <div style="text-align:right;"><div style="color:#556677;font-size:8px;">주파수 전쟁 종료</div><div id="fw-timer" style="color:#00dddd;font-size:13px;font-weight:bold;">--:--:--</div></div>
+  <div style="padding:10px;">
+    <!-- 타이틀 라인: 도움말 | FREQUENCY WARS | 시즌 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button>
+      <span style="font-size:12px;letter-spacing:3px;color:#00dddd;">FREQUENCY WARS</span>
+      <span style="background:linear-gradient(135deg,#00dddd,#0088aa);color:#030b10;font-size:9px;font-weight:900;padding:2px 8px;border-radius:3px;letter-spacing:1px;">SEASON 1</span>
     </div>
-    <!-- 2열: 내 정보 + 순위/보상 -->
+
+    <!-- 2열: 좌(내 정보+규칙+타이머) | 우(순위/보상) -->
     <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <!-- 좌: 내 정보 -->
-      <div style="width:120px;flex-shrink:0;">
-        <div id="fw-league-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px;text-align:center;margin-bottom:8px;">
-          <div id="fw-league-icon" style="font-size:24px;">🔵</div>
-          <div id="fw-league-name" style="color:#4488ff;font-size:12px;font-weight:bold;margin-top:4px;">TIER F</div>
-          <div style="display:flex;justify-content:space-around;margin-top:8px;">
-            <div style="text-align:center;"><div style="color:#445566;font-size:7px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:12px;font-weight:bold;">0</div></div>
-            <div style="text-align:center;"><div style="color:#445566;font-size:7px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:12px;font-weight:bold;">0</div></div>
+      <!-- 좌측 -->
+      <div style="width:110px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
+        <!-- 내 정보 -->
+        <div id="fw-league-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px;text-align:center;">
+          <div id="fw-league-icon" style="font-size:22px;">🔵</div>
+          <div id="fw-league-name" style="color:#4488ff;font-size:11px;font-weight:bold;margin-top:3px;">TIER F</div>
+          <div style="display:flex;justify-content:space-around;margin-top:6px;">
+            <div style="text-align:center;"><div style="color:#445566;font-size:7px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:11px;font-weight:bold;">0</div></div>
+            <div style="text-align:center;"><div style="color:#445566;font-size:7px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:11px;font-weight:bold;">0</div></div>
           </div>
-          <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:7px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:14px;font-weight:bold;">-</div></div>
+          <div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:7px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:13px;font-weight:bold;">-</div></div>
+        </div>
+        <!-- 이번 주 규칙 -->
+        <div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
+        <!-- 남은 시간 -->
+        <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;text-align:center;">
+          <div style="color:#556677;font-size:7px;">종료까지</div>
+          <div id="fw-timer" style="color:#00dddd;font-size:12px;font-weight:bold;margin-top:2px;">--:--:--</div>
         </div>
       </div>
-      <!-- 우: 순위/보상 탭 -->
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;border-bottom:1px solid #1a3444;margin-bottom:6px;">
-          <button id="fw-tab-rank" style="flex:1;background:none;border:none;border-bottom:2px solid #00dddd;color:#00dddd;font-family:monospace;font-size:9px;padding:6px 0;cursor:pointer;">순위</button>
-          <button id="fw-tab-reward" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:9px;padding:6px 0;cursor:pointer;">보상</button>
+      <!-- 우측: 순위/보상 -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
+        <div style="display:flex;border-bottom:1px solid #1a3444;margin-bottom:4px;">
+          <button id="fw-tab-rank" style="flex:1;background:none;border:none;border-bottom:2px solid #00dddd;color:#00dddd;font-family:monospace;font-size:9px;padding:5px 0;cursor:pointer;">순위</button>
+          <button id="fw-tab-reward" style="flex:1;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:9px;padding:5px 0;cursor:pointer;">보상</button>
         </div>
-        <div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;min-height:140px;max-height:180px;overflow-y:auto;">
+        <div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;flex:1;overflow-y:auto;">
           <div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">
             <div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>
           </div>
@@ -8038,11 +8045,12 @@ if (dailyPopup) {
         </div>
       </div>
     </div>
-    <!-- 이번 주 규칙 -->
-    <div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:10px;"></div>
-    <!-- 버튼들 -->
-    <button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #00dddd;border-radius:10px;color:#ffffff;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;padding:12px;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #00dddd;margin-bottom:8px;">참가하기</button>
-    <button id="fw-shop-btn" style="width:100%;background:#0c0c22;border:1px solid #ffc800;border-radius:10px;color:#ffc800;font-family:'Courier New',monospace;font-size:11px;padding:8px;cursor:pointer;letter-spacing:1px;">✦ 주파수 상점</button>
+
+    <!-- 버튼: 주파수 상점(4) + 참가하기(6) -->
+    <div style="display:flex;gap:6px;">
+      <button id="fw-shop-btn" style="flex:4;background:#0c0c22;border:1px solid #ffc800;border-radius:10px;color:#ffc800;font-family:'Courier New',monospace;font-size:10px;padding:11px 0;cursor:pointer;">✦ 주파수 상점</button>
+      <button id="fw-join-btn" style="flex:6;background:#030b10;border:2px solid #00dddd;border-radius:10px;color:#ffffff;font-family:'Courier New',monospace;font-size:13px;font-weight:bold;padding:11px 0;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #00dddd;">참가하기</button>
+    </div>
   </div>
 </div>
 
@@ -16151,12 +16159,10 @@ function renderFW(){
   var ruleCard=document.getElementById('fw-rule-card');
   if(ruleCard){
     ruleCard.innerHTML=
-      '<div style="color:#7aacac;font-size:9px;margin-bottom:4px;letter-spacing:1px;">이번 주 규칙</div>'+
-      '<div style="display:flex;align-items:center;gap:8px;">'+
-        _fwRuleIconHTML(rule.id,22)+
-        '<div><div style="color:#00dddd;font-size:11px;font-weight:bold;">'+rule.name+'</div>'+
-        '<div style="color:#556677;font-size:8px;margin-top:1px;">'+rule.desc+'</div></div>'+
-      '</div>';
+      '<div style="color:#7aacac;font-size:7px;margin-bottom:4px;letter-spacing:1px;">이번 주 규칙</div>'+
+      '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,20)+'</div>'+
+      '<div style="color:#00dddd;font-size:10px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
+      '<div style="color:#556677;font-size:7px;margin-top:2px;text-align:center;line-height:1.4;">'+rule.desc+'</div>';
   }
 
   var lb=document.getElementById('fw-leaderboard');
@@ -16173,15 +16179,15 @@ function renderFW(){
     }
     if(playerWave>0) scores.push({name:fw.playerName||'\uB098', score:playerWave, isPlayer:true});
     scores.sort(function(a,b){return b.score-a.score;});
-    var html='';
+    var html='<div style="display:flex;justify-content:space-between;padding:3px 4px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:8px;"><span style="color:#556677;font-size:8px;width:18px;">순위</span><span style="color:#556677;font-size:8px;">닉네임</span></div><span style="color:#556677;font-size:8px;">웨이브</span></div>';
     scores.slice(0,10).forEach(function(s,idx){
       var rc=idx===0?'#ffc800':idx===1?'#C0C0C0':idx===2?'#CD7F32':'#334455';
-      html+='<div style="display:flex;justify-content:space-between;padding:5px 4px;border-bottom:1px solid #0a1a2a;">'+
+      html+='<div style="display:flex;justify-content:space-between;padding:4px;border-bottom:1px solid #0a1a2a;">'+
         '<div style="display:flex;gap:8px;align-items:center;">'+
-          '<span style="color:'+rc+';font-size:11px;width:18px;font-weight:bold;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;">'+s.name+'</span>'+
+          '<span style="color:'+rc+';font-size:10px;width:18px;font-weight:bold;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:10px;">'+s.name+'</span>'+
         '</div>'+
-        '<span style="color:#ffc800;font-size:11px;">\uC6E8\uC774\uBE0C '+s.score+'</span>'+
+        '<span style="color:#ffc800;font-size:10px;font-weight:bold;">'+s.score+'</span>'+
       '</div>';
     });
     lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
