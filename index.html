@@ -3099,15 +3099,15 @@ var ACHIEVEMENTS = [
   { key:'kill100000', icon:'X', name:'처치 100,000',  desc:'적 100,000마리 처치',  cond:()=>PERM.totalKills>=100000,  prog:()=>Math.min(PERM.totalKills,100000)+'/100000',   gems:20 },
   { key:'kill1000000',icon:'X', name:'처치 1,000,000',desc:'적 1,000,000마리 처치',cond:()=>PERM.totalKills>=1000000, prog:()=>Math.min(PERM.totalKills,1000000)+'/1000000', gems:50 },
 
-  // ── 보스 처치 ──
-  { key:'boss10',     icon:'★', name:'보스 처치 10',     desc:'보스 10마리 처치',     cond:()=>PERM.bossKills>=10,     prog:()=>Math.min(PERM.bossKills,10)+'/10',         gems:2 },
-  { key:'boss50',     icon:'★', name:'보스 처치 50',     desc:'보스 50마리 처치',     cond:()=>PERM.bossKills>=50,     prog:()=>Math.min(PERM.bossKills,50)+'/50',         gems:5 },
-  { key:'boss200',    icon:'★', name:'보스 처치 200',    desc:'보스 200마리 처치',    cond:()=>PERM.bossKills>=200,    prog:()=>Math.min(PERM.bossKills,200)+'/200',       gems:8 },
-  { key:'boss500',    icon:'★', name:'보스 처치 500',    desc:'보스 500마리 처치',    cond:()=>PERM.bossKills>=500,    prog:()=>Math.min(PERM.bossKills,500)+'/500',       gems:10 },
-  { key:'boss1000',   icon:'★', name:'보스 처치 1,000',  desc:'보스 1,000마리 처치',  cond:()=>PERM.bossKills>=1000,   prog:()=>Math.min(PERM.bossKills,1000)+'/1000',     gems:15 },
-  { key:'boss5000',   icon:'★', name:'보스 처치 5,000',  desc:'보스 5,000마리 처치',  cond:()=>PERM.bossKills>=5000,   prog:()=>Math.min(PERM.bossKills,5000)+'/5000',     gems:20 },
-  { key:'boss10000',  icon:'★', name:'보스 처치 10,000', desc:'보스 10,000마리 처치', cond:()=>PERM.bossKills>=10000,  prog:()=>Math.min(PERM.bossKills,10000)+'/10000',   gems:30 },
-  { key:'boss100000', icon:'★', name:'보스 처치 100,000',desc:'보스 100,000마리 처치',cond:()=>PERM.bossKills>=100000, prog:()=>Math.min(PERM.bossKills,100000)+'/100000', gems:50 },
+  // ── 드레드노트 처치 ──
+  { key:'boss10',     icon:'★', name:'드레드노트 처치 10',     desc:'드레드노트 10마리 처치',     cond:()=>PERM.bossKills>=10,     prog:()=>Math.min(PERM.bossKills,10)+'/10',         gems:2 },
+  { key:'boss50',     icon:'★', name:'드레드노트 처치 50',     desc:'드레드노트 50마리 처치',     cond:()=>PERM.bossKills>=50,     prog:()=>Math.min(PERM.bossKills,50)+'/50',         gems:5 },
+  { key:'boss200',    icon:'★', name:'드레드노트 처치 200',    desc:'드레드노트 200마리 처치',    cond:()=>PERM.bossKills>=200,    prog:()=>Math.min(PERM.bossKills,200)+'/200',       gems:8 },
+  { key:'boss500',    icon:'★', name:'드레드노트 처치 500',    desc:'드레드노트 500마리 처치',    cond:()=>PERM.bossKills>=500,    prog:()=>Math.min(PERM.bossKills,500)+'/500',       gems:10 },
+  { key:'boss1000',   icon:'★', name:'드레드노트 처치 1,000',  desc:'드레드노트 1,000마리 처치',  cond:()=>PERM.bossKills>=1000,   prog:()=>Math.min(PERM.bossKills,1000)+'/1000',     gems:15 },
+  { key:'boss5000',   icon:'★', name:'드레드노트 처치 5,000',  desc:'드레드노트 5,000마리 처치',  cond:()=>PERM.bossKills>=5000,   prog:()=>Math.min(PERM.bossKills,5000)+'/5000',     gems:20 },
+  { key:'boss10000',  icon:'★', name:'드레드노트 처치 10,000', desc:'드레드노트 10,000마리 처치', cond:()=>PERM.bossKills>=10000,  prog:()=>Math.min(PERM.bossKills,10000)+'/10000',   gems:30 },
+  { key:'boss100000', icon:'★', name:'드레드노트 처치 100,000',desc:'드레드노트 100,000마리 처치',cond:()=>PERM.bossKills>=100000, prog:()=>Math.min(PERM.bossKills,100000)+'/100000', gems:50 },
 
   // ── 업그레이드 ──
   { key:'upg30',   icon:'◈', name:'강화소 업그레이드 30회',  desc:'강화소 업그레이드 30회',  cond:()=>(PERM.wsUpgradeCount||0)>=30,prog:()=>Math.min(PERM.wsUpgradeCount||0,30)+'/30', gems:2 },
@@ -3192,12 +3192,12 @@ var ACHIEVEMENTS = [
   { key:'p5_1000',  icon:'☆', name:'오메가 1000',    desc:'오메가 웨이브 1000 클리어',   cond:()=>_achTierBest(5)>=1000,  prog:()=>Math.min(_achTierBest(5),1000)+'/1000',   gems:20 },
   { key:'p5_5000',  icon:'☆', name:'오메가 5000',    desc:'오메가 웨이브 5000 클리어',   cond:()=>_achTierBest(5)>=5000,  prog:()=>Math.min(_achTierBest(5),5000)+'/5000',   gems:50 },
 
-  // ── 갤럭시 보스 정복 (보상: 접근 코드) ──
-  { key:'galaxy_t1', icon:'🌌', name:'에이온 정복자',   desc:'에이온 갤럭시 보스 처치',   cond:()=>localStorage.getItem('galaxy_t1')==='true', prog:()=>localStorage.getItem('galaxy_t1')==='true'?'1/1':'0/1', gems:0, _accessCodes:100 },
-  { key:'galaxy_t2', icon:'🌌', name:'스펙트라 정복자', desc:'스펙트라 갤럭시 보스 처치', cond:()=>localStorage.getItem('galaxy_t2')==='true', prog:()=>localStorage.getItem('galaxy_t2')==='true'?'1/1':'0/1', gems:0, _accessCodes:200 },
-  { key:'galaxy_t3', icon:'🌌', name:'넥사르 정복자',   desc:'넥사르 갤럭시 보스 처치',   cond:()=>localStorage.getItem('galaxy_t3')==='true', prog:()=>localStorage.getItem('galaxy_t3')==='true'?'1/1':'0/1', gems:0, _accessCodes:300 },
-  { key:'galaxy_t4', icon:'🌌', name:'피라온 정복자',   desc:'피라온 갤럭시 보스 처치',   cond:()=>localStorage.getItem('galaxy_t4')==='true', prog:()=>localStorage.getItem('galaxy_t4')==='true'?'1/1':'0/1', gems:0, _accessCodes:400 },
-  { key:'galaxy_t5', icon:'🌌', name:'오메가 정복자',   desc:'오메가 갤럭시 보스 처치',   cond:()=>localStorage.getItem('galaxy_t5')==='true', prog:()=>localStorage.getItem('galaxy_t5')==='true'?'1/1':'0/1', gems:0, _accessCodes:500 },
+  // ── 갤럭시 드레드노트 정복 (보상: 접근 코드) ──
+  { key:'galaxy_t1', icon:'🌌', name:'에이온 정복자',   desc:'에이온 갤럭시 드레드노트 처치',   cond:()=>localStorage.getItem('galaxy_t1')==='true', prog:()=>localStorage.getItem('galaxy_t1')==='true'?'1/1':'0/1', gems:0, _accessCodes:100 },
+  { key:'galaxy_t2', icon:'🌌', name:'스펙트라 정복자', desc:'스펙트라 갤럭시 드레드노트 처치', cond:()=>localStorage.getItem('galaxy_t2')==='true', prog:()=>localStorage.getItem('galaxy_t2')==='true'?'1/1':'0/1', gems:0, _accessCodes:200 },
+  { key:'galaxy_t3', icon:'🌌', name:'넥사르 정복자',   desc:'넥사르 갤럭시 드레드노트 처치',   cond:()=>localStorage.getItem('galaxy_t3')==='true', prog:()=>localStorage.getItem('galaxy_t3')==='true'?'1/1':'0/1', gems:0, _accessCodes:300 },
+  { key:'galaxy_t4', icon:'🌌', name:'피라온 정복자',   desc:'피라온 갤럭시 드레드노트 처치',   cond:()=>localStorage.getItem('galaxy_t4')==='true', prog:()=>localStorage.getItem('galaxy_t4')==='true'?'1/1':'0/1', gems:0, _accessCodes:400 },
+  { key:'galaxy_t5', icon:'🌌', name:'오메가 정복자',   desc:'오메가 갤럭시 드레드노트 처치',   cond:()=>localStorage.getItem('galaxy_t5')==='true', prog:()=>localStorage.getItem('galaxy_t5')==='true'?'1/1':'0/1', gems:0, _accessCodes:500 },
 
   // ── 총 골드 획득 ──
   { key:'gold100k',  icon:'◈', name:'골드 수집가 I',   desc:'총 골드 100,000 획득',    cond:()=>_achTotalGold()>=100000,   prog:()=>Math.min(_achTotalGold(),100000)+'/100000',       gems:5 },
@@ -10141,7 +10141,7 @@ var DAILY_MISSIONS = [
   { id:'daily_kills',      text:'적 100마리 처치',      target:100, trackKey:'daily_kills_progress',      reward:{ gold:30, gem:0 } },
   { id:'daily_ad',         text:'광고 보기 1회',        target:1,   trackKey:'daily_ad_progress',         reward:{ gold:20, gem:0 } },
   { id:'daily_games',      text:'게임 2판 플레이',      target:2,   trackKey:'daily_games_progress',      reward:{ gold:25, gem:0 } },
-  { id:'daily_boss',       text:'보스 처치 3회',        target:3,   trackKey:'daily_boss_progress',       reward:{ gold:40, gem:0 } },
+  { id:'daily_boss',       text:'드레드노트 처치 3회',        target:3,   trackKey:'daily_boss_progress',       reward:{ gold:40, gem:0 } },
   { id:'daily_total_wave', text:'총 웨이브 50 도달',    target:50,  trackKey:'daily_total_wave_progress', reward:{ gold:30, gem:0 } },
   { id:'daily_all',        text:'일일 임무 모두 완료',  target:7,   trackKey:'daily_all_progress',        reward:{ gold:100, gem:0 } },
 ];
@@ -10581,7 +10581,7 @@ setTimeout(_updateBadge, 500);
   var WMISS = [
     { id:'wk_wave',    text:'웨이브 50 클리어',      target:50,   trackKey:'wk_wave_progress',    reward:{gold:300,gem:0} },
     { id:'wk_kills',   text:'적 1000마리 처치',      target:1000, trackKey:'wk_kills_progress',   reward:{gold:300,gem:0} },
-    { id:'wk_boss',    text:'보스 20마리 처치',      target:20,   trackKey:'wk_boss_progress',    reward:{gold:300,gem:0} },
+    { id:'wk_boss',    text:'드레드노트 20마리 처치',      target:20,   trackKey:'wk_boss_progress',    reward:{gold:300,gem:0} },
     { id:'wk_upgrade', text:'강화 업그레이드 10회',  target:10,   trackKey:'wk_upgrade_progress', reward:{gold:300,gem:0} },
     { id:'wk_games',   text:'게임 10판 플레이',      target:10,   trackKey:'wk_games_progress',   reward:{gold:300,gem:0} },
     { id:'wk_ads',     text:'광고 7회 시청',         target:7,    trackKey:'wk_ads_progress',     reward:{gold:300,gem:0} },
@@ -10667,9 +10667,9 @@ setTimeout(_updateBadge, 500);
     var tierRw = {1:500,2:1000,3:2000,4:4000,5:8000};
     var INF_MISSIONS = [
       { id:'inf_kills',  title:'적 처치',           storageKey:'inf_kills_total',  interval:100, reward:{gold:25,gems:0},  desc:'적 100마리 처치마다 ◈25 지급' },
-      { id:'inf_boss',   title:'코어 보스 처치',    storageKey:'inf_boss_total',   interval:5,   reward:{gold:50,gems:0},  desc:'10웨이브 보스 5마리마다 ◈50 지급' },
-      { id:'inf_elite',  title:'엘리트 코어 처치',  storageKey:'inf_elite_total',  interval:5,   reward:{gold:100,gems:0}, desc:'50웨이브 보스 5마리마다 ◈100 지급' },
-      { id:'inf_hyper',  title:'하이퍼 코어 처치',  storageKey:'inf_hyper_total',  interval:5,   reward:{gold:500,gems:0}, desc:'100웨이브 보스 5마리마다 ◈500 지급' },
+      { id:'inf_boss',   title:'드레드노트 처치',    storageKey:'inf_boss_total',   interval:5,   reward:{gold:50,gems:0},  desc:'10웨이브 드레드노트 5마리마다 ◈50 지급' },
+      { id:'inf_elite',  title:'엘리트 드레드노트 처치',  storageKey:'inf_elite_total',  interval:5,   reward:{gold:100,gems:0}, desc:'50웨이브 드레드노트 5마리마다 ◈100 지급' },
+      { id:'inf_hyper',  title:'하이퍼 드레드노트 처치',  storageKey:'inf_hyper_total',  interval:5,   reward:{gold:500,gems:0}, desc:'100웨이브 드레드노트 5마리마다 ◈500 지급' },
       { id:'inf_upgrades',title:'강화 달인',         storageKey:'stat_upgrades',    interval:50,  reward:{gold:200,gems:0}, desc:'강화 50회마다 ◈200 지급' },
     ];
     var _infPlanetNames = ['에이온','스펙트라','넥사르','피라온','오메가'];
@@ -13671,7 +13671,7 @@ function _showStatsPopup() {
   h+=_section('플레이 통계');
   h+=_row('총 골드 획득',_fn(parseInt(localStorage.getItem('stat_gold')||'0',10)));
   h+=_row('총 적 처치',_fn((PERM.totalKills||0)));
-  h+=_row('총 보스 처치',(PERM.bossKills||0)+'');
+  h+=_row('총 드레드노트 처치',(PERM.bossKills||0)+'');
   h+=_row('총 게임 플레이',parseInt(localStorage.getItem('stat_games')||'0',10)+'회');
   h+=_row('총 업그레이드',parseInt(localStorage.getItem('stat_upgrades')||'0',10)+'회');
   h+=_row('전투 증강 사용',parseInt(localStorage.getItem('stat_augments')||'0',10)+'회');
@@ -13969,7 +13969,7 @@ function _showEncyclopedia() {
       { id:'boss',       name:'코어 드레드노트', color:'#ff4444', boss:true,  desc:'10웨이브마다 등장. HP 10배, 속도 50%. HP 50% 이하 시 분노(속도 증가). 처치 시 골드 x5.' },
       { id:'boss_elite', name:'엘리트 드레드노트', color:'#ff8822', boss:true,  desc:'50웨이브마다 등장. HP 30배, 속도 30%. 처치 시 골드 x15.' },
       { id:'boss_hyper', name:'하이퍼 드레드노트', color:'#ff0044', boss:true,  desc:'100웨이브마다 등장. HP 100배, 속도 10%. 처치 시 골드 x30.' },
-      { id:'boss_galaxy', name:'갤럭시 코어', color:'#cc44ff', boss:true,  desc:'10,000웨이브에 등장하는 행성 최종 보스. HP 500배, 속도 5%. 처치 시 행성 정복 업적 달성 + 접근 코드 보상.' },
+      { id:'boss_galaxy', name:'갤럭시 코어', color:'#cc44ff', boss:true,  desc:'10,000웨이브에 등장하는 행성 최종 드레드노트. HP 500배, 속도 5%. 처치 시 행성 정복 업적 달성 + 접근 코드 보상.' },
     ]}
   };
   var curTab='atk';
@@ -14742,7 +14742,7 @@ function _evInitData(){
 ══════════════════════════════════════════ */
 var EV_MISSIONS = [
   {id:'ev_kill_2000',   text:'적 2000마리 처치',              target:2000,    type:'kill',       points:30, maxTier:3},
-  {id:'ev_boss_500',    text:'보스 500마리 처치',              target:500,     type:'boss',       points:30, maxTier:3},
+  {id:'ev_boss_500',    text:'드레드노트 500마리 처치',              target:500,     type:'boss',       points:30, maxTier:3},
   {id:'ev_wave_100',    text:'웨이브 100 달성',                target:100,     type:'wave',       points:40, maxTier:3},
   {id:'ev_nodmg_1200',  text:'연속 1200웨이브 피해 없이',      target:1200,    type:'nodmg',      points:40, maxTier:3},
   {id:'ev_orb_40000',   text:'에너지 구체로 적 40000처치',     target:40000,   type:'orb_kill',   points:40, maxTier:3},
@@ -14753,7 +14753,7 @@ var EV_MISSIONS = [
   {id:'ev_tourn_3',     text:'토너먼트 3회 참가',              target:3,       type:'tournament', points:30, maxTier:3},
   {id:'ev_ad_7',        text:'광고로 무료 보석 7회 수령',      target:7,       type:'ad',         points:20, maxTier:3},
   {id:'ev_gem_tap_12',  text:'플로팅 보석 12개 수집',          target:12,      type:'gem_tap',    points:20, maxTier:3},
-  {id:'ev_range_boss',  text:'사거리 밖에서 보스 3마리 처치',  target:3,       type:'range_boss', points:40, maxTier:1},
+  {id:'ev_range_boss',  text:'사거리 밖에서 드레드노트 3마리 처치',  target:3,       type:'range_boss', points:40, maxTier:1},
   {id:'ev_shield_10',   text:'에너지 방어막으로 10회 피해 차단', target:10,    type:'shield',     points:20, maxTier:3},
 ];
 
