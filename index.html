@@ -3898,6 +3898,29 @@ function update(dt) {
           if (_healAmt > 0) G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _healAmt);
         }
         e.hp -= dmg;
+        // 체인 라이트닝: 적 적중 시 주변 적에게 전기 데미지
+        if(window._protoActiveEffects&&window._protoActiveEffects.chain&&e.hp>0){
+          var _ch=window._protoActiveEffects.chain;
+          var _cDmg=Math.round(G.tower.dmg*_ch.dmgPct);
+          var _cRange=_ch.chainRange||100;
+          var _cMax=_ch.chainCount||3;
+          // 직접 맞은 적에 추가 전기 데미지
+          e.hp-=_cDmg; e.hitFlash=3;
+          if(G.floatTexts) G.floatTexts.push({x:e.x,y:e.y-((e.r||10)+12),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
+          // 주변 적 100px 내 최대 3마리
+          var _cTargets=[];
+          G.enemies.forEach(function(e2){
+            if(e2===e||e2.hp<=0) return;
+            var _dx=e2.x-e.x,_dy=e2.y-e.y,_dd=Math.sqrt(_dx*_dx+_dy*_dy);
+            if(_dd<=_cRange) _cTargets.push({e:e2,d:_dd});
+          });
+          _cTargets.sort(function(a,b){return a.d-b.d;});
+          _cTargets.slice(0,_cMax).forEach(function(ct){
+            ct.e.hp-=_cDmg; ct.e.hitFlash=3;
+            if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
+            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:400});
+          });
+        }
         // 흡혈 드론: 입힌 피해의 30% 회복
         if (e.type === 'vampire' && e.hp > 0) { e.hp = Math.min(e.maxHp, e.hp + dmg * 0.3); }
 
@@ -17755,7 +17778,9 @@ function _injectProtoBar(){
     var btn=document.createElement('button');
     btn.id='proto-btn-'+p.id;
     btn.style.cssText='width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
-    btn.innerHTML=_protoIconHTML(p.id,p.color,18)+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>';
+    btn.innerHTML=_protoIconHTML(p.id,p.color,18)+
+      '<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>'+
+      '<div id="proto-gauge-'+p.id+'" style="display:none;position:absolute;bottom:-4px;left:2px;right:2px;height:3px;background:#1a2a3a;border-radius:2px;pointer-events:none;overflow:hidden;"><div style="height:100%;background:'+p.color+';border-radius:2px;width:100%;transition:width 0.3s;"></div></div>';
     btn.addEventListener('click',function(){ _useProtocol(p.id); });
     // 길게 누르면 스킬 이름 표시
     (function(proto,b){
@@ -18006,6 +18031,24 @@ function _startProtoTick(){
       if(_protoAutoMode&&cd.ready&&window._protoAutoDelay<=0){
         _useProtocol(id);
         window._protoAutoDelay=500;
+      }
+    });
+
+    /* 지속 스킬 게이지 바 업데이트 */
+    var _aeMap={pt_overdrive:'overdrive',pt_blackhole:'blackhole',pt_timewarp:'timewarp',pt_splitlaser:'splitlaser',pt_overheat:'overheat',pt_giganto:'giganto',pt_chain:'chain'};
+    Object.keys(_aeMap).forEach(function(pid){
+      var gauge=document.getElementById('proto-gauge-'+pid);
+      if(!gauge) return;
+      var ae=_protoActiveEffects[_aeMap[pid]];
+      if(ae&&ae.remaining>0){
+        gauge.style.display='block';
+        var def2=null;for(var pi2=0;pi2<PROTOCOLS.length;pi2++){if(PROTOCOLS[pi2].id===pid){def2=PROTOCOLS[pi2];break;}}
+        var d2=_loadProto();var lv2=d2[pid]?d2[pid].lv:0;
+        var maxDur=def2?((def2.durBase||3)+(lv2||0)*(def2.durPerLv||0))*1000:3000;
+        var pct=Math.max(0,Math.min(100,ae.remaining/maxDur*100));
+        gauge.firstChild.style.width=pct+'%';
+      } else {
+        gauge.style.display='none';
       }
     });
 
@@ -18315,29 +18358,7 @@ function _stopProtoTick(){
       delete canvas.dataset._gigantoShake;
     }
 
-    /* 레이저 오버드라이브 (타워 아래 붉은 글로우) */
-    if(window._protoActiveEffects&&window._protoActiveEffects.overdrive){
-      ctx.save();
-      ctx.shadowColor='#ff4444';
-      ctx.shadowBlur=25+8*Math.sin(performance.now()*0.005);
-      ctx.globalAlpha=0.3;
-      ctx.fillStyle='#ff4444';
-      ctx.beginPath(); ctx.arc(cx,cy+12,14,0,Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
-      ctx.restore();
-    }
-
-    /* 과열 레이저 (타워 아래 주황 글로우) */
-    if(window._protoActiveEffects&&window._protoActiveEffects.overheat){
-      ctx.save();
-      ctx.shadowColor='#ff8822';
-      ctx.shadowBlur=25+8*Math.sin(performance.now()*0.007);
-      ctx.globalAlpha=0.3;
-      ctx.fillStyle='#ff8822';
-      ctx.beginPath(); ctx.arc(cx,cy+12,14,0,Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
-      ctx.restore();
-    }
+    /* 오버드라이브/과열 이펙트 없음 (게이지 바로 표시) */
 
     /* 스턴된 적 표시 */
     (G.enemies||[]).forEach(function(e){
@@ -18641,56 +18662,7 @@ if (typeof _origFireT === 'function') {
 }
 
 /* ── 체인 라이트닝: 공격 시 연쇄 번개 발동 (fireTower 래핑) ── */
-/* ── 체인 라이트닝: 공격 시 적과 적 사이 전기 체인 ── */
-var _origFireChain = window.fireTower;
-if (typeof _origFireChain === 'function') {
-  window.fireTower = function() {
-    _origFireChain.apply(this, arguments);
-    if (!window._protoActiveEffects || !_protoActiveEffects.chain) return;
-    if (!window.G || G.phase !== 'playing') return;
-    var ch = _protoActiveEffects.chain;
-    var t2 = G.tower;
-    var enemies2 = G.enemies || [];
-    var cx2 = G.cx, cy2 = G.cy;
-    var cDmg = Math.round(t2.dmg * ch.dmgPct);
-    var chainRange = ch.chainRange || 100;
-    var maxChain = ch.chainCount || 3;
-    // 공격 대상 = 가장 가까운 적
-    var target = null, tDist = Infinity;
-    enemies2.forEach(function(e) {
-      if (e.hp <= 0) return;
-      var dx = e.x - cx2, dy = e.y - cy2;
-      var d = Math.sqrt(dx * dx + dy * dy);
-      if (d < tDist) { tDist = d; target = e; }
-    });
-    if (!target) return;
-    // 직접 공격받은 적: 추가 전기 데미지 (레벨별 dmgPct)
-    target.hp -= cDmg; target.hitFlash = 3;
-    if(G.floatTexts) G.floatTexts.push({x:target.x,y:target.y-((target.r||10)+5),text:'-'+cDmg+' ⚡',color:'#bb44ff',timer:0});
-    addFx(target.x,target.y,12,'#ffc800');
-    // 주변 적 70px 범위 내 최대 3마리 추가 데미지
-    var chainTargets = [];
-    enemies2.forEach(function(e) {
-      if (e === target || e.hp <= 0) return;
-      var dx = e.x - target.x, dy = e.y - target.y;
-      var d = Math.sqrt(dx * dx + dy * dy);
-      if (d <= chainRange) chainTargets.push({e:e, d:d});
-    });
-    chainTargets.sort(function(a,b){return a.d-b.d;});
-    chainTargets = chainTargets.slice(0, maxChain);
-    chainTargets.forEach(function(ct) {
-      ct.e.hp -= cDmg; ct.e.hitFlash = 3;
-      if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+cDmg+' ⚡',color:'#bb44ff',timer:0});
-      addFx(ct.e.x,ct.e.y,8,'#ffc800');
-      if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:target.x,y1:target.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:500});
-    });
-    // 스킬 즉사 처리
-    [target].concat(chainTargets.map(function(ct){return ct.e;})).forEach(function(e){
-      if(e.hp<=0){G.killCount++;PERM.totalKills++;G.gold+=(e.gold||1);G.goldEarned+=(e.gold||1);PERM.gold+=(e.gold||1);}
-    });
-    enemies2=G.enemies=enemies2.filter(function(e){return e.hp>0;});
-  };
-}
+/* 체인 라이트닝은 총알 적중 시 발동 (update 내 e.hp -= dmg 직후) */
 
 }());
 </script>
