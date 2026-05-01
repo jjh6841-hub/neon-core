@@ -17955,7 +17955,7 @@ function _useProtocol(id){
     var dur=(def.durBase+lv*(def.durPerLv||0))*1000;
     var dmgPct2=(def.dmgBase+lv*def.dmgPerLv)/100;
     var chainCount2=def.chainBase+lv*def.chainPerLv;
-    _protoActiveEffects.chain={remaining:dur, dmgPct:dmgPct2, chainCount:chainCount2, fireTimer:0};
+    _protoActiveEffects.chain={remaining:dur, dmgPct:dmgPct2, chainCount:chainCount2, chainRange:def.chainRange||100, fireTimer:0};
   }
 
   _updateProtoCdDisplay(id);
@@ -18172,9 +18172,10 @@ function _startProtoTick(){
     });
 
     /* 시각 효과 감소 */
-    for(var vi=_protoVisualEffects.length-1;vi>=0;vi--){
-      _protoVisualEffects[vi].timer-=dtMs;
-      if(_protoVisualEffects[vi].timer<=0) _protoVisualEffects.splice(vi,1);
+    var _vfx=window._protoVisualEffects||[];
+    for(var vi=_vfx.length-1;vi>=0;vi--){
+      _vfx[vi].timer-=dtMs;
+      if(_vfx[vi].timer<=0) _vfx.splice(vi,1);
     }
   },500);
 }
@@ -18208,7 +18209,7 @@ function _stopProtoTick(){
     var cx=G.cx, cy=G.cy;
 
     /* 플래시 효과 */
-    _protoVisualEffects.forEach(function(vfx){
+    (window._protoVisualEffects||[]).forEach(function(vfx){
       if(vfx.type==='flash'){
         var alpha=Math.min(1, vfx.timer/200)*0.3;
         ctx.fillStyle=vfx.color;
@@ -18652,7 +18653,7 @@ if (typeof _origFireChain === 'function') {
     var enemies2 = G.enemies || [];
     var cx2 = G.cx, cy2 = G.cy;
     var cDmg = Math.round(t2.dmg * ch.dmgPct);
-    var chainRange = ch.chainRange || 70;
+    var chainRange = ch.chainRange || 100;
     var maxChain = ch.chainCount || 3;
     // 공격 대상 = 가장 가까운 적
     var target = null, tDist = Infinity;
@@ -18681,7 +18682,7 @@ if (typeof _origFireChain === 'function') {
       ct.e.hp -= cDmg; ct.e.hitFlash = 3;
       if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+cDmg+' ⚡',color:'#bb44ff',timer:0});
       addFx(ct.e.x,ct.e.y,8,'#ffc800');
-      if(window._protoVisualEffects) _protoVisualEffects.push({type:'chain',x1:target.x,y1:target.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:500});
+      if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:target.x,y1:target.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:500});
     });
     // 스킬 즉사 처리
     [target].concat(chainTargets.map(function(ct){return ct.e;})).forEach(function(e){
