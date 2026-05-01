@@ -3900,29 +3900,36 @@ function update(dt) {
           if (_healAmt > 0) G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _healAmt);
         }
         e.hp -= dmg;
-        // 체인 라이트닝: 적 적중 시 주변 적에게 전기 데미지
+        // 체인 라이트닝: 레이저가 적 적중 시 주변 적에게 전기 데미지
         if(window._protoActiveEffects&&window._protoActiveEffects.chain){
-          var _ch=window._protoActiveEffects.chain;
-          var _cDmg=Math.round(G.tower.dmg*_ch.dmgPct);
-          var _cRange=_ch.chainRange||100;
-          var _cMax=_ch.chainCount||3;
-          // 직접 맞은 적에 추가 전기 데미지
-          e.hp-=_cDmg; e.hitFlash=3;
-          if(G.floatTexts) G.floatTexts.push({x:e.x,y:e.y-((e.r||10)+12),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
-          // 주변 적 100px 내 최대 3마리
-          var _cTargets=[];
-          G.enemies.forEach(function(e2){
-            if(e2===e||e2.hp<=0) return;
-            var _dx=e2.x-e.x,_dy=e2.y-e.y,_dd=Math.sqrt(_dx*_dx+_dy*_dy);
-            if(_dd<=_cRange) _cTargets.push({e:e2,d:_dd});
-          });
-          _cTargets.sort(function(a,b){return a.d-b.d;});
-          _cTargets.slice(0,_cMax).forEach(function(ct){
-            ct.e.hp-=_cDmg; ct.e.hitFlash=3;
-            if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
-            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:600});
-            addFx(ct.e.x,ct.e.y,6,'#ffc800');
-          });
+          (function(_hitE){
+            var _ch=window._protoActiveEffects.chain;
+            var _cDmg=Math.round(G.tower.dmg*_ch.dmgPct);
+            var _cRange=_ch.chainRange||100;
+            var _cMax=_ch.chainCount||3;
+            // 맞은 적에 추가 전기 데미지
+            _hitE.hp-=_cDmg;
+            _hitE.hitFlash=5;
+            addFx(_hitE.x,_hitE.y,15,'#ffc800');
+            if(G.floatTexts) G.floatTexts.push({x:_hitE.x,y:_hitE.y-((e.r||10)+12),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
+            // 주변 적에 전기 전이
+            var _ct=[];
+            for(var _ci=0;_ci<G.enemies.length;_ci++){
+              var _ce=G.enemies[_ci];
+              if(_ce===_hitE||_ce.hp<=0) continue;
+              var _cdx=_ce.x-_hitE.x,_cdy=_ce.y-_hitE.y;
+              var _cd2=_cdx*_cdx+_cdy*_cdy;
+              if(_cd2<=_cRange*_cRange) _ct.push({e:_ce,d:_cd2});
+            }
+            _ct.sort(function(a,b){return a.d-b.d;});
+            for(var _cj=0;_cj<Math.min(_cMax,_ct.length);_cj++){
+              var _te=_ct[_cj].e;
+              _te.hp-=_cDmg;
+              _te.hitFlash=5;
+              addFx(_te.x,_te.y,10,'#ffc800');
+              if(G.floatTexts) G.floatTexts.push({x:_te.x,y:_te.y-((e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
+            }
+          })(e);
         }
         // 흡혈 드론: 입힌 피해의 30% 회복
         if (e.type === 'vampire' && e.hp > 0) { e.hp = Math.min(e.maxHp, e.hp + dmg * 0.3); }
@@ -18279,34 +18286,7 @@ function _stopProtoTick(){
         ctx.fillRect(0,0,canvas.width,canvas.height);
         ctx.globalAlpha=1;
       }
-      else if(vfx.type==='chain'){
-        var alpha=Math.min(1, vfx.timer/300)*0.5;
-        var dx=vfx.x2-vfx.x1, dy=vfx.y2-vfx.y1;
-        var dist=Math.sqrt(dx*dx+dy*dy);
-        if(dist<1){vfx.timer=0;return;}
-        var segs=Math.max(3, Math.floor(dist/18));
-        var nx=-dy/dist, ny=dx/dist;
-        ctx.save();
-        // 얇은 번개선 (이온 스톰 느낌)
-        var _cs=Math.floor(vfx.x1*7+vfx.y1*13+vfx.timer);
-        ctx.strokeStyle='rgba(255,220,100,'+alpha+')';
-        ctx.lineWidth=1;
-        ctx.beginPath();
-        ctx.moveTo(vfx.x1,vfx.y1);
-        for(var si=1;si<segs;si++){
-          var fr=si/segs;
-          _cs=(_cs*1103515245+12345)&0x7fffffff;
-          var jt=((_cs%1000)/500-1)*6;
-          ctx.lineTo(vfx.x1+dx*fr+nx*jt, vfx.y1+dy*fr+ny*jt);
-        }
-        ctx.lineTo(vfx.x2,vfx.y2);
-        ctx.stroke();
-        // 도착점 작은 스파크
-        ctx.globalAlpha=alpha*0.6;
-        ctx.fillStyle='#ffc800';
-        ctx.beginPath(); ctx.arc(vfx.x2,vfx.y2,2,0,Math.PI*2); ctx.fill();
-        ctx.restore();
-      }
+      /* 체인 라이트닝은 addFx로 처리 (별도 VFX 렌더링 없음) */
       /* blackhole, giganto는 _protoActiveEffects 기반 렌더링으로 이동 */
     });
 
