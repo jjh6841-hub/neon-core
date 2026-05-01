@@ -16504,41 +16504,103 @@ function _getActiveBuffs(){ try{return JSON.parse(localStorage.getItem('activeLa
 function _saveActiveBuffs(arr){ localStorage.setItem('activeLabBuffs',JSON.stringify(arr)); }
 
 /* ═══════════════════════════════════════════════════
-   프로토콜 제조 시스템 (가챠 + 전투 스킬)
+   프로토콜 제조 시스템 v2 (10종 스킬 + 슬롯 장착)
 ═══════════════════════════════════════════════════ */
 
-/* ── 프로토콜 정의 ── */
+/* ── 10개 프로토콜 정의 ── */
 var PROTOCOLS = window.PROTOCOLS = [
-  /* 새 스킬이 여기에 추가됩니다 */
+  {id:'pt_emp',        icon:'\u26A1', color:'#3b82f6', name:'EMP 폭발',         maxLv:10, baseCd:60,
+   desc:'모든 적 기절 + 공격력 피해',
+   cdReduce:3, stunBase:2, stunPerLv:0.4, dmgBase:100, dmgPerLv:20},
+  {id:'pt_overdrive',  icon:'\u26A1', color:'#ff4444', name:'레이저 오버드라이브', maxLv:10, baseCd:90,
+   desc:'일정 시간 공격력 배율 증가',
+   cdReduce:4.5, durBase:5, durPerLv:0.5, multBase:2, multPerLv:0.8},
+  {id:'pt_blackhole',  icon:'\u25C9', color:'#8b5cf6', name:'블랙홀',           maxLv:5, baseCd:180,
+   desc:'적을 중앙으로 끌어당김 + 무적',
+   cdReduce:18, durBase:2, durPerLv:0.6},
+  {id:'pt_timewarp',   icon:'\u25CE', color:'#6366f1', name:'시간 왜곡',         maxLv:5, baseCd:90,
+   desc:'적 이동속도 감소',
+   cdReduce:9, durBase:5, durPerLv:1, slowBase:20, slowPerLv:10},
+  {id:'pt_nano',       icon:'\u271A', color:'#00ff88', name:'나노봇 수복',       maxLv:5, baseCd:120,
+   desc:'최대HP 즉시 회복',
+   cdReduce:12, healBase:50, healPerLv:10},
+  {id:'pt_splitlaser', icon:'\u2734', color:'#00ffff', name:'분열 레이저',       maxLv:10, baseCd:60,
+   desc:'회전 레이저 빔 발사',
+   cdReduce:3, dmgBase:500, dmgPerLv:150, durBase:1, durPerLv:0.2,
+   beamCounts:[1,1,2,2,3,3,4,4,4,5]},
+  {id:'pt_overheat',   icon:'\u00BB', color:'#ff8822', name:'과열 레이저',       maxLv:2, baseCd:100,
+   desc:'연속 발사',
+   cdReduce:25, shotBase:2, shotPerLv:1},
+  {id:'pt_gravity',    icon:'\u25C6', color:'#ffcc00', name:'중력 팽창',         maxLv:10, baseCd:60,
+   desc:'범위 내 적 피해 + 밀어냄',
+   cdReduce:3, dmgBase:100, dmgPerLv:90},
+  {id:'pt_giganto',    icon:'\u273A', color:'#ef4444', name:'기간토마키아',       maxLv:10, baseCd:60,
+   desc:'지속 범위 피해',
+   cdReduce:3, durBase:2, durPerLv:0.8, dmgBase:100, dmgPerLv:40},
+  {id:'pt_chain',      icon:'\u21AF', color:'#ffc800', name:'체인 라이트닝',     maxLv:10, baseCd:45,
+   desc:'연쇄 번개 피해',
+   cdReduce:2, dmgBase:200, dmgPerLv:30, chainBase:3, chainPerLv:1}
 ];
 
-var PROTO_COST = 5; // 1회 제조 접근코드 비용
-var PROTO_DUP_NEEDED = [0,3,3,4,5]; // Lv1→2:3개, Lv2→3:3개, Lv3→4:4개, Lv4→5:5개
+var PROTO_COST = 5;
+var SLOT_UNLOCK_COSTS = [0, 5, 10, 15, 20, 25]; // 슬롯 1~6 해금 접근코드
 
 /* ── 데이터 저장/로드 ── */
 function _loadProto(){ try{return JSON.parse(localStorage.getItem('td_protocols')||'{}');}catch(_){return {};} }
 function _saveProto(d){ localStorage.setItem('td_protocols',JSON.stringify(d)); }
 window._loadProto=_loadProto; window._saveProto=_saveProto;
 
+function _loadSlots(){
+  try{var s=JSON.parse(localStorage.getItem('td_proto_slots'));
+    if(s&&typeof s.unlocked==='number') return s;
+  }catch(_){}
+  return {unlocked:1, equipped:[null,null,null,null,null,null]};
+}
+function _saveSlots(s){ localStorage.setItem('td_proto_slots',JSON.stringify(s)); }
+
+/* ── 프로토콜 레벨 정보 ── */
+function _getProtoLv(id){
+  var d=_loadProto();
+  if(!d[id]) return -1;
+  return d[id].lv;
+}
+function _getProtoCd(p, lv){
+  return Math.max(5, p.baseCd - lv * p.cdReduce);
+}
+
+/* ── 뽑기 (만렙 제외) ── */
 function _addProtoDrop(id){
   var d=_loadProto();
-  if(!d[id]) { d[id]={lv:1,dup:0}; _saveProto(d); return {isNew:true,lv:1}; }
+  var pDef=null;
+  for(var i=0;i<PROTOCOLS.length;i++){if(PROTOCOLS[i].id===id){pDef=PROTOCOLS[i];break;}}
+  if(!pDef) return {isNew:false,lv:0};
+  if(!d[id]){ d[id]={lv:0,dup:0}; _saveProto(d); return {isNew:true,lv:0}; }
   var p=d[id];
-  if(p.lv>=5){
-    // 만렙 → 접근코드 2개 반환
+  if(p.lv>=pDef.maxLv){
     var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
     localStorage.setItem('accessCodes',ac+2);
     _saveProto(d);
     return {isNew:false,lv:p.lv,maxConvert:true};
   }
   p.dup=(p.dup||0)+1;
-  var needed=PROTO_DUP_NEEDED[p.lv]||99;
+  var needed=(p.lv>=pDef.maxLv-1)?5:3; // 만렙 직전은 5개, 나머지 3개
   if(p.dup>=needed){ p.lv++; p.dup=0; }
   _saveProto(d);
-  return {isNew:false,lv:p.lv};
+  return {isNew:false,lv:p.lv,dup:p.dup,needed:needed};
+}
+
+function _getDrawableProtocols(){
+  var d=_loadProto();
+  return PROTOCOLS.filter(function(p){
+    var pd=d[p.id];
+    if(!pd) return true;
+    return pd.lv < p.maxLv;
+  });
 }
 
 function _doProtoDraw(n){
+  var drawable=_getDrawableProtocols();
+  if(drawable.length===0) return null;
   var cost=PROTO_COST*n;
   var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
   if(ac<cost) return null;
@@ -16546,9 +16608,10 @@ function _doProtoDraw(n){
   try{logCurrency('accessCodes',-cost,'프로토콜 제조 '+n+'회');}catch(_){}
   var drawn=[];
   for(var i=0;i<n;i++){
-    var p=PROTOCOLS[Math.floor(Math.random()*PROTOCOLS.length)];
-    drawn.push(p);
-    _addProtoDrop(p.id);
+    drawable=_getDrawableProtocols();
+    if(drawable.length===0) break;
+    var p=drawable[Math.floor(Math.random()*drawable.length)];
+    drawn.push({proto:p, result:_addProtoDrop(p.id)});
   }
   try{savePerm();}catch(_){}
   return drawn;
@@ -16563,14 +16626,22 @@ function _showProtoResult(drawn){
   var d=_loadProto();
   var html='<div style="background:#0d1520;border:1px solid #bb44ff;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 0 30px rgba(187,68,255,0.2);">'+
     '<div style="padding:12px;text-align:center;border-bottom:1px solid #1a2a3a;color:#bb44ff;font-size:12px;letter-spacing:2px;">'+
-    (drawn.length===1?'프로토콜 획득':'5연 제조 결과')+'</div><div style="padding:10px;">';
-  drawn.forEach(function(p){
-    var pd=d[p.id]||{lv:1,dup:0};
+    (drawn.length===1?'프로토콜 획득':drawn.length+'연 제조 결과')+'</div><div style="padding:10px;">';
+  drawn.forEach(function(item){
+    var p=item.proto, r=item.result;
+    var pd=d[p.id]||{lv:0};
+    var isMax=pd.lv>=p.maxLv;
+    var label=r.isNew?'NEW!':r.maxConvert?'MAX(=>⌘+2)':'Lv.'+pd.lv;
+    var dupInfo='';
+    if(!r.isNew&&!r.maxConvert&&!isMax){
+      var dn=(pd.lv>=p.maxLv-1)?5:3;
+      dupInfo=' <span style="color:#4a6a7a;font-size:8px;">('+((pd.dup||0))+'/'+dn+')</span>';
+    }
     html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #0a1520;">'+
       '<div style="width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:'+p.color+';flex-shrink:0;">'+p.icon+'</div>'+
       '<div style="flex:1;"><div style="color:#f1f5f9;font-size:11px;">'+p.name+'</div>'+
-      '<div style="color:#556677;font-size:9px;">Lv.'+pd.lv+' ('+pd.dup+'/'+((PROTO_DUP_NEEDED[pd.lv])||'MAX')+')</div></div>'+
-      '<span style="color:'+p.color+';font-size:10px;">Lv.'+pd.lv+'</span></div>';
+      '<div style="color:#556677;font-size:9px;">Lv.'+pd.lv+'/'+p.maxLv+dupInfo+'</div></div>'+
+      '<span style="color:'+(r.isNew?'#00ff88':r.maxConvert?'#f59e0b':p.color)+';font-size:10px;">'+label+'</span></div>';
   });
   html+='</div><div style="padding:8px;"><button id="proto-result-close" style="width:100%;padding:10px;background:#030b10;border:1px solid #bb44ff;color:#bb44ff;font-family:monospace;font-size:11px;cursor:pointer;">확인</button></div></div>';
   ov.innerHTML=html;
@@ -16596,6 +16667,9 @@ function _injectLabScreen(){
   document.body.appendChild(sc);
 }
 
+/* ── 슬롯 선택 상태 ── */
+var _selectedSlotIdx = -1;
+
 /* ── 렌더링 ── */
 function renderLab(){
   _injectLabScreen();
@@ -16603,18 +16677,51 @@ function renderLab(){
   var ac=parseInt(localStorage.getItem('accessCodes')||'0',10);
   var acEl=document.getElementById('cl-ac'); if(acEl) acEl.textContent=ac;
   var d=_loadProto();
+  var slots=_loadSlots();
   var owned=Object.keys(d);
+  var drawable=_getDrawableProtocols();
 
   var html='';
-  // 제조 버튼
+
+  /* 제조 버튼 */
+  var canDraw=drawable.length>0;
   html+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
-  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #bb44ff;border-radius:10px;color:#bb44ff;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid '+(canDraw?'#bb44ff':'#334455')+';border-radius:10px;color:'+(canDraw?'#bb44ff':'#334455')+';font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
     '<span>1회 제조</span><span style="font-size:10px;color:#94a3b8;">⌘ '+PROTO_COST+'</span></button>';
-  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #f59e0b;border-radius:10px;color:#f59e0b;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid '+(canDraw?'#f59e0b':'#334455')+';border-radius:10px;color:'+(canDraw?'#f59e0b':'#334455')+';font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
     '<span>5연 제조</span><span style="font-size:10px;color:#94a3b8;">⌘ '+(PROTO_COST*5)+'</span></button>';
   html+='</div>';
+  if(!canDraw){
+    html+='<div style="color:#f59e0b;font-size:9px;text-align:center;margin:-10px 0 12px;">모든 프로토콜 만레벨 도달!</div>';
+  }
 
-  // 보유 프로토콜 목록
+  /* 장착 슬롯 (6칸) */
+  html+='<div style="color:#556677;font-size:10px;margin-bottom:6px;letter-spacing:1px;border-bottom:1px solid #1a2a3a;padding-bottom:4px;">장착 슬롯 (최대 6)</div>';
+  html+='<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">';
+  for(var si=0;si<6;si++){
+    var unlocked=si<slots.unlocked;
+    var eqId=slots.equipped[si];
+    var eqProto=null;
+    if(eqId){for(var pi=0;pi<PROTOCOLS.length;pi++){if(PROTOCOLS[pi].id===eqId){eqProto=PROTOCOLS[pi];break;}}}
+    var isSelected=(_selectedSlotIdx===si);
+    if(!unlocked){
+      var unlockCost=SLOT_UNLOCK_COSTS[si]||99;
+      html+='<div data-slot-unlock="'+si+'" style="width:48px;height:48px;border:1.5px dashed #334455;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#060a14;opacity:0.5;">'+
+        '<span style="font-size:10px;color:#334455;">&#128274;</span>'+
+        '<span style="font-size:7px;color:#556677;">⌘'+unlockCost+'</span></div>';
+    } else if(eqProto){
+      var eLv=_getProtoLv(eqProto.id);
+      html+='<div data-slot-idx="'+si+'" style="width:48px;height:48px;border:1.5px solid '+(isSelected?'#fff':eqProto.color)+';border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#0c0c22;box-shadow:0 0 6px '+(isSelected?'#fff33':eqProto.color+'33')+';">'+
+        '<span style="font-size:16px;color:'+eqProto.color+';">'+eqProto.icon+'</span>'+
+        '<span style="font-size:7px;color:#94a3b8;">Lv.'+eLv+'</span></div>';
+    } else {
+      html+='<div data-slot-idx="'+si+'" style="width:48px;height:48px;border:1.5px solid '+(isSelected?'#fff':'#1a2a3a')+';border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#060a14;">'+
+        '<span style="font-size:16px;color:#334455;">+</span></div>';
+    }
+  }
+  html+='</div>';
+
+  /* 보유 프로토콜 목록 */
   html+='<div style="color:#556677;font-size:10px;margin-bottom:8px;letter-spacing:1px;border-bottom:1px solid #1a2a3a;padding-bottom:4px;">보유 프로토콜 ('+owned.length+'/'+PROTOCOLS.length+')</div>';
   if(owned.length===0){
     html+='<div style="color:#334455;font-size:10px;padding:16px 0;text-align:center;">제조를 통해 프로토콜을 획득하세요</div>';
@@ -16622,26 +16729,28 @@ function renderLab(){
   PROTOCOLS.forEach(function(p){
     var pd=d[p.id];
     if(!pd) return;
-    var lv=pd.lv, dup=pd.dup;
-    var maxLv=lv>=5;
-    var needed=PROTO_DUP_NEEDED[lv]||0;
-    html+='<div style="display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:4px;background:#0c0c22;border:1px solid '+p.color+'33;">'+
+    var lv=pd.lv;
+    var isMax=lv>=p.maxLv;
+    var cd=_getProtoCd(p,lv);
+    var equipped=false;
+    for(var ei=0;ei<6;ei++){if(slots.equipped[ei]===p.id){equipped=true;break;}}
+    html+='<div data-proto-id="'+p.id+'" style="display:flex;align-items:center;gap:10px;padding:10px;margin-bottom:4px;background:'+(equipped?'#0c1428':'#0c0c22')+';border:1px solid '+p.color+'33;cursor:pointer;'+(equipped?'border-left:3px solid '+p.color+';':'')+'">'+
       '<div style="width:36px;height:36px;border:2px solid '+p.color+';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;color:'+p.color+';flex-shrink:0;box-shadow:0 0 8px '+p.color+'33;">'+p.icon+'</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;">'+
           '<span style="color:#f1f5f9;font-size:11px;font-weight:bold;">'+p.name+'</span>'+
-          '<span style="color:'+(maxLv?'#f59e0b':p.color)+';font-size:10px;font-weight:bold;">Lv.'+lv+(maxLv?' MAX':'')+'</span>'+
+          '<span style="color:'+(isMax?'#f59e0b':p.color)+';font-size:10px;font-weight:bold;">Lv.'+lv+(isMax?' MAX':'')+'</span>'+
         '</div>'+
         '<div style="color:#556677;font-size:9px;margin-top:2px;">'+p.desc+'</div>'+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">'+
-          '<span style="color:'+p.color+';font-size:9px;">효과: '+p.lvEff[lv-1]+p.unit+' · 쿨타임: '+p.cd+'초</span>'+
-          (!maxLv?'<span style="color:#4a6a7a;font-size:8px;">중복 '+dup+'/'+needed+'</span>':'')+
+          '<span style="color:'+p.color+';font-size:9px;">CD: '+cd+'초'+(equipped?' [장착중]':'')+'</span>'+
+          '<span style="color:#4a6a7a;font-size:8px;">'+lv+'/'+p.maxLv+((!isMax&&pd.dup!==undefined)?' (중복 '+(pd.dup||0)+'/'+((lv>=p.maxLv-1)?5:3)+')':'')+'</span>'+
         '</div>'+
       '</div>'+
     '</div>';
   });
 
-  // 미보유 목록
+  /* 미보유 목록 */
   var unowned=PROTOCOLS.filter(function(p){return !d[p.id];});
   if(unowned.length>0){
     html+='<div style="color:#334455;font-size:9px;margin-top:12px;margin-bottom:6px;">미보유</div>';
@@ -16654,19 +16763,86 @@ function renderLab(){
 
   main.innerHTML=html;
 
-  // 제조 버튼 바인딩
-  document.getElementById('proto-draw-1').addEventListener('click',function(){
+  /* 이벤트 바인딩 */
+  var d1=document.getElementById('proto-draw-1');
+  var d5=document.getElementById('proto-draw-5');
+  if(d1) d1.addEventListener('click',function(){
+    if(!canDraw){if(window.showToastMsg) showToastMsg('모든 프로토콜이 만레벨입니다','#f59e0b'); return;}
     var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
     if(cur<PROTO_COST){ if(window.showToastMsg) showToastMsg('접근 코드가 부족합니다 (보유: ⌘'+cur+')','#ef4444'); return; }
     var res=_doProtoDraw(1);
     if(res) _showProtoResult(res);
   });
-  document.getElementById('proto-draw-5').addEventListener('click',function(){
+  if(d5) d5.addEventListener('click',function(){
+    if(!canDraw){if(window.showToastMsg) showToastMsg('모든 프로토콜이 만레벨입니다','#f59e0b'); return;}
     var cost5=PROTO_COST*5;
     var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
     if(cur<cost5){ if(window.showToastMsg) showToastMsg('접근 코드가 부족합니다 (보유: ⌘'+cur+')','#ef4444'); return; }
     var res=_doProtoDraw(5);
     if(res) _showProtoResult(res);
+  });
+
+  // 슬롯 클릭
+  main.querySelectorAll('[data-slot-idx]').forEach(function(el){
+    el.addEventListener('click',function(){
+      var idx=parseInt(el.getAttribute('data-slot-idx'),10);
+      var sl=_loadSlots();
+      if(sl.equipped[idx]){
+        sl.equipped[idx]=null;
+        _saveSlots(sl);
+        _selectedSlotIdx=-1;
+        renderLab();
+      } else {
+        _selectedSlotIdx=(_selectedSlotIdx===idx)?-1:idx;
+        renderLab();
+      }
+    });
+  });
+
+  // 슬롯 해금
+  main.querySelectorAll('[data-slot-unlock]').forEach(function(el){
+    el.addEventListener('click',function(){
+      var idx=parseInt(el.getAttribute('data-slot-unlock'),10);
+      var cost=SLOT_UNLOCK_COSTS[idx]||99;
+      var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
+      if(cur<cost){if(window.showToastMsg) showToastMsg('접근 코드 부족 (필요: ⌘'+cost+')','#ef4444'); return;}
+      localStorage.setItem('accessCodes',cur-cost);
+      try{logCurrency('accessCodes',-cost,'슬롯 해금 #'+(idx+1));}catch(_){}
+      var sl=_loadSlots();
+      sl.unlocked=Math.max(sl.unlocked,idx+1);
+      _saveSlots(sl);
+      renderLab();
+    });
+  });
+
+  // 프로토콜 카드 클릭 -> 선택된 슬롯에 장착
+  main.querySelectorAll('[data-proto-id]').forEach(function(el){
+    el.addEventListener('click',function(){
+      var pid=el.getAttribute('data-proto-id');
+      var sl=_loadSlots();
+      if(_selectedSlotIdx>=0 && _selectedSlotIdx<sl.unlocked){
+        for(var ri=0;ri<6;ri++){if(sl.equipped[ri]===pid) sl.equipped[ri]=null;}
+        sl.equipped[_selectedSlotIdx]=pid;
+        _saveSlots(sl);
+        _selectedSlotIdx=-1;
+        renderLab();
+      } else {
+        var placed=false;
+        for(var ai=0;ai<sl.unlocked;ai++){
+          if(!sl.equipped[ai]){
+            for(var ri2=0;ri2<6;ri2++){if(sl.equipped[ri2]===pid) sl.equipped[ri2]=null;}
+            sl.equipped[ai]=pid;
+            _saveSlots(sl);
+            placed=true;
+            break;
+          }
+        }
+        if(!placed){
+          if(window.showToastMsg) showToastMsg('빈 슬롯을 선택하거나 장착 해제 후 시도하세요','#f59e0b');
+        }
+        renderLab();
+      }
+    });
   });
 }
 window.renderLab=renderLab;
@@ -16676,6 +16852,7 @@ function _openCoreLab(){
   ['screen-home','screen-workshop','screen-store'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.style.display='none';
   });
+  _selectedSlotIdx=-1;
   renderLab();
   document.getElementById('screen-corelab').style.display='flex';
 }
@@ -16687,41 +16864,52 @@ document.querySelectorAll('[data-navlock="season"]').forEach(function(btn){
 });
 
 /* ═══════════════════════════════════════════════════
-   전투 중 프로토콜 스킬 버튼 + 자동 사용
+   전투 중 프로토콜 스킬 버튼 + 자동 사용 + 효과
 ═══════════════════════════════════════════════════ */
 var _protoAutoMode=false;
-var _protoCooldowns={}; // {id: {ready:true, timer:0}}
-var _protoActiveEffects={}; // {id: {remaining:0}}
+var _protoCooldowns={};
+var _protoActiveEffects={};
+var _protoVisualEffects=[];
 
-function _getOwnedProtocols(){
+/* 장착된 프로토콜만 반환 */
+function _getEquippedProtocols(){
+  var sl=_loadSlots();
   var d=_loadProto();
-  return PROTOCOLS.filter(function(p){return !!d[p.id];}).map(function(p){
-    var pd=d[p.id];
-    return {id:p.id, name:p.name, icon:p.icon, color:p.color, cd:p.cd, lv:pd.lv, eff:p.lvEff[pd.lv-1], unit:p.unit, desc:p.desc};
-  });
+  var result=[];
+  for(var i=0;i<sl.unlocked;i++){
+    var eid=sl.equipped[i];
+    if(!eid) continue;
+    if(!d[eid]) continue;
+    var pDef=null;
+    for(var j=0;j<PROTOCOLS.length;j++){if(PROTOCOLS[j].id===eid){pDef=PROTOCOLS[j];break;}}
+    if(!pDef) continue;
+    var lv=d[eid].lv;
+    result.push({id:pDef.id, name:pDef.name, icon:pDef.icon, color:pDef.color,
+      cd:_getProtoCd(pDef,lv), lv:lv, def:pDef});
+  }
+  return result;
 }
 
 function _injectProtoBar(){
   var shop=document.getElementById('screen-shop'); if(!shop) return;
   if(document.getElementById('proto-battle-bar')) return;
-  var owned=_getOwnedProtocols();
-  if(owned.length===0) return;
+  var equipped=_getEquippedProtocols();
+  if(equipped.length===0) return;
 
   var bar=document.createElement('div');
   bar.id='proto-battle-bar';
   bar.style.cssText='display:flex;align-items:center;gap:4px;padding:4px 6px;background:#030b10;border-bottom:1px solid #1a2a3a;overflow-x:auto;flex-shrink:0;';
 
-  owned.forEach(function(p){
+  equipped.forEach(function(p){
     _protoCooldowns[p.id]={ready:true,timer:0};
     var btn=document.createElement('button');
     btn.id='proto-btn-'+p.id;
     btn.style.cssText='width:36px;height:36px;border:1.5px solid '+p.color+';border-radius:50%;background:#0a0a22;display:flex;align-items:center;justify-content:center;font-size:14px;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
-    btn.innerHTML=p.icon+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>';
+    btn.innerHTML=p.icon+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>';
     btn.addEventListener('click',function(){ _useProtocol(p.id); });
     bar.appendChild(btn);
   });
 
-  // 자동 버튼
   var autoBtn=document.createElement('button');
   autoBtn.id='proto-auto-btn';
   autoBtn.style.cssText='margin-left:auto;padding:4px 8px;border:1px solid #334455;background:#030b10;color:#334455;font-family:monospace;font-size:9px;cursor:pointer;flex-shrink:0;border-radius:3px;-webkit-appearance:none;';
@@ -16733,7 +16921,6 @@ function _injectProtoBar(){
   });
   bar.appendChild(autoBtn);
 
-  // tab-bar 위에 삽입
   var tabBar=document.getElementById('tab-bar');
   if(tabBar) shop.insertBefore(bar,tabBar);
 }
@@ -16743,24 +16930,175 @@ function _removeProtoBar(){
   if(bar) bar.remove();
   _protoCooldowns={};
   _protoActiveEffects={};
+  _protoVisualEffects=[];
   _protoAutoMode=false;
 }
 
+/* ── 스킬 효과 구현 ── */
 function _useProtocol(id){
   if(!window.G||G.phase!=='playing') return;
   var cd=_protoCooldowns[id];
   if(!cd||!cd.ready) return;
-  var owned=_getOwnedProtocols();
-  var p=owned.filter(function(x){return x.id===id;})[0];
+  var equipped=_getEquippedProtocols();
+  var p=null;
+  for(var i=0;i<equipped.length;i++){if(equipped[i].id===id){p=equipped[i];break;}}
   if(!p) return;
+
+  var def=p.def;
+  var lv=p.lv;
+  var t=G.tower;
+  var enemies=G.enemies||[];
+  var cx=G.cx, cy=G.cy;
 
   cd.ready=false;
   cd.timer=p.cd;
 
-  // 효과 적용 — 새 스킬 추가 시 여기에 id별 분기 작성
-  /* (스킬 미등록 상태) */
+  /* ── EMP 폭발 ── */
+  if(id==='pt_emp'){
+    var stunDur=(def.stunBase+lv*def.stunPerLv)*1000;
+    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
+    var dmg=Math.round(t.dmg*dmgPct);
+    enemies.forEach(function(e){
+      e.hp-=dmg;
+      e._ptStun=Math.max(e._ptStun||0, stunDur);
+      e.hitFlash=3;
+    });
+    addFx(cx,cy,200,'#3b82f6');
+    _protoVisualEffects.push({type:'flash',color:'#3b82f6',timer:300});
+  }
 
-  // 쿨다운 표시 업데이트
+  /* ── 레이저 오버드라이브 ── */
+  else if(id==='pt_overdrive'){
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    var mult=def.multBase+lv*def.multPerLv;
+    _protoActiveEffects.overdrive={remaining:dur, mult:mult, origDmg:t.dmg};
+    t.dmg=Math.round(t.dmg*mult);
+    _protoVisualEffects.push({type:'flash',color:'#ff4444',timer:300});
+  }
+
+  /* ── 블랙홀 ── */
+  else if(id==='pt_blackhole'){
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    _protoActiveEffects.blackhole={remaining:dur};
+    G._ptInvincible=true;
+    _protoVisualEffects.push({type:'blackhole',timer:dur,maxTimer:dur});
+  }
+
+  /* ── 시간 왜곡 ── */
+  else if(id==='pt_timewarp'){
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    var slowPct=(def.slowBase+lv*def.slowPerLv)/100;
+    _protoActiveEffects.timewarp={remaining:dur, slowPct:slowPct};
+    _protoVisualEffects.push({type:'flash',color:'#6366f1',timer:300});
+  }
+
+  /* ── 나노봇 수복 ── */
+  else if(id==='pt_nano'){
+    var healPct=(def.healBase+lv*def.healPerLv)/100;
+    var healAmt=Math.round(t.maxHp*healPct);
+    t.hp=Math.min(t.maxHp, t.hp+healAmt);
+    G.floatTexts.push({x:cx,y:cy-40,text:'+'+healAmt+' HP',color:'#00ff88',timer:0});
+    addFx(cx,cy,60,'#00ff88');
+  }
+
+  /* ── 분열 레이저 ── */
+  else if(id==='pt_splitlaser'){
+    var beamCount=def.beamCounts[Math.min(lv, def.beamCounts.length-1)];
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
+    _protoActiveEffects.splitlaser={remaining:dur, maxTimer:dur, beamCount:beamCount, dmgPct:dmgPct, angle:0};
+    _protoVisualEffects.push({type:'flash',color:'#00ffff',timer:200});
+  }
+
+  /* ── 과열 레이저 ── */
+  else if(id==='pt_overheat'){
+    var shots=def.shotBase+lv*def.shotPerLv;
+    for(var si=0;si<shots;si++){
+      (function(delay){
+        setTimeout(function(){
+          if(!window.G||G.phase!=='playing') return;
+          if(typeof window.fireTower==='function') window.fireTower();
+        }, delay);
+      })(si*150);
+    }
+    _protoVisualEffects.push({type:'flash',color:'#ff8822',timer:200});
+  }
+
+  /* ── 중력 팽창 ── */
+  else if(id==='pt_gravity'){
+    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
+    var dmg=Math.round(t.dmg*dmgPct);
+    var range=t.range||162;
+    var hits=lv>=10?2:1;
+    for(var h=0;h<hits;h++){
+      (function(delay){
+        setTimeout(function(){
+          if(!window.G||G.phase!=='playing') return;
+          var _enemies=G.enemies||[];
+          _enemies.forEach(function(e){
+            var dx=e.x-cx, dy=e.y-cy;
+            var dist=Math.sqrt(dx*dx+dy*dy);
+            if(dist<=range&&dist>1){
+              e.hp-=dmg;
+              e.hitFlash=3;
+              var pushDist=range+50;
+              e.x=cx+(dx/dist)*pushDist;
+              e.y=cy+(dy/dist)*pushDist;
+              e.reachedTower=false;
+            }
+          });
+          addFx(cx,cy,range,'#ffcc00');
+        }, delay);
+      })(h*500);
+    }
+    _protoVisualEffects.push({type:'flash',color:'#ffcc00',timer:300});
+  }
+
+  /* ── 기간토마키아 ── */
+  else if(id==='pt_giganto'){
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
+    _protoActiveEffects.giganto={remaining:dur, dmgPct:dmgPct, tickTimer:0};
+    _protoVisualEffects.push({type:'giganto',timer:dur,maxTimer:dur});
+  }
+
+  /* ── 체인 라이트닝 ── */
+  else if(id==='pt_chain'){
+    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
+    var chainCount=def.chainBase+lv*def.chainPerLv;
+    var mainDmg=Math.round(t.dmg*dmgPct);
+    var chainDmg=Math.round(mainDmg*0.8);
+    var nearest=null, nd=Infinity;
+    enemies.forEach(function(e){
+      var dx=e.x-cx, dy=e.y-cy;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<nd){nd=dist;nearest=e;}
+    });
+    if(nearest){
+      nearest.hp-=mainDmg;
+      nearest.hitFlash=3;
+      addFx(nearest.x,nearest.y,30,'#ffc800');
+      var hit=new Set(); hit.add(nearest);
+      var cur=nearest;
+      for(var ci=0;ci<chainCount;ci++){
+        var next=null, nDist=Infinity;
+        enemies.forEach(function(e){
+          if(hit.has(e)) return;
+          var dx2=e.x-cur.x, dy2=e.y-cur.y;
+          var d2=Math.sqrt(dx2*dx2+dy2*dy2);
+          if(d2<nDist&&d2<200){nDist=d2;next=e;}
+        });
+        if(!next) break;
+        next.hp-=chainDmg;
+        next.hitFlash=3;
+        hit.add(next);
+        _protoVisualEffects.push({type:'chain',x1:cur.x,y1:cur.y,x2:next.x,y2:next.y,color:'#ffc800',timer:300});
+        addFx(next.x,next.y,20,'#ffc800');
+        cur=next;
+      }
+    }
+  }
+
   _updateProtoCdDisplay(id);
   if(window.showToastMsg) showToastMsg(p.icon+' '+p.name+' 발동!',p.color);
 }
@@ -16780,32 +17118,280 @@ function _updateProtoCdDisplay(id){
   }
 }
 
-// 매 프레임 쿨다운 틱 + 자동 사용
+/* ── 매 프레임 틱 (500ms) ── */
 var _protoTickInterval=null;
 function _startProtoTick(){
   if(_protoTickInterval) return;
   _protoTickInterval=setInterval(function(){
     if(!window.G||G.phase!=='playing') return;
-    var dt=0.5; // 500ms 간격
-    // 쿨다운 감소
+    var dtSec=0.5;
+    var dtMs=500;
+    var t=G.tower;
+    var enemies=G.enemies||[];
+    var cx=G.cx, cy=G.cy;
+
+    /* 쿨다운 감소 */
     Object.keys(_protoCooldowns).forEach(function(id){
       var cd=_protoCooldowns[id];
       if(!cd.ready){
-        cd.timer-=dt;
+        cd.timer-=dtSec;
         if(cd.timer<=0){ cd.ready=true; cd.timer=0; }
         _updateProtoCdDisplay(id);
       }
-      // 자동 모드: 쿨다운 완료 시 자동 발동
       if(_protoAutoMode&&cd.ready){ _useProtocol(id); }
     });
-    // 지속 효과 처리 — 새 스킬 추가 시 여기에 틱 로직 작성
+
+    /* 지속 효과: 오버드라이브 */
+    if(_protoActiveEffects.overdrive){
+      var ov=_protoActiveEffects.overdrive;
+      ov.remaining-=dtMs;
+      if(ov.remaining<=0){
+        if(t.dmg>0&&ov.mult>0) t.dmg=Math.round(t.dmg/ov.mult);
+        delete _protoActiveEffects.overdrive;
+      }
+    }
+
+    /* 지속 효과: 블랙홀 */
+    if(_protoActiveEffects.blackhole){
+      var bh=_protoActiveEffects.blackhole;
+      bh.remaining-=dtMs;
+      var pullStr=3;
+      enemies.forEach(function(e){
+        var dx=cx-e.x, dy=cy-e.y;
+        var dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist>40&&dist>1){
+          e.x+=dx/dist*pullStr;
+          e.y+=dy/dist*pullStr;
+        }
+      });
+      if(bh.remaining<=0){
+        G._ptInvincible=false;
+        delete _protoActiveEffects.blackhole;
+      }
+    }
+
+    /* 지속 효과: 시간 왜곡 */
+    if(_protoActiveEffects.timewarp){
+      var tw=_protoActiveEffects.timewarp;
+      tw.remaining-=dtMs;
+      if(tw.remaining<=0){
+        delete _protoActiveEffects.timewarp;
+      }
+    }
+
+    /* 지속 효과: 분열 레이저 */
+    if(_protoActiveEffects.splitlaser){
+      var sl=_protoActiveEffects.splitlaser;
+      sl.remaining-=dtMs;
+      var rotSpeed=-Math.PI*2/(sl.maxTimer/1000);
+      sl.angle+=rotSpeed*dtSec;
+      var range=t.range||162;
+      var dmg=Math.round(t.dmg*sl.dmgPct);
+      for(var bi=0;bi<sl.beamCount;bi++){
+        var bAngle=sl.angle+(Math.PI*2/sl.beamCount)*bi;
+        var bx2=cx+Math.cos(bAngle)*range;
+        var by2=cy+Math.sin(bAngle)*range;
+        enemies.forEach(function(e){
+          var ldx=bx2-cx, ldy=by2-cy;
+          var edx=e.x-cx, edy=e.y-cy;
+          var len2=ldx*ldx+ldy*ldy;
+          if(len2<1) return;
+          var t2=Math.max(0,Math.min(1,(edx*ldx+edy*ldy)/len2));
+          var px=cx+ldx*t2, py=cy+ldy*t2;
+          var dd=(e.x-px)*(e.x-px)+(e.y-py)*(e.y-py);
+          if(dd<(e.r+8)*(e.r+8)){
+            e.hp-=Math.round(dmg*dtSec);
+            e.hitFlash=2;
+          }
+        });
+      }
+      if(sl.remaining<=0){
+        delete _protoActiveEffects.splitlaser;
+      }
+    }
+
+    /* 지속 효과: 기간토마키아 */
+    if(_protoActiveEffects.giganto){
+      var gi=_protoActiveEffects.giganto;
+      gi.remaining-=dtMs;
+      gi.tickTimer+=dtMs;
+      if(gi.tickTimer>=1000){
+        gi.tickTimer-=1000;
+        var range=t.range||162;
+        var dmg=Math.round(t.dmg*gi.dmgPct);
+        enemies.forEach(function(e){
+          var dx=e.x-cx, dy=e.y-cy;
+          if(dx*dx+dy*dy<=range*range){
+            e.hp-=dmg;
+            e.hitFlash=2;
+          }
+        });
+        addFx(cx,cy,range,'#ef4444');
+      }
+      if(gi.remaining<=0){
+        delete _protoActiveEffects.giganto;
+      }
+    }
+
+    /* 적 스턴 틱 */
+    enemies.forEach(function(e){
+      if(e._ptStun&&e._ptStun>0){
+        e._ptStun-=dtMs;
+        if(e._ptStun<=0) e._ptStun=0;
+      }
+    });
+
+    /* 시각 효과 감소 */
+    for(var vi=_protoVisualEffects.length-1;vi>=0;vi--){
+      _protoVisualEffects[vi].timer-=dtMs;
+      if(_protoVisualEffects[vi].timer<=0) _protoVisualEffects.splice(vi,1);
+    }
   },500);
 }
 function _stopProtoTick(){
   if(_protoTickInterval){ clearInterval(_protoTickInterval); _protoTickInterval=null; }
 }
 
-// 게임 시작/종료 시 프로토콜 바 주입/제거
+/* ── 적 이동 래핑: 스턴/슬로우 적용 ── */
+(function(){
+  setInterval(function(){
+    if(!window.G) return;
+    if(_protoActiveEffects.timewarp){
+      G._ptSlowPct=_protoActiveEffects.timewarp.slowPct;
+    } else {
+      G._ptSlowPct=0;
+    }
+  },200);
+})();
+
+/* ── 시각 효과 드로잉 ── */
+(function(){
+  var _origDraw=window.draw;
+  if(typeof _origDraw!=='function') return;
+  window.draw=function(){
+    _origDraw.apply(this,arguments);
+    if(!window.G||G.phase!=='playing') return;
+    var canvas=document.getElementById('gameCanvas');
+    if(!canvas) return;
+    var ctx=canvas.getContext('2d');
+    if(!ctx) return;
+    var cx=G.cx, cy=G.cy;
+
+    /* 플래시 효과 */
+    _protoVisualEffects.forEach(function(vfx){
+      if(vfx.type==='flash'){
+        var alpha=Math.min(1, vfx.timer/200)*0.3;
+        ctx.fillStyle=vfx.color;
+        ctx.globalAlpha=alpha;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.globalAlpha=1;
+      }
+      else if(vfx.type==='chain'){
+        var alpha=Math.min(1, vfx.timer/200);
+        ctx.strokeStyle=vfx.color;
+        ctx.globalAlpha=alpha;
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.moveTo(vfx.x1, vfx.y1);
+        ctx.lineTo(vfx.x2, vfx.y2);
+        ctx.stroke();
+        ctx.globalAlpha=1;
+      }
+      else if(vfx.type==='blackhole'){
+        var progress=1-vfx.timer/vfx.maxTimer;
+        var radius=30+progress*20;
+        ctx.save();
+        ctx.globalAlpha=0.4;
+        ctx.strokeStyle='#8b5cf6';
+        ctx.lineWidth=3;
+        ctx.beginPath();
+        ctx.arc(cx,cy,radius,0,Math.PI*2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx,cy,radius*0.6,0,Math.PI*2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      else if(vfx.type==='giganto'){
+        var progress=1-vfx.timer/vfx.maxTimer;
+        var range=G.tower.range||162;
+        ctx.save();
+        ctx.globalAlpha=0.15+0.1*Math.sin(progress*Math.PI*6);
+        ctx.fillStyle='#ef4444';
+        ctx.beginPath();
+        ctx.arc(cx,cy,range,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+    });
+
+    /* 분열 레이저 빔 드로잉 */
+    if(_protoActiveEffects.splitlaser){
+      var sl=_protoActiveEffects.splitlaser;
+      var range=G.tower.range||162;
+      ctx.save();
+      ctx.globalAlpha=0.7;
+      ctx.lineWidth=3;
+      ctx.shadowColor='#00ffff';
+      ctx.shadowBlur=10;
+      for(var bi=0;bi<sl.beamCount;bi++){
+        var bAngle=sl.angle+(Math.PI*2/sl.beamCount)*bi;
+        ctx.strokeStyle='#00ffff';
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        ctx.lineTo(cx+Math.cos(bAngle)*range, cy+Math.sin(bAngle)*range);
+        ctx.stroke();
+      }
+      ctx.shadowBlur=0;
+      ctx.restore();
+    }
+
+    /* 스턴된 적 표시 */
+    (G.enemies||[]).forEach(function(e){
+      if(e._ptStun&&e._ptStun>0){
+        ctx.save();
+        ctx.globalAlpha=0.6;
+        ctx.fillStyle='#3b82f6';
+        ctx.font='8px monospace';
+        ctx.textAlign='center';
+        ctx.fillText('STUN',e.x,e.y-e.r-4);
+        ctx.restore();
+      }
+    });
+  };
+})();
+
+/* ── 적 스턴/슬로우 적용 ── */
+(function(){
+  var _spdBackups=new WeakMap();
+  setInterval(function(){
+    if(!window.G||G.phase!=='playing') return;
+    var enemies=G.enemies||[];
+    var slowPct=G._ptSlowPct||0;
+    enemies.forEach(function(e){
+      if(e._ptStun&&e._ptStun>0){
+        if(!_spdBackups.has(e)) _spdBackups.set(e, e.spd);
+        e.spd=0;
+      } else if(slowPct>0){
+        if(!_spdBackups.has(e)) _spdBackups.set(e, e.spd);
+        e.spd=_spdBackups.get(e)*(1-slowPct);
+      } else if(_spdBackups.has(e)){
+        e.spd=_spdBackups.get(e);
+        _spdBackups.delete(e);
+      }
+    });
+    // 블랙홀 무적
+    if(G._ptInvincible){
+      if(!G._ptLastHp) G._ptLastHp=G.tower.hp;
+      if(G.tower.hp<G._ptLastHp) G.tower.hp=G._ptLastHp;
+      G._ptLastHp=G.tower.hp;
+    } else {
+      delete G._ptLastHp;
+    }
+  },100);
+})();
+
+/* ── 게임 시작/종료 시 프로토콜 바 주입/제거 ── */
 var _origStartProto=window.startNewGame;
 if(typeof _origStartProto==='function'){
   window.startNewGame=function(){
@@ -16819,6 +17405,8 @@ if(typeof _origGameOverProto==='function'){
     _origGameOverProto.apply(this,arguments);
     _removeProtoBar();
     _stopProtoTick();
+    G._ptInvincible=false;
+    G._ptSlowPct=0;
   };
 }
 
