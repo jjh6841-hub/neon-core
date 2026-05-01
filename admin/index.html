@@ -109,6 +109,12 @@ tr { cursor:pointer; }
 .modal-tab { flex:1; background:none; border:none; border-bottom:2px solid transparent; color:#556677; font-family:'Courier New',monospace; font-size:11px; padding:8px 0; cursor:pointer; letter-spacing:1px; }
 .modal-tab.active { color:#00ffff; border-bottom-color:#00ffff; }
 
+/* 관리자 탭 */
+.admin-tab { background:none; border:none; border-bottom:2px solid transparent; color:#556677; font-family:'Courier New',monospace; font-size:11px; padding:8px 12px; cursor:pointer; }
+.admin-tab.active { color:#00ffff; border-bottom-color:#00ffff; }
+.admin-tab-content { display:none; }
+.admin-tab-content.active { display:block; }
+
 /* 이상 감지 */
 #alert-section { margin-bottom:24px; }
 .alert-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ef4444; padding-bottom:8px; margin-bottom:10px; }
@@ -141,40 +147,80 @@ tr { cursor:pointer; }
     <h1>NEON CORE ADMIN</h1>
     <span id="total-users">유저: 0명</span>
   </div>
-  <div class="search-bar">
-    <input type="text" id="search-input" placeholder="유저 ID 검색...">
-    <button id="search-btn">검색</button>
-    <button id="refresh-btn">새로고침</button>
-  </div>
-  <div class="stats-bar" id="stats-bar"></div>
 
-  <!-- 이상 감지 -->
-  <div id="alert-section" style="display:none;">
-    <div class="alert-header">
-      <h2>⚠ 이상 감지</h2>
-      <span class="alert-count" id="alert-count">0</span>
+  <!-- 탭 바 -->
+  <div id="admin-tabs" style="display:flex;gap:0;border-bottom:1px solid #0a3344;margin-bottom:16px;flex-wrap:wrap;">
+    <button class="admin-tab active" data-admtab="users">유저</button>
+    <button class="admin-tab" data-admtab="guild">길드</button>
+    <button class="admin-tab" data-admtab="coupon">쿠폰</button>
+    <button class="admin-tab" data-admtab="mail">우편</button>
+    <button class="admin-tab" data-admtab="maint">점검</button>
+    <button class="admin-tab" data-admtab="settings">설정</button>
+    <button class="admin-tab" data-admtab="notice">공지</button>
+    <button class="admin-tab" data-admtab="monitor">모니터</button>
+  </div>
+
+  <!-- ===== 유저 탭 ===== -->
+  <div class="admin-tab-content active" data-admcontent="users">
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="유저 ID 검색...">
+      <button id="search-btn">검색</button>
+      <button id="refresh-btn">새로고침</button>
     </div>
-    <div id="alert-list"></div>
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <!-- 이상 감지 -->
+    <div id="alert-section" style="display:none;">
+      <div class="alert-header">
+        <h2>⚠ 이상 감지</h2>
+        <span class="alert-count" id="alert-count">0</span>
+      </div>
+      <div id="alert-list"></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>유저 ID</th>
+          <th>닉네임</th>
+          <th>연동</th>
+          <th>상태</th>
+          <th>골드</th>
+          <th>보석</th>
+          <th>행성별 웨이브</th>
+          <th>마지막 접속</th>
+        </tr>
+      </thead>
+      <tbody id="user-list"></tbody>
+    </table>
+
+    <!-- 삭제된 유저 복구 -->
+    <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+      <h2 style="color:#3b82f6;font-size:14px;letter-spacing:2px;margin-bottom:12px;">🗑 삭제된 유저 복구</h2>
+      <table>
+        <thead><tr><th>유저 ID</th><th>골드</th><th>보석</th><th>삭제일</th><th>복구</th></tr></thead>
+        <tbody id="deleted-list"></tbody>
+      </table>
+    </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>유저 ID</th>
-        <th>닉네임</th>
-        <th>연동</th>
-        <th>상태</th>
-        <th>골드</th>
-        <th>보석</th>
-        <th>행성별 웨이브</th>
-        <th>마지막 접속</th>
-      </tr>
-    </thead>
-    <tbody id="user-list"></tbody>
-  </table>
+  <!-- ===== 길드 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="guild">
+    <h2 style="color:#ff6644;font-size:14px;letter-spacing:2px;margin-bottom:12px;">길드 관리</h2>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input type="text" id="guild-admin-search" placeholder="길드 이름 검색..." style="flex:1;background:#0a1a2a;border:1px solid #0a3344;color:#ff6644;font-family:'Courier New',monospace;font-size:12px;padding:8px 12px;">
+      <button id="guild-admin-search-btn" style="background:#030b10;border:1px solid #0a3344;color:#ff6644;font-family:'Courier New',monospace;font-size:11px;padding:8px 16px;cursor:pointer;">검색</button>
+      <button id="guild-admin-refresh" style="background:#030b10;border:1px solid #0a3344;color:#00ffff;font-family:'Courier New',monospace;font-size:11px;padding:8px 16px;cursor:pointer;">새로고침</button>
+    </div>
+    <div id="guild-admin-stats" style="display:flex;gap:16px;margin-bottom:16px;font-size:11px;flex-wrap:wrap;" class="stats-bar"></div>
+    <table>
+      <thead><tr><th>길드명</th><th>태그</th><th>리더</th><th>멤버</th><th>레벨</th><th>생성일</th></tr></thead>
+      <tbody id="guild-admin-list"></tbody>
+    </table>
+  </div>
 
-  <!-- 쿠폰 관리 -->
-  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+  <!-- ===== 쿠폰 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="coupon">
     <h2 style="color:#f59e0b;font-size:14px;letter-spacing:2px;margin-bottom:12px;">쿠폰 관리</h2>
     <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
       <input type="text" id="cp-code" placeholder="쿠폰 코드" style="flex:1;min-width:100px;background:#0a1a2a;border:1px solid #0a3344;color:#f59e0b;font-family:monospace;font-size:11px;padding:8px;text-transform:uppercase;">
@@ -189,8 +235,8 @@ tr { cursor:pointer; }
     </table>
   </div>
 
-  <!-- 우편 관리 -->
-  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+  <!-- ===== 우편 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="mail">
     <h2 style="color:#cc44ff;font-size:14px;letter-spacing:2px;margin-bottom:12px;">우편 발송</h2>
     <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
       <select id="mail-type" style="background:#0a1a2a;border:1px solid #0a3344;color:#00ffff;font-family:monospace;font-size:11px;padding:8px;">
@@ -223,8 +269,8 @@ tr { cursor:pointer; }
     </div>
   </div>
 
-  <!-- 점검 모드 -->
-  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+  <!-- ===== 점검 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="maint">
     <h2 style="color:#f59e0b;font-size:14px;letter-spacing:2px;margin-bottom:12px;">🔧 점검 모드</h2>
     <div id="mt-status" style="margin-bottom:12px;"></div>
     <div id="mt-controls" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
@@ -237,21 +283,47 @@ tr { cursor:pointer; }
     </div>
   </div>
 
-  <!-- 주파수 전쟁 규칙 관리 -->
-  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
+  <!-- ===== 설정 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="settings">
     <h2 style="color:#00dddd;font-size:14px;letter-spacing:2px;margin-bottom:12px;">⚔ 주파수 전쟁 규칙</h2>
     <div style="color:#556677;font-size:10px;margin-bottom:10px;">현재 적용 중인 규칙을 수동으로 변경합니다. 변경 시 Firestore에 저장되어 모든 유저에게 적용됩니다.</div>
     <div id="fw-rule-current" style="margin-bottom:10px;color:#94a3b8;font-size:11px;"></div>
     <div id="fw-rule-buttons" style="display:flex;flex-direction:column;gap:4px;"></div>
   </div>
 
-  <!-- 삭제된 유저 복구 -->
-  <div style="margin-top:32px;border-top:1px solid #0a3344;padding-top:16px;">
-    <h2 style="color:#3b82f6;font-size:14px;letter-spacing:2px;margin-bottom:12px;">🗑 삭제된 유저 복구</h2>
+  <!-- ===== 공지 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="notice">
+    <h2 style="color:#f59e0b;font-size:14px;letter-spacing:2px;margin-bottom:12px;">공지사항 관리</h2>
+    <div style="margin-bottom:12px;">
+      <input type="text" id="notice-title" placeholder="제목" style="width:100%;background:#0a1a2a;border:1px solid #0a3344;color:#f1f5f9;font-family:'Courier New',monospace;font-size:12px;padding:8px 12px;margin-bottom:8px;box-sizing:border-box;">
+      <textarea id="notice-body" placeholder="내용" rows="4" style="width:100%;background:#0a1a2a;border:1px solid #0a3344;color:#94a3b8;font-family:'Courier New',monospace;font-size:11px;padding:8px 12px;resize:vertical;box-sizing:border-box;margin-bottom:8px;"></textarea>
+      <button id="notice-create" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:'Courier New',monospace;font-size:11px;padding:8px 20px;cursor:pointer;letter-spacing:1px;">공지 등록</button>
+    </div>
     <table>
-      <thead><tr><th>유저 ID</th><th>골드</th><th>보석</th><th>삭제일</th><th>복구</th></tr></thead>
-      <tbody id="deleted-list"></tbody>
+      <thead><tr><th>제목</th><th>내용</th><th>등록일</th><th>삭제</th></tr></thead>
+      <tbody id="notice-list"></tbody>
     </table>
+  </div>
+
+  <!-- ===== 모니터 탭 ===== -->
+  <div class="admin-tab-content" data-admcontent="monitor">
+    <h2 style="color:#10b981;font-size:14px;letter-spacing:2px;margin-bottom:12px;">모니터링</h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+      <div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;flex:1;min-width:120px;text-align:center;">
+        <div style="color:#556677;font-size:10px;">총 유저</div>
+        <div id="mon-total-users" style="color:#00ffff;font-size:24px;font-weight:bold;">0</div>
+      </div>
+      <div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;flex:1;min-width:120px;text-align:center;">
+        <div style="color:#556677;font-size:10px;">최근 24시간 접속</div>
+        <div id="mon-active-24h" style="color:#10b981;font-size:24px;font-weight:bold;">0</div>
+      </div>
+      <div style="background:#0a1a2a;border:1px solid #0a3344;padding:16px;flex:1;min-width:120px;text-align:center;">
+        <div style="color:#556677;font-size:10px;">최근 7일 접속</div>
+        <div id="mon-active-7d" style="color:#3b82f6;font-size:24px;font-weight:bold;">0</div>
+      </div>
+    </div>
+    <h3 style="color:#f59e0b;font-size:12px;margin-bottom:8px;">밸런스 모니터</h3>
+    <div id="mon-balance" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
   </div>
 </div>
 
@@ -1391,6 +1463,9 @@ loadUsers = async function() {
   loadDeletedUsers();
   loadMaintenanceStatus();
   loadFWRule();
+  loadGuilds();
+  loadNotices();
+  renderMonitor();
 };
 
 // ── 주파수 전쟁 규칙 관리 ──
@@ -1446,6 +1521,254 @@ async function loadFWRule() {
     });
     btnsEl.appendChild(btn);
   });
+}
+
+// ══════════════════════════════════════════════════════
+// 관리자 탭 전환
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.admin-tab').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.admin-tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.admin-tab-content').forEach(function(c){ c.classList.remove('active'); });
+    tab.classList.add('active');
+    var target = document.querySelector('[data-admcontent="'+tab.dataset.admtab+'"]');
+    if(target) target.classList.add('active');
+  });
+});
+
+// ══════════════════════════════════════════════════════
+// 길드 관리
+// ══════════════════════════════════════════════════════
+var allGuilds = [];
+
+async function loadGuilds() {
+  try {
+    var snap = await db.collection('guilds').get();
+    allGuilds = [];
+    snap.forEach(function(doc){ allGuilds.push({ id:doc.id, data:doc.data() }); });
+    renderGuilds(allGuilds);
+    // 통계
+    var totalMembers = 0;
+    allGuilds.forEach(function(g){
+      var members = g.data.members || [];
+      totalMembers += members.length;
+    });
+    document.getElementById('guild-admin-stats').innerHTML =
+      '<span>총 길드: <b>' + allGuilds.length + '</b></span>' +
+      '<span>총 멤버: <b>' + totalMembers + '</b></span>';
+  } catch(e) {
+    document.getElementById('guild-admin-stats').innerHTML = '<span style="color:#ef4444;">길드 로드 실패</span>';
+  }
+}
+
+function renderGuilds(list) {
+  var tbody = document.getElementById('guild-admin-list');
+  tbody.innerHTML = '';
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#334455;text-align:center;padding:12px;">길드 없음</td></tr>';
+    return;
+  }
+  list.forEach(function(g){
+    var d = g.data;
+    var members = d.members || [];
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="color:#ff6644;">' + (d.name||g.id) + '</td>' +
+      '<td style="color:#556677;">' + (d.tag||'-') + '</td>' +
+      '<td class="uid-cell">' + (d.leaderId||'-') + '</td>' +
+      '<td style="color:#94a3b8;">' + members.length + '</td>' +
+      '<td style="color:#f59e0b;">' + (d.level||1) + '</td>' +
+      '<td class="time">' + formatTime(d.createdAt) + '</td>';
+    tr.addEventListener('click', function(){ openGuildDetail(g); });
+    tbody.appendChild(tr);
+  });
+}
+
+function openGuildDetail(guild) {
+  var d = guild.data;
+  var members = d.members || [];
+  var html = '<div class="modal-box" style="max-width:480px;">';
+  html += '<div class="modal-title"><span style="color:#ff6644;">' + (d.name||guild.id) + '</span><button class="modal-close" onclick="this.closest(\'#guild-detail-modal\').classList.remove(\'show\')">&times;</button></div>';
+  html += '<div class="modal-row"><label>길드 ID</label><span style="color:#556677;font-size:10px;">' + guild.id + '</span></div>';
+  html += '<div class="modal-row"><label>태그</label><span>' + (d.tag||'-') + '</span></div>';
+  html += '<div class="modal-row"><label>리더</label><span style="color:#00ffff;font-size:10px;">' + (d.leaderId||'-') + '</span></div>';
+  html += '<div class="modal-row"><label>레벨</label><span style="color:#f59e0b;">' + (d.level||1) + '</span></div>';
+  html += '<div class="modal-row"><label>생성일</label><span>' + formatTime(d.createdAt) + '</span></div>';
+  html += '<div class="modal-section" style="color:#ff6644;">멤버 (' + members.length + ')</div>';
+  if (members.length === 0) {
+    html += '<div style="color:#334455;font-size:10px;padding:8px 0;">멤버 없음</div>';
+  } else {
+    members.forEach(function(m){
+      var uid = typeof m === 'string' ? m : (m.uid || m.id || '-');
+      var role = typeof m === 'object' ? (m.role||'멤버') : '멤버';
+      html += '<div class="modal-row"><label>' + role + '</label><span class="uid-cell" style="max-width:none;">' + uid + '</span></div>';
+    });
+  }
+  html += '<div style="margin-top:16px;"><button id="guild-disband-btn" style="width:100%;background:#030b10;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;padding:10px;cursor:pointer;letter-spacing:1px;">길드 해산</button></div>';
+  html += '</div>';
+
+  // 모달 표시
+  var modal = document.getElementById('guild-detail-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'guild-detail-modal';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(3,11,16,0.95);z-index:100;align-items:center;justify-content:center;';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = html;
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  modal.addEventListener('click', function(e){ if(e.target===modal){ modal.classList.remove('show'); modal.style.display='none'; } });
+
+  // 해산 버튼
+  document.getElementById('guild-disband-btn').addEventListener('click', async function(){
+    if(!confirm((d.name||guild.id)+' 길드를 해산하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+    try {
+      await db.collection('guilds').doc(guild.id).delete();
+      showToast('길드 해산 완료: ' + (d.name||guild.id));
+      modal.classList.remove('show');
+      modal.style.display='none';
+      loadGuilds();
+    } catch(e) {
+      showToast('해산 실패: ' + e.message);
+    }
+  });
+}
+
+// 길드 검색
+document.getElementById('guild-admin-search-btn').addEventListener('click', function(){
+  var q = document.getElementById('guild-admin-search').value.trim().toLowerCase();
+  if (!q) { renderGuilds(allGuilds); return; }
+  var filtered = allGuilds.filter(function(g){
+    var name = (g.data.name||'').toLowerCase();
+    var tag = (g.data.tag||'').toLowerCase();
+    return name.indexOf(q) !== -1 || tag.indexOf(q) !== -1;
+  });
+  renderGuilds(filtered);
+});
+document.getElementById('guild-admin-search').addEventListener('keydown', function(e){
+  if(e.key==='Enter') document.getElementById('guild-admin-search-btn').click();
+});
+document.getElementById('guild-admin-refresh').addEventListener('click', loadGuilds);
+
+// ══════════════════════════════════════════════════════
+// 공지사항 관리
+// ══════════════════════════════════════════════════════
+async function loadNotices() {
+  try {
+    var snap = await db.collection('notices').orderBy('createdAt','desc').get();
+    var tbody = document.getElementById('notice-list');
+    tbody.innerHTML = '';
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:#334455;text-align:center;padding:12px;">공지 없음</td></tr>';
+      return;
+    }
+    snap.forEach(function(doc){
+      var d = doc.data();
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td style="color:#f1f5f9;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.title||'-') + '</td>' +
+        '<td style="color:#94a3b8;font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.body||'-') + '</td>' +
+        '<td class="time">' + formatTime(d.createdAt) + '</td>' +
+        '<td><button data-notice-del="'+doc.id+'" style="background:none;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:9px;padding:3px 8px;cursor:pointer;">삭제</button></td>';
+      tr.querySelector('[data-notice-del]').addEventListener('click', async function(){
+        if(!confirm('이 공지를 삭제하시겠습니까?')) return;
+        await db.collection('notices').doc(doc.id).delete();
+        showToast('공지 삭제 완료');
+        loadNotices();
+      });
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    document.getElementById('notice-list').innerHTML = '<tr><td colspan="4" style="color:#ef4444;text-align:center;padding:12px;">공지 로드 실패</td></tr>';
+  }
+}
+
+document.getElementById('notice-create').addEventListener('click', async function(){
+  var title = document.getElementById('notice-title').value.trim();
+  var body = document.getElementById('notice-body').value.trim();
+  if(!title){ showToast('제목을 입력하세요'); return; }
+  if(!body){ showToast('내용을 입력하세요'); return; }
+  await db.collection('notices').add({
+    title: title,
+    body: body,
+    createdAt: new Date().toISOString()
+  });
+  showToast('공지 등록 완료');
+  document.getElementById('notice-title').value = '';
+  document.getElementById('notice-body').value = '';
+  loadNotices();
+});
+
+// ══════════════════════════════════════════════════════
+// 모니터링
+// ══════════════════════════════════════════════════════
+function renderMonitor() {
+  if (!allUsers || allUsers.length === 0) return;
+  var now = Date.now();
+  var day24h = 24*60*60*1000;
+  var day7d = 7*24*60*60*1000;
+
+  var totalUsers = allUsers.length;
+  var active24h = 0, active7d = 0;
+  var goldArr = [], gemArr = [], waveArr = [];
+  var maxWaveUser = null, maxWaveVal = 0;
+
+  allUsers.forEach(function(u){
+    var p = u.data.perm || {};
+    var tb = u.data.tierBest || {};
+    var lastActive = u.data.lastActive ? new Date(u.data.lastActive).getTime() : 0;
+
+    if (now - lastActive < day24h) active24h++;
+    if (now - lastActive < day7d) active7d++;
+
+    var gold = p.gold || 0;
+    var gems = p.gems || 0;
+    goldArr.push(gold);
+    gemArr.push(gems);
+
+    var mw = 0;
+    for (var ti = 1; ti <= 5; ti++) {
+      var tv = tb['tier'+ti] || 0;
+      if (tv > mw) mw = tv;
+    }
+    if ((p.bestWave||0) > mw) mw = p.bestWave || 0;
+    waveArr.push(mw);
+    if (mw > maxWaveVal) { maxWaveVal = mw; maxWaveUser = u; }
+  });
+
+  document.getElementById('mon-total-users').textContent = totalUsers;
+  document.getElementById('mon-active-24h').textContent = active24h;
+  document.getElementById('mon-active-7d').textContent = active7d;
+
+  // 정렬 후 분포 계산
+  var sortedGold = goldArr.slice().sort(function(a,b){return a-b;});
+  var sortedGems = gemArr.slice().sort(function(a,b){return a-b;});
+  var sortedWave = waveArr.slice().sort(function(a,b){return a-b;});
+
+  var len = totalUsers;
+  var medianIdx = Math.floor(len/2);
+  var topIdx = Math.max(0, Math.floor(len*0.9));
+  var lowIdx = Math.floor(len*0.1);
+
+  var avgGold = len ? Math.round(goldArr.reduce(function(s,v){return s+v;},0)/len) : 0;
+  var avgGems = len ? Math.round(gemArr.reduce(function(s,v){return s+v;},0)/len) : 0;
+  var avgWave = len ? Math.round(waveArr.reduce(function(s,v){return s+v;},0)/len) : 0;
+
+  var balHtml = '';
+
+  // 평균 재화
+  balHtml += '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;"><div style="color:#556677;font-size:10px;margin-bottom:6px;">평균 골드</div><div style="color:#f59e0b;font-size:18px;font-weight:bold;">' + avgGold.toLocaleString() + '</div><div style="color:#334455;font-size:9px;margin-top:4px;">중위: ' + (sortedGold[medianIdx]||0).toLocaleString() + ' | 하위10%: ' + (sortedGold[lowIdx]||0).toLocaleString() + ' | 상위10%: ' + (sortedGold[topIdx]||0).toLocaleString() + '</div></div>';
+
+  balHtml += '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;"><div style="color:#556677;font-size:10px;margin-bottom:6px;">평균 보석</div><div style="color:#00ffff;font-size:18px;font-weight:bold;">' + avgGems.toLocaleString() + '</div><div style="color:#334455;font-size:9px;margin-top:4px;">중위: ' + (sortedGems[medianIdx]||0).toLocaleString() + ' | 하위10%: ' + (sortedGems[lowIdx]||0).toLocaleString() + ' | 상위10%: ' + (sortedGems[topIdx]||0).toLocaleString() + '</div></div>';
+
+  // 평균 웨이브
+  balHtml += '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;"><div style="color:#556677;font-size:10px;margin-bottom:6px;">평균 최고 웨이브</div><div style="color:#00ff88;font-size:18px;font-weight:bold;">' + avgWave + '</div><div style="color:#334455;font-size:9px;margin-top:4px;">중위: ' + (sortedWave[medianIdx]||0) + ' | 하위10%: ' + (sortedWave[lowIdx]||0) + ' | 상위10%: ' + (sortedWave[topIdx]||0) + '</div></div>';
+
+  // 최고 웨이브 유저
+  balHtml += '<div style="background:#0a1a2a;border:1px solid #0a3344;padding:12px;"><div style="color:#556677;font-size:10px;margin-bottom:6px;">최고 웨이브 유저</div><div style="color:#10b981;font-size:18px;font-weight:bold;">' + maxWaveVal + '</div><div style="color:#334455;font-size:9px;margin-top:4px;word-break:break-all;">' + (maxWaveUser ? maxWaveUser.id : '-') + '</div></div>';
+
+  document.getElementById('mon-balance').innerHTML = balHtml;
 }
 </script>
 </body>
