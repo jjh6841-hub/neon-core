@@ -15493,6 +15493,8 @@ window.showScreen = function (name) {
     try { window._storeExt.sync(); window._storeExt.render(); } catch(_) {}
   } else if (name === 'research' || name === 'lab') {
     try { _syncLabHUD(); _buildLabSlots(); } catch(_) {}
+  } else if (name === 'corelab') {
+    try { if(window.renderLab) renderLab(); } catch(_) {}
   } else if (name === 'tournament') {
     try { if(window._syncTrnHUD) _syncTrnHUD(); } catch(_) {}
   } else {
