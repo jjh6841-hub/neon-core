@@ -17421,37 +17421,131 @@ function renderLab(){
     });
   });
 
-  // 프로토콜 카드 클릭 -> 선택된 슬롯에 장착
+  // 프로토콜 카드 클릭 -> 상세 팝업
   main.querySelectorAll('[data-proto-id]').forEach(function(el){
     el.addEventListener('click',function(){
       var pid=el.getAttribute('data-proto-id');
-      var sl=_loadSlots();
-      if(_selectedSlotIdx>=0 && _selectedSlotIdx<sl.unlocked){
-        for(var ri=0;ri<6;ri++){if(sl.equipped[ri]===pid) sl.equipped[ri]=null;}
-        sl.equipped[_selectedSlotIdx]=pid;
-        _saveSlots(sl);
-        _selectedSlotIdx=-1;
-        renderLab();
-      } else {
-        var placed=false;
-        for(var ai=0;ai<sl.unlocked;ai++){
-          if(!sl.equipped[ai]){
-            for(var ri2=0;ri2<6;ri2++){if(sl.equipped[ri2]===pid) sl.equipped[ri2]=null;}
-            sl.equipped[ai]=pid;
-            _saveSlots(sl);
-            placed=true;
-            break;
-          }
-        }
-        if(!placed){
-          if(window.showToastMsg) showToastMsg('빈 슬롯을 선택하거나 장착 해제 후 시도하세요','#f59e0b');
-        }
-        renderLab();
-      }
+      _showProtoDetailPopup(pid);
     });
   });
 }
 window.renderLab=renderLab;
+
+/* ── 프로토콜 상세 팝업 ── */
+function _showProtoDetailPopup(pid){
+  var old=document.getElementById('proto-detail-popup'); if(old) old.remove();
+  var p=null;
+  for(var i=0;i<PROTOCOLS.length;i++){if(PROTOCOLS[i].id===pid){p=PROTOCOLS[i];break;}}
+  if(!p) return;
+  var d=_loadProto();
+  var pd=d[pid];
+  var owned=!!pd;
+  var lv=owned?pd.lv:0;
+  var isMax=lv>=p.maxLv;
+  var sl=_loadSlots();
+  var isEq=false;
+  for(var ei=0;ei<6;ei++){if(sl.equipped[ei]===pid){isEq=true;break;}}
+
+  var ov=document.createElement('div');
+  ov.id='proto-detail-popup';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9800;display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Courier New",monospace;';
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+
+  var cd=_getProtoCd(p,lv);
+
+  // 레벨 별
+  var stars='';
+  for(var si=0;si<p.maxLv;si++) stars+='<span style="color:'+(si<lv?p.color:'#1a2a3a')+';font-size:'+(p.maxLv>5?'10':'14')+'px;">★</span>';
+
+  // 효과 정보
+  var infoRows='';
+  infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>쿨타임</span><span style="color:'+p.color+';">'+cd+'초</span></div>';
+  if(p.stunBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>기절</span><span style="color:'+p.color+';">'+(p.stunBase+lv*p.stunPerLv).toFixed(1)+'초</span></div>';
+  if(p.dmgBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>피해</span><span style="color:'+p.color+';">'+(p.dmgBase+lv*p.dmgPerLv)+'%</span></div>';
+  if(p.durBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>지속</span><span style="color:'+p.color+';">'+(p.durBase+lv*p.durPerLv).toFixed(1)+'초</span></div>';
+  if(p.multBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>배율</span><span style="color:'+p.color+';">x'+(p.multBase+lv*p.multPerLv).toFixed(1)+'</span></div>';
+  if(p.slowBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>감속</span><span style="color:'+p.color+';">'+(p.slowBase+lv*p.slowPerLv)+'%</span></div>';
+  if(p.healBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>회복</span><span style="color:'+p.color+';">'+(p.healBase+lv*p.healPerLv)+'%</span></div>';
+  if(p.shotBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>발사 수</span><span style="color:'+p.color+';">'+(p.shotBase+lv*p.shotPerLv)+'발</span></div>';
+  if(p.chainBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>연쇄</span><span style="color:'+p.color+';">'+(p.chainBase+lv*p.chainPerLv)+'체</span></div>';
+  if(p.beamCounts) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>빔 수</span><span style="color:'+p.color+';"> '+(p.beamCounts[lv]||p.beamCounts[0])+'개</span></div>';
+
+  var box='<div style="background:#0d1520;border:2px solid '+p.color+'44;border-radius:12px;width:290px;max-width:92%;padding:20px;text-align:center;">';
+  // 아이콘
+  box+='<div style="margin:8px auto;">'+_protoIconHTML(pid, owned?p.color:'#445566', 48)+'</div>';
+  // 이름
+  box+='<div style="font-size:15px;color:#f1f5f9;font-weight:bold;margin-bottom:4px;">'+p.name+'</div>';
+  // 레벨 별
+  box+='<div style="margin-bottom:4px;">'+stars+'</div>';
+  // 레벨
+  box+='<div style="font-size:10px;color:'+(isMax?'#f59e0b':p.color)+';margin-bottom:8px;">Lv.'+lv+(isMax?' MAX':' / '+p.maxLv)+'</div>';
+  // 설명
+  box+='<div style="font-size:10px;color:#7aacac;margin-bottom:12px;line-height:1.6;">'+p.desc+'</div>';
+  // 효과표
+  box+='<div style="background:#0a1520;border:1px solid #0a2233;border-radius:6px;padding:8px 12px;margin-bottom:14px;text-align:left;font-size:10px;">'+infoRows+'</div>';
+
+  if(owned){
+    // 중복 진행도
+    if(!isMax){
+      var dn=(lv>=p.maxLv-1)?5:3;
+      box+='<div style="font-size:9px;color:#556677;margin-bottom:10px;">중복: '+(pd.dup||0)+'/'+dn+'</div>';
+    }
+    // 장착/해제 버튼
+    if(isEq){
+      box+='<button id="ptd-unequip" style="width:100%;padding:10px;background:#030b10;border:1px solid #ef4444;border-radius:6px;color:#ef4444;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">장착 해제</button>';
+    } else {
+      box+='<button id="ptd-equip" style="width:100%;padding:10px;background:#030b10;border:1px solid #00ff88;border-radius:6px;color:#00ff88;font-family:monospace;font-size:12px;cursor:pointer;font-weight:bold;">장착</button>';
+    }
+  } else {
+    box+='<div style="font-size:10px;color:#334455;padding:8px 0;">미보유</div>';
+  }
+
+  box+='<button id="ptd-close" style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:11px;cursor:pointer;">닫기</button>';
+  box+='</div>';
+  ov.innerHTML=box;
+  document.body.appendChild(ov);
+
+  document.getElementById('ptd-close').addEventListener('click',function(){ov.remove();});
+
+  var eqBtn=document.getElementById('ptd-equip');
+  if(eqBtn) eqBtn.addEventListener('click',function(){
+    var sl2=_loadSlots();
+    // 선택된 슬롯이 있으면 거기에
+    if(_selectedSlotIdx>=0 && _selectedSlotIdx<sl2.unlocked){
+      for(var ri=0;ri<6;ri++){if(sl2.equipped[ri]===pid) sl2.equipped[ri]=null;}
+      sl2.equipped[_selectedSlotIdx]=pid;
+      _saveSlots(sl2);
+      _selectedSlotIdx=-1;
+    } else {
+      // 빈 슬롯 자동 찾기
+      var placed=false;
+      for(var ai=0;ai<sl2.unlocked;ai++){
+        if(!sl2.equipped[ai]){
+          for(var ri2=0;ri2<6;ri2++){if(sl2.equipped[ri2]===pid) sl2.equipped[ri2]=null;}
+          sl2.equipped[ai]=pid;
+          _saveSlots(sl2);
+          placed=true;
+          break;
+        }
+      }
+      if(!placed){
+        if(window.showToastMsg) showToastMsg('빈 슬롯이 없습니다','#f59e0b');
+        return;
+      }
+    }
+    ov.remove();
+    renderLab();
+  });
+
+  var ueqBtn=document.getElementById('ptd-unequip');
+  if(ueqBtn) ueqBtn.addEventListener('click',function(){
+    var sl3=_loadSlots();
+    for(var ri3=0;ri3<6;ri3++){if(sl3.equipped[ri3]===pid) sl3.equipped[ri3]=null;}
+    _saveSlots(sl3);
+    ov.remove();
+    renderLab();
+  });
+}
 
 /* ── nav 바인딩 ── */
 function _openCoreLab(){
