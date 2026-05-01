@@ -18318,40 +18318,35 @@ function _stopProtoTick(){
 
     /* 기간토마키아 드로잉 (타워 주위 붉은 링 — 오버드라이브/과열과 동일 방식) */
     if(_protoActiveEffects.giganto){
-      var _tR3=(G.tower&&G.tower.r)||12;
       ctx.save();
-      // 타워 주위 붉은 맥동 링
       ctx.globalAlpha=0.3+0.12*Math.sin(performance.now()*0.005);
       ctx.strokeStyle='#ef4444';
-      ctx.lineWidth=2.5;
-      ctx.beginPath(); ctx.arc(cx,cy,_tR3+6,0,Math.PI*2); ctx.stroke();
-      // 두 번째 링 (더 크게)
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx,cy,15,0,Math.PI*2); ctx.stroke();
       ctx.globalAlpha=0.15+0.08*Math.sin(performance.now()*0.007);
-      ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(cx,cy,_tR3+14,0,Math.PI*2); ctx.stroke();
+      ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(cx,cy,22,0,Math.PI*2); ctx.stroke();
       ctx.globalAlpha=1;
       ctx.restore();
     }
 
-    /* 레이저 오버드라이브 (타워 주위 붉은 링) */
+    /* 레이저 오버드라이브 (타워 밀착 붉은 링) */
     if(_protoActiveEffects.overdrive){
       ctx.save();
-      ctx.globalAlpha=0.25+0.1*Math.sin(performance.now()*0.006);
+      ctx.globalAlpha=0.3+0.1*Math.sin(performance.now()*0.006);
       ctx.strokeStyle='#ff4444';
-      ctx.lineWidth=2;
-      var _tR1=(G.tower&&G.tower.r)||12;
-      ctx.beginPath(); ctx.arc(cx,cy,_tR1+4,0,Math.PI*2); ctx.stroke();
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(cx,cy,15,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     }
 
-    /* 과열 레이저 (타워 주위 주황 링) */
+    /* 과열 레이저 (타워 밀착 주황 링) */
     if(_protoActiveEffects.overheat){
       ctx.save();
-      ctx.globalAlpha=0.3+0.1*Math.sin(performance.now()*0.008);
+      ctx.globalAlpha=0.35+0.1*Math.sin(performance.now()*0.008);
       ctx.strokeStyle='#ff8822';
-      ctx.lineWidth=2;
-      var _tR2=(G.tower&&G.tower.r)||12;
-      ctx.beginPath(); ctx.arc(cx,cy,_tR2+4,0,Math.PI*2); ctx.stroke();
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(cx,cy,15,0,Math.PI*2); ctx.stroke();
       ctx.restore();
     }
 
