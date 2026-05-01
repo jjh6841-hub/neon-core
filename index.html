@@ -9377,11 +9377,15 @@ function _syncTrnHUD() {
 }
 window._syncTrnHUD = _syncTrnHUD;
 
-// 팝업 바깥 클릭 → 홈 화면으로 닫기
+// 팝업 바깥 클릭 → 팝업만 닫기 (아래 화면 유지)
 var trnScreen = document.getElementById('screen-tournament');
 if (trnScreen) {
   trnScreen.addEventListener('click', function(e) {
-    if (e.target === trnScreen) { if (window.showScreen) showScreen('home'); }
+    if (e.target === trnScreen) {
+      trnScreen.style.display = 'none';
+      var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
+      try { renderNavTabs('home'); } catch(_){}
+    }
   });
 }
 
@@ -15365,13 +15369,24 @@ window.pulseFragments = parseInt(localStorage.getItem('pulseFragments') || '0') 
 var _FW_SCREENS = ['screen-frequency-wars', 'screen-signal-market',
                    'screen-event', 'screen-ranking'];
 window.showScreen = function (name) {
+  // 토너먼트는 팝업 오버레이 — 아래 화면 숨기지 않고 팝업만 토글
+  if (name === 'tournament') {
+    var trnEl = document.getElementById('screen-tournament');
+    if (trnEl) { trnEl.style.display = 'flex'; }
+    var _bn = document.getElementById('bottom-nav'); if(_bn) _bn.style.display='none';
+    return;
+  }
+  // 토너먼트 팝업이 열려있으면 닫기
+  var _trnOpen = document.getElementById('screen-tournament');
+  if (_trnOpen) _trnOpen.style.display = 'none';
+
   // 새로 추가된 전체화면들 모두 숨기기
   _FW_SCREENS.forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
   // 메인 화면들 모두 숨기기
-  ['home','workshop','store','lab','tournament','module','research','corelab','skin','mods','explore'].forEach(function(s) {
+  ['home','workshop','store','lab','module','research','corelab','skin','mods','explore'].forEach(function(s) {
     var el = document.getElementById('screen-' + s);
     if (el) el.style.display = 'none';
   });
