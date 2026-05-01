@@ -10719,15 +10719,15 @@ setTimeout(_updateBadge, 500);
     var tierRw = {1:500,2:1000,3:2000,4:4000,5:8000};
     var INF_MISSIONS = [
       { id:'inf_kills',  title:'적 처치',           storageKey:'inf_kills_total',  interval:100, reward:{gold:25,gems:0},  desc:'적 100마리 처치마다 ◈25 지급' },
-      { id:'inf_boss',   title:'코어 보스 처치',    storageKey:'inf_boss_total',   interval:5,   reward:{gold:50,gems:0},  desc:'10스테이지 보스 5마리마다 ◈50 지급' },
-      { id:'inf_elite',  title:'엘리트 코어 처치',  storageKey:'inf_elite_total',  interval:5,   reward:{gold:100,gems:0}, desc:'50스테이지 보스 5마리마다 ◈100 지급' },
-      { id:'inf_hyper',  title:'하이퍼 코어 처치',  storageKey:'inf_hyper_total',  interval:5,   reward:{gold:500,gems:0}, desc:'100스테이지 보스 5마리마다 ◈500 지급' },
+      { id:'inf_boss',   title:'코어 보스 처치',    storageKey:'inf_boss_total',   interval:5,   reward:{gold:50,gems:0},  desc:'10웨이브 보스 5마리마다 ◈50 지급' },
+      { id:'inf_elite',  title:'엘리트 코어 처치',  storageKey:'inf_elite_total',  interval:5,   reward:{gold:100,gems:0}, desc:'50웨이브 보스 5마리마다 ◈100 지급' },
+      { id:'inf_hyper',  title:'하이퍼 코어 처치',  storageKey:'inf_hyper_total',  interval:5,   reward:{gold:500,gems:0}, desc:'100웨이브 보스 5마리마다 ◈500 지급' },
       { id:'inf_upgrades',title:'강화 달인',         storageKey:'stat_upgrades',    interval:50,  reward:{gold:200,gems:0}, desc:'강화 50회마다 ◈200 지급' },
     ];
     var _infPlanetNames = ['에이온','스펙트라','넥사르','피라온','오메가'];
     for(var ti=1;ti<=5;ti++){
       var pName = _infPlanetNames[ti-1];
-      INF_MISSIONS.push({ id:'inf_tier'+ti+'_wave', title:pName+' 웨이브 도전', storageKey:'inf_tier'+ti+'_wave', interval:100, reward:{gold:tierRw[ti],gems:0}, desc:pName+'에서 100스테이지마다 ◈'+tierRw[ti]+' 지급', tier:ti });
+      INF_MISSIONS.push({ id:'inf_tier'+ti+'_wave', title:pName+' 웨이브 도전', storageKey:'inf_tier'+ti+'_wave', interval:100, reward:{gold:tierRw[ti],gems:0}, desc:pName+'에서 100웨이브마다 ◈'+tierRw[ti]+' 지급', tier:ti });
     }
     window._INF_MISSIONS = INF_MISSIONS;
 
@@ -13195,7 +13195,7 @@ function _buildRankingScreen() {
   sc.innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:calc(8px + var(--sat)) 12px 8px;border-bottom:1px solid rgba(0,255,255,0.15);flex-shrink:0;background:#040c14;">'+
       '<button id="ranking-back" style="background:none;border:none;color:#94a3b8;font-size:14px;font-family:monospace;cursor:pointer;">← 뒤로</button>'+
-      '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">RANKING</span>'+
+      '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:3px;">랭킹</span>'+
       '<span style="color:#00ffff;font-family:monospace;font-size:12px;">❖ <span id="ranking-gem">0</span></span>'+
     '</div>'+
     '<div style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
