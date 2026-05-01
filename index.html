@@ -17686,7 +17686,10 @@ function _useProtocol(id){
   var cx=G.cx, cy=G.cy;
 
   cd.ready=false;
-  cd.timer=p.cd;
+  // 지속 스킬은 효과 종료 후 쿨타임 시작, 즉발 스킬은 즉시 쿨타임
+  var _isDurationSkill=['pt_overdrive','pt_blackhole','pt_timewarp','pt_splitlaser','pt_overheat','pt_giganto'].indexOf(id)!==-1;
+  cd.timer=_isDurationSkill?0:p.cd; // 지속 스킬은 0으로 시작 (효과 종료 시 세팅)
+  cd._pendingCd=p.cd; // 나중에 세팅할 쿨타임 저장
 
   /* ── EMP 폭발 ── */
   if(id==='pt_emp'){
@@ -17716,7 +17719,7 @@ function _useProtocol(id){
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     _protoActiveEffects.blackhole={remaining:dur};
     G._ptInvincible=true;
-    _protoVisualEffects.push({type:'blackhole',timer:dur,maxTimer:dur});
+    /* 블랙홀 시각 효과는 _protoActiveEffects 기반 렌더링 */
   }
 
   /* ── 시간 왜곡 ── */
@@ -17794,7 +17797,7 @@ function _useProtocol(id){
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
     _protoActiveEffects.giganto={remaining:dur, dmgPct:dmgPct, tickTimer:0};
-    _protoVisualEffects.push({type:'giganto',timer:dur,maxTimer:dur});
+    /* 기간토마키아 시각 효과는 _protoActiveEffects 기반 렌더링 */
   }
 
   /* ── 체인 라이트닝 ── */
@@ -17868,23 +17871,29 @@ function _startProtoTick(){
     var enemies=G.enemies||[];
     var cx=G.cx, cy=G.cy;
 
-    /* 쿨다운 감소 (지속 효과 발동 중인 스킬은 쿨다운 정지) */
-    var _activeIds={};
-    if(_protoActiveEffects.overdrive) _activeIds.pt_overdrive=true;
-    if(_protoActiveEffects.blackhole) _activeIds.pt_blackhole=true;
-    if(_protoActiveEffects.timewarp) _activeIds.pt_timewarp=true;
-    if(_protoActiveEffects.splitlaser) _activeIds.pt_splitlaser=true;
-    if(_protoActiveEffects.overheat) _activeIds.pt_overheat=true;
-    if(_protoActiveEffects.giganto) _activeIds.pt_giganto=true;
+    /* 쿨다운 감소 */
+    if(!window._protoAutoDelay) window._protoAutoDelay=0;
+    if(window._protoAutoDelay>0) window._protoAutoDelay-=dtMs;
     Object.keys(_protoCooldowns).forEach(function(id){
       var cd=_protoCooldowns[id];
-      if(!cd.ready&&!_activeIds[id]){
-        cd.timer-=dtSec;
-        if(cd.timer<=0){ cd.ready=true; cd.timer=0; }
+      if(!cd.ready){
+        if(cd.timer>0){
+          cd.timer-=dtSec;
+          if(cd.timer<=0){ cd.ready=true; cd.timer=0; }
+        }
         _updateProtoCdDisplay(id);
       }
-      if(_protoAutoMode&&cd.ready){ _useProtocol(id); }
+      // 오토 모드: 0.5초 딜레이
+      if(_protoAutoMode&&cd.ready&&window._protoAutoDelay<=0){
+        _useProtocol(id);
+        window._protoAutoDelay=500;
+      }
     });
+
+    function _startCdAfterEffect(pid){
+      var cd=_protoCooldowns[pid];
+      if(cd&&cd._pendingCd){ cd.timer=cd._pendingCd; cd._pendingCd=0; }
+    }
 
     /* 지속 효과: 오버드라이브 */
     if(_protoActiveEffects.overdrive){
@@ -17893,6 +17902,7 @@ function _startProtoTick(){
       if(ov.remaining<=0){
         if(t.dmg>0&&ov.mult>0) t.dmg=Math.round(t.dmg/ov.mult);
         delete _protoActiveEffects.overdrive;
+        _startCdAfterEffect('pt_overdrive');
       }
     }
 
@@ -17919,6 +17929,7 @@ function _startProtoTick(){
       if(bh.remaining<=0){
         G._ptInvincible=false;
         delete _protoActiveEffects.blackhole;
+        _startCdAfterEffect('pt_blackhole');
       }
     }
 
@@ -17928,6 +17939,7 @@ function _startProtoTick(){
       tw.remaining-=dtMs;
       if(tw.remaining<=0){
         delete _protoActiveEffects.timewarp;
+        _startCdAfterEffect('pt_timewarp');
       }
     }
 
@@ -17959,6 +17971,7 @@ function _startProtoTick(){
       }
       if(sl.remaining<=0){
         delete _protoActiveEffects.splitlaser;
+        _startCdAfterEffect('pt_splitlaser');
       }
     }
 
@@ -17982,6 +17995,7 @@ function _startProtoTick(){
       }
       if(gi.remaining<=0){
         delete _protoActiveEffects.giganto;
+        _startCdAfterEffect('pt_giganto');
       }
     }
 
@@ -18096,97 +18110,7 @@ function _stopProtoTick(){
         ctx.beginPath(); ctx.arc(vfx.x2,vfx.y2,8,0,Math.PI*2); ctx.fill();
         ctx.restore();
       }
-      else if(vfx.type==='blackhole'){
-        var progress=1-vfx.timer/vfx.maxTimer;
-        var bTime=performance.now()*0.001;
-        var maxR=120+progress*40;
-        ctx.save();
-        // 검은 중심 (이벤트 호라이즌)
-        var coreR=30+progress*15;
-        var coreGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
-        coreGrd.addColorStop(0,'rgba(0,0,0,0.95)');
-        coreGrd.addColorStop(0.6,'rgba(10,0,30,0.8)');
-        coreGrd.addColorStop(1,'rgba(20,0,50,0)');
-        ctx.fillStyle=coreGrd;
-        ctx.beginPath(); ctx.arc(cx,cy,coreR,0,Math.PI*2); ctx.fill();
-        // 흡수 소용돌이 (회전 나선)
-        for(var si=0;si<4;si++){
-          var sAngle=bTime*2+si*(Math.PI/2);
-          ctx.strokeStyle='#8b5cf6';
-          ctx.lineWidth=2-si*0.3;
-          ctx.globalAlpha=0.5-si*0.1;
-          ctx.beginPath();
-          for(var st=0;st<30;st++){
-            var frac=st/30;
-            var r=coreR+frac*(maxR-coreR);
-            var a=sAngle+frac*Math.PI*2.5;
-            var px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r;
-            if(st===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-          }
-          ctx.stroke();
-        }
-        // 외곽 왜곡 링들
-        for(var ri=0;ri<3;ri++){
-          var rr=maxR*(0.5+ri*0.25);
-          ctx.globalAlpha=0.25-ri*0.07;
-          ctx.strokeStyle=ri===0?'#bb77ff':ri===1?'#6644cc':'#4422aa';
-          ctx.lineWidth=2.5-ri*0.5;
-          ctx.beginPath(); ctx.arc(cx,cy,rr,0,Math.PI*2); ctx.stroke();
-        }
-        // 흡수 파티클 (안쪽으로 빨려드는 점)
-        ctx.globalAlpha=0.6;
-        for(var pi=0;pi<12;pi++){
-          var pa=bTime*3+pi*(Math.PI*2/12);
-          var pDist=maxR*(0.4+0.6*((Math.sin(bTime*4+pi)*0.5+0.5)));
-          var px2=cx+Math.cos(pa)*pDist, py2=cy+Math.sin(pa)*pDist;
-          var pSz=1.5+Math.sin(bTime*5+pi)*0.5;
-          ctx.fillStyle='#cc88ff';
-          ctx.beginPath(); ctx.arc(px2,py2,pSz,0,Math.PI*2); ctx.fill();
-        }
-        ctx.globalAlpha=1;
-        ctx.restore();
-      }
-      else if(vfx.type==='giganto'){
-        var progress=1-vfx.timer/vfx.maxTimer;
-        var gTime=performance.now()*0.001;
-        ctx.save();
-        // 화면 흔들림 (지진)
-        var shakeX=Math.sin(gTime*35)*4*(1-progress*0.5);
-        var shakeY=Math.cos(gTime*28)*3*(1-progress*0.5);
-        ctx.translate(shakeX,shakeY);
-        // 바닥 균열선
-        var range=G.tower.range||162;
-        ctx.strokeStyle='#ef4444';
-        ctx.lineWidth=2;
-        for(var ci2=0;ci2<6;ci2++){
-          var ca=ci2*(Math.PI/3)+gTime*0.3;
-          var cLen=range*(0.3+progress*0.7);
-          ctx.globalAlpha=0.4+0.3*Math.sin(gTime*8+ci2);
-          ctx.beginPath();
-          ctx.moveTo(cx,cy);
-          var cpx=cx+Math.cos(ca)*cLen*0.5+(Math.sin(gTime*12+ci2)*8);
-          var cpy=cy+Math.sin(ca)*cLen*0.5+(Math.cos(gTime*10+ci2)*6);
-          ctx.quadraticCurveTo(cpx,cpy,cx+Math.cos(ca)*cLen,cy+Math.sin(ca)*cLen);
-          ctx.stroke();
-        }
-        // 충격파 링 (반복)
-        var ringPhase=(gTime*3)%1;
-        var ringR=range*ringPhase;
-        ctx.globalAlpha=(1-ringPhase)*0.25;
-        ctx.strokeStyle='#ff6644';
-        ctx.lineWidth=3-ringPhase*2;
-        ctx.beginPath(); ctx.arc(cx,cy,ringR,0,Math.PI*2); ctx.stroke();
-        // 먼지 파티클
-        ctx.fillStyle='#ff8844';
-        for(var di=0;di<8;di++){
-          var da=di*(Math.PI/4)+gTime*1.5;
-          var dd2=range*(0.2+0.6*((gTime*2+di*0.7)%1));
-          ctx.globalAlpha=0.3*(1-dd2/range);
-          ctx.beginPath(); ctx.arc(cx+Math.cos(da)*dd2,cy+Math.sin(da)*dd2,2+Math.sin(gTime*6+di),0,Math.PI*2); ctx.fill();
-        }
-        ctx.globalAlpha=1;
-        ctx.restore();
-      }
+      /* blackhole, giganto는 _protoActiveEffects 기반 렌더링으로 이동 */
     });
 
     /* 분열 레이저 빔 드로잉 */
@@ -18207,6 +18131,81 @@ function _stopProtoTick(){
         ctx.stroke();
       }
       ctx.shadowBlur=0;
+      ctx.restore();
+    }
+
+    /* 블랙홀 드로잉 */
+    if(_protoActiveEffects.blackhole){
+      var bhE=_protoActiveEffects.blackhole;
+      var bTime=performance.now()*0.001;
+      var maxR=120;
+      var coreR=30;
+      ctx.save();
+      var coreGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
+      coreGrd.addColorStop(0,'rgba(0,0,0,0.95)');
+      coreGrd.addColorStop(0.6,'rgba(10,0,30,0.8)');
+      coreGrd.addColorStop(1,'rgba(20,0,50,0)');
+      ctx.fillStyle=coreGrd;
+      ctx.beginPath(); ctx.arc(cx,cy,coreR,0,Math.PI*2); ctx.fill();
+      for(var si3=0;si3<4;si3++){
+        var sA=bTime*2+si3*(Math.PI/2);
+        ctx.strokeStyle='#8b5cf6';
+        ctx.lineWidth=2-si3*0.3;
+        ctx.globalAlpha=0.5-si3*0.1;
+        ctx.beginPath();
+        for(var st3=0;st3<30;st3++){
+          var fr=st3/30;
+          var r3=coreR+fr*(maxR-coreR);
+          var a3=sA+fr*Math.PI*2.5;
+          if(st3===0) ctx.moveTo(cx+Math.cos(a3)*r3,cy+Math.sin(a3)*r3);
+          else ctx.lineTo(cx+Math.cos(a3)*r3,cy+Math.sin(a3)*r3);
+        }
+        ctx.stroke();
+      }
+      for(var ri3=0;ri3<3;ri3++){
+        ctx.globalAlpha=0.25-ri3*0.07;
+        ctx.strokeStyle=['#bb77ff','#6644cc','#4422aa'][ri3];
+        ctx.lineWidth=2.5-ri3*0.5;
+        ctx.beginPath(); ctx.arc(cx,cy,maxR*(0.5+ri3*0.25),0,Math.PI*2); ctx.stroke();
+      }
+      ctx.globalAlpha=0.6;
+      for(var pi3=0;pi3<12;pi3++){
+        var pa3=bTime*3+pi3*(Math.PI*2/12);
+        var pD=maxR*(0.4+0.6*((Math.sin(bTime*4+pi3)*0.5+0.5)));
+        ctx.fillStyle='#cc88ff';
+        ctx.beginPath(); ctx.arc(cx+Math.cos(pa3)*pD,cy+Math.sin(pa3)*pD,1.5,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+      ctx.restore();
+    }
+
+    /* 기간토마키아 지진 드로잉 */
+    if(_protoActiveEffects.giganto){
+      var gTime2=performance.now()*0.001;
+      var range2=G.tower.range||162;
+      ctx.save();
+      var shX=Math.sin(gTime2*35)*4;
+      var shY=Math.cos(gTime2*28)*3;
+      ctx.translate(shX,shY);
+      ctx.strokeStyle='#ef4444'; ctx.lineWidth=2;
+      for(var ci3=0;ci3<6;ci3++){
+        var ca2=ci3*(Math.PI/3)+gTime2*0.3;
+        ctx.globalAlpha=0.4+0.3*Math.sin(gTime2*8+ci3);
+        ctx.beginPath(); ctx.moveTo(cx,cy);
+        ctx.quadraticCurveTo(cx+Math.cos(ca2)*range2*0.5+Math.sin(gTime2*12+ci3)*8,cy+Math.sin(ca2)*range2*0.5+Math.cos(gTime2*10+ci3)*6,cx+Math.cos(ca2)*range2,cy+Math.sin(ca2)*range2);
+        ctx.stroke();
+      }
+      var rP=(gTime2*3)%1;
+      ctx.globalAlpha=(1-rP)*0.25; ctx.strokeStyle='#ff6644'; ctx.lineWidth=3-rP*2;
+      ctx.beginPath(); ctx.arc(cx,cy,range2*rP,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#ff8844';
+      for(var di2=0;di2<8;di2++){
+        var da2=di2*(Math.PI/4)+gTime2*1.5;
+        var dd3=range2*(0.2+0.6*((gTime2*2+di2*0.7)%1));
+        ctx.globalAlpha=0.3*(1-dd3/range2);
+        ctx.beginPath(); ctx.arc(cx+Math.cos(da2)*dd3,cy+Math.sin(da2)*dd3,2,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
       ctx.restore();
     }
 
