@@ -17814,7 +17814,7 @@ function _useProtocol(id){
       e.hitFlash=3;
     });
     addFx(cx,cy,200,'#3b82f6');
-    _protoVisualEffects.push({type:'flash',color:'#3b82f6',timer:300});
+    /* 플래시 제거 */
   }
 
   /* ── 레이저 오버드라이브 ── */
@@ -17823,7 +17823,7 @@ function _useProtocol(id){
     var mult=def.multBase+lv*def.multPerLv;
     _protoActiveEffects.overdrive={remaining:dur, mult:mult, origDmg:t.dmg};
     t.dmg=Math.round(t.dmg*mult);
-    _protoVisualEffects.push({type:'flash',color:'#ff4444',timer:300});
+    /* 플래시 제거 */
   }
 
   /* ── 블랙홀 ── */
@@ -17839,7 +17839,7 @@ function _useProtocol(id){
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     var slowPct=(def.slowBase+lv*def.slowPerLv)/100;
     _protoActiveEffects.timewarp={remaining:dur, slowPct:slowPct};
-    _protoVisualEffects.push({type:'flash',color:'#6366f1',timer:300});
+    /* 플래시 제거 */
   }
 
   /* ── 나노봇 수복 ── */
@@ -17857,7 +17857,7 @@ function _useProtocol(id){
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
     _protoActiveEffects.splitlaser={remaining:dur, maxTimer:dur, beamCount:beamCount, dmgPct:dmgPct, angle:0};
-    _protoVisualEffects.push({type:'flash',color:'#00ffff',timer:200});
+    /* 플래시 제거 */
   }
 
   /* ── 과열 레이저 ── */
@@ -17865,7 +17865,7 @@ function _useProtocol(id){
     var shots=def.shotBase+lv*def.shotPerLv;
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     _protoActiveEffects.overheat={remaining:dur, shots:shots, interval:200, fireTimer:0};
-    _protoVisualEffects.push({type:'flash',color:'#ff8822',timer:200});
+    /* 플래시 제거 */
   }
 
   /* ── 중력 팽창 ── */
@@ -17895,7 +17895,7 @@ function _useProtocol(id){
         }, delay);
       })(h*500);
     }
-    _protoVisualEffects.push({type:'flash',color:'#ffcc00',timer:300});
+    /* 플래시 제거 */
   }
 
   /* ── 기간토마키아 ── */
@@ -18054,7 +18054,7 @@ function _startProtoTick(){
     if(_protoActiveEffects.splitlaser){
       var sl=_protoActiveEffects.splitlaser;
       sl.remaining-=dtMs;
-      var rotSpeed=-Math.PI*2/(sl.maxTimer/1000);
+      var rotSpeed=-Math.PI; // 반시계 방향, 초당 반바퀴
       sl.angle+=rotSpeed*dtSec;
       var range=t.range||162;
       var dmg=Math.round(t.dmg*sl.dmgPct);
@@ -18258,69 +18258,93 @@ function _stopProtoTick(){
       ctx.restore();
     }
 
-    /* 블랙홀 드로잉 */
+    /* 블랙홀 드로잉 (타워+15px, 워프 포탈) */
     if(_protoActiveEffects.blackhole){
-      var bhE=_protoActiveEffects.blackhole;
       var bTime=performance.now()*0.001;
-      var maxR=120;
-      var coreR=30;
+      var towerR=(G.tower&&G.tower.r)||12;
+      var bhR=towerR+15;
       ctx.save();
-      var coreGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,coreR);
-      coreGrd.addColorStop(0,'rgba(0,0,0,0.95)');
-      coreGrd.addColorStop(0.6,'rgba(10,0,30,0.8)');
-      coreGrd.addColorStop(1,'rgba(20,0,50,0)');
-      ctx.fillStyle=coreGrd;
-      ctx.beginPath(); ctx.arc(cx,cy,coreR,0,Math.PI*2); ctx.fill();
-      for(var si3=0;si3<4;si3++){
-        var sA=bTime*2+si3*(Math.PI/2);
-        ctx.strokeStyle='#8b5cf6';
-        ctx.lineWidth=2-si3*0.3;
-        ctx.globalAlpha=0.5-si3*0.1;
-        ctx.beginPath();
-        for(var st3=0;st3<30;st3++){
-          var fr=st3/30;
-          var r3=coreR+fr*(maxR-coreR);
-          var a3=sA+fr*Math.PI*2.5;
-          if(st3===0) ctx.moveTo(cx+Math.cos(a3)*r3,cy+Math.sin(a3)*r3);
-          else ctx.lineTo(cx+Math.cos(a3)*r3,cy+Math.sin(a3)*r3);
-        }
-        ctx.stroke();
-      }
-      for(var ri3=0;ri3<3;ri3++){
-        ctx.globalAlpha=0.25-ri3*0.07;
-        ctx.strokeStyle=['#bb77ff','#6644cc','#4422aa'][ri3];
-        ctx.lineWidth=2.5-ri3*0.5;
-        ctx.beginPath(); ctx.arc(cx,cy,maxR*(0.5+ri3*0.25),0,Math.PI*2); ctx.stroke();
-      }
+      // 검은 코어
+      var cGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,bhR);
+      cGrd.addColorStop(0,'rgba(0,0,0,0.9)');
+      cGrd.addColorStop(0.7,'rgba(20,0,50,0.6)');
+      cGrd.addColorStop(1,'rgba(80,40,120,0)');
+      ctx.fillStyle=cGrd;
+      ctx.beginPath(); ctx.arc(cx,cy,bhR,0,Math.PI*2); ctx.fill();
+      // 회전 링
       ctx.globalAlpha=0.6;
-      for(var pi3=0;pi3<12;pi3++){
-        var pa3=bTime*3+pi3*(Math.PI*2/12);
-        var pD=maxR*(0.4+0.6*((Math.sin(bTime*4+pi3)*0.5+0.5)));
+      ctx.strokeStyle='#8b5cf6';
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx,cy,bhR,bTime*3,bTime*3+Math.PI*1.3); ctx.stroke();
+      ctx.globalAlpha=0.3;
+      ctx.strokeStyle='#bb88ff';
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(cx,cy,bhR+4,-bTime*2,-bTime*2+Math.PI); ctx.stroke();
+      // 내부 소용돌이 점
+      ctx.globalAlpha=0.5;
+      for(var bp=0;bp<6;bp++){
+        var ba2=bTime*4+bp*(Math.PI/3);
+        var br=bhR*0.5*(0.3+0.7*Math.abs(Math.sin(bTime*3+bp)));
         ctx.fillStyle='#cc88ff';
-        ctx.beginPath(); ctx.arc(cx+Math.cos(pa3)*pD,cy+Math.sin(pa3)*pD,1.5,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx+Math.cos(ba2)*br,cy+Math.sin(ba2)*br,1.2,0,Math.PI*2); ctx.fill();
       }
       ctx.globalAlpha=1;
       ctx.restore();
     }
 
-    /* 기간토마키아 지진 드로잉 */
+    /* 기간토마키아 드로잉 (범위 내 붉은 펄스) */
     if(_protoActiveEffects.giganto){
-      var gTime2=performance.now()*0.001;
-      var range2=G.tower.range||162;
+      var gT=performance.now()*0.001;
+      var gRange=G.tower.range||162;
       ctx.save();
-      var shX=Math.sin(gTime2*35)*4;
-      var shY=Math.cos(gTime2*28)*3;
-      ctx.translate(shX,shY);
-      ctx.strokeStyle='#ef4444'; ctx.lineWidth=2;
-      for(var ci3=0;ci3<6;ci3++){
-        var ca2=ci3*(Math.PI/3)+gTime2*0.3;
-        ctx.globalAlpha=0.4+0.3*Math.sin(gTime2*8+ci3);
-        ctx.beginPath(); ctx.moveTo(cx,cy);
-        ctx.quadraticCurveTo(cx+Math.cos(ca2)*range2*0.5+Math.sin(gTime2*12+ci3)*8,cy+Math.sin(ca2)*range2*0.5+Math.cos(gTime2*10+ci3)*6,cx+Math.cos(ca2)*range2,cy+Math.sin(ca2)*range2);
-        ctx.stroke();
+      // 반복 충격파 (안에서 밖으로)
+      for(var gw=0;gw<2;gw++){
+        var phase=((gT*1.5+gw*0.5)%1);
+        var gR=gRange*phase;
+        ctx.globalAlpha=(1-phase)*0.2;
+        ctx.strokeStyle='#ef4444';
+        ctx.lineWidth=2.5-phase*2;
+        ctx.beginPath(); ctx.arc(cx,cy,gR,0,Math.PI*2); ctx.stroke();
       }
-      var rP=(gTime2*3)%1;
-      ctx.globalAlpha=(1-rP)*0.25; ctx.strokeStyle='#ff6644'; ctx.lineWidth=3-rP*2;
+      // 범위 영역 붉은 틴트
+      ctx.globalAlpha=0.08+0.04*Math.sin(gT*6);
+      ctx.fillStyle='#ef4444';
+      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.fill();
+      // 바닥 파편 (작은 점들)
+      ctx.globalAlpha=0.4;
+      for(var gp2=0;gp2<8;gp2++){
+        var ga2=gp2*(Math.PI/4)+gT*0.5;
+        var gd2=gRange*(0.3+0.5*((gT+gp2*0.3)%1));
+        ctx.fillStyle=gp2%2===0?'#ff6644':'#ef4444';
+        ctx.fillRect(cx+Math.cos(ga2)*gd2-1.5,cy+Math.sin(ga2)*gd2-1.5,3,3);
+      }
+      ctx.globalAlpha=1;
+      ctx.restore();
+    }
+
+    /* 과열 레이저 드로잉 (타워 과열 효과) */
+    if(_protoActiveEffects.overheat){
+      var ohT=performance.now()*0.001;
+      ctx.save();
+      // 타워 주변 열기 글로우
+      var ohGrd=ctx.createRadialGradient(cx,cy,5,cx,cy,25);
+      ohGrd.addColorStop(0,'rgba(255,136,34,'+(.2+.1*Math.sin(ohT*8))+')');
+      ohGrd.addColorStop(0.5,'rgba(255,68,0,'+(.1+.05*Math.sin(ohT*6))+')');
+      ohGrd.addColorStop(1,'transparent');
+      ctx.fillStyle=ohGrd;
+      ctx.beginPath(); ctx.arc(cx,cy,25,0,Math.PI*2); ctx.fill();
+      // 불꽃 파티클
+      for(var op=0;op<5;op++){
+        var oa=ohT*4+op*(Math.PI*2/5);
+        var oR=12+Math.sin(ohT*6+op*2)*5;
+        var oSz=1.5+Math.sin(ohT*8+op)*0.8;
+        ctx.globalAlpha=0.5+0.3*Math.sin(ohT*5+op);
+        ctx.fillStyle=op%2===0?'#ff8822':'#ffcc44';
+        ctx.beginPath(); ctx.arc(cx+Math.cos(oa)*oR,cy+Math.sin(oa)*oR,oSz,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+      ctx.restore();
+    }
       ctx.beginPath(); ctx.arc(cx,cy,range2*rP,0,Math.PI*2); ctx.stroke();
       ctx.fillStyle='#ff8844';
       for(var di2=0;di2<8;di2++){
