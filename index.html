@@ -4435,9 +4435,11 @@ function onWaveComplete() {
   G.bullets = [];
   // 웨이브 클리어 골드 보상
   var _wcTier = parseInt(localStorage.getItem('td_tier')||'1',10);
-  // 웨이브 클리어 골드 (행성 배율은 적 생성 시 이미 적용됨, 클리어 보상에는 별도 적용 안 함)
-  var _wcBaseGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
-  var _wcGold = Math.round(_wcBaseGold * (G.goldMult||1));
+  // 웨이브 클리어 골드 (행성 배율 + goldMult 적용)
+  var _wcRawGold = Math.min(50, 5 + Math.floor(G.wave / 100) * 5);
+  var _wcPlanetMult = [1, 1, 2, 3, 4, 5][_wcTier] || 1;
+  var _wcBaseGold = _wcRawGold; // 기본 = 1배 기준
+  var _wcGold = Math.round(_wcRawGold * _wcPlanetMult * (G.goldMult||1));
   G.gold += _wcGold; G.goldEarned += _wcGold; G.goldBaseEarned += _wcBaseGold; PERM.gold += _wcGold;
   AudioManager.playSfx('wave_clear');
   triggerShake(3);
