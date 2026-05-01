@@ -4420,7 +4420,7 @@ function onWaveComplete() {
     var _ct = parseInt(localStorage.getItem('td_tier')||'1',10);
     var _tk = 'tier'+_ct+'_best';
     var _pb = parseInt(localStorage.getItem(_tk)||'0',10);
-    if (G.wave > _pb) localStorage.setItem(_tk, G.wave);
+    if (G.wave > _pb) { localStorage.setItem(_tk, G.wave); localStorage.setItem(_tk+'_at', Date.now()); }
     // 티어 클리어 감지: 이전 최고 < 100이고 지금 100 도달
     if (G.wave >= 100 && _pb < 100 && _ct < 5) _tierUnlocked = _ct;
   } catch(_){}
@@ -13135,12 +13135,18 @@ var _RNAMES = ['NeonKing','IronWall','StormRider','VoidHunter','DarkNova','Cyber
 function _genRanking(playerWave) {
   var seed=42, rows=[];
   function rand(max){ seed=(seed*1103515245+12345)&0x7fffffff; return seed%max; }
+  var now=Date.now();
   for(var i=0;i<49;i++){
     var w=Math.max(1, playerWave+rand(80)-30+Math.floor(i*0.4));
-    rows.push({ name:_RNAMES[i%_RNAMES.length], wave:w, isPlayer:false });
+    // 가상 도달 시간 (과거 랜덤)
+    var fakeTime=now-rand(604800000); // 최대 7일 전
+    rows.push({ name:_RNAMES[i%_RNAMES.length], wave:w, reachedAt:fakeTime, isPlayer:false });
   }
-  rows.push({ name:'YOU', wave:playerWave, isPlayer:true }); // 49 + 1 = 50명
-  rows.sort(function(a,b){ return b.wave-a.wave; });
+  // 플레이어 도달 시간
+  var playerReached=parseInt(localStorage.getItem((_rankPlanet||'tier1')+'_best_at')||'0',10)||now;
+  rows.push({ name:'YOU', wave:playerWave, reachedAt:playerReached, isPlayer:true });
+  // 웨이브 높은 순 → 같으면 먼저 도달한 순 (시간 작을수록 먼저)
+  rows.sort(function(a,b){ return b.wave!==a.wave ? b.wave-a.wave : a.reachedAt-b.reachedAt; });
   return rows;
 }
 
@@ -13156,10 +13162,11 @@ function _buildRankingScreen() {
       '<span style="width:48px;"></span>'+
     '</div>'+
     '<div style="display:flex;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;">'+
-      '<button class="rank-tab" data-rtab="weekly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">주간</button>'+
-      '<button class="rank-tab" data-rtab="monthly" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">월간</button>'+
+      '<button class="rank-tab" data-rtab="wave" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;cursor:pointer;">웨이브</button>'+
+      '<button class="rank-tab" data-rtab="power" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">전투력</button>'+
       '<button class="rank-tab" data-rtab="guild" style="flex:1;height:34px;background:none;border:none;border-bottom:2px solid transparent;color:#334455;font-family:monospace;font-size:10px;cursor:pointer;">길드</button>'+
     '</div>'+
+    '<div id="ranking-filter" style="display:none;padding:6px 12px;background:#040c14;border-bottom:1px solid #0a2233;flex-shrink:0;"></div>'+
     '<div id="ranking-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 12px;display:flex;flex-direction:column;gap:3px;padding-bottom:calc(8px + var(--sab));"></div>';
   document.body.appendChild(sc);
 
@@ -13175,12 +13182,10 @@ function _buildRankingScreen() {
   }
 }
 
-function _renderRanking() {
-  var list=document.getElementById('ranking-list');
-  if(!list) return;
+var _rankPlanet='tier1'; // 웨이브 탭 행성 선택 기본값
 
-  // 현재 활성 탭 확인
-  var activeTab='weekly';
+function _getActiveRankTab(){
+  var activeTab='wave';
   var sc=document.getElementById('screen-ranking');
   if(sc){
     var tabs=sc.querySelectorAll('.rank-tab');
@@ -13191,50 +13196,97 @@ function _renderRanking() {
       }
     }
   }
+  return activeTab;
+}
 
-  // 길드 탭 처리
-  if(activeTab==='guild'){
-    if(!window.PERM||!PERM.guildId){
-      list.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;"><div style="text-align:center;"><div style="font-size:30px;margin-bottom:10px;">⬡</div><div style="color:#ff6644;font-family:monospace;font-size:12px;">길드에 가입하세요</div><div style="color:#334455;font-family:monospace;font-size:10px;margin-top:6px;">길드에 가입하면 길드원 랭킹을 볼 수 있습니다</div></div></div>';
-      return;
+function _getPlayerPower(){
+  if(!window.PERM) return 0;
+  var ws=PERM.ws||{};
+  var dmg=10+(ws.damage||0)*5;
+  var hp=100+(ws.maxHp||0)*20;
+  var def=(ws.defense||0)*3;
+  return dmg+hp+def;
+}
+
+function _renderRanking() {
+  var list=document.getElementById('ranking-list');
+  var filterEl=document.getElementById('ranking-filter');
+  if(!list) return;
+
+  var activeTab=_getActiveRankTab();
+
+  // 필터 영역: 웨이브 탭에서만 행성 드롭다운 표시
+  if(filterEl){
+    if(activeTab==='wave'){
+      filterEl.style.display='flex';
+      filterEl.innerHTML=
+        '<select id="rank-planet-select" style="flex:1;background:#0a1520;border:1px solid #0a3344;border-radius:6px;color:#00ffff;font-family:monospace;font-size:10px;padding:6px 8px;outline:none;">'+
+          '<option value="tier1"'+ (_rankPlanet==='tier1'?' selected':'')+'>에이온</option>'+
+          '<option value="tier2"'+ (_rankPlanet==='tier2'?' selected':'')+'>스펙트라</option>'+
+          '<option value="tier3"'+ (_rankPlanet==='tier3'?' selected':'')+'>넥사르</option>'+
+          '<option value="tier4"'+ (_rankPlanet==='tier4'?' selected':'')+'>피라온</option>'+
+          '<option value="tier5"'+ (_rankPlanet==='tier5'?' selected':'')+'>오메가</option>'+
+        '</select>';
+      document.getElementById('rank-planet-select').addEventListener('change',function(){
+        _rankPlanet=this.value;
+        _renderRanking();
+      });
+    } else {
+      filterEl.style.display='none';
     }
-    // 길드원 랭킹 로드
+  }
+
+  /* ── 길드 탭 ── */
+  if(activeTab==='guild'){
     if(!window._fbDb){
       list.innerHTML='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">로딩 중...</div>';
       return;
     }
     list.innerHTML='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">로딩 중...</div>';
-    _fbDb.collection('guilds').doc(PERM.guildId).get().then(function(doc){
-      if(!doc.exists){ list.innerHTML='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">길드 정보를 찾을 수 없습니다</div>'; return; }
-      var g=doc.data();
-      var members=g.members||[];
-      // 길드원 정보 로드
-      var uids=members.map(function(m){return m.uid;});
-      var promises=uids.map(function(uid){
-        return _fbDb.collection('users').doc(uid).get().then(function(uDoc){
-          if(!uDoc.exists) return {uid:uid,name:'???',bestWave:0};
-          var ud=uDoc.data();
-          var p=ud.perm||{};
-          return {uid:uid, name:p.nickname||'사령관', bestWave:p.bestWave||0};
-        }).catch(function(){return {uid:uid,name:'???',bestWave:0};});
+    _fbDb.collection('guilds').limit(50).get().then(function(snap){
+      var guilds=[];
+      snap.forEach(function(doc){ guilds.push({id:doc.id, data:doc.data()}); });
+      // 길드 레벨 → 길드원 전투력 총합 순
+      var promises=guilds.map(function(g){
+        var members=g.data.members||[];
+        var uids=members.map(function(m){return m.uid;});
+        return Promise.all(uids.map(function(uid){
+          return _fbDb.collection('users').doc(uid).get().then(function(uDoc){
+            if(!uDoc.exists) return 0;
+            var p=uDoc.data().perm||{};
+            var ws=p.ws||{};
+            return 10+(ws.damage||0)*5+100+(ws.maxHp||0)*20+(ws.defense||0)*3;
+          }).catch(function(){return 0;});
+        })).then(function(powers){
+          var total=0; powers.forEach(function(v){total+=v;});
+          return {id:g.id, name:g.data.name, icon:g.data.icon||'⬡', level:g.data.level||1, totalPower:total, memberCount:(g.data.members||[]).length};
+        });
       });
-      Promise.all(promises).then(function(memberData){
-        memberData.sort(function(a,b){return b.bestWave-a.bestWave;});
+      Promise.all(promises).then(function(guildData){
+        guildData.sort(function(a,b){ return b.level!==a.level? b.level-a.level : b.totalPower-a.totalPower; });
         var medals=['🥇','🥈','🥉'];
-        var html='<div style="text-align:center;color:#ff6644;font-family:monospace;font-size:11px;margin-bottom:8px;letter-spacing:1px;">'+g.icon+' '+g.name+' 길드 랭킹</div>';
-        memberData.forEach(function(m,idx){
+        var html='';
+        var myGuildId=window.PERM&&PERM.guildId;
+        guildData.forEach(function(g,idx){
           var rank=idx+1;
           var isTop3=rank<=3;
           var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
-          var isMe=m.uid===window._fbUid;
-          var bg=isMe?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
-          var nameColor=isMe?'#00ffff':'#94a3b8';
-          html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
-            '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
-            '<span style="flex:1;font-family:monospace;font-size:11px;color:'+nameColor+';">'+m.name+'</span>'+
-            '<span style="font-family:monospace;font-size:11px;color:#00ffff;">웨이브 <span style="color:#f59e0b;font-weight:bold;">'+m.bestWave+'</span></span>'+
+          var isMine=g.id===myGuildId;
+          var bg=isMine?'background:#0a1a2a;border:1px solid #ff664444;':'background:#060f18;border:1px solid #0a2233;';
+          html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:8px;">'+
+            '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:24px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
+            '<span style="font-size:16px;">'+g.icon+'</span>'+
+            '<div style="flex:1;min-width:0;">'+
+              '<div style="font-family:monospace;font-size:11px;color:'+(isMine?'#ff6644':'#94a3b8')+';">'+g.name+'</div>'+
+              '<div style="font-family:monospace;font-size:8px;color:#556677;">'+g.memberCount+'명</div>'+
+            '</div>'+
+            '<div style="text-align:right;">'+
+              '<div style="font-family:monospace;font-size:10px;color:#ffc800;">Lv.'+g.level+'</div>'+
+              '<div style="font-family:monospace;font-size:8px;color:#556677;">전투력 '+g.totalPower.toLocaleString()+'</div>'+
+            '</div>'+
           '</div>';
         });
+        if(!html) html='<div style="text-align:center;color:#334455;font-family:monospace;font-size:11px;padding:40px;">등록된 길드가 없습니다</div>';
         list.innerHTML=html;
       });
     }).catch(function(){
@@ -13243,25 +13295,56 @@ function _renderRanking() {
     return;
   }
 
-  var playerWave=(window.PERM&&window.PERM.bestWave)||0;
-  var rows=_genRanking(playerWave);
-  var medals=['🥇','🥈','🥉'];
-  var html='';
-  rows.forEach(function(row,idx){
+  /* ── 전투력 탭 ── */
+  if(activeTab==='power'){
+    var myPower=_getPlayerPower();
+    var myName=(window.PERM&&PERM.nickname)||'나';
+    var seed=Math.floor(Date.now()/(86400000));
+    var fakeNames=['NEON_01','SHADOW_X','VORTEX_7','LASER_9','CORE_21','PHASE_3','VOID_77','APEX_5','FLUX_44','ECHO_16','NOVA_8','ZERO_99','IRON_13','BLAZE_6','PULSE_31','ORBIT_22','GRID_55','BOLT_19'];
+    var rows=[];
+    for(var i=0;i<18;i++){
+      var s=((seed+i*31337)%1000)/1000;
+      rows.push({name:fakeNames[i], score:Math.max(110,Math.round(myPower*(0.4+s*1.3)))});
+    }
+    rows.push({name:myName, score:myPower, isPlayer:true});
+    rows.sort(function(a,b){return b.score-a.score;});
+    var medals=['🥇','🥈','🥉'];
+    var html='';
+    rows.slice(0,20).forEach(function(row,idx){
+      var rank=idx+1;
+      var isTop3=rank<=3;
+      var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
+      var bg=row.isPlayer?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
+      html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
+        '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
+        '<span style="flex:1;font-family:monospace;font-size:11px;color:'+(row.isPlayer?'#00ffff':'#94a3b8')+';">'+row.name+'</span>'+
+        '<span style="font-family:monospace;font-size:11px;color:#ff8822;">⚔ <span style="color:#f59e0b;font-weight:bold;">'+row.score.toLocaleString()+'</span></span>'+
+      '</div>';
+    });
+    list.innerHTML=html;
+    return;
+  }
+
+  /* ── 웨이브 탭 (행성별) ── */
+  var playerWave=parseInt(localStorage.getItem(_rankPlanet+'_best')||'0',10);
+  if(_rankPlanet==='tier1') playerWave=Math.max(playerWave,(window.PERM&&PERM.bestWave)||0);
+  var rows2=_genRanking(playerWave);
+  var medals2=['🥇','🥈','🥉'];
+  var pNames={tier1:'에이온',tier2:'스펙트라',tier3:'넥사르',tier4:'피라온',tier5:'오메가'};
+  var html2='<div style="text-align:center;color:#00ffff;font-family:monospace;font-size:10px;margin-bottom:6px;letter-spacing:1px;">'+pNames[_rankPlanet]+' 웨이브 랭킹</div>';
+  rows2.forEach(function(row,idx){
     var rank=idx+1;
     var isTop3=rank<=3;
     var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
     var bg=row.isPlayer?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
-    var nameColor=row.isPlayer?'#00ffff':'#94a3b8';
-    html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
-      '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
-      '<span style="flex:1;font-family:monospace;font-size:11px;color:'+nameColor+';">'+row.name+'</span>'+
+    html2+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
+      '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals2[rank-1]:rank)+'</span>'+
+      '<span style="flex:1;font-family:monospace;font-size:11px;color:'+(row.isPlayer?'#00ffff':'#94a3b8')+';">'+row.name+'</span>'+
       '<span style="font-family:monospace;font-size:11px;color:#00ffff;">웨이브 <span style="color:#f59e0b;font-weight:bold;">'+row.wave+'</span></span>'+
     '</div>';
   });
-  list.innerHTML=html;
-  // 플레이어 행으로 스크롤
-  var playerIdx=-1; for(var ri=0;ri<rows.length;ri++){ if(rows[ri].isPlayer){ playerIdx=ri; break; } }
+  list.innerHTML=html2;
+  var playerIdx=-1; for(var ri=0;ri<rows2.length;ri++){ if(rows2[ri].isPlayer){ playerIdx=ri; break; } }
   if(playerIdx>5) setTimeout(function(){
     var items=list.children;
     if(items[playerIdx]) items[playerIdx].scrollIntoView({block:'center'});
