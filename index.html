@@ -17397,10 +17397,16 @@ function renderLab(){
     });
   });
 
-  // 슬롯 해금 (확인 팝업)
+  // 슬롯 해금 (순차 해금 + 확인 팝업)
   main.querySelectorAll('[data-slot-unlock]').forEach(function(el){
     el.addEventListener('click',function(){
       var idx=parseInt(el.getAttribute('data-slot-unlock'),10);
+      var sl=_loadSlots();
+      // 순차 해금 체크: 이전 슬롯이 해금되지 않았으면 차단
+      if(idx>sl.unlocked){
+        if(window._showSlotConfirm) _showSlotConfirm('프로토콜 슬롯 해금','슬롯 '+(sl.unlocked+1)+'번을 먼저 해금하세요', null);
+        return;
+      }
       var cost=SLOT_UNLOCK_COSTS[idx]||99;
       var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
       if(cur<cost){
@@ -17412,9 +17418,9 @@ function renderLab(){
         if(c2<cost) return;
         localStorage.setItem('accessCodes',c2-cost);
         try{logCurrency('accessCodes',-cost,'슬롯 해금 #'+(idx+1));}catch(_){}
-        var sl=_loadSlots();
-        sl.unlocked=Math.max(sl.unlocked,idx+1);
-        _saveSlots(sl);
+        var sl2=_loadSlots();
+        sl2.unlocked=Math.max(sl2.unlocked,idx+1);
+        _saveSlots(sl2);
         if(window.showToastMsg) showToastMsg('슬롯 '+(idx+1)+'번 해금 완료!','#00ff88');
         renderLab();
       });
