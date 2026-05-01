@@ -12854,9 +12854,9 @@ function _renderCardTab() {
 
   // 뽑기 버튼
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
-    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;color:#cc44ff;font-family:monospace;font-size:12px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">'+
+    '<button id="prism-draw-1" style="background:#030b10;border:1px solid #cc44ff;border-radius:10px;color:#cc44ff;font-family:monospace;font-size:12px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">'+
       '<svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1 14,8 8,15 2,8" fill="none" stroke="#cc44ff" stroke-width="1.3"/><polygon points="8,4 11,8 8,12 5,8" fill="#cc44ff" opacity="0.4"/></svg><span>1회 뽑기</span><span style="color:#00ffff;font-size:11px;">❖ '+PRISM_SINGLE+'</span></button>'+
-    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:12px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">'+
+    '<button id="prism-draw-10" style="background:#030b10;border:1px solid #f59e0b;border-radius:10px;color:#f59e0b;font-family:monospace;font-size:12px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">'+
       '<svg width="16" height="16" viewBox="0 0 16 16"><polygon points="8,1 14,8 8,15 2,8" fill="none" stroke="#f59e0b" stroke-width="1.3"/><polygon points="8,4 11,8 8,12 5,8" fill="#f59e0b" opacity="0.4"/></svg><span>10연 뽑기</span><span style="color:#00ffff;font-size:11px;">❖ '+(PRISM_SINGLE*10)+'</span></button>'+
   '</div>';
 
@@ -16595,9 +16595,9 @@ function renderLab(){
   var html='';
   // 제조 버튼
   html+='<div style="display:flex;gap:8px;margin-bottom:16px;">';
-  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #bb44ff;color:#bb44ff;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+  html+='<button id="proto-draw-1" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #bb44ff;border-radius:10px;color:#bb44ff;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
     '<span>1회 제조</span><span style="font-size:10px;color:#94a3b8;">⌘ '+PROTO_COST+'</span></button>';
-  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #f59e0b;color:#f59e0b;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+  html+='<button id="proto-draw-5" style="flex:1;padding:10px 0;background:#0c0c22;border:1px solid #f59e0b;border-radius:10px;color:#f59e0b;font-family:monospace;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
     '<span>5연 제조</span><span style="font-size:10px;color:#94a3b8;">⌘ '+(PROTO_COST*5)+'</span></button>';
   html+='</div>';
 
