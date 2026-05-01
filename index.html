@@ -16068,13 +16068,13 @@ function _fwRuleIconHTML(ruleId,size){ var fn=FW_RULE_ICONS[ruleId]; return fn?f
 
 /* ── 주파수 전쟁 데이터 ── */
 var FW_RULES = [
-  {id:'defense_trial', name:'방어의 시험', desc:'공격 탭 비활성, 방어/유틸만 가능'},
-  {id:'frenzy_wave', name:'폭주 웨이브', desc:'적 속도 2배, 코어칩 2배'},
-  {id:'boss_rush', name:'보스 러시', desc:'5웨이브마다 드레드노트 2마리'},
-  {id:'last_resource', name:'최후의 자원', desc:'코어칩 10000 고정, 추가 획득 불가'},
-  {id:'extreme_survival', name:'생존의 극한', desc:'모든 HP 회복 차단, 전투 증강·회복 업그레이드 없음'},
-  {id:'silent_core', name:'침묵의 코어', desc:'프로토콜 비활성, 누적 스탯만'},
-  {id:'skill_rebellion', name:'스킬의 반란', desc:'프로토콜+전투 업그레이드만, 강화소/모듈/코어랩 미적용'},
+  {id:'defense_trial', name:'방어의 시험', desc:'공격 탭 비활성, 방어/유틸만 가능', icon:'🛡'},
+  {id:'frenzy_wave', name:'폭주 웨이브', desc:'적 속도 2배, 코어칩 2배', icon:'⚡'},
+  {id:'boss_rush', name:'보스 러시', desc:'5웨이브마다 드레드노트 2마리', icon:'☠'},
+  {id:'last_resource', name:'최후의 자원', desc:'코어칩 10000 고정, 추가 획득 불가', icon:'🔒'},
+  {id:'extreme_survival', name:'생존의 극한', desc:'모든 HP 회복 차단, 전투 증강·회복 업그레이드 없음', icon:'💔'},
+  {id:'silent_core', name:'침묵의 코어', desc:'프로토콜 비활성, 누적 스탯만', icon:'🔇'},
+  {id:'skill_rebellion', name:'스킬의 반란', desc:'프로토콜+전투 업그레이드만, 강화소/모듈/코어랩 미적용', icon:'⚙'},
 ];
 
 var FW_TIERS = [
@@ -18061,7 +18061,7 @@ function _startProtoTick(){
     if(_protoActiveEffects.splitlaser){
       var sl=_protoActiveEffects.splitlaser;
       sl.remaining-=dtMs;
-      var rotSpeed=-Math.PI; // 반시계 방향, 초당 반바퀴
+      var rotSpeed=-Math.PI/3; // 반시계 방향, 초당 1/6 바퀴 (6초에 1바퀴)
       sl.angle+=rotSpeed*dtSec;
       var range=t.range||162;
       var dmg=Math.round(t.dmg*sl.dmgPct);
@@ -18269,7 +18269,7 @@ function _stopProtoTick(){
     if(_protoActiveEffects.blackhole){
       var bTime=performance.now()*0.001;
       var towerR=(G.tower&&G.tower.r)||12;
-      var bhR=towerR+15;
+      var bhR=towerR*2+15; // 타워 지름 + 15px
       ctx.save();
       // 검은 코어
       var cGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,bhR);
@@ -18299,31 +18299,43 @@ function _stopProtoTick(){
       ctx.restore();
     }
 
-    /* 기간토마키아 드로잉 (범위 내 붉은 펄스) */
+    /* 기간토마키아 드로잉 (지진 효과 — 화면 흔들림 + 균열) */
     if(_protoActiveEffects.giganto){
       var gT=performance.now()*0.001;
       var gRange=G.tower.range||162;
       ctx.save();
-      // 반복 충격파 (안에서 밖으로)
-      for(var gw=0;gw<2;gw++){
-        var phase=((gT*1.5+gw*0.5)%1);
-        var gR=gRange*phase;
-        ctx.globalAlpha=(1-phase)*0.2;
-        ctx.strokeStyle='#ef4444';
-        ctx.lineWidth=2.5-phase*2;
-        ctx.beginPath(); ctx.arc(cx,cy,gR,0,Math.PI*2); ctx.stroke();
+      // 화면 흔들림
+      ctx.translate(Math.sin(gT*40)*3, Math.cos(gT*33)*2.5);
+      // 바닥 균열선 (불규칙 지그재그)
+      ctx.strokeStyle='#ef4444';
+      for(var gc=0;gc<5;gc++){
+        var gcA=gc*(Math.PI*2/5)+0.3;
+        ctx.lineWidth=1.5;
+        ctx.globalAlpha=0.35;
+        ctx.beginPath();
+        ctx.moveTo(cx,cy);
+        var segLen=gRange*0.22;
+        var gx2=cx, gy2=cy;
+        for(var gs=0;gs<4;gs++){
+          gx2+=Math.cos(gcA)*segLen+(gs%2===0?5:-5);
+          gy2+=Math.sin(gcA)*segLen+(gs%2===0?-4:4);
+          ctx.lineTo(gx2,gy2);
+        }
+        ctx.stroke();
       }
-      // 범위 영역 붉은 틴트
-      ctx.globalAlpha=0.08+0.04*Math.sin(gT*6);
-      ctx.fillStyle='#ef4444';
-      ctx.beginPath(); ctx.arc(cx,cy,gRange,0,Math.PI*2); ctx.fill();
-      // 바닥 파편 (작은 점들)
-      ctx.globalAlpha=0.4;
-      for(var gp2=0;gp2<8;gp2++){
-        var ga2=gp2*(Math.PI/4)+gT*0.5;
-        var gd2=gRange*(0.3+0.5*((gT+gp2*0.3)%1));
-        ctx.fillStyle=gp2%2===0?'#ff6644':'#ef4444';
-        ctx.fillRect(cx+Math.cos(ga2)*gd2-1.5,cy+Math.sin(ga2)*gd2-1.5,3,3);
+      // 범위 테두리 (미세 진동)
+      ctx.globalAlpha=0.1;
+      ctx.strokeStyle='#ff4444';
+      ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(cx,cy,gRange+Math.sin(gT*20)*2,0,Math.PI*2); ctx.stroke();
+      // 먼지/파편 (위로 튀어오르는 점)
+      ctx.globalAlpha=0.5;
+      for(var gd=0;gd<10;gd++){
+        var gdA=gd*(Math.PI*2/10)+gT*0.3;
+        var gdR=gRange*(0.2+0.6*Math.abs(Math.sin(gT*2+gd)));
+        var gdY=cy+Math.sin(gdA)*gdR-Math.abs(Math.sin(gT*5+gd*2))*8;
+        ctx.fillStyle=gd%3===0?'#ff8844':'#cc4444';
+        ctx.fillRect(cx+Math.cos(gdA)*gdR-1,gdY-1,2,2);
       }
       ctx.globalAlpha=1;
       ctx.restore();
