@@ -13209,9 +13209,7 @@ function _openRanking() {
 }
 
 function _closeRanking() {
-  var sc=document.getElementById('screen-ranking');
-  if(sc) sc.style.display='none';
-  var _bn=document.getElementById('bottom-nav'); if(_bn) _bn.style.display='flex';
+  if(window.showScreen) showScreen('home');
 }
 
 /* ════════════════════════════════════════════════════════
