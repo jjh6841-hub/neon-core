@@ -17838,9 +17838,11 @@ function _useProtocol(id){
     var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
     var dmg=Math.round(t.dmg*dmgPct);
     enemies.forEach(function(e){
+      if(e.hp<=0) return;
       e.hp-=dmg;
       e._ptStun=Math.max(e._ptStun||0, stunDur);
       e.hitFlash=3;
+      if(G.floatTexts) G.floatTexts.push({x:e.x,y:e.y-((e.r||10)+5),text:'-'+dmg,color:'#3b82f6',timer:0});
     });
     addFx(cx,cy,200,'#3b82f6');
     /* 플래시 제거 */
