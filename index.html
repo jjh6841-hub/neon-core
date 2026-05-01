@@ -18169,6 +18169,7 @@ var _origStartProto=window.startNewGame;
 if(typeof _origStartProto==='function'){
   window.startNewGame=function(){
     _origStartProto.apply(this,arguments);
+    _removeProtoBar();
     setTimeout(function(){ _injectProtoBar(); _startProtoTick(); },200);
   };
 }
