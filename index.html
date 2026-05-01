@@ -16536,16 +16536,7 @@ function _saveActiveBuffs(arr){ localStorage.setItem('activeLabBuffs',JSON.strin
 
 /* ── 프로토콜 정의 ── */
 var PROTOCOLS = window.PROTOCOLS = [
-  {id:'pt_burst',    name:'에너지 폭발',   desc:'모든 적에게 공격력 기반 피해',     icon:'✺', color:'#ff4444', cd:15, lvEff:[300,400,500,600,700],  unit:'%'},
-  {id:'pt_repair',   name:'긴급 수리',     desc:'최대 체력 비례 즉시 회복',         icon:'✚', color:'#00ff88', cd:20, lvEff:[20,25,30,35,40],       unit:'%'},
-  {id:'pt_overload', name:'과부하 모드',   desc:'5초간 공격력 대폭 증가',           icon:'⚡', color:'#ffcc00', cd:25, lvEff:[200,250,300,350,400],  unit:'%'},
-  {id:'pt_slow',     name:'시간 감속',     desc:'5초간 적 이동속도 감소',           icon:'◎', color:'#3b82f6', cd:18, lvEff:[50,55,60,65,70],       unit:'%'},
-  {id:'pt_emp',      name:'EMP 충격',      desc:'모든 적 일시 정지',               icon:'⊘', color:'#8b5cf6', cd:30, lvEff:[1.5,2.0,2.5,3.0,3.5], unit:'초'},
-  {id:'pt_shield',   name:'플라즈마 방벽', desc:'일정 시간 피해 무시',              icon:'◆', color:'#00dddd', cd:35, lvEff:[3,3.5,4,4.5,5],       unit:'초'},
-  {id:'pt_rapid',    name:'레이저 과충전', desc:'5초간 발사 속도 증가',             icon:'»', color:'#ff8822', cd:20, lvEff:[100,120,140,160,180],  unit:'%'},
-  {id:'pt_swarm',    name:'나노 스웜',     desc:'8초간 주변 적에게 지속 피해',      icon:'∴', color:'#10b981', cd:22, lvEff:[50,75,100,125,150],    unit:'%'},
-  {id:'pt_gravity',  name:'중력장',        desc:'적을 중앙으로 끌어당김',           icon:'◉', color:'#6366f1', cd:28, lvEff:[3,3.5,4,4.5,5],       unit:'초'},
-  {id:'pt_regen',    name:'재생 필드',     desc:'10초간 매초 체력 회복',            icon:'♻', color:'#22cc88', cd:30, lvEff:[2,3,4,5,6],            unit:'%'},
+  /* 새 스킬이 여기에 추가됩니다 */
 ];
 
 var PROTO_COST = 5; // 1회 제조 접근코드 비용
@@ -16793,38 +16784,8 @@ function _useProtocol(id){
   cd.ready=false;
   cd.timer=p.cd;
 
-  // 효과 적용
-  var t=G.tower;
-  if(id==='pt_burst'){
-    // 모든 적에게 공격력 기반 피해
-    var dmg=Math.round(t.dmg*(p.eff/100));
-    if(G.enemies) G.enemies.forEach(function(e){ if(e.hp>0) e.hp-=dmg; });
-  } else if(id==='pt_repair'){
-    // 체력 회복
-    var heal=Math.round(t.maxHp*(p.eff/100));
-    t.hp=Math.min(t.maxHp,t.hp+heal);
-  } else if(id==='pt_overload'){
-    _protoActiveEffects.pt_overload={remaining:5,mult:p.eff/100};
-    t.dmg=Math.round(t.dmg*(1+p.eff/100));
-  } else if(id==='pt_slow'){
-    _protoActiveEffects.pt_slow={remaining:5,rate:p.eff/100};
-    if(G.enemies) G.enemies.forEach(function(e){ if(e.hp>0) e.speed*=(1-p.eff/100); });
-  } else if(id==='pt_emp'){
-    _protoActiveEffects.pt_emp={remaining:p.eff};
-    if(G.enemies) G.enemies.forEach(function(e){ if(e.hp>0) e.frozen=(e.frozen||0)+p.eff; });
-  } else if(id==='pt_shield'){
-    _protoActiveEffects.pt_shield={remaining:p.eff};
-    G._protoShield=true;
-  } else if(id==='pt_rapid'){
-    _protoActiveEffects.pt_rapid={remaining:5,rate:p.eff/100};
-    t.fireRate=t.fireRate*(1+p.eff/100);
-  } else if(id==='pt_swarm'){
-    _protoActiveEffects.pt_swarm={remaining:8,dmgPct:p.eff/100};
-  } else if(id==='pt_gravity'){
-    _protoActiveEffects.pt_gravity={remaining:p.eff};
-  } else if(id==='pt_regen'){
-    _protoActiveEffects.pt_regen={remaining:10,pct:p.eff/100};
-  }
+  // 효과 적용 — 새 스킬 추가 시 여기에 id별 분기 작성
+  /* (스킬 미등록 상태) */
 
   // 쿨다운 표시 업데이트
   _updateProtoCdDisplay(id);
@@ -16864,35 +16825,7 @@ function _startProtoTick(){
       // 자동 모드: 쿨다운 완료 시 자동 발동
       if(_protoAutoMode&&cd.ready){ _useProtocol(id); }
     });
-    // 지속 효과 처리
-    var eff=_protoActiveEffects;
-    if(eff.pt_swarm&&eff.pt_swarm.remaining>0){
-      eff.pt_swarm.remaining-=dt;
-      if(G.enemies&&G.tower){
-        var swDmg=Math.round(G.tower.dmg*eff.pt_swarm.dmgPct*dt);
-        G.enemies.forEach(function(e){ if(e.hp>0) e.hp-=swDmg; });
-      }
-    }
-    if(eff.pt_gravity&&eff.pt_gravity.remaining>0){
-      eff.pt_gravity.remaining-=dt;
-      if(G.enemies&&G.tower){
-        var cx=G.tower.x,cy=G.tower.y;
-        G.enemies.forEach(function(e){
-          if(e.hp>0){
-            var dx=cx-e.x,dy=cy-e.y,dist=Math.sqrt(dx*dx+dy*dy);
-            if(dist>20){ e.x+=dx/dist*3; e.y+=dy/dist*3; }
-          }
-        });
-      }
-    }
-    if(eff.pt_regen&&eff.pt_regen.remaining>0){
-      eff.pt_regen.remaining-=dt;
-      if(G.tower){ G.tower.hp=Math.min(G.tower.maxHp,G.tower.hp+Math.round(G.tower.maxHp*eff.pt_regen.pct*dt)); }
-    }
-    if(eff.pt_shield&&eff.pt_shield.remaining>0){
-      eff.pt_shield.remaining-=dt;
-      if(eff.pt_shield.remaining<=0) G._protoShield=false;
-    }
+    // 지속 효과 처리 — 새 스킬 추가 시 여기에 틱 로직 작성
   },500);
 }
 function _stopProtoTick(){
