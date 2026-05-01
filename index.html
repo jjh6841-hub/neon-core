@@ -17612,16 +17612,15 @@ function _getEquippedProtocols(){
 }
 
 function _injectProtoBar(){
-  var canvasArea=document.getElementById('canvas-area'); if(!canvasArea) return;
   var shop=document.getElementById('screen-shop'); if(!shop) return;
   if(document.getElementById('proto-battle-bar')) return;
   var equipped=_getEquippedProtocols();
   if(equipped.length===0) return;
 
-  // 프로토콜 바: canvas-area 안, screen-shop 바로 위에 배치
+  // 프로토콜 바: screen-shop 안에 광고 버튼 위에 절대 배치
   var bar=document.createElement('div');
   bar.id='proto-battle-bar';
-  bar.style.cssText='position:absolute;bottom:0;left:0;right:0;z-index:15;display:flex;align-items:center;gap:4px;padding:3px 6px;pointer-events:auto;';
+  bar.style.cssText='position:absolute;top:-62px;left:6px;z-index:10;display:flex;align-items:center;gap:4px;pointer-events:auto;';
 
   equipped.forEach(function(p){
     _protoCooldowns[p.id]={ready:true,timer:0};
@@ -17633,8 +17632,8 @@ function _injectProtoBar(){
     bar.appendChild(btn);
   });
 
-  // canvas-area 안에 삽입 (screen-shop 앞)
-  canvasArea.insertBefore(bar,shop);
+  // screen-shop 안에 삽입
+  shop.appendChild(bar);
 
   // AUTO 버튼: 광고 버튼 우측에 배치
   var adWrap=document.getElementById('gem-ad-wrap');
