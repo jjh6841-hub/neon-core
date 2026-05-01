@@ -3918,7 +3918,7 @@ function update(dt) {
           _cTargets.slice(0,_cMax).forEach(function(ct){
             ct.e.hp-=_cDmg; ct.e.hitFlash=3;
             if(G.floatTexts) G.floatTexts.push({x:ct.e.x,y:ct.e.y-((ct.e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
-            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:400});
+            if(window._protoVisualEffects) window._protoVisualEffects.push({type:'chain',x1:e.x,y1:e.y,x2:ct.e.x,y2:ct.e.y,color:'#ffc800',timer:200});
           });
         }
         // 흡혈 드론: 입힌 피해의 30% 회복
