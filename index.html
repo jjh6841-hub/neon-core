@@ -17971,7 +17971,7 @@ function _useProtocol(id){
   else if(id==='pt_giganto'){
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
-    _protoActiveEffects.giganto={remaining:dur, dmgPct:dmgPct, tickTimer:0};
+    _protoActiveEffects.giganto={remaining:dur, dmgPct:dmgPct, tickTimer:1000};
     /* 기간토마키아 시각 효과는 _protoActiveEffects 기반 렌더링 */
   }
 
