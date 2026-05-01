@@ -16964,6 +16964,234 @@ function _doProtoDraw(n){
   return drawn;
 }
 
+/* ── 프로토콜 제조 연출 ── */
+function _showProtoAnim(drawn){
+  var old=document.getElementById('proto-anim-ov'); if(old) old.remove();
+  var ov=document.createElement('div');
+  ov.id='proto-anim-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:10000;overflow:hidden;';
+  var cvs=document.createElement('canvas');
+  cvs.style.cssText='width:100%;height:100%;';
+  ov.appendChild(cvs);
+  document.body.appendChild(ov);
+
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var W=cvs.width=Math.round(window.innerWidth*dpr);
+  var H=cvs.height=Math.round(window.innerHeight*dpr);
+  var gx=cvs.getContext('2d');
+  gx.scale(dpr,dpr);
+  var cw=window.innerWidth, ch=window.innerHeight;
+  var multi=drawn.length>1;
+  var dur=multi?3800:3000;
+  var _st=performance.now();
+
+  // 파티클
+  var parts=[];
+  for(var i=0;i<40;i++){
+    var a=(i/40)*Math.PI*2;
+    parts.push({a:a, d:180+Math.random()*120, s:1+Math.random()*2.5,
+      c:['#bb44ff','#00ffff','#ff44aa','#6644ff','#ff8822'][i%5], phase:Math.random()*6.28});
+  }
+  // 번개 데이터
+  var bolts=[];
+  for(var bi=0;bi<6;bi++){
+    var ba=(bi/6)*Math.PI*2+0.5;
+    var segs=[];
+    for(var si=0;si<8;si++) segs.push({ox:(Math.random()-0.5)*30,oy:(Math.random()-0.5)*30});
+    bolts.push({a:ba,segs:segs});
+  }
+  // 별 배경
+  var stars=[];
+  for(var si=0;si<60;si++) stars.push({x:Math.random()*cw,y:Math.random()*ch,s:Math.random()*1.5+0.5,b:Math.random()});
+
+  var firstProto=drawn[0].proto;
+
+  function _frame(now){
+    var t=now-_st;
+    var p=t/dur;
+    if(p>1){ ov.remove(); _showProtoResult(drawn); return; }
+    gx.clearRect(0,0,cw,ch);
+
+    // 배경
+    var bgA=Math.min(0.97,p*4);
+    gx.fillStyle='rgba(3,6,16,'+bgA+')';
+    gx.fillRect(0,0,cw,ch);
+
+    var cx=cw/2, cy=ch*0.42;
+
+    // 별 배경 깜빡임
+    if(p<0.8){
+      for(var si=0;si<stars.length;si++){
+        var st=stars[si];
+        var twk=0.3+0.7*Math.abs(Math.sin(t*0.002+st.b*6));
+        gx.globalAlpha=twk*0.6;
+        gx.fillStyle='#ffffff';
+        gx.fillRect(st.x,st.y,st.s,st.s);
+      }
+      gx.globalAlpha=1;
+    }
+
+    /* Phase 1 (0~0.3): 에너지 수렴 — 나선형 파티클 + 번개 */
+    if(p<0.35){
+      var p1=p/0.35;
+      // 나선형 파티클 수렴
+      for(var i=0;i<parts.length;i++){
+        var pt=parts[i];
+        var dist=(1-p1*p1)*pt.d;
+        var ga=pt.a+t*0.003+pt.phase;
+        var sz=pt.s*(1.5-p1);
+        gx.globalAlpha=0.6+p1*0.4;
+        gx.fillStyle=pt.c;
+        var px=cx+Math.cos(ga)*dist, py=cy+Math.sin(ga)*dist;
+        gx.beginPath(); gx.arc(px,py,sz,0,Math.PI*2); gx.fill();
+        // 잔상 트레일
+        gx.globalAlpha=0.15;
+        gx.beginPath(); gx.arc(px+Math.cos(ga+0.2)*8,py+Math.sin(ga+0.2)*8,sz*0.6,0,Math.PI*2); gx.fill();
+      }
+      // 번개
+      if(p1>0.3){
+        var bAlpha=(p1-0.3)/0.7*0.6;
+        gx.strokeStyle='#bb44ff';
+        gx.lineWidth=1.5;
+        gx.globalAlpha=bAlpha*(0.5+0.5*Math.sin(t*0.02));
+        for(var bi=0;bi<bolts.length;bi++){
+          var b=bolts[bi];
+          var bLen=(1-p1)*120+20;
+          gx.beginPath();
+          gx.moveTo(cx+Math.cos(b.a)*bLen,cy+Math.sin(b.a)*bLen);
+          for(var si=0;si<b.segs.length;si++){
+            var frac=(si+1)/b.segs.length;
+            var bx=cx+Math.cos(b.a)*bLen*(1-frac)+b.segs[si].ox*(1-p1);
+            var by=cy+Math.sin(b.a)*bLen*(1-frac)+b.segs[si].oy*(1-p1);
+            gx.lineTo(bx,by);
+          }
+          gx.lineTo(cx,cy);
+          gx.stroke();
+        }
+      }
+      // 중앙 글로우
+      var grd=gx.createRadialGradient(cx,cy,0,cx,cy,30+p1*20);
+      grd.addColorStop(0,'rgba(187,68,255,'+(p1*0.4)+')');
+      grd.addColorStop(1,'transparent');
+      gx.globalAlpha=1;
+      gx.fillStyle=grd;
+      gx.fillRect(cx-60,cy-60,120,120);
+    }
+
+    /* Phase 2 (0.25~0.55): 코어 형성 — 육각형 회전 + 성장 */
+    if(p>0.25&&p<0.6){
+      var p2=(p-0.25)/0.35;
+      var sc=0.3+p2*2;
+      var rot=p2*Math.PI*3;
+      gx.save();
+      gx.translate(cx,cy);
+      gx.rotate(rot);
+      gx.scale(sc,sc);
+      gx.globalAlpha=Math.min(1,p2*2.5);
+      // 육각형 외곽
+      gx.beginPath();
+      for(var hi=0;hi<6;hi++){
+        var ha=(Math.PI*2/6)*hi-Math.PI/2;
+        if(hi===0) gx.moveTo(Math.cos(ha)*22,Math.sin(ha)*22);
+        else gx.lineTo(Math.cos(ha)*22,Math.sin(ha)*22);
+      }
+      gx.closePath();
+      gx.fillStyle='#0a0020';
+      gx.fill();
+      gx.strokeStyle='#bb44ff';
+      gx.shadowColor='#bb44ff';
+      gx.shadowBlur=25*p2;
+      gx.lineWidth=2.5;
+      gx.stroke();
+      // 내부 원형 코어
+      gx.shadowBlur=0;
+      gx.beginPath(); gx.arc(0,0,8*p2,0,Math.PI*2);
+      gx.fillStyle='#cc66ff';
+      gx.globalAlpha=p2;
+      gx.fill();
+      // 내부 십자 라인
+      gx.strokeStyle='#ff88ff';
+      gx.lineWidth=1;
+      gx.globalAlpha=p2*0.5;
+      gx.beginPath(); gx.moveTo(0,-16); gx.lineTo(0,16); gx.stroke();
+      gx.beginPath(); gx.moveTo(-16,0); gx.lineTo(16,0); gx.stroke();
+      gx.restore();
+    }
+
+    /* Phase 3 (0.5~0.7): 코어 폭발 — 충격파 + 플래시 */
+    if(p>0.5&&p<0.75){
+      var p3=(p-0.5)/0.25;
+      // 충격파 링
+      var rr=p3*Math.min(cw,ch)*0.4;
+      gx.globalAlpha=(1-p3)*0.6;
+      gx.strokeStyle='#bb44ff';
+      gx.lineWidth=3-p3*2;
+      gx.beginPath(); gx.arc(cx,cy,rr,0,Math.PI*2); gx.stroke();
+      // 2차 링
+      if(p3>0.2){
+        gx.globalAlpha=(1-p3)*0.3;
+        gx.strokeStyle='#00ffff';
+        gx.lineWidth=2-p3;
+        gx.beginPath(); gx.arc(cx,cy,rr*0.6,0,Math.PI*2); gx.stroke();
+      }
+      // 중심 플래시
+      if(p3<0.4){
+        var fa=p3<0.15?p3/0.15:1-(p3-0.15)/0.25;
+        gx.globalAlpha=fa*0.7;
+        gx.fillStyle='#ffffff';
+        gx.fillRect(0,0,cw,ch);
+      }
+    }
+
+    /* Phase 4 (0.65~0.85): 스킬 아이콘 등장 */
+    if(p>0.65&&p<0.9){
+      var p4=(p-0.65)/0.25;
+      var iconSc=p4<0.3?p4/0.3*1.3:1.3-(p4-0.3)*0.3/0.7;
+      gx.save();
+      gx.translate(cx,cy);
+      gx.scale(iconSc,iconSc);
+      gx.globalAlpha=Math.min(1,p4*3);
+      // 배경 글로우 원
+      var grd2=gx.createRadialGradient(0,0,0,0,0,50);
+      grd2.addColorStop(0,firstProto.color+'66');
+      grd2.addColorStop(1,'transparent');
+      gx.fillStyle=grd2;
+      gx.fillRect(-50,-50,100,100);
+      // 아이콘
+      gx.font='bold 36px "Courier New",monospace';
+      gx.fillStyle=firstProto.color;
+      gx.textAlign='center';
+      gx.textBaseline='middle';
+      gx.shadowColor=firstProto.color;
+      gx.shadowBlur=20;
+      gx.fillText(firstProto.icon,0,0);
+      gx.shadowBlur=0;
+      gx.restore();
+    }
+
+    /* Phase 5 (0.8~1.0): 텍스트 + 페이드아웃 */
+    if(p>0.8){
+      var p5=(p-0.8)/0.2;
+      gx.globalAlpha=p5<0.5?p5/0.5:1;
+      gx.font='bold 14px "Courier New",monospace';
+      gx.fillStyle='#bb44ff';
+      gx.textAlign='center';
+      gx.textBaseline='middle';
+      gx.fillText(multi?'◈ '+drawn.length+'연 프로토콜 제조 완료':'◈ 프로토콜 제조 완료',cx,cy+60);
+      gx.font='11px "Courier New",monospace';
+      gx.fillStyle=firstProto.color;
+      gx.fillText(firstProto.name,cx,cy+80);
+    }
+
+    gx.globalAlpha=1;
+    requestAnimationFrame(_frame);
+  }
+  requestAnimationFrame(_frame);
+
+  // 터치로 스킵
+  ov.addEventListener('click',function(){ _st-=dur; });
+}
+
 /* ── 제조 결과 팝업 ── */
 function _showProtoResult(drawn){
   var old=document.getElementById('proto-result-popup'); if(old) old.remove();
@@ -17118,7 +17346,7 @@ function renderLab(){
     var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
     if(cur<PROTO_COST){ if(window.showToastMsg) showToastMsg('접근 코드가 부족합니다 (보유: ⌘'+cur+')','#ef4444'); return; }
     var res=_doProtoDraw(1);
-    if(res) _showProtoResult(res);
+    if(res) _showProtoAnim(res);
   });
   if(d5) d5.addEventListener('click',function(){
     if(!canDraw){if(window.showToastMsg) showToastMsg('모든 프로토콜이 만레벨입니다','#f59e0b'); return;}
@@ -17126,7 +17354,7 @@ function renderLab(){
     var cur=parseInt(localStorage.getItem('accessCodes')||'0',10);
     if(cur<cost5){ if(window.showToastMsg) showToastMsg('접근 코드가 부족합니다 (보유: ⌘'+cur+')','#ef4444'); return; }
     var res=_doProtoDraw(5);
-    if(res) _showProtoResult(res);
+    if(res) _showProtoAnim(res);
   });
 
   // 슬롯 클릭
