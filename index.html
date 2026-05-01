@@ -4232,7 +4232,7 @@ function mkEnemy(etype) {
   }
 
   return {
-    x: x, y: y,
+    x: x, y: y, spawnX: x, spawnY: y,
     type:      etype,
     boss:      _isBoss,
     bossGrade: etype==='boss_galaxy'?'galaxy':etype==='boss_hyper'?'hyper':etype==='boss_elite'?'elite':(_isBoss?'normal':null),
@@ -17026,7 +17026,7 @@ var PROTOCOLS = window.PROTOCOLS = [
    cdReduce:12, healBase:50, healPerLv:10},
   {id:'pt_splitlaser', icon:'✴', color:'#00ffff', name:'분열 레이저',       maxLv:10, baseCd:60,
    desc:'회전 레이저 빔 발사',
-   cdReduce:3, dmgBase:500, dmgPerLv:150, durBase:1, durPerLv:0.2,
+   cdReduce:3, dmgBase:500, dmgPerLv:150, durBase:3, durPerLv:0.2,
    beamCounts:[1,1,2,2,3,3,4,4,4,5]},
   {id:'pt_overheat',   icon:'»', color:'#ff8822', name:'과열 레이저',       maxLv:2, baseCd:100,
    desc:'일정 시간 여러발 연속 발사',
@@ -17038,8 +17038,8 @@ var PROTOCOLS = window.PROTOCOLS = [
    desc:'지속 범위 피해',
    cdReduce:3, durBase:2, durPerLv:0.8, dmgBase:100, dmgPerLv:40},
   {id:'pt_chain',      icon:'↯', color:'#ffc800', name:'체인 라이트닝',     maxLv:10, baseCd:45,
-   desc:'연쇄 번개 피해',
-   cdReduce:2, dmgBase:200, dmgPerLv:30, chainBase:3, chainPerLv:1}
+   desc:'지속 연쇄 번개 피해',
+   cdReduce:2, dmgBase:200, dmgPerLv:30, chainBase:3, chainPerLv:1, durBase:3, durPerLv:0.3}
 ];
 
 var PROTO_COST = 5;
@@ -17759,6 +17759,17 @@ function _injectProtoBar(){
     btn.style.cssText='width:32px;height:32px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';cursor:pointer;flex-shrink:0;position:relative;-webkit-appearance:none;';
     btn.innerHTML=_protoIconHTML(p.id,p.color,18)+'<div id="proto-cd-'+p.id+'" style="display:none;position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;font-size:8px;color:#94a3b8;pointer-events:none;"></div>';
     btn.addEventListener('click',function(){ _useProtocol(p.id); });
+    // 길게 누르면 스킬 이름 표시
+    (function(proto,b){
+      var _holdTimer=null;
+      b.addEventListener('touchstart',function(e){
+        _holdTimer=setTimeout(function(){
+          if(window.showToastMsg) showToastMsg(proto.name,proto.color);
+        },400);
+      },{passive:true});
+      b.addEventListener('touchend',function(){ clearTimeout(_holdTimer); },{passive:true});
+      b.addEventListener('touchcancel',function(){ clearTimeout(_holdTimer); },{passive:true});
+    })(p,btn);
     bar.appendChild(btn);
   });
 
@@ -17807,7 +17818,7 @@ function _useProtocol(id){
 
   cd.ready=false;
   // 지속 스킬은 효과 종료 후 쿨타임 시작, 즉발 스킬은 즉시 쿨타임
-  var _isDurationSkill=['pt_overdrive','pt_blackhole','pt_timewarp','pt_splitlaser','pt_overheat','pt_giganto'].indexOf(id)!==-1;
+  var _isDurationSkill=['pt_overdrive','pt_blackhole','pt_timewarp','pt_splitlaser','pt_overheat','pt_giganto','pt_chain'].indexOf(id)!==-1;
   cd.timer=_isDurationSkill?0:p.cd; // 지속 스킬은 0으로 시작 (효과 종료 시 세팅)
   cd._pendingCd=p.cd; // 나중에 세팅할 쿨타임 저장
 
@@ -17914,43 +17925,12 @@ function _useProtocol(id){
     /* 기간토마키아 시각 효과는 _protoActiveEffects 기반 렌더링 */
   }
 
-  /* ── 체인 라이트닝 ── */
+  /* ── 체인 라이트닝 (지속 발동) ── */
   else if(id==='pt_chain'){
-    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
-    var chainCount=def.chainBase+lv*def.chainPerLv;
-    var mainDmg=Math.round(t.dmg*dmgPct);
-    var chainDmg=Math.round(mainDmg*0.8);
-    var nearest=null, nd=Infinity;
-    enemies.forEach(function(e){
-      var dx=e.x-cx, dy=e.y-cy;
-      var dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<nd){nd=dist;nearest=e;}
-    });
-    if(nearest){
-      nearest.hp-=mainDmg;
-      nearest.hitFlash=3;
-      addFx(nearest.x,nearest.y,30,'#ffc800');
-      // 타워 → 첫 적 번개선
-      _protoVisualEffects.push({type:'chain',x1:cx,y1:cy,x2:nearest.x,y2:nearest.y,color:'#ffc800',timer:500});
-      var hit=new Set(); hit.add(nearest);
-      var cur=nearest;
-      for(var ci=0;ci<chainCount;ci++){
-        var next=null, nDist=Infinity;
-        enemies.forEach(function(e){
-          if(hit.has(e)||e.hp<=0) return;
-          var dx2=e.x-cur.x, dy2=e.y-cur.y;
-          var d2=Math.sqrt(dx2*dx2+dy2*dy2);
-          if(d2<nDist&&d2<200){nDist=d2;next=e;}
-        });
-        if(!next) break;
-        next.hp-=chainDmg;
-        next.hitFlash=3;
-        hit.add(next);
-        _protoVisualEffects.push({type:'chain',x1:cur.x,y1:cur.y,x2:next.x,y2:next.y,color:'#ffc800',timer:500});
-        addFx(next.x,next.y,20,'#ffc800');
-        cur=next;
-      }
-    }
+    var dur=(def.durBase+lv*(def.durPerLv||0))*1000;
+    var dmgPct2=(def.dmgBase+lv*def.dmgPerLv)/100;
+    var chainCount2=def.chainBase+lv*def.chainPerLv;
+    _protoActiveEffects.chain={remaining:dur, dmgPct:dmgPct2, chainCount:chainCount2, fireTimer:0};
   }
 
   _updateProtoCdDisplay(id);
@@ -18128,6 +18108,49 @@ function _startProtoTick(){
       if(oh.remaining<=0){
         delete _protoActiveEffects.overheat;
         _startCdAfterEffect('pt_overheat');
+      }
+    }
+
+    /* 지속 효과: 체인 라이트닝 (0.8초마다 연쇄 번개) */
+    if(_protoActiveEffects.chain){
+      var ch=_protoActiveEffects.chain;
+      ch.remaining-=dtMs;
+      ch.fireTimer+=dtMs;
+      if(ch.fireTimer>=800){
+        ch.fireTimer-=800;
+        var cMainDmg=Math.round(t.dmg*ch.dmgPct);
+        var cChainDmg=Math.round(cMainDmg*0.8);
+        var cNearest=null, cNd=Infinity;
+        enemies.forEach(function(e2){
+          if(e2.hp<=0) return;
+          var dx3=e2.x-cx, dy3=e2.y-cy;
+          var d3=Math.sqrt(dx3*dx3+dy3*dy3);
+          if(d3<cNd){cNd=d3;cNearest=e2;}
+        });
+        if(cNearest){
+          cNearest.hp-=cMainDmg; cNearest.hitFlash=3;
+          _protoVisualEffects.push({type:'chain',x1:cx,y1:cy,x2:cNearest.x,y2:cNearest.y,color:'#ffc800',timer:500});
+          var cHit=new Set(); cHit.add(cNearest);
+          var cCur=cNearest;
+          for(var cci=0;cci<ch.chainCount;cci++){
+            var cNext=null, cND2=Infinity;
+            enemies.forEach(function(e3){
+              if(cHit.has(e3)||e3.hp<=0) return;
+              var dx4=e3.x-cCur.x, dy4=e3.y-cCur.y;
+              var d4=Math.sqrt(dx4*dx4+dy4*dy4);
+              if(d4<cND2&&d4<200){cND2=d4;cNext=e3;}
+            });
+            if(!cNext) break;
+            cNext.hp-=cChainDmg; cNext.hitFlash=3;
+            cHit.add(cNext);
+            _protoVisualEffects.push({type:'chain',x1:cCur.x,y1:cCur.y,x2:cNext.x,y2:cNext.y,color:'#ffc800',timer:500});
+            cCur=cNext;
+          }
+        }
+      }
+      if(ch.remaining<=0){
+        delete _protoActiveEffects.chain;
+        _startCdAfterEffect('pt_chain');
       }
     }
 
