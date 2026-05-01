@@ -13177,6 +13177,7 @@ function _buildRankingScreen() {
     (function(btn){ btn.addEventListener('click',function(){
       rtabs.forEach(function(b){ b.style.color='#334455'; b.style.borderBottom='2px solid transparent'; });
       btn.style.color='#00ffff'; btn.style.borderBottom='2px solid #00ffff';
+      _activeRankTab=btn.getAttribute('data-rtab');
       _renderRanking();
     }); })(rtabs[i]);
   }
@@ -13184,19 +13185,10 @@ function _buildRankingScreen() {
 
 var _rankPlanet='tier1'; // 웨이브 탭 행성 선택 기본값
 
+var _activeRankTab='wave'; // 현재 활성 탭 상태 저장
+
 function _getActiveRankTab(){
-  var activeTab='wave';
-  var sc=document.getElementById('screen-ranking');
-  if(sc){
-    var tabs=sc.querySelectorAll('.rank-tab');
-    for(var ti=0;ti<tabs.length;ti++){
-      if(tabs[ti].style.borderBottom.indexOf('#00ffff')!==-1){
-        activeTab=tabs[ti].getAttribute('data-rtab');
-        break;
-      }
-    }
-  }
-  return activeTab;
+  return _activeRankTab;
 }
 
 function _getPlayerPower(){
@@ -13218,9 +13210,13 @@ function _renderRanking() {
   // 필터 영역: 웨이브 탭에서만 행성 드롭다운 표시
   if(filterEl){
     if(activeTab==='wave'){
+      var pLabels={tier1:'에이온',tier2:'스펙트라',tier3:'넥사르',tier4:'피라온',tier5:'오메가'};
       filterEl.style.display='flex';
+      filterEl.style.alignItems='center';
+      filterEl.style.justifyContent='space-between';
       filterEl.innerHTML=
-        '<select id="rank-planet-select" style="flex:1;background:#0a1520;border:1px solid #0a3344;border-radius:6px;color:#00ffff;font-family:monospace;font-size:10px;padding:6px 8px;outline:none;">'+
+        '<span style="color:#00ffff;font-family:monospace;font-size:11px;letter-spacing:1px;">'+(pLabels[_rankPlanet]||'에이온')+' 웨이브 랭킹</span>'+
+        '<select id="rank-planet-select" style="width:80px;background:#0a1520;border:1px solid #0a3344;border-radius:6px;color:#00ffff;font-family:monospace;font-size:9px;padding:4px 6px;outline:none;">'+
           '<option value="tier1"'+ (_rankPlanet==='tier1'?' selected':'')+'>에이온</option>'+
           '<option value="tier2"'+ (_rankPlanet==='tier2'?' selected':'')+'>스펙트라</option>'+
           '<option value="tier3"'+ (_rankPlanet==='tier3'?' selected':'')+'>넥사르</option>'+
@@ -13331,7 +13327,7 @@ function _renderRanking() {
   var rows2=_genRanking(playerWave);
   var medals2=['🥇','🥈','🥉'];
   var pNames={tier1:'에이온',tier2:'스펙트라',tier3:'넥사르',tier4:'피라온',tier5:'오메가'};
-  var html2='<div style="text-align:center;color:#00ffff;font-family:monospace;font-size:10px;margin-bottom:6px;letter-spacing:1px;">'+pNames[_rankPlanet]+' 웨이브 랭킹</div>';
+  var html2='';
   rows2.forEach(function(row,idx){
     var rank=idx+1;
     var isTop3=rank<=3;
