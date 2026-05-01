@@ -8001,19 +8001,23 @@ if (dailyPopup) {
     <span style="color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
   </div>
 
-  <div style="padding:10px;">
+  <div style="padding:10px;max-width:360px;margin:0 auto;">
     <!-- 타이틀 라인: 도움말 | FREQUENCY WARS | 시즌 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button>
-      <span style="font-size:12px;letter-spacing:3px;color:#00dddd;">FREQUENCY WARS</span>
-      <span style="background:linear-gradient(135deg,#00dddd,#0088aa);color:#030b10;font-size:9px;font-weight:900;padding:2px 8px;border-radius:3px;letter-spacing:1px;">SEASON 1</span>
+    <div style="display:flex;align-items:center;margin-bottom:8px;">
+      <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;">?</button>
+      <span style="flex:1;text-align:center;font-size:12px;letter-spacing:3px;color:#00dddd;">FREQUENCY WARS</span>
+      <span style="color:#00dddd;font-size:10px;font-weight:900;letter-spacing:1px;text-shadow:0 0 6px #00dddd44;flex-shrink:0;">시즌 1</span>
+    </div>
+    <!-- 종료 타이머 (한 줄) -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;margin-bottom:8px;">
+      <span style="color:#556677;font-size:9px;">주파수 전쟁 종료</span>
+      <span id="fw-timer" style="color:#00dddd;font-size:12px;font-weight:bold;">--:--:--</span>
     </div>
 
-    <!-- 2열: 좌(내 정보+규칙+타이머) | 우(순위/보상) -->
+    <!-- 2열: 좌(내 정보+규칙) | 우(순위/보상) -->
     <div style="display:flex;gap:8px;margin-bottom:10px;">
       <!-- 좌측 -->
-      <div style="width:110px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
-        <!-- 내 정보 -->
+      <div style="width:105px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;">
         <div id="fw-league-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px;text-align:center;">
           <div id="fw-league-icon" style="font-size:22px;">🔵</div>
           <div id="fw-league-name" style="color:#4488ff;font-size:11px;font-weight:bold;margin-top:3px;">TIER F</div>
@@ -8023,13 +8027,7 @@ if (dailyPopup) {
           </div>
           <div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:7px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:13px;font-weight:bold;">-</div></div>
         </div>
-        <!-- 이번 주 규칙 -->
         <div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
-        <!-- 남은 시간 -->
-        <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;text-align:center;">
-          <div style="color:#556677;font-size:7px;">종료까지</div>
-          <div id="fw-timer" style="color:#00dddd;font-size:12px;font-weight:bold;margin-top:2px;">--:--:--</div>
-        </div>
       </div>
       <!-- 우측: 순위/보상 -->
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
@@ -16006,13 +16004,22 @@ function _hookFWButtons() {
       '<div style="background:#0d1520;border:1px solid #00dddd;border-radius:12px;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;padding:16px;">'+
         '<div style="color:#00dddd;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">주파수 전쟁 안내</div>'+
         '<div style="color:#94a3b8;font-size:9px;line-height:1.8;">'+
-          '• 매주 월요일 01:00에 새 시즌 시작<br>'+
+          '<b style="color:#00dddd;">진행 방식</b><br>'+
+          '• 매주 월요일 01:00 새 시즌 시작<br>'+
           '• 월요일 00:00~01:00 랭킹 정산<br>'+
           '• 하루 3회 참가 가능<br>'+
           '• 최고 웨이브로 순위 결정<br>'+
           '• 매주 규칙이 변경됩니다<br>'+
-          '• 전투 증강 사용 불가<br>'+
-          '• 시즌 종료 시 순위별 보상 지급<br>'+
+          '• 전투 증강 사용 불가<br><br>'+
+          '<b style="color:#ffc800;">등급 시스템</b><br>'+
+          '• 아이언 → 브론즈 → 실버 → 골드 → 플래티넘<br>'+
+          '• 랜덤 50명이 한 그룹으로 배정<br>'+
+          '• 상위 10명: 다음 등급으로 승급<br>'+
+          '• 하위 20명: 이전 등급으로 강등<br>'+
+          '• 아이언은 강등 없음 (승급만)<br><br>'+
+          '<b style="color:#ffc800;">주파수 상점</b><br>'+
+          '• 펄스 조각으로 다양한 아이템 구매<br>'+
+          '• 시즌 보상으로 펄스 조각 획득<br>'+
         '</div>'+
         '<button onclick="this.parentNode.parentNode.remove()" style="width:100%;margin-top:12px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;">닫기</button>'+
       '</div>';
