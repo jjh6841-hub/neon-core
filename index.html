@@ -4322,7 +4322,7 @@ function fireTower() {
     target.hp -= _dmg;
     if (target.type === 'vampire' && target.hp > 0) target.hp = Math.min(target.maxHp, target.hp + _dmg*0.3);
     target.hitFlash = 2;
-    addFx(target.x, target.y, target.r*1.5, isCrit?'#ffff00':'#00ffff');
+    addFx(target.x, target.y, target.r*1.5, isCrit?'#cc44ff':'#00ffff');
     // 근접 즉시 데미지 사망 처리
     if (target.hp <= 0) {
       var _idx = G.enemies.indexOf(target);
@@ -5152,11 +5152,11 @@ function render() {
     ctx.rotate(angle);
     // Trail
     ctx.globalAlpha = 0.3;
-    ctx.fillStyle = b.crit ? '#ff6600' : '#00ffff';
+    ctx.fillStyle = b.crit ? '#cc44ff' : '#00ffff';
     ctx.fillRect(-12, -1, 4, 2);
     // Main bullet line
     ctx.globalAlpha = 1;
-    ctx.fillStyle = b.crit ? '#ff6600' : '#00ffff';
+    ctx.fillStyle = b.crit ? '#cc44ff' : '#00ffff';
     ctx.fillRect(-4, -1, 8, 2);
     ctx.restore();
   }
@@ -11767,7 +11767,7 @@ function _patchCritFloat() {
           x: e.x + (Math.random() - 0.5) * 8,
           y: e.y - (e.r || 9) - 5,
           text: isCrit ? Math.ceil(dmg) + '!' : String(Math.ceil(dmg)),
-          color: isCrit ? '#ff4444' : '#ffffff',
+          color: isCrit ? '#cc44ff' : '#ffffff',
           size: isCrit ? 14 : 10,
           life: 1.0,
           vy: isCrit ? 2.5 : 1.5,
@@ -13713,8 +13713,11 @@ function _showStatsPopup() {
   // 4. 모듈 레벨 치명타 (독립 판정, 기본 1.5x)
   var modLvCritChance=_modLv.crit||0;
   var modLvCritMult=_modLv.cdmg>0?1+_modLv.cdmg/100:1.5;
+  // 5. 속성 치명타 (속성 시스템)
+  var elemCritRate=(em.critRate||0)*100;
+  var elemCritDmg=em.critDmg||1;
   // 전부 터졌을 때 최대 치명타 피해
-  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1));
+  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1)*(elemCritDmg>1?elemCritDmg:1));
 
   // ── 최종 공격속도 계산 ──
   var _baseSpdMult=1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05;
@@ -13741,6 +13744,7 @@ function _showStatsPopup() {
   h+=_clickRow('② 강화 치명타',enhCritChance._tf1()+'% / ×'+enhCritMult._tf2(),'#a855f7','detail-ecrit');
   h+=_clickRow('③ 모듈 치명타',modCritChance>0?modCritChance._tf1()+'% / ×'+modCritMult._tf2():'미장착 / ×'+modCritMult._tf2(),'#22ddaa','detail-mcrit');
   h+=_row('④ 모듈Lv 치명타',modLvCritChance>0?modLvCritChance._tf1()+'% / ×'+modLvCritMult._tf2():'- / ×'+modLvCritMult._tf2(),'#00ccaa');
+  h+=_clickRow('⑤ 속성 치명타',elemCritRate._tf1()+'% / ×'+elemCritDmg._tf2(),'#cc44ff','detail-elemcrit');
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05)._tf2()+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1)._tf1()+'%','#ef4444');
 
@@ -14035,10 +14039,51 @@ function _showStatsPopup() {
         ['  모듈 Lv 치명타 확률', modLvCritChance>0?modLvCritChance._tf1()+'%':'-'],
         ['  모듈 Lv 치명타 계수', modLvCritMult>0?'×'+modLvCritMult._tf2():'-'],
         ['  ※ 독립 판정 (①②③과 모두 별개)',''],
+        ['',''],
+        ['⑤ 속성 치명타','── 확률: +'+elemCritRate._tf1()+'%'],
+        ['  속성 치명타 피해', elemCritDmg>1?'×'+elemCritDmg._tf2():'-'],
+        ['  ※ 일반 치명타 확률/배율에 합산',''],
         ['─────────',''],
         ['전부 발동 시 최대 피해', _fn(maxCritDmg)],
-        ['계산식', _fn(allDmg)+' × '+normalCritMult._tf2()+(enhCritMult>0?' × '+enhCritMult._tf2():'')+(modCritMult>0?' × '+modCritMult._tf2():'')+(modLvCritMult>0?' × '+modLvCritMult._tf2():'')],
+        ['계산식', _fn(allDmg)+' × '+normalCritMult._tf2()+(enhCritMult>0?' × '+enhCritMult._tf2():'')+(modCritMult>0?' × '+modCritMult._tf2():'')+(modLvCritMult>0?' × '+modLvCritMult._tf2():'')+(elemCritDmg>1?' × '+elemCritDmg._tf2():'')],
       ]
+    },
+    'detail-elemcrit': {
+      title:'속성 치명타 상세',color:'#cc44ff',
+      rows:(function(){
+        var r=[];
+        var _ELEMS=window._ELEMENTS||[];
+        r.push(['[ 치명타율 ]','']);
+        var _totalElemCritRate=0;
+        _ELEMS.forEach(function(el){
+          var lv=parseInt(localStorage.getItem('elem_'+el.id+'_critRate')||'0',10);
+          if(lv>0){
+            var pct=(lv*0.002*100);
+            _totalElemCritRate+=pct;
+            r.push([el.icon+' '+el.name+' 치명타율','Lv.'+lv+' (+'+pct._tf1()+'%)']);
+          } else {
+            r.push([el.icon+' '+el.name+' 치명타율','-']);
+          }
+        });
+        r.push(['─────────','']);
+        r.push(['합산 치명타율 보너스','+'+_totalElemCritRate._tf1()+'%']);
+        r.push(['','']);
+        r.push(['[ 치명타 피해 ]','']);
+        var _totalElemCritDmg=1;
+        _ELEMS.forEach(function(el){
+          var lv=parseInt(localStorage.getItem('elem_'+el.id+'_critDmg')||'0',10);
+          if(lv>0){
+            var mult=(1.5+lv*0.03);
+            _totalElemCritDmg*=mult;
+            r.push([el.icon+' '+el.name+' 치명타 피해','Lv.'+lv+' (×'+mult._tf2()+')']);
+          } else {
+            r.push([el.icon+' '+el.name+' 치명타 피해','-']);
+          }
+        });
+        r.push(['─────────','']);
+        r.push(['합산 치명타 피해','×'+_totalElemCritDmg._tf2()]);
+        return r;
+      })()
     }
   };
   p.querySelectorAll('[data-stat-detail]').forEach(function(el){
