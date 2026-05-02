@@ -5622,12 +5622,14 @@ function renderHUD() {
   // 프리즘 쉴드 바 업데이트
   var shieldRow = document.getElementById('hud-shield-row');
   if (shieldRow) {
-    if (G.pShieldMax > 0) {
+    var _totalShdMax = (G.pShieldMax||0) + (G.tower.shdMax||0);
+    var _totalShdCur = (G.pShieldCur||0) + (G.tower.shdCur||0);
+    if (_totalShdMax > 0) {
       shieldRow.style.display = 'flex';
       var shBar = document.getElementById('hud-shield-bar');
       var shText = document.getElementById('hud-shield-text');
-      if (shBar) shBar.style.width = Math.max(0, (G.pShieldCur||0) / G.pShieldMax * 100) + '%';
-      if (shText) shText.textContent = Math.ceil(G.pShieldCur||0) + '/' + Math.ceil(G.pShieldMax);
+      if (shBar) shBar.style.width = Math.max(0, _totalShdCur / _totalShdMax * 100) + '%';
+      if (shText) shText.textContent = Math.ceil(_totalShdCur) + '/' + Math.ceil(_totalShdMax);
     } else {
       shieldRow.style.display = 'none';
     }
