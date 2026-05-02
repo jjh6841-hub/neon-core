@@ -8096,7 +8096,7 @@ if (dailyPopup) {
         </div>
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="color:#ffc800;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">시즌 보상</div>
+        <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"></div>
         <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;">
           <div id="fw-rewards"></div>
         </div>
@@ -15829,7 +15829,7 @@ function _injectScreens() {
               '</div>' +
             '</div>' +
             '<div style="flex:1;min-width:0;">' +
-              '<div style="color:#ffc800;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">시즌 보상</div>' +
+              '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"></div>' +
               '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;">' +
                 '<div id="fw-rewards"></div>' +
               '</div>' +
@@ -16160,7 +16160,6 @@ function _hookFWButtons() {
           '• 매주 규칙이 변경됩니다<br>'+
           '• 전투 증강 사용 불가<br><br>'+
           '<b style="color:#ffc800;">등급 시스템</b><br>'+
-          '• 아이언 → 브론즈 → 실버 → 골드 → 플래티넘<br>'+
           '• 랜덤 50명이 한 그룹으로 배정<br>'+
           '• 상위 10명: 다음 등급으로 승급<br>'+
           '• 하위 20명: 이전 등급으로 강등<br>'+
@@ -16299,6 +16298,8 @@ function _getNextMondayReset(){
 }
 window._getNextMondayReset = _getNextMondayReset;
 
+var _fwRewardViewTier = -1; // -1 = 현재 티어 사용
+
 /* ── 주파수 전쟁 UI 렌더링 ── */
 function renderFW(){
   var fw=_loadFW();
@@ -16370,17 +16371,33 @@ function renderFW(){
     }
   }
 
-  // 보상 항상 표시
+  // 보상: 티어별 페이지 전환
   var rwEl=document.getElementById('fw-rewards');
+  var rwHdr=document.getElementById('fw-rewards-header');
   if(rwEl){
     var tierRewards=[[50,30,20,10],[100,60,40,20],[200,120,80,40],[400,250,150,60],[800,500,300,100]];
-    var rw=tierRewards[fw.tier||0]||tierRewards[0];
+    var viewIdx=(_fwRewardViewTier>=0)?_fwRewardViewTier:(fw.tier||0);
+    viewIdx=Math.max(0,Math.min(viewIdx,FW_TIERS.length-1));
+    var vt=FW_TIERS[viewIdx];
+    var rw=tierRewards[viewIdx]||tierRewards[0];
+    var isCur=viewIdx===(fw.tier||0);
+    // 헤더: ◀ 티어명 ▶
+    if(rwHdr){
+      rwHdr.innerHTML=
+        '<button id="fw-rw-prev" style="background:none;border:none;color:'+(viewIdx>0?'#94a3b8':'#1a2a3a')+';font-size:14px;cursor:pointer;padding:0 4px;-webkit-appearance:none;">\u25C0</button>'+
+        '<span style="color:'+vt.color+';font-size:12px;font-weight:bold;letter-spacing:1px;">'+vt.icon+' '+vt.name+(isCur?' (현재)':'')+'</span>'+
+        '<button id="fw-rw-next" style="background:none;border:none;color:'+(viewIdx<FW_TIERS.length-1?'#94a3b8':'#1a2a3a')+';font-size:14px;cursor:pointer;padding:0 4px;-webkit-appearance:none;">\u25B6</button>';
+      var prevBtn=document.getElementById('fw-rw-prev');
+      var nextBtn=document.getElementById('fw-rw-next');
+      if(prevBtn) prevBtn.onclick=function(){if(viewIdx>0){_fwRewardViewTier=viewIdx-1;renderFW();}};
+      if(nextBtn) nextBtn.onclick=function(){if(viewIdx<FW_TIERS.length-1){_fwRewardViewTier=viewIdx+1;renderFW();}};
+    }
     rwEl.innerHTML=
       '<div style="display:flex;flex-direction:column;gap:3px;">'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#ffc800;font-size:13px;">🥇 1위</span><span style="color:#ffc800;font-size:13px;">✦ '+rw[0]+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#C0C0C0;font-size:13px;">🥈 2위</span><span style="color:#C0C0C0;font-size:13px;">✦ '+rw[1]+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#CD7F32;font-size:13px;">🥉 3위</span><span style="color:#CD7F32;font-size:13px;">✦ '+rw[2]+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#334455;font-size:13px;">4위~</span><span style="color:#334455;font-size:13px;">✦ '+rw[3]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#ffc800;font-size:13px;">1st</span><span style="color:#ffc800;font-size:13px;">\u2726 '+rw[0]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#C0C0C0;font-size:13px;">2nd</span><span style="color:#C0C0C0;font-size:13px;">\u2726 '+rw[1]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#CD7F32;font-size:13px;">3rd</span><span style="color:#CD7F32;font-size:13px;">\u2726 '+rw[2]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#334455;font-size:13px;">4th~</span><span style="color:#334455;font-size:13px;">\u2726 '+rw[3]+'</span></div>'+
       '</div>';
   }
 
