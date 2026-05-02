@@ -19954,15 +19954,15 @@ window._renderElementTab = function(container) {
     var nxtMult = st.key === 'critRate' ? ((lv+1)*st.perLv*100)._tf1()+'%' : 'x'+(_cdBase+(lv+1)*st.perLv)._tf2();
     var lvText = st.maxLv ? 'Lv.'+lv+' / '+st.maxLv : 'Lv.'+lv;
 
-    stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:6px 10px;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;">'+
+    stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:10px 12px;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;">'+
       '<div>'+
-        '<div style="font-size:10px;color:#94a3b8;font-family:monospace;line-height:1.2;">'+el.name+' '+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
+        '<div style="font-size:11px;color:#94a3b8;font-family:monospace;">'+el.name+' '+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
         (!maxed ? ' <span style="color:#4a6a7a;">→ '+nxtMult+'</span>' : '')+'</div>'+
-        '<div style="font-size:8px;color:#445566;font-family:monospace;line-height:1;">'+lvText+'</div>'+
+        '<div style="font-size:9px;color:#445566;font-family:monospace;">'+lvText+'</div>'+
       '</div>'+
       (maxed
         ? '<span style="color:#334455;font-size:10px;font-family:monospace;">MAX</span>'
-        : '<button data-elem-up="'+el.id+'" data-elem-stat="'+st.key+'" style="background:#030b10;border:1px solid '+(afford?el.color+'66':'#1a2a3a')+';color:'+(afford?el.color:'#334455')+';padding:3px 8px;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">'+el.icon+' '+cost+'</button>')+
+        : '<button data-elem-up="'+el.id+'" data-elem-stat="'+st.key+'" style="background:#030b10;border:1px solid '+(afford?el.color+'66':'#1a2a3a')+';color:'+(afford?el.color:'#334455')+';padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">'+el.icon+' '+cost+'</button>')+
     '</div>';
   });
 
