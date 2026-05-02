@@ -19942,9 +19942,9 @@ window._renderElementTab = function(container) {
   var tabBar = '<div style="display:flex;gap:0;margin-bottom:1px;border:1px solid #1a2a3a;">';
   ELEMENTS.forEach(function(e) {
     var active = e.id === _elemActiveTab;
-    tabBar += '<div data-elem-tab="'+e.id+'" style="flex:1;text-align:center;padding:2px 0;cursor:pointer;font-family:monospace;font-size:8px;line-height:1.2;'+
+    tabBar += '<div data-elem-tab="'+e.id+'" style="flex:1;text-align:center;padding:4px 0;cursor:pointer;font-family:monospace;font-size:9px;line-height:1;'+
       'background:'+(active?e.color+'15':'transparent')+';border-bottom:2px solid '+(active?e.color:'transparent')+';color:'+(active?e.color:'#445566')+';">'+
-      e.icon+'<br>'+e.name+'</div>';
+      e.icon+' '+e.name+'</div>';
   });
   tabBar += '</div>';
 
@@ -19968,9 +19968,9 @@ window._renderElementTab = function(container) {
 
     stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:4px 8px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;">'+
       '<div>'+
-        '<div style="font-size:11px;color:#94a3b8;font-family:monospace;">'+el.name+' '+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
+        '<div style="font-size:10px;color:#94a3b8;font-family:monospace;line-height:1.2;">'+el.name+' '+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
         (!maxed ? ' <span style="color:#4a6a7a;">→ '+nxtMult+'</span>' : '')+'</div>'+
-        '<div style="font-size:9px;color:#445566;font-family:monospace;">'+lvText+'</div>'+
+        '<div style="font-size:8px;color:#445566;font-family:monospace;line-height:1;">'+lvText+'</div>'+
       '</div>'+
       (maxed
         ? '<span style="color:#334455;font-size:10px;font-family:monospace;">MAX</span>'
