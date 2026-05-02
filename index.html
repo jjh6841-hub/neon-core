@@ -14053,35 +14053,27 @@ function _showStatsPopup() {
       rows:(function(){
         var r=[];
         var _ELEMS=window._ELEMENTS||[];
-        r.push(['[ 치명타율 ]','']);
+        r.push(['[ 치명타율 (합연산) ]','']);
         var _totalElemCritRate=0;
         _ELEMS.forEach(function(el){
           var lv=parseInt(localStorage.getItem('elem_'+el.id+'_critRate')||'0',10);
-          if(lv>0){
-            var pct=(lv*0.002*100);
-            _totalElemCritRate+=pct;
-            r.push([el.icon+' '+el.name+' 치명타율','Lv.'+lv+' (+'+pct._tf1()+'%)']);
-          } else {
-            r.push([el.icon+' '+el.name+' 치명타율','-']);
-          }
+          var pct=(lv*0.002*100);
+          _totalElemCritRate+=pct;
+          r.push([el.icon+' '+el.name+' 치명타율','Lv.'+lv+' (+'+pct._tf1()+'%)']);
         });
         r.push(['─────────','']);
-        r.push(['합산 치명타율 보너스','+'+_totalElemCritRate._tf1()+'%']);
+        r.push(['합계 치명타율 보너스','+'+_totalElemCritRate._tf1()+'%']);
         r.push(['','']);
-        r.push(['[ 치명타 피해 ]','']);
+        r.push(['[ 치명타 피해 (곱연산) ]','']);
         var _totalElemCritDmg=1;
         _ELEMS.forEach(function(el){
           var lv=parseInt(localStorage.getItem('elem_'+el.id+'_critDmg')||'0',10);
-          if(lv>0){
-            var mult=(1.5+lv*0.03);
-            _totalElemCritDmg*=mult;
-            r.push([el.icon+' '+el.name+' 치명타 피해','Lv.'+lv+' (×'+mult._tf2()+')']);
-          } else {
-            r.push([el.icon+' '+el.name+' 치명타 피해','-']);
-          }
+          var mult=(1.5+lv*0.03);
+          if(lv>0) _totalElemCritDmg*=mult;
+          r.push([el.icon+' '+el.name+' 치명타 피해','Lv.'+lv+' (×'+mult._tf2()+')'+(lv===0?' 미투자':'')]);
         });
         r.push(['─────────','']);
-        r.push(['합산 치명타 피해','×'+_totalElemCritDmg._tf2()]);
+        r.push(['곱연산 결과','×'+_totalElemCritDmg._tf2()]);
         return r;
       })()
     }
