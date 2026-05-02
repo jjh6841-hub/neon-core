@@ -19801,6 +19801,7 @@ function _getElementMultipliers() {
       var lv = _getElemLv(el.id, st.key);
       if (lv > 0) {
         if (st.key === 'critRate') m.critRate += lv * st.perLv;
+        else if (st.key === 'critDmg') m[st.key] *= (1.5 + lv * st.perLv);
         else m[st.key] *= (1 + lv * st.perLv);
       }
     });
