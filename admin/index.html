@@ -1169,16 +1169,30 @@ function runAnomalyDetection() {
 
     // ④ 로그 기반 분석
     if (logs.length > 0) {
-      // 단일 대량 획득 (한 번에 골드 10000 이상 또는 보석 100 이상)
+      // 단일 대량 획득 (웨이브 기반 동적 임계값)
       // 정상 사유 목록 (오프라인 보상 등 시스템 지급은 제외)
       var _safeReasons = ['오프라인 보상','임무 보상','업적 보상','시즌패스','쿠폰','관리자 지급'];
       logs.forEach(function(log){
         var _isSafe = _safeReasons.indexOf(log.r) !== -1;
         if (_isSafe) return;
-        if (log.t==='gold' && log.a >= 10000) {
-          alerts.push({uid:u.id, level:'mid', user:u,
-            desc:'골드 +'+log.a.toLocaleString()+' 단일 획득 ('+log.r+')',
-            detail:formatTime(new Date(log.ts).toISOString())});
+        if (log.t==='gold') {
+          // 전투 로그: 웨이브 수 기반 동적 임계값 (적 수·킬골드·행성배율·골드배율 고려)
+          var _battleMatch = log.r && log.r.match(/전투\s*\(W(\d+)\)/);
+          if (_battleMatch) {
+            var _bWave = parseInt(_battleMatch[1], 10);
+            // 웨이브² × 20 (행성 최대 4.5x + 골드배율 감안), 최소 20000
+            var _battleThreshold = Math.max(20000, Math.round(_bWave * _bWave * 20));
+            if (log.a >= _battleThreshold) {
+              alerts.push({uid:u.id, level:'mid', user:u,
+                desc:'골드 +'+log.a.toLocaleString()+' 단일 획득 ('+log.r+') — 기준 '+_battleThreshold.toLocaleString(),
+                detail:formatTime(new Date(log.ts).toISOString())});
+            }
+          } else if (log.a >= 10000) {
+            // 비전투 로그: 고정 임계값
+            alerts.push({uid:u.id, level:'mid', user:u,
+              desc:'골드 +'+log.a.toLocaleString()+' 단일 획득 ('+log.r+')',
+              detail:formatTime(new Date(log.ts).toISOString())});
+          }
         }
         if (log.t==='gems' && log.a >= 100) {
           alerts.push({uid:u.id, level:'mid', user:u,
