@@ -11684,7 +11684,16 @@ function _applyWsCostPatches() {
   Object.keys(WS_BASE_COSTS).forEach(function(k) {
     if (!items[k]) return;
     var base = WS_BASE_COSTS[k];
-    items[k].cost = function(lv) { return Math.floor(base * Math.pow(1.35, lv)); };
+    var tab = items[k].tab;
+    items[k].cost = function(lv) {
+      var raw = Math.floor(base * Math.pow(1.35, lv));
+      var discKey = tab==='atk'?'res_atk_discount':tab==='def'?'res_def_discount':tab==='utl'?'res_utl_discount':'';
+      if (discKey) {
+        var disc = parseInt(localStorage.getItem(discKey)||'0',10);
+        if (disc > 0) raw = Math.max(1, Math.floor(raw * (1 - disc * 0.005)));
+      }
+      return raw;
+    };
   });
 
   // 무한 레벨 항목 강제 적용
