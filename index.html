@@ -3965,7 +3965,7 @@ function update(dt) {
           // 분열 적: 죽으면 기본 드론 2개 소환
           if (e.type === 'split' && !e._isSplitChild) {
             for (var _si=0;_si<2;_si++) {
-              var _sc = createEnemy('basic', e.x+(Math.random()-0.5)*16, e.y+(Math.random()-0.5)*16);
+              var _sc = mkEnemy('basic', e.x+(Math.random()-0.5)*16, e.y+(Math.random()-0.5)*16);
               _sc.hp = Math.ceil(e.maxHp*0.5); _sc.maxHp = _sc.hp; _sc.gold = 0; _sc._isSplitChild = true;
               G.enemies.push(_sc);
             }
@@ -4127,7 +4127,7 @@ function update(dt) {
       e.spawnTimer = (e.spawnTimer||0) + dt;
       if (e.spawnTimer >= 5000 && (e.spawnCount||0) < 3) {
         e.spawnTimer = 0; e.spawnCount = (e.spawnCount||0) + 1;
-        var _sp = createEnemy('basic', e.x + (Math.random()-0.5)*20, e.y + (Math.random()-0.5)*20);
+        var _sp = mkEnemy('basic', e.x + (Math.random()-0.5)*20, e.y + (Math.random()-0.5)*20);
         _sp.hp = _sp.maxHp * 0.5; _sp.maxHp = _sp.hp; _sp.gold = 0; _sp._fromSpawner = true;
         G.enemies.push(_sp);
       }
@@ -4338,7 +4338,7 @@ function fireTower() {
         var _eG2 = Math.round((target.gold||1)*(G.goldMult||1)*0.5);
         if (_eG2>0){G.gold+=_eG2;G.goldEarned+=_eG2;G.goldBaseEarned+=_eG2Base;PERM.gold+=_eG2;G.floatTexts.push({x:target.x,y:target.y+12,text:'+'+_eG2+' ◈',color:'#f59e0b',timer:0});}
         if(target.boss){PERM.bossKills++;if(target.bossGrade==='galaxy'){var _gT=parseInt(localStorage.getItem('td_tier')||'1',10);localStorage.setItem('galaxy_t'+_gT,'true');try{checkAchievements();}catch(_){}}}
-        if(target.type==='split'&&!target._isSplitChild){for(var _si3=0;_si3<2;_si3++){var _sc2=createEnemy('basic',target.x+(Math.random()-0.5)*16,target.y+(Math.random()-0.5)*16);_sc2.hp=Math.ceil(target.maxHp*0.5);_sc2.maxHp=_sc2.hp;_sc2.gold=0;_sc2._isSplitChild=true;G.enemies.push(_sc2);}}
+        if(target.type==='split'&&!target._isSplitChild){for(var _si3=0;_si3<2;_si3++){var _sc2=mkEnemy('basic',target.x+(Math.random()-0.5)*16,target.y+(Math.random()-0.5)*16);_sc2.hp=Math.ceil(target.maxHp*0.5);_sc2.maxHp=_sc2.hp;_sc2.gold=0;_sc2._isSplitChild=true;G.enemies.push(_sc2);}}
         if(target.type==='spawner'){for(var _ski2=G.enemies.length-1;_ski2>=0;_ski2--){if(G.enemies[_ski2]._fromSpawner){G.enemies.splice(_ski2,1);}}}
         addFx(target.x, target.y, target.r*2.8, target.boss?'#f97316':'#ef4444');
         G.enemies.splice(_idx, 1);
