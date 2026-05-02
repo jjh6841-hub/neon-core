@@ -19954,7 +19954,7 @@ window._renderElementTab = function(container) {
     var nxtMult = st.key === 'critRate' ? ((lv+1)*st.perLv*100)._tf1()+'%' : 'x'+(_cdBase+(lv+1)*st.perLv)._tf2();
     var lvText = st.maxLv ? 'Lv.'+lv+' / '+st.maxLv : 'Lv.'+lv;
 
-    stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:10px 12px;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;">'+
+    stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'+
       '<div>'+
         '<div style="font-size:11px;color:#94a3b8;font-family:monospace;">'+el.name+' '+st.name+' <span style="color:'+el.color+';font-weight:bold;">'+curMult+'</span>'+
         (!maxed ? ' <span style="color:#4a6a7a;">→ '+nxtMult+'</span>' : '')+'</div>'+
