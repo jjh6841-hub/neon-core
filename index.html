@@ -14886,6 +14886,39 @@ var _origAP_utl = window.applyPermStats;
 window.applyPermStats = function() {
   _origAP_utl.apply(this, arguments);
   if (!G) return;
+  // 코어랩 공격 연구
+  var _rDmg = parseInt(localStorage.getItem('res_r_damage')||'0',10);
+  if (_rDmg > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + _rDmg * 0.03));
+  var _rSpd = parseInt(localStorage.getItem('res_r_spd')||'0',10);
+  if (_rSpd > 0) {
+    var _spdM = 1 + _rSpd * 0.02;
+    G.tower.atkMs = Math.max(200, Math.round(G.tower.atkMs / _spdM));
+  }
+  var _rCrit = parseInt(localStorage.getItem('res_r_crit')||'0',10);
+  if (_rCrit > 0) { G.critChance = Math.min(1.0, (G.critChance||0) + _rCrit * 0.005); G.tower.critChance = G.critChance; }
+  var _rCritM = parseInt(localStorage.getItem('res_r_crit_mult')||'0',10);
+  if (_rCritM > 0) { G.critMult = (G.critMult||1.5) + _rCritM * 0.1; G.tower.critMult = G.critMult; }
+  var _rRng = parseInt(localStorage.getItem('res_r_range')||'0',10);
+  if (_rRng > 0) G.tower.range += _rRng * 8;
+  var _rPrc = parseInt(localStorage.getItem('res_r_pierce')||'0',10);
+  if (_rPrc > 0) G.pierce = (G.pierce||0) + _rPrc;
+  var _rDmgM = parseInt(localStorage.getItem('res_r_dmg_meter')||'0',10);
+  if (_rDmgM > 0) G.dmgPerMeter = (G.dmgPerMeter||1) + _rDmgM * 0.05;
+  // 코어랩 방어 연구
+  var _rHp = parseInt(localStorage.getItem('res_r_health')||'0',10);
+  if (_rHp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + _rHp * 0.03)); G.tower.hp = G.tower.maxHp; }
+  var _rRegen = parseInt(localStorage.getItem('res_r_regen')||'0',10);
+  if (_rRegen > 0) G.tower.hpRegen = (G.tower.hpRegen||0) * (1 + _rRegen * 0.03);
+  var _rDef = parseInt(localStorage.getItem('res_r_defense')||'0',10);
+  if (_rDef > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + _rDef * 0.03));
+  var _rVamp = parseInt(localStorage.getItem('res_r_vamp')||'0',10);
+  if (_rVamp > 0) G.lifeSteal = (G.lifeSteal||0) + _rVamp * 0.1;
+  var _rShield = parseInt(localStorage.getItem('res_r_shield')||'0',10);
+  if (_rShield > 0 && G.tower.shdMax > 0) { G.tower.shdMax = Math.round(G.tower.shdMax * (1 + _rShield * 0.01)); }
+  var _rKb = parseInt(localStorage.getItem('res_r_knockback')||'0',10);
+  if (_rKb > 0) G.knockbackChance = Math.min(1.0, (G.knockbackChance||0) + _rKb * 0.005);
+  var _rProtoCD = parseInt(localStorage.getItem('res_r_proto_cd')||'0',10);
+  if (_rProtoCD > 0) G._resProtoCdReduce = _rProtoCD * 0.005;
   // 코어랩 유틸 연구 값 합산
   var _rck = parseInt(localStorage.getItem('res_r_chip_kill')||'0',10);
   var _rcw = parseInt(localStorage.getItem('res_r_chip_wave')||'0',10);
@@ -17156,7 +17189,12 @@ function _getProtoLv(id){
   return d[id].lv;
 }
 function _getProtoCd(p, lv){
-  return Math.max(5, p.baseCd - lv * p.cdReduce);
+  var base = Math.max(5, p.baseCd - lv * p.cdReduce);
+  var wsReduce = window.G && G._protoCdReduce ? G._protoCdReduce : 0;
+  var resReduce = window.G && G._resProtoCdReduce ? G._resProtoCdReduce : 0;
+  var totalReduce = wsReduce + resReduce;
+  if (totalReduce > 0) base = Math.max(5, base * (1 - totalReduce));
+  return base;
 }
 
 /* ── 뽑기 (만렙 제외) ── */
