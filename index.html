@@ -19935,6 +19935,9 @@ var _elemActiveTab = 'fire';
 
 window._renderElementTab = function(container) {
   container.style.gridTemplateColumns = '1fr';
+  container.style.gridAutoRows = 'auto';
+  container.style.gap = '0px';
+  container.style.padding = '6px 10px';
   var el = ELEMENTS.filter(function(e){return e.id===_elemActiveTab;})[0] || ELEMENTS[0];
   var cores = _getCore(el.id);
 
@@ -19974,7 +19977,7 @@ window._renderElementTab = function(container) {
       '</div>'+
       (maxed
         ? '<span style="color:#334455;font-size:10px;font-family:monospace;">MAX</span>'
-        : '<button data-elem-up="'+el.id+'" data-elem-stat="'+st.key+'" style="background:#030b10;border:1px solid '+(afford?el.color+'66':'#1a2a3a')+';color:'+(afford?el.color:'#334455')+';padding:5px 10px;font-family:monospace;font-size:11px;cursor:pointer;-webkit-appearance:none;">'+el.icon+' '+cost+'</button>')+
+        : '<button data-elem-up="'+el.id+'" data-elem-stat="'+st.key+'" style="background:#030b10;border:1px solid '+(afford?el.color+'66':'#1a2a3a')+';color:'+(afford?el.color:'#334455')+';padding:3px 8px;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">'+el.icon+' '+cost+'</button>')+
     '</div>';
   });
 
