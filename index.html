@@ -19934,7 +19934,7 @@ window._renderElementTab = function(container) {
     var active = e.id === _elemActiveTab;
     tabBar += '<div data-elem-tab="'+e.id+'" style="flex:1;text-align:center;padding:5px 0;cursor:pointer;font-family:monospace;font-size:10px;line-height:1;'+
       'background:'+(active?e.color+'15':'transparent')+';border-bottom:2px solid '+(active?e.color:'transparent')+';color:'+(active?e.color:'#445566')+';">'+
-      e.icon+' '+e.name+'</div>';
+      '<span style="font-size:11px;vertical-align:middle;">'+e.icon+'</span> '+e.name+'</div>';
   });
   tabBar += '</div>';
 
