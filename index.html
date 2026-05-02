@@ -11663,7 +11663,7 @@ function _patchStartWave() {
     orig.apply(this, arguments);
     if (!window.G) return;
     var w = G.wave;
-    G.spawnIntvl = Math.max(300, 1200 - w * 15);
+    G.spawnIntvl = Math.max(400, 1800 - w * 14);
     G.spawnTimer = G.spawnIntvl;
     if (w >= 2) {
       coreChips -= w * 2;  // 기존 w*2 취소
