@@ -14659,7 +14659,7 @@ window.fireTower = function() {
   if (!G || !G.enemies.length) return;
 
   // ① 넉백: 발사 시 최근접 적을 확률로 밀어냄
-  if (G.knockbackChance > 0) {
+  if (G.knockbackChance > 0 && G.knockbackForce > 0) {
     var kTgt = null, kMin = G.tower.range + 1;
     for (var ki = 0; ki < G.enemies.length; ki++) {
       var ke = G.enemies[ki];
