@@ -3013,7 +3013,7 @@ var UPGRADES = [
     cost()   { return upgCost('shieldHP',12); },
     stat()   { return (((PERM.ws&&PERM.ws.shieldHP||0)+(G.upgLvl.shieldHP||0))*1)+'%'; },
     canBuy() { return _canUpg('shieldHP',50) && coreChips>=upgCost('shieldHP',12); },
-    apply()  { var c=upgCost('shieldHP',12); coreChips-=c; G.upgLvl.shieldHP=(G.upgLvl.shieldHP||0)+1; if(G.tower&&G.tower.shdMax>0){ var _inc=Math.round(G.tower.maxHp*0.01); G.tower.shdMax+=_inc; G.tower.shdCur=Math.min((G.tower.shdCur||0)+_inc,G.tower.shdMax); } },
+    apply()  { var c=upgCost('shieldHP',12); coreChips-=c; G.upgLvl.shieldHP=(G.upgLvl.shieldHP||0)+1; if(G.tower){ var _sLv=(PERM.ws&&PERM.ws.shieldHP||0)+(G.upgLvl.shieldHP||0); var _newMax=Math.round(G.tower.maxHp*Math.min(50,_sLv)/100); var _inc=_newMax-(G.tower.shdMax||0); G.tower.shdMax=_newMax; G.tower.shdCur=Math.min((G.tower.shdCur||0)+Math.max(0,_inc),G.tower.shdMax); } },
   },
   { key:'pulseSize', tab:'def', icon:'◎', name:'파장 크기',  baseCost:15, unlock:'pulse', maxLv:10,
     cost()   { return upgCost('pulseSize',15); },
@@ -7181,8 +7181,8 @@ if (dailyPopup) {
       nxt:  function(lv) { return ((lv + 1) * 0.1)._tf1() + '%'; } },
     knockChance:{ tab:'def', name:'넉백 확률',    maxLv:60,  defGroup:4,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
-      cur:  function(lv) { return (lv * 0.5)._tf1(); },
-      nxt:  function(lv) { return ((lv + 1) * 0.5)._tf1(); } },
+      cur:  function(lv) { return (lv * 0.5)._tf1() + '%'; },
+      nxt:  function(lv) { return ((lv + 1) * 0.5)._tf1() + '%'; } },
     shieldHP:   { tab:'def', name:'쉴드 HP',      maxLv:50,  defGroup:5,
       cost: function(lv) { return 50 * Math.pow(2, lv); },
       cur:  function(lv) { return lv + '%'; },
@@ -13782,7 +13782,7 @@ function _showStatsPopup() {
   var _kbl=ws.knockbackChance||0; h+=_row('넉백 확률 Lv.'+_kbl, (_kbl*0.5)._tf1()+'%');
   var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5)._tf1()+'%');
   var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1)._tf1()+'%');
-  var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, (_shl*10));
+  var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, _shl+'%');
 
   // ── 코어랩 연구 ──
   h+=_section('코어랩 연구');
@@ -16485,7 +16485,7 @@ window.showMarketToast = function (msg, color) {
     _origAPS_shd.apply(this, arguments);
     if (!window.G || !G.tower) return;
     var ws = (window.PERM && window.PERM.ws) || {};
-    G.tower.shdMax = (ws.shieldHP || 0) * 10;  // 워크샵 shieldHP Lv당 10HP (UI와 일치)
+    G.tower.shdMax = Math.round(G.tower.maxHp * (ws.shieldHP || 0) / 100);  // 최대 체력의 N%
     G.tower.shdCur = G.tower.shdMax;            // 게임 시작 시 꽉 채워서 시작
     G.tower.absorbPct = (ws.absorbPct || 0) * 0.02; // 0~60% 피해 흡수율 (미사용 예비)
   };
