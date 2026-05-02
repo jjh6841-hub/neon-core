@@ -8085,20 +8085,22 @@ if (dailyPopup) {
       <div id="fw-rule-card" style="flex:1;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
     </div>
 
-    <!-- 순위 -->
-    <div style="margin-bottom:8px;">
-      <div style="color:#00dddd;font-size:11px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">순위</div>
-      <div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;max-height:200px;overflow-y:auto;">
-        <div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">
-          <div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>
+    <!-- 순위 + 보상 (가로 배치) -->
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">순위</div>
+        <div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;max-height:200px;overflow-y:auto;">
+          <div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">
+            <div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- 보상 -->
-    <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-      <div style="color:#ffc800;font-size:11px;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">시즌 보상</div>
-      <div id="fw-rewards"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="color:#ffc800;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">시즌 보상</div>
+        <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;">
+          <div id="fw-rewards"></div>
+        </div>
+      </div>
     </div>
 
     <!-- 버튼: 주파수 상점(4) + 참가하기(6) -->
@@ -15816,23 +15818,26 @@ function _injectScreens() {
               '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:9px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:16px;font-weight:bold;">-</div></div>' +
             '</div>' +
           '</div>' +
-          /* 우: 순위 */
-          '<div style="flex:1;min-width:0;">' +
-            '<div style="color:#00dddd;font-size:10px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">순위</div>' +
-            '<div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;max-height:180px;overflow-y:auto;">' +
-              '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">' +
-                '<div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>' +
+          /* 우: 순위 + 시즌 보상 (가로 배치) */
+          '<div style="flex:1;min-width:0;display:flex;gap:6px;">' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">순위</div>' +
+              '<div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;max-height:180px;overflow-y:auto;">' +
+                '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">' +
+                  '<div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="color:#ffc800;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">시즌 보상</div>' +
+              '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;">' +
+                '<div id="fw-rewards"></div>' +
               '</div>' +
             '</div>' +
           '</div>' +
         '</div>' +
         /* 이번 주 규칙 */
         '<div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:10px;"></div>' +
-        /* 보상 */
-        '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:10px;">' +
-          '<div style="color:#ffc800;font-size:10px;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">시즌 보상</div>' +
-          '<div id="fw-rewards"></div>' +
-        '</div>' +
         /* 버튼들 */
         '<button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #00dddd;border-radius:10px;color:#ffffff;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;padding:12px;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #00dddd;margin-bottom:8px;">참가하기</button>' +
         '<button id="fw-shop-btn" style="width:100%;background:#0c0c22;border:1px solid #ffc800;border-radius:10px;color:#ffc800;font-family:\'Courier New\',monospace;font-size:11px;padding:8px;cursor:pointer;letter-spacing:1px;">✦ 주파수 상점</button>' +
@@ -16244,10 +16249,16 @@ function _getCurrentRule(){
     var found=FW_RULES.filter(function(r){return r.id===_fwOverrideRule;})[0];
     if(found) return found;
   }
-  // 자동: 주간 교체
+  // 자동: 주간 교체 (월요일 01:00 기준, 정산 타이밍과 동기화)
   var now=new Date();
-  var jan1=new Date(now.getFullYear(),0,1);
-  var weekNum=Math.floor(((now-jan1)/86400000+jan1.getDay())/7);
+  // 월요일 01시 이전이면 아직 이전 주 규칙 유지
+  var adj=new Date(now);
+  var dayOff=(adj.getDay()+6)%7; // 월=0,화=1,...일=6
+  if(dayOff===0 && adj.getHours()<1) adj.setDate(adj.getDate()-1); // 월요일 01시 전이면 전주
+  adj.setDate(adj.getDate()-dayOff); // 해당 주 월요일로 이동
+  adj.setHours(0,0,0,0);
+  var jan1Mon=new Date(adj.getFullYear(),0,1);
+  var weekNum=Math.floor((adj-jan1Mon)/604800000);
   return FW_RULES[weekNum % FW_RULES.length];
 }
 window._getCurrentRule = _getCurrentRule;
@@ -16329,15 +16340,15 @@ function renderFW(){
     }
     if(playerWave>0) scores.push({name:fw.playerName||'\uB098', score:playerWave, isPlayer:true});
     scores.sort(function(a,b){return b.score-a.score;});
-    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:7px;width:14px;">#</span><span style="color:#556677;font-size:7px;">닉네임</span></div><span style="color:#556677;font-size:7px;">W</span></div>';
+    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:9px;width:14px;">#</span><span style="color:#556677;font-size:9px;">닉네임</span></div><span style="color:#556677;font-size:9px;">W</span></div>';
     scores.slice(0,10).forEach(function(s,idx){
       var rc=idx===0?'#ffc800':idx===1?'#C0C0C0':idx===2?'#CD7F32':'#334455';
       html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;">'+
         '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
-          '<span style="color:'+rc+';font-size:9px;width:14px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
+          '<span style="color:'+rc+';font-size:11px;width:14px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
         '</div>'+
-        '<span style="color:#ffc800;font-size:9px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
+        '<span style="color:#ffc800;font-size:11px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
       '</div>';
     });
     lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
@@ -16366,10 +16377,10 @@ function renderFW(){
     var rw=tierRewards[fw.tier||0]||tierRewards[0];
     rwEl.innerHTML=
       '<div style="display:flex;flex-direction:column;gap:3px;">'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#ffc800;font-size:11px;">🥇 1위</span><span style="color:#ffc800;font-size:11px;">✦ '+rw[0]+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#C0C0C0;font-size:11px;">🥈 2위</span><span style="color:#C0C0C0;font-size:11px;">✦ '+rw[1]+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#CD7F32;font-size:11px;">🥉 3위</span><span style="color:#CD7F32;font-size:11px;">✦ '+rw[2]+'</span></div>'+
-        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#334455;font-size:11px;">4위~</span><span style="color:#334455;font-size:11px;">✦ '+rw[3]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#ffc800;font-size:13px;">🥇 1위</span><span style="color:#ffc800;font-size:13px;">✦ '+rw[0]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#C0C0C0;font-size:13px;">🥈 2위</span><span style="color:#C0C0C0;font-size:13px;">✦ '+rw[1]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#CD7F32;font-size:13px;">🥉 3위</span><span style="color:#CD7F32;font-size:13px;">✦ '+rw[2]+'</span></div>'+
+        '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:#334455;font-size:13px;">4위~</span><span style="color:#334455;font-size:13px;">✦ '+rw[3]+'</span></div>'+
       '</div>';
   }
 
@@ -19940,8 +19951,8 @@ window._renderElementTab = function(container) {
 
   // 코어 보유량
   var header = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
-    '<span style="font-size:11px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.icon+' '+el.name+' 속성</span>'+
-    '<span style="font-size:11px;color:'+el.color+';font-family:monospace;">'+el.core+': '+cores+'</span>'+
+    '<span style="font-size:11px;color:'+el.color+';font-family:monospace;font-weight:bold;">'+el.name+' 속성</span>'+
+    '<span style="font-size:11px;color:'+el.color+';font-family:monospace;">'+el.icon+' '+cores+'</span>'+
   '</div>';
 
   // 스탯 카드
