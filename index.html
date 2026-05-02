@@ -2848,6 +2848,7 @@ function upgCost(key, base) {
   return raw;
 }
 // 소수점 절삭 (반올림 없이 내림) — Number prototype
+Number.prototype._tf3 = function() { var m=1000; return (Math.floor(this*m+0.0001)/m).toFixed(3); };
 Number.prototype._tf2 = function() { var m=100; return (Math.floor(this*m+0.0001)/m).toFixed(2); };
 Number.prototype._tf1 = function() { var m=10;  return (Math.floor(this*m+0.0001)/m).toFixed(1); };
 // 절대 방어: 1~10레벨 +1, 11레벨부터 20%씩 상승
@@ -3885,6 +3886,16 @@ function update(dt) {
         if (G.modLvCritChance > 0 && Math.random() < G.modLvCritChance) {
           dmg = Math.round(dmg * G.modLvCritMult);
           e.hitFlash = 2;
+        }
+        // 속성 치명타 (각 속성별 독립 판정)
+        if (G.elemCrits) {
+          for (var _eci = 0; _eci < G.elemCrits.length; _eci++) {
+            var _ec = G.elemCrits[_eci];
+            if (_ec.chance > 0 && Math.random() < _ec.chance) {
+              dmg = Math.round(dmg * _ec.mult);
+              e.hitFlash = 3;
+            }
+          }
         }
         // 적 방어력 감소 (적 방어력이 있을 때만 %만큼 차감)
         if (G.enemyDefReduce > 0 && e.defense && e.defense > 0) {
@@ -13713,11 +13724,20 @@ function _showStatsPopup() {
   // 4. 모듈 레벨 치명타 (독립 판정, 기본 1.5x)
   var modLvCritChance=_modLv.crit||0;
   var modLvCritMult=_modLv.cdmg>0?1+_modLv.cdmg/100:1.5;
-  // 5. 속성 치명타 (속성 시스템)
-  var elemCritRate=(em.critRate||0)*100;
-  var elemCritDmg=em.critDmg||1;
+  // 5. 속성 치명타 (각 속성별 독립 판정)
+  var _ELEMS=window._ELEMENTS||[];
+  var _elemCritList=[];
+  var _elemCritMaxMult=1;
+  _ELEMS.forEach(function(el){
+    var rateLv=parseInt(localStorage.getItem('elem_'+el.id+'_critRate')||'0',10);
+    var dmgLv=parseInt(localStorage.getItem('elem_'+el.id+'_critDmg')||'0',10);
+    var chance=rateLv*0.2;
+    var mult=1.5+dmgLv*0.03;
+    _elemCritList.push({id:el.id,name:el.name,icon:el.icon,color:el.color,rateLv:rateLv,dmgLv:dmgLv,chance:chance,mult:mult});
+    if(rateLv>0) _elemCritMaxMult*=mult;
+  });
   // 전부 터졌을 때 최대 치명타 피해
-  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1)*(elemCritDmg>1?elemCritDmg:1));
+  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1)*_elemCritMaxMult);
 
   // ── 최종 공격속도 계산 ──
   var _baseSpdMult=1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05;
@@ -13744,7 +13764,12 @@ function _showStatsPopup() {
   h+=_clickRow('② 강화 치명타',enhCritChance._tf1()+'% / ×'+enhCritMult._tf2(),'#a855f7','detail-ecrit');
   h+=_clickRow('③ 모듈 치명타',modCritChance>0?modCritChance._tf1()+'% / ×'+modCritMult._tf2():'미장착 / ×'+modCritMult._tf2(),'#22ddaa','detail-mcrit');
   h+=_row('④ 모듈Lv 치명타',modLvCritChance>0?modLvCritChance._tf1()+'% / ×'+modLvCritMult._tf2():'- / ×'+modLvCritMult._tf2(),'#00ccaa');
-  h+=_clickRow('⑤ 속성 치명타',elemCritRate._tf1()+'% / ×'+elemCritDmg._tf2(),'#cc44ff','detail-elemcrit');
+  h+=_clickRow('⑤ 속성 치명타 (독립 판정)',_elemCritList.filter(function(e){return e.rateLv>0;}).length+'/6 활성','#cc44ff','detail-elemcrit');
+  _elemCritList.forEach(function(ec,idx){
+    var label='  '+ec.icon+ec.name;
+    var val=ec.rateLv>0?ec.chance._tf1()+'% / ×'+ec.mult._tf2():'미투자';
+    h+=_row(label,val,ec.color);
+  });
   h+=_row('체력 재생',((ws.hpRegen||0)*0.05)._tf2()+'/s','#10b981');
   h+=_row('흡혈',((ws.vampChance||0)*0.1)._tf1()+'%','#ef4444');
 
@@ -14040,40 +14065,30 @@ function _showStatsPopup() {
         ['  모듈 Lv 치명타 계수', modLvCritMult>0?'×'+modLvCritMult._tf2():'-'],
         ['  ※ 독립 판정 (①②③과 모두 별개)',''],
         ['',''],
-        ['⑤ 속성 치명타','── 확률: +'+elemCritRate._tf1()+'%'],
-        ['  속성 치명타 피해', elemCritDmg>1?'×'+elemCritDmg._tf2():'-'],
-        ['  ※ 일반 치명타 확률/배율에 합산',''],
+        ['⑤ 속성 치명타','── 각 속성별 독립 판정'],
+      ].concat(_elemCritList.map(function(ec){
+        return ['  '+ec.icon+ec.name, ec.rateLv>0?ec.chance._tf1()+'% / ×'+ec.mult._tf2():'미투자'];
+      })).concat([
+        ['  ※ 각 속성 독립 판정 (동시 발동 가능)',''],
         ['─────────',''],
         ['전부 발동 시 최대 피해', _fn(maxCritDmg)],
-        ['계산식', _fn(allDmg)+' × '+normalCritMult._tf2()+(enhCritMult>0?' × '+enhCritMult._tf2():'')+(modCritMult>0?' × '+modCritMult._tf2():'')+(modLvCritMult>0?' × '+modLvCritMult._tf2():'')+(elemCritDmg>1?' × '+elemCritDmg._tf2():'')],
+        ['계산식', _fn(allDmg)+' × '+normalCritMult._tf2()+(enhCritMult>0?' × '+enhCritMult._tf2():'')+(modCritMult>0?' × '+modCritMult._tf2():'')+(modLvCritMult>0?' × '+modLvCritMult._tf2():'')+(_elemCritMaxMult>1?' × '+_elemCritMaxMult._tf2():'')],
       ]
     },
     'detail-elemcrit': {
-      title:'속성 치명타 상세',color:'#cc44ff',
+      title:'속성 치명타 상세 (각 속성 독립 판정)',color:'#cc44ff',
       rows:(function(){
         var r=[];
-        var _ELEMS=window._ELEMENTS||[];
-        r.push(['[ 치명타율 (합연산) ]','']);
-        var _totalElemCritRate=0;
-        _ELEMS.forEach(function(el){
-          var lv=parseInt(localStorage.getItem('elem_'+el.id+'_critRate')||'0',10);
-          var pct=(lv*0.002*100);
-          _totalElemCritRate+=pct;
-          r.push([el.icon+' '+el.name+' 치명타율','Lv.'+lv+' (+'+pct._tf1()+'%)']);
+        _elemCritList.forEach(function(ec){
+          r.push(['','']);
+          r.push([ec.icon+' '+ec.name+' 치명타','']);
+          r.push(['  확률','Lv.'+ec.rateLv+' ('+ec.chance._tf1()+'%)'+(ec.rateLv===0?' 미투자':'')]);
+          r.push(['  피해 배율','Lv.'+ec.dmgLv+' (×'+ec.mult._tf2()+')'+(ec.dmgLv===0?' 기본':'')]);
         });
-        r.push(['─────────','']);
-        r.push(['합계 치명타율 보너스','+'+_totalElemCritRate._tf1()+'%']);
         r.push(['','']);
-        r.push(['[ 치명타 피해 (곱연산) ]','']);
-        var _totalElemCritDmg=1;
-        _ELEMS.forEach(function(el){
-          var lv=parseInt(localStorage.getItem('elem_'+el.id+'_critDmg')||'0',10);
-          var mult=(1.5+lv*0.03);
-          if(lv>0) _totalElemCritDmg*=mult;
-          r.push([el.icon+' '+el.name+' 치명타 피해','Lv.'+lv+' (×'+mult._tf2()+')'+(lv===0?' 미투자':'')]);
-        });
         r.push(['─────────','']);
-        r.push(['곱연산 결과','×'+_totalElemCritDmg._tf2()]);
+        r.push(['전부 발동 시 곱연산','×'+_elemCritMaxMult._tf2()]);
+        r.push(['※ 각 속성 독립 판정, 동시 발동 가능','']);
         return r;
       })()
     }
@@ -14086,7 +14101,7 @@ function _showStatsPopup() {
       var dp=document.createElement('div');
       dp.id='stat-detail-popup';
       dp.style.cssText='position:fixed;inset:0;background:rgba(3,8,16,0.95);z-index:9900;display:flex;align-items:center;justify-content:center;padding:16px;';
-      var dh='<div style="background:#0a1a2a;border:1px solid '+info.color+'55;width:100%;max-width:300px;padding:16px;font-family:Courier New,monospace;">';
+      var dh='<div style="background:#0a1a2a;border:1px solid '+info.color+'55;width:100%;max-width:300px;max-height:80vh;overflow-y:auto;padding:16px;font-family:Courier New,monospace;">';
       dh+='<div style="color:'+info.color+';font-size:12px;font-weight:bold;letter-spacing:2px;margin-bottom:12px;text-align:center;">'+info.title+'</div>';
       info.rows.forEach(function(r){
         if(r[0].indexOf('───')>=0) dh+='<div style="border-top:1px solid #0a2233;margin:6px 0;"></div>';
@@ -19832,14 +19847,13 @@ function _setElemLv(elemId,statKey,v) { localStorage.setItem('elem_'+elemId+'_'+
 
 /* ── 속성 배율 합산 (applyPermStats에서 호출) ── */
 function _getElementMultipliers() {
-  var m = { atk:1, def:1, hp:1, critDmg:1, critRate:0 };
+  var m = { atk:1, def:1, hp:1 };
   ELEMENTS.forEach(function(el) {
     ELEM_STATS.forEach(function(st) {
+      if (st.key === 'critRate' || st.key === 'critDmg') return;
       var lv = _getElemLv(el.id, st.key);
       if (lv > 0) {
-        if (st.key === 'critRate') m.critRate += lv * st.perLv;
-        else if (st.key === 'critDmg') m[st.key] *= (1.5 + lv * st.perLv);
-        else m[st.key] *= (1 + lv * st.perLv);
+        m[st.key] *= (1 + lv * st.perLv);
       }
     });
   });
@@ -19891,8 +19905,8 @@ window._renderElementTab = function(container) {
     var cost = maxed ? 0 : st.cost(lv);
     var afford = cores >= cost;
     var _cdBase = st.key === 'critDmg' ? 1.5 : 1;
-    var curMult = st.key === 'critRate' ? '+'+(lv*st.perLv*100)._tf1()+'%' : 'x'+(_cdBase+lv*st.perLv)._tf2();
-    var nxtMult = st.key === 'critRate' ? '+'+((lv+1)*st.perLv*100)._tf1()+'%' : 'x'+(_cdBase+(lv+1)*st.perLv)._tf2();
+    var curMult = st.key === 'critRate' ? (lv*st.perLv*100)._tf1()+'%' : 'x'+(_cdBase+lv*st.perLv)._tf2();
+    var nxtMult = st.key === 'critRate' ? ((lv+1)*st.perLv*100)._tf1()+'%' : 'x'+(_cdBase+(lv+1)*st.perLv)._tf2();
     var lvText = st.maxLv ? 'Lv.'+lv+' / '+st.maxLv : 'Lv.'+lv;
 
     stats += '<div style="background:#0a1020;border:1px solid '+el.color+'22;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'+
@@ -20254,8 +20268,19 @@ if (typeof _prevApplyElem === 'function') {
     G.tower.maxHp   = Math.round(G.tower.maxHp * m.hp);
     G.tower.hp      = G.tower.maxHp;
     G.defenseAbs = Math.round((G.defenseAbs||0) * m.def);
-    G.critMult      = (G.critMult||1.5) * m.critDmg;
-    G.tower.critChance = Math.min(1.0, (G.tower.critChance||0) + m.critRate);
+    // 속성 치명타: 각 속성별 독립 판정 (모듈 치명타와 동일 방식)
+    G.elemCrits = [];
+    ELEMENTS.forEach(function(el) {
+      var rateLv = _getElemLv(el.id, 'critRate');
+      var dmgLv  = _getElemLv(el.id, 'critDmg');
+      if (rateLv > 0) {
+        G.elemCrits.push({
+          id: el.id, name: el.name, icon: el.icon,
+          chance: rateLv * 0.002,
+          mult: 1.5 + dmgLv * 0.03
+        });
+      }
+    });
   };
 }
 
