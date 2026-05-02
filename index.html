@@ -3571,9 +3571,13 @@ function gameLoop(gen, ts) {
   }
   const rawDt = Math.min(ts - G.lastTime, 100);
   G.lastTime = ts;
-  update(rawDt);
-  updateShake();
-  render();
+  try {
+    update(rawDt);
+    updateShake();
+    render();
+  } catch(err) {
+    console.error('[네온코어] gameLoop 에러:', err);
+  }
   if (G.phase !== 'gameover') {
     requestAnimationFrame(function(nts) { gameLoop(gen, nts); });
   }
@@ -13733,7 +13737,7 @@ function _showStatsPopup() {
     if(rateLv>0) _elemCritMaxMult*=mult;
   });
   // 전부 터졌을 때 최대 치명타 계수
-  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritMult>0?modCritMult:1)*(modLvCritMult>0?modLvCritMult:1)*_elemCritMaxMult);
+  var maxCritDmg=Math.round(allDmg*normalCritMult*(enhCritMult>0?enhCritMult:1)*(modCritChance>0&&modCritMult>0?modCritMult:1)*(modLvCritChance>0&&modLvCritMult>0?modLvCritMult:1)*_elemCritMaxMult);
 
   // ── 최종 공격속도 계산 ──
   var _baseSpdMult=1+(PERM.spdLv||0)*0.05+(ws.atkspd||0)*0.05;
@@ -13839,22 +13843,24 @@ function _showStatsPopup() {
 
   // ── 모듈 ──
   h+=_section('모듈 효과','#22ddaa');
-  var _modSlots2=window._getModSlots?_getModSlots():[];
-  var _modInv2=window._getModInv?_getModInv():[];
-  var _slotLvs2=window._getSlotLevels?_getSlotLevels():[0,0,0,0,0,0];
+  var _modSlots2=window._getModSlots?window._getModSlots():[];
+  var _slotLvs2=window._getSlotLevels?window._getSlotLevels():[0,0,0,0,0,0];
+  var _modInv2=window._getModInv?window._getModInv():[];
+  var _MT=window.MODULE_TYPES||[];
+  var _TM=window.TIERS_MOD||[];
   var _hasModEff=false;
   _modSlots2.forEach(function(uid,si){
     if(!uid)return;
     var mod2=_modInv2.filter(function(m){return m.uid===uid;})[0];
     if(!mod2)return;
     _hasModEff=true;
-    var type2=MODULE_TYPES.filter(function(t){return t.id===mod2.typeId;})[0];
-    var tier2=TIERS[mod2.tier]||TIERS[0];
-    var eff2=window._getModEffect?_getModEffect(mod2):0;
+    var type2=_MT.filter(function(t){return t.id===mod2.typeId;})[0];
+    var tier2=_TM[mod2.tier]||_TM[0];
+    var eff2=window._getModEffect?window._getModEffect(mod2):0;
     var slotLv=_slotLvs2[si]||0;
-    var lvEff2=window._getModLvEffect?_getModLvEffect(mod2.typeId,slotLv):0;
-    var effLabel=window._modEffLabel?_modEffLabel(mod2.typeId,eff2):'';
-    h+=_row(type2.name+' ('+_fullTierName(mod2.tier,mod2.sub||0)+')', effLabel, tier2.color);
+    var lvEff2=window._getModLvEffect?window._getModLvEffect(mod2.typeId,slotLv):0;
+    var effLabel=window._modEffLabel?window._modEffLabel(mod2.typeId,eff2):'';
+    h+=_row(type2.name+' ('+window._fullTierName(mod2.tier,mod2.sub||0)+')', effLabel, tier2?tier2.color:'#22ddaa');
     if(slotLv>0) h+=_row('  └ 슬롯 Lv.'+slotLv+' 효과', '+'+lvEff2+'%', '#00ccaa');
   });
   if(!_hasModEff) h+=_row('장착 없음','-','#334455');
@@ -20818,6 +20824,17 @@ window._getModuleBonuses = function() {
   return b;
 };
 
+/* ── 모듈 내부 함수 window 등록 (통계 팝업 등에서 사용) ── */
+window._getModSlots = _getModSlots;
+window._getModInv = _getModInv;
+window._getSlotLevels = _getSlotLevels;
+window._getModEffect = _getModEffect;
+window._modEffLabel = _modEffLabel;
+window._getModLvEffect = _getModLvEffect;
+window._fullTierName = _fullTierName;
+window.MODULE_TYPES = MODULE_TYPES;
+window.TIERS_MOD = TIERS;
+
 /* ── 모드 상태 (null / 'synth' / 'decomp') ── */
 var _modMode = null;
 var _modSelected = [];
@@ -21696,6 +21713,7 @@ if (typeof _prevApplyMod === 'function') {
     if (b.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + b.hp/100)); G.tower.hp = G.tower.maxHp; }
     if (b.def > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + b.def/100));
     // 모듈 치명타 (독립 판정 — 일반/강화 치명타와 별개)
+    G.modCritChance = 0;
     G.modCritMult = b.cdmg > 0 ? b.cdmg : 1.5;
     if (b.crit > 0) G.modCritChance = Math.min(1.0, b.crit/100);
     // 합연산: 골드 획득
@@ -21706,6 +21724,7 @@ if (typeof _prevApplyMod === 'function') {
     if (lv.hp > 0) { G.tower.maxHp = Math.round(G.tower.maxHp * (1 + lv.hp/100)); G.tower.hp = G.tower.maxHp; }
     if (lv.def > 0) G.defenseAbs = Math.round((G.defenseAbs||0) * (1 + lv.def/100));
     // 모듈 레벨 치명타 (독립 판정 — 모듈 치명타와도 별개)
+    G.modLvCritChance = 0;
     G.modLvCritMult = lv.cdmg > 0 ? 1 + lv.cdmg/100 : 1.5;
     if (lv.crit > 0) G.modLvCritChance = Math.min(1.0, lv.crit/100);
     if (lv.gold > 0) G.goldMult = (G.goldMult||1) + lv.gold/100;
