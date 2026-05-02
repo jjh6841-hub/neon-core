@@ -2832,20 +2832,7 @@ function getUpgradeCost(baseCost, currentLevel) {
 /* ── 인게임 업그레이드 정의 (임시) ── */
 function upgCost(key, base) {
   if (!G) return base;
-  var raw = getUpgradeCost(base, G.upgLvl[key] || 0);
-  // 공격/방어 할인 적용
-  var upg = UPGRADES && UPGRADES.find(function(u){ return u.key === key; });
-  if (upg && upg.tab === 'atk') {
-    var atkDisc = parseInt(localStorage.getItem('res_atk_discount')||'0',10);
-    if (atkDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - atkDisc * 0.005)));
-  } else if (upg && upg.tab === 'def') {
-    var defDisc = parseInt(localStorage.getItem('res_def_discount')||'0',10);
-    if (defDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - defDisc * 0.005)));
-  } else if (upg && upg.tab === 'utl') {
-    var utlDisc = parseInt(localStorage.getItem('res_utl_discount')||'0',10);
-    if (utlDisc > 0) raw = Math.max(1, Math.floor(raw * (1 - utlDisc * 0.005)));
-  }
-  return raw;
+  return getUpgradeCost(base, G.upgLvl[key] || 0);
 }
 // 소수점 절삭 (반올림 없이 내림) — Number prototype
 Number.prototype._tf3 = function() { var m=1000; return (Math.floor(this*m+0.0001)/m).toFixed(3); };
