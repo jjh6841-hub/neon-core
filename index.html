@@ -3929,8 +3929,14 @@ function update(dt) {
               _te.hp-=_cDmg;
               _te.hitFlash=5;
               addFx(_te.x,_te.y,10,'#ffc800');
-              if(G.floatTexts) G.floatTexts.push({x:_te.x,y:_te.y-((e.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
+              if(G.floatTexts) G.floatTexts.push({x:_te.x,y:_te.y-((_te.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
+              if(_te.hp<=0){
+                G.killCount++; PERM.totalKills++;
+                var _ceG=Math.round((_te.gold||1)*(G.goldMult||1)); G.gold+=_ceG; G.goldEarned+=_ceG; PERM.gold+=_ceG;
+                addFx(_te.x,_te.y,(_te.r||10)*2,'#ffc800');
+              }
             }
+            G.enemies=G.enemies.filter(function(ee){return ee.hp>0;});
           })(e);
         }
         // 흡혈 드론: 입힌 피해의 30% 회복
@@ -17754,7 +17760,7 @@ function _showProtoDetailPopup(pid){
   if(p.healBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>회복</span><span style="color:'+p.color+';">'+(p.healBase+lv*p.healPerLv)+'%</span></div>';
   if(p.shotBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>발사 수</span><span style="color:'+p.color+';">'+(p.shotBase+lv*p.shotPerLv)+'발</span></div>';
   if(p.chainBase!==undefined) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>연쇄</span><span style="color:'+p.color+';">'+(p.chainBase+lv*p.chainPerLv)+'체</span></div>';
-  if(p.beamCounts) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>빔 수</span><span style="color:'+p.color+';"> '+(p.beamCounts[lv]||p.beamCounts[0])+'개</span></div>';
+  if(p.beamCounts) infoRows+='<div style="display:flex;justify-content:space-between;padding:3px 0;color:#94a3b8;"><span>빔 수</span><span style="color:'+p.color+';"> '+(p.beamCounts[Math.min(lv,p.beamCounts.length-1)])+'개</span></div>';
 
   var box='<div style="background:#0d1520;border:2px solid '+p.color+'44;border-radius:12px;width:290px;max-width:92%;padding:20px;text-align:center;">';
   // 아이콘
@@ -17991,8 +17997,8 @@ function _useProtocol(id){
     // EMP로 즉사한 적 처리
     _empKills.forEach(function(e){
       G.killCount++; PERM.totalKills++;
-      var _eGold=e.gold||1; G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
-      addFx(e.x,e.y,e.r||10,'#3b82f6');
+      var _eGold=Math.round((e.gold||1)*(G.goldMult||1)); G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
+      addFx(e.x,e.y,(e.r||10)*2,'#3b82f6');
     });
     if(_empKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
     addFx(cx,cy,200,'#3b82f6');
@@ -18061,6 +18067,7 @@ function _useProtocol(id){
         setTimeout(function(){
           if(!window.G||G.phase!=='playing') return;
           var _enemies=G.enemies||[];
+          var _gKills=[];
           _enemies.forEach(function(e){
             var dx=e.x-cx, dy=e.y-cy;
             var dist=Math.sqrt(dx*dx+dy*dy);
@@ -18068,12 +18075,16 @@ function _useProtocol(id){
               e.hp-=dmg;
               e.hitFlash=3;
               if(G.floatTexts) G.floatTexts.push({x:e.x,y:e.y-((e.r||10)+5),text:'-'+dmg,color:'#bb44ff',timer:0});
-              var pushDist=range+50;
-              e.x=cx+(dx/dist)*pushDist;
-              e.y=cy+(dy/dist)*pushDist;
-              e.reachedTower=false;
+              if(e.hp<=0){ _gKills.push(e); }
+              else{ var pushDist=range+50; e.x=cx+(dx/dist)*pushDist; e.y=cy+(dy/dist)*pushDist; e.reachedTower=false; }
             }
           });
+          _gKills.forEach(function(e){
+            G.killCount++; PERM.totalKills++;
+            var _eG=Math.round((e.gold||1)*(G.goldMult||1)); G.gold+=_eG; G.goldEarned+=_eG; PERM.gold+=_eG;
+            addFx(e.x,e.y,(e.r||10)*2,'#ffcc00');
+          });
+          if(_gKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
           addFx(cx,cy,range,'#ffcc00');
         }, delay);
       })(h*500);
@@ -18176,7 +18187,7 @@ function _startProtoTick(){
       var ov=_protoActiveEffects.overdrive;
       ov.remaining-=dtMs;
       if(ov.remaining<=0){
-        if(t.dmg>0&&ov.mult>0) t.dmg=Math.round(t.dmg/ov.mult);
+        t.dmg=ov.origDmg||Math.round(t.dmg/ov.mult);
         delete _protoActiveEffects.overdrive;
         _startCdAfterEffect('pt_overdrive');
       }
@@ -18251,7 +18262,7 @@ function _startProtoTick(){
       // 스킬 즉사 처리
       var _slKills=enemies.filter(function(e){return e.hp<=0;});
       if(_slKills.length>0){
-        _slKills.forEach(function(e){G.killCount++;PERM.totalKills++;G.gold+=(e.gold||1);G.goldEarned+=(e.gold||1);PERM.gold+=(e.gold||1);});
+        _slKills.forEach(function(e){G.killCount++;PERM.totalKills++;var _eG=Math.round((e.gold||1)*(G.goldMult||1));G.gold+=_eG;G.goldEarned+=_eG;PERM.gold+=_eG;});
         G.enemies=enemies.filter(function(e){return e.hp>0;});
       }
       if(sl.remaining<=0){
@@ -18284,8 +18295,8 @@ function _startProtoTick(){
         });
         _giKills.forEach(function(e){
           G.killCount++; PERM.totalKills++;
-          var _eGold=e.gold||1; G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
-          addFx(e.x,e.y,e.r||10,'#ef4444');
+          var _eGold=Math.round((e.gold||1)*(G.goldMult||1)); G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
+          addFx(e.x,e.y,(e.r||10)*2,'#ef4444');
         });
         if(_giKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
       }
