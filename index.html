@@ -5830,6 +5830,8 @@ function syncUI() {
 
 function doUpgrade(key) {
   if (!G || (G.phase !== 'playing' && G.phase !== 'between')) return;
+  // 주파수 전쟁: 차단된 업그레이드 방지
+  if(G._fwBlockedUpgs&&G._fwBlockedUpgs.indexOf(key)!==-1) return;
   const upg = UPGRADES.find(function(u) { return u.key === key; });
   if (!upg || !isUnlocked(upg.unlock) || !upg.canBuy()) return;
   var prevChips = coreChips;
@@ -16250,7 +16252,7 @@ var FW_RULES = [
   {id:'frenzy_wave', name:'폭주 웨이브', desc:'적 속도 2배, 코어칩 2배', icon:'⚡'},
   {id:'boss_rush', name:'보스 러시', desc:'5웨이브마다 드레드노트 2마리', icon:'☠'},
   {id:'last_resource', name:'최후의 자원', desc:'코어칩 10000 고정, 추가 획득 불가', icon:'🔒'},
-  {id:'extreme_survival', name:'생존의 극한', desc:'모든 HP 회복 차단, 전투 증강·회복 업그레이드 없음', icon:'💔'},
+  {id:'extreme_survival', name:'생존의 극한', desc:'HP 회복·흡혈 차단, 회복 프로토콜 비활성', icon:'💔'},
   {id:'silent_core', name:'침묵의 코어', desc:'프로토콜 비활성, 누적 스탯만', icon:'🔇'},
   {id:'skill_rebellion', name:'스킬의 반란', desc:'프로토콜+전투 업그레이드만, 강화소/모듈/코어랩 미적용', icon:'⚙'},
 ];
@@ -18345,6 +18347,8 @@ function _removeProtoBar(){
 /* ── 스킬 효과 구현 ── */
 function _useProtocol(id){
   if(!window.G||G.phase!=='playing') return;
+  // 주파수 전쟁: 차단된 프로토콜 방지
+  if(G._fwBlockedProtos&&G._fwBlockedProtos.indexOf(id)!==-1) return;
   var cd=_protoCooldowns[id];
   if(!cd||!cd.ready) return;
   var equipped=_getEquippedProtocols();
@@ -19010,14 +19014,51 @@ if(typeof _origStartFW==='function'){
         G._fwNoHeal=true;
         G.regenRate=0;
         G.lifeSteal=0;
-        var healUpgs=['hpRegen','vamp','maxhp'];
+        // 회복 업그레이드만 차단 (hpRegen, vamp) — maxHp는 허용
+        var healUpgs=['hpRegen','vamp'];
         healUpgs.forEach(function(key){
           var card=document.getElementById('upg-card-'+key);
-          if(card){ card.style.opacity='0.3'; card.style.pointerEvents='none'; }
+          if(card){
+            card.style.opacity='0.25';
+            card.style.pointerEvents='none';
+            card.style.position='relative';
+            // 비활성 오버레이
+            if(!card.querySelector('.fw-disabled-overlay')){
+              var ov=document.createElement('div');
+              ov.className='fw-disabled-overlay';
+              ov.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:8px;color:#ef4444;font-family:monospace;z-index:1;pointer-events:none;';
+              ov.textContent='차단됨';
+              card.appendChild(ov);
+            }
+          }
         });
-        // 프로토콜도 차단
-        var protoBar=document.getElementById('proto-battle-bar');
-        if(protoBar) protoBar.style.display='none';
+        // 회복 업그레이드의 기존 수치도 0으로 표시 + 실제 적용 해제
+        G._fwBlockedUpgs=healUpgs;
+        healUpgs.forEach(function(key){
+          var stat=document.getElementById('cs-'+key);
+          if(stat) stat.textContent='0';
+        });
+        // 프로토콜: 회복 기능 있는 것만 비활성 (나노봇 수복)
+        G._fwBlockedProtos=['pt_nano'];
+        // 나노봇 수복 슬롯 비활성 표시
+        setTimeout(function(){
+          var bar=document.getElementById('proto-battle-bar');
+          if(!bar) return;
+          var slots=bar.querySelectorAll('[data-proto-slot]');
+          slots.forEach(function(slot){
+            var pid=slot.getAttribute('data-proto-id')||slot.getAttribute('data-proto-slot-id');
+            // 슬롯 내 프로토콜 ID 확인
+            if(!pid){
+              var txt=slot.textContent||'';
+              if(txt.indexOf('나노봇')!==-1||txt.indexOf('수복')!==-1) pid='pt_nano';
+            }
+            if(pid==='pt_nano'){
+              slot.style.opacity='0.25';
+              slot.style.pointerEvents='none';
+              slot.style.filter='grayscale(1)';
+            }
+          });
+        },500);
       }
 
       if(rule==='silent_core'){
@@ -19038,6 +19079,31 @@ if(typeof _origStartFW==='function'){
       }
 
     },300);
+  };
+}
+
+/* ── buildCards 래핑: FW 차단 카드 UI 재적용 ── */
+var _origBuildCardsFW=window.buildCards;
+if(typeof _origBuildCardsFW==='function'){
+  window.buildCards=function(){
+    _origBuildCardsFW.apply(this,arguments);
+    if(!window.G||!G._fwBlockedUpgs) return;
+    G._fwBlockedUpgs.forEach(function(key){
+      var card=document.getElementById('upg-card-'+key);
+      if(!card) return;
+      card.style.opacity='0.25';
+      card.style.pointerEvents='none';
+      card.style.position='relative';
+      var stat=document.getElementById('cs-'+key);
+      if(stat) stat.textContent='0';
+      if(!card.querySelector('.fw-disabled-overlay')){
+        var ov=document.createElement('div');
+        ov.className='fw-disabled-overlay';
+        ov.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:8px;color:#ef4444;font-family:monospace;z-index:1;pointer-events:none;';
+        ov.textContent='\uCC28\uB2E8\uB428';
+        card.appendChild(ov);
+      }
+    });
   };
 }
 
@@ -19073,11 +19139,22 @@ if(typeof _origGameOverFW==='function'){
     var atkTab=document.getElementById('tab-atk');
     if(atkTab){ atkTab.style.opacity='1'; atkTab.style.pointerEvents='auto'; }
     // 회복 업그레이드 카드 복원 (생존의 극한)
-    var healUpgs=['hpRegen','vamp','maxhp'];
+    var healUpgs=['hpRegen','vamp'];
     healUpgs.forEach(function(key){
       var card=document.getElementById('upg-card-'+key);
-      if(card){ card.style.opacity='1'; card.style.pointerEvents='auto'; }
+      if(card){
+        card.style.opacity='1'; card.style.pointerEvents='auto';
+        var ov=card.querySelector('.fw-disabled-overlay');
+        if(ov) ov.remove();
+      }
     });
+    // 프로토콜 슬롯 복원
+    var protoBar=document.getElementById('proto-battle-bar');
+    if(protoBar){
+      protoBar.style.display='';
+      var slots=protoBar.querySelectorAll('[data-proto-slot]');
+      slots.forEach(function(s){ s.style.opacity='1'; s.style.pointerEvents='auto'; s.style.filter=''; });
+    }
   };
 }
 
