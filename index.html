@@ -8663,6 +8663,8 @@ window.parseFormattedNumber = function(s) {
 var _origCreate = window.createState;
 window.createState = function() {
   var g = _origCreate.apply(this, arguments);
+  // 스킬의 반란: G 생성 시 즉시 플래그 설정 (applyPermStats 체인이 인식)
+  if(window._fwSkillRebellionPending) g._fwSkillRebellion=true;
   var ws = window._fwSkillRebellionPending ? {} : (PERM.ws || {});
   // Defense extended
   g.knockbackChance = (ws.knockChance || 0) * 0.005;
@@ -12704,7 +12706,7 @@ window._absorbPrismShield = function(remaining) {
   var tries=0, iv=setInterval(function(){
     var orig=window.applyPermStats;
     if(!orig||orig._fPrism){ if(++tries>40) clearInterval(iv); return; }
-    window.applyPermStats=function(){ orig.apply(this,arguments); _applyPrismEffects(); };
+    window.applyPermStats=function(){ orig.apply(this,arguments); if(window.G&&(G._fwSkillRebellion||window._fwSkillRebellionPending)) return; _applyPrismEffects(); };
     window.applyPermStats._fPrism=true;
     clearInterval(iv);
   },200);
