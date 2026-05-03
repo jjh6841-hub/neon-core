@@ -18366,6 +18366,8 @@ function _getEquippedProtocols(){
 function _injectProtoBar(){
   var shop=document.getElementById('screen-shop'); if(!shop) return;
   if(document.getElementById('proto-battle-bar')) return;
+  // 침묵의 코어: 프로토콜 바 생성 차단
+  if(window._fwMode&&window._fwMode.active&&window._fwMode.rule==='silent_core') return;
   var equipped=_getEquippedProtocols();
   if(equipped.length===0) return;
 
