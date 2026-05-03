@@ -19307,6 +19307,7 @@ if (typeof _origUpdate_abs === 'function') {
     _origUpdate_abs.apply(this, arguments);
     // 레이저 적중으로 적 HP가 감소하면 공격력 기반 흡혈
     if (!window.G || !G.tower || G.phase !== 'playing') return;
+    if (G._fwNoHeal) return; // 생존의 극한: 모든 흡혈 차단
     var rate = _getAbsorbRate();
     if (rate <= 0) return;
     // 탄환 히트 수 추정: killCount 증가분이 아닌, 매 프레임 적중 기반
