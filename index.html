@@ -15011,6 +15011,8 @@ var _origAP_utl = window.applyPermStats;
 window.applyPermStats = function() {
   _origAP_utl.apply(this, arguments);
   if (!G) return;
+  // 스킬의 반란: 코어랩 연구 스킵
+  if (G._fwSkillRebellion||window._fwSkillRebellionPending) { if(window._fwResetToBase) window._fwResetToBase(); return; }
   // 코어랩 공격 연구
   var _rDmg = parseInt(localStorage.getItem('res_r_damage')||'0',10);
   if (_rDmg > 0) G.tower.dmg = Math.round(G.tower.dmg * (1 + _rDmg * 0.03));
@@ -19224,9 +19226,12 @@ function _fwResetToBase(){
   G.vulnPct=0; G.jamPct=0; G.waveSkipChance=0; G.introBonus=0;
   G.goldDmgPct=0; G._goldDmgFlat=false;
   G.goldMult=1; G.gemMult=1;
-  // 모듈 치명타도 초기화
+  // 모듈/속성/코어랩 추가 스탯도 초기화
   G.modCritChance=0; G.modCritMult=1.5;
   G.modLvCritChance=0; G.modLvCritMult=1.5;
+  G.elemCrits=[]; G.pierce=0; G.dmgPerMeter=1;
+  G._resProtoCdReduce=0; G._augRegenPct=0; G._augChipMult=false;
+  G.tower.shdMax=0; G.tower.shdCur=0; G.tower.absorbPct=0;
 }
 window._fwResetToBase=_fwResetToBase;
 if(typeof _origApplyPermFW==='function'){
@@ -20981,6 +20986,8 @@ if (typeof _prevApplyElem === 'function') {
   window.applyPermStats = function() {
     _prevApplyElem.apply(this, arguments);
     if (!window.G || !G.tower) return;
+    // 스킬의 반란: 속성 효과 스킵
+    if (G._fwSkillRebellion||window._fwSkillRebellionPending) { if(window._fwResetToBase) window._fwResetToBase(); return; }
     var m = _getElementMultipliers();
     G.tower.dmg     = Math.round(G.tower.dmg * m.atk);
     G.tower.maxHp   = Math.round(G.tower.maxHp * m.hp);
@@ -21162,6 +21169,8 @@ if (typeof _prevApply === 'function') {
   window.applyPermStats = function() {
     _prevApply.apply(this, arguments);
     if (!window.G || !G.tower || _pendingAugs.length === 0) return;
+    // 스킬의 반란: 전투 버프도 스킵
+    if (G._fwSkillRebellion||window._fwSkillRebellionPending) return;
     var t = G.tower;
     _pendingAugs.forEach(function(a) {
       if (a.id === 'aug_dmg')   t.dmg = Math.round(t.dmg * 1.3);
