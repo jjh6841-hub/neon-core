@@ -8663,7 +8663,7 @@ window.parseFormattedNumber = function(s) {
 var _origCreate = window.createState;
 window.createState = function() {
   var g = _origCreate.apply(this, arguments);
-  var ws = PERM.ws || {};
+  var ws = window._fwSkillRebellionPending ? {} : (PERM.ws || {});
   // Defense extended
   g.knockbackChance = (ws.knockChance || 0) * 0.005;
   g.knockbackForce  = ((ws.knockbackForce || 0) + parseInt(localStorage.getItem('res_r_knockforce')||'0',10)) * 2;
@@ -8690,6 +8690,7 @@ var _origApply = window.applyPermStats;
 window.applyPermStats = function() {
   _origApply.apply(this, arguments);
   if (!G) return;
+  if(G._fwSkillRebellion||window._fwSkillRebellionPending) return;
   var ws = PERM.ws || {};
   // Extended range from ws.wsRange
   G.tower.range += (ws.wsRange || 0) * 8;
@@ -11733,6 +11734,8 @@ function _patchApplyPermStats() {
   window.applyPermStats = function () {
     orig.apply(this, arguments);
     if (!window.G || !G.tower) return;
+    // 스킬의 반란: 밸런스 패치도 스킵
+    if(G._fwSkillRebellion||window._fwSkillRebellionPending) return;
     var t  = G.tower;
     var p  = window.PERM || {};
     var ws = p.ws || {};
@@ -17057,6 +17060,7 @@ window.showMarketToast = function (msg, color) {
   window.applyPermStats = function () {
     _origAPS_shd.apply(this, arguments);
     if (!window.G || !G.tower) return;
+    if(G._fwSkillRebellion||window._fwSkillRebellionPending) return;
     var ws = (window.PERM && window.PERM.ws) || {};
     G.tower.shdMax = Math.round(G.tower.maxHp * (ws.shieldHP || 0) / 100);  // 최대 체력의 N%
     G.tower.shdCur = G.tower.shdMax;            // 게임 시작 시 꽉 채워서 시작
@@ -19110,6 +19114,7 @@ if(typeof _origApplyLab==='function'){
   window.applyPermStats=function(){
     _origApplyLab.apply(this,arguments);
     if(!window.G||!G.tower) return;
+    if(G._fwSkillRebellion||window._fwSkillRebellionPending) return;
     var buffs=_getActiveBuffs();
     if(buffs.length===0) return;
     var t=G.tower;
