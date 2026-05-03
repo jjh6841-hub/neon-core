@@ -16228,11 +16228,53 @@ var FW_RULES = [
 
 var FW_TIERS = [
   {id:'iron',     name:'\uC544\uC774\uC5B8',     color:'#8B9AA8', icon:'\u2B21'},
-  {id:'bronze',   name:'\uBE0C\uB860\uC988',     color:'#CD7F32', icon:'\u2694'},
-  {id:'silver',   name:'\uC2E4\uBC84',       color:'#C0C0C0', icon:'\u2727'},
-  {id:'gold',     name:'\uACE8\uB4DC',       color:'#FFD700', icon:'\u269C'},
-  {id:'platinum', name:'\uD50C\uB798\uD2F0\uB118',   color:'#00BFFF', icon:'\u265B'},
+  {id:'bronze',   name:'\uBE0C\uB860\uC988',     color:'#CD7F32', icon:'\u2B22'},
+  {id:'silver',   name:'\uC2E4\uBC84',       color:'#C0C0C0', icon:'\u2B22'},
+  {id:'gold',     name:'\uACE8\uB4DC',       color:'#FFD700', icon:'\u2B22'},
+  {id:'platinum', name:'\uD50C\uB798\uD2F0\uB118',   color:'#00BFFF', icon:'\u2B22'},
 ];
+
+// 티어 SVG 아이콘 (육각형 컨셉, 상위 티어일수록 화려)
+var _hexPath='M12,2 L21.5,7 L21.5,17 L12,22 L2.5,17 L2.5,7 Z';
+function _fwTierIcon(tierIdx, size){
+  var s=size||24;
+  var t=FW_TIERS[tierIdx]||FW_TIERS[0];
+  var c=t.color;
+  var svg='<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" style="vertical-align:middle;">';
+  if(tierIdx===0){
+    // 아이언: 단순 외곽선 육각형
+    svg+='<path d="'+_hexPath+'" fill="none" stroke="'+c+'" stroke-width="1.5" opacity="0.7"/>';
+  } else if(tierIdx===1){
+    // 브론즈: 반투명 채움 + 중앙 점
+    svg+='<path d="'+_hexPath+'" fill="'+c+'" fill-opacity="0.15" stroke="'+c+'" stroke-width="1.5"/>';
+    svg+='<circle cx="12" cy="12" r="2.5" fill="'+c+'" opacity="0.6"/>';
+  } else if(tierIdx===2){
+    // 실버: 이중 육각형 + 중앙 별
+    svg+='<path d="'+_hexPath+'" fill="'+c+'" fill-opacity="0.1" stroke="'+c+'" stroke-width="1.5"/>';
+    svg+='<path d="M12,5.5 L17,8.5 L17,15.5 L12,18.5 L7,15.5 L7,8.5 Z" fill="none" stroke="'+c+'" stroke-width="0.8" opacity="0.5"/>';
+    svg+='<polygon points="12,8 13.5,11 12,10 10.5,11" fill="'+c+'" opacity="0.7"/><polygon points="12,16 10.5,13 12,14 13.5,13" fill="'+c+'" opacity="0.7"/>';
+  } else if(tierIdx===3){
+    // 골드: 채움 육각형 + 내부 패턴 + 광선
+    svg+='<path d="'+_hexPath+'" fill="'+c+'" fill-opacity="0.2" stroke="'+c+'" stroke-width="2"/>';
+    svg+='<path d="M12,5.5 L17,8.5 L17,15.5 L12,18.5 L7,15.5 L7,8.5 Z" fill="'+c+'" fill-opacity="0.15" stroke="'+c+'" stroke-width="0.8"/>';
+    svg+='<line x1="12" y1="7" x2="12" y2="17" stroke="'+c+'" stroke-width="0.6" opacity="0.4"/>';
+    svg+='<line x1="7" y1="12" x2="17" y2="12" stroke="'+c+'" stroke-width="0.6" opacity="0.4"/>';
+    svg+='<circle cx="12" cy="12" r="2" fill="'+c+'" opacity="0.8"/>';
+  } else {
+    // 플래티넘: 삼중 육각형 + 중앙 다이아 + 빛 발산
+    svg+='<path d="'+_hexPath+'" fill="'+c+'" fill-opacity="0.25" stroke="'+c+'" stroke-width="2"/>';
+    svg+='<path d="M12,5 L17.5,8.5 L17.5,15.5 L12,19 L6.5,15.5 L6.5,8.5 Z" fill="none" stroke="'+c+'" stroke-width="0.8" opacity="0.5"/>';
+    svg+='<path d="M12,8 L15,10.5 L15,13.5 L12,16 L9,13.5 L9,10.5 Z" fill="'+c+'" fill-opacity="0.2" stroke="'+c+'" stroke-width="0.6"/>';
+    svg+='<polygon points="12,9.5 14,12 12,14.5 10,12" fill="'+c+'" opacity="0.8"/>';
+    svg+='<line x1="12" y1="2" x2="12" y2="5" stroke="'+c+'" stroke-width="0.5" opacity="0.3"/>';
+    svg+='<line x1="12" y1="19" x2="12" y2="22" stroke="'+c+'" stroke-width="0.5" opacity="0.3"/>';
+    svg+='<line x1="2.5" y1="7" x2="5" y2="8.5" stroke="'+c+'" stroke-width="0.5" opacity="0.3"/>';
+    svg+='<line x1="19" y1="8.5" x2="21.5" y2="7" stroke="'+c+'" stroke-width="0.5" opacity="0.3"/>';
+  }
+  svg+='</svg>';
+  return svg;
+}
+window._fwTierIcon=_fwTierIcon;
 
 window._fwMode = { active:false, rule:null };
 window.FW_RULES = FW_RULES;
@@ -16248,7 +16290,8 @@ var _fwGroupId=null;
 var _fwGroupData=null;
 var _fwGroupLoading=false;
 var _fwGroupCacheTime=0; // 마지막 서버 조회 시각
-var _FW_CACHE_TTL=300000; // 5분 캐시
+var _FW_CACHE_TTL=3600000; // 1시간 캐시
+var _fwScreenEntered=false; // 화면 진입 시 1회 갱신 플래그
 
 // 이번 시즌 키 (해당 주 월요일 날짜, 월요일 01시 전이면 전주)
 function _getSeasonKey(){
@@ -16371,6 +16414,10 @@ function _refreshGroupData(callback, forceRefresh){
 }
 window._refreshGroupData=_refreshGroupData;
 
+// 캐시 무효화 (외부에서 호출 가능)
+function _invalidateFWCache(){ _fwGroupCacheTime=0; }
+window._invalidateFWCache=_invalidateFWCache;
+
 // 점수 업데이트 (게임 종료 시) — 업데이트 후 캐시 무효화
 function _updateFWScore(newScore){
   if(!window._fbDb||!_fwGroupId||!window._fbUid) return;
@@ -16453,7 +16500,7 @@ function renderFW(){
 
   var leagueIcon=document.getElementById('fw-league-icon');
   var leagueName=document.getElementById('fw-league-name');
-  if(leagueIcon) leagueIcon.textContent=tier.icon;
+  if(leagueIcon) leagueIcon.innerHTML=_fwTierIcon(fw.tier||0, 36);
   if(leagueName){ leagueName.textContent=tier.name; leagueName.style.color=tier.color; }
 
   var bestEl=document.getElementById('fw-best');
@@ -16527,29 +16574,30 @@ function renderFW(){
       var tierBase=[20,40,70,120,200];
       var base=tierBase[fw.tier||0]||20;
       var inactiveCount=Math.min(botCount,7+((seed%2)?1:0)); // 7~8명 비활성
-      // 시간 단위 슬롯 (봇이 실제 플레이하는 시점 — 하루 1~3회 느낌)
-      var hourSlot=Math.floor(Date.now()/3600000); // 현재 시간 슬롯
+      // 봇 플레이 시뮬레이션: 하루 1~2회, 점수 조금씩 상승
+      // 주 시작 후 경과 일수 (소수점 포함)
+      var daysPassed=weekProg*7;
 
       for(var i=0;i<botCount;i++){
         var fakeSeed=((seed+i*31337+i*i*7)%10000)/10000;
         if(i>=botCount-inactiveCount){
           scores.push({name:botNames[i], score:0});
         } else {
-          // 각 봇의 첫 참가 시점 (주 시작 후 0~60% 구간)
-          var playStart=fakeSeed*0.6;
-          if(weekProg<playStart){
-            // 아직 참가 안 함
+          // 각 봇의 첫 참가 일자 (0~3일차 사이)
+          var startDay=fakeSeed*3;
+          if(daysPassed<startDay){
             scores.push({name:botNames[i], score:0});
           } else {
-            // 하루 1~3회 플레이 시뮬레이션: 6~12시간마다 점수 갱신
-            var botInterval=6+Math.floor(fakeSeed*6); // 6~12시간 간격
-            var botStartHour=Math.floor(playStart*168); // 주 시작 후 시작 시간(0~100)
-            var playedSessions=Math.max(1,Math.floor((hourSlot-botStartHour)/botInterval));
             var maxScore=Math.max(1,Math.round(base*(0.3+fakeSeed*1.5)));
-            // 세션마다 조금씩 올라감 (최종 maxScore의 일정 비율까지)
-            var totalSessions=Math.ceil(168/botInterval); // 주 전체 예상 세션 수
-            var curScore=Math.min(maxScore,Math.round(maxScore*(playedSessions/totalSessions)*1.1));
-            scores.push({name:botNames[i], score:curScore});
+            // 하루 1~2회 세션: 각 봇이 정해진 시간대에만 플레이
+            var sessPerDay=1+(fakeSeed>0.5?1:0); // 1 또는 2회/일
+            var activeDays=daysPassed-startDay;
+            var totalSessions=Math.floor(activeDays*sessPerDay);
+            // 주 전체 예상 세션: 7일 * sessPerDay
+            var weekSessions=Math.ceil((7-startDay)*sessPerDay);
+            // 세션당 점수 증가 (최종 maxScore까지 점진적으로)
+            var curScore=Math.min(maxScore,Math.round(maxScore*(totalSessions/weekSessions)));
+            scores.push({name:botNames[i], score:Math.max(totalSessions>0?1:0, curScore)});
           }
         }
       }
@@ -16621,7 +16669,7 @@ function renderFW(){
     if(rwHdr){
       rwHdr.innerHTML=
         '<button id="fw-rw-prev" style="background:none;border:none;color:'+(viewIdx>0?'#94a3b8':'#1a2a3a')+';font-size:14px;cursor:pointer;padding:0 4px;-webkit-appearance:none;">\u25C0</button>'+
-        '<span style="color:'+vt.color+';font-size:12px;font-weight:bold;letter-spacing:1px;">'+vt.icon+' '+vt.name+(isCur?' (현재)':'')+'</span>'+
+        '<span style="color:'+vt.color+';font-size:12px;font-weight:bold;letter-spacing:1px;display:inline-flex;align-items:center;gap:3px;">'+_fwTierIcon(viewIdx,16)+' '+vt.name+(isCur?' (현재)':'')+'</span>'+
         '<button id="fw-rw-next" style="background:none;border:none;color:'+(viewIdx<FW_TIERS.length-1?'#94a3b8':'#1a2a3a')+';font-size:14px;cursor:pointer;padding:0 4px;-webkit-appearance:none;">\u25B6</button>';
       var prevBtn=document.getElementById('fw-rw-prev');
       var nextBtn=document.getElementById('fw-rw-next');
@@ -19812,6 +19860,11 @@ function renderSkinGrid() {
       _origShow.apply(this, arguments);
       if (name === 'home') { _injectHome(); _startHomeBg(); }
       if (name === 'skin') { try { renderSkinGrid(); } catch(_) {} }
+      if (name === 'frequency-wars') {
+        // 진입 시 1회 강제 갱신
+        if(window._invalidateFWCache) window._invalidateFWCache();
+        try{ renderFW(); }catch(_){}
+      }
     };
   }
 
