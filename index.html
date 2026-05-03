@@ -3339,7 +3339,7 @@ function createState() {
       maxHp:   25,
       dmg:     5,
       atkMs:   1000,  // ms between shots (base)
-      range:   0,
+      range:   162,   // BASE_RANGE 기본값 (applyPermStats에서 재계산)
       lastAtk: 0,
       buffMs:  0,     // ms remaining for 2× damage buff
     },
@@ -3452,6 +3452,7 @@ function startGame() {
   G.introTimer = 0;
   G.gold  = PERM.gold;
   G.gems  = PERM.gems;
+  G.initialGems = PERM.gems;      // 즉시 저장 (applyPermStats 에러 시 보석 복제 방지)
   var _gsLv = parseInt(localStorage.getItem('res_game_speed')||'0',10);
   var _maxSpd = [1, 1.5, 2, 2.5, 3][Math.min(4, _gsLv)];
   gameSpeed = parseFloat(localStorage.getItem('neoncore_speed') || '1') || 1;
@@ -4674,14 +4675,16 @@ function triggerGameOver() {
   AudioManager.playSfx('game_over');
 
   // Gems earned this run & boss check
-  var gemsEarned = G.gems - (G.initialGems || 0);
+  // 안전장치: initialGems 미설정 시 현재 gems를 기준으로 하여 보석 복제 방지
+  if (G.initialGems === undefined || G.initialGems === null) G.initialGems = G.gems;
+  var gemsEarned = G.gems - G.initialGems;
   var bossKilledThisRun = PERM.bossKills > (G.initialBossKills || 0);
 
   // Update & save persistent data (bestWave = 마지막으로 클리어한 웨이브)
   var clearedWave = Math.max(0, G.wave - 1);
   if (clearedWave > PERM.bestWave) PERM.bestWave = clearedWave;
   var _battleGoldEarned = (G.goldEarned||0);
-  var _battleGemsEarned = Math.max(0, G.gems - (G.initialGems||0));
+  var _battleGemsEarned = Math.max(0, gemsEarned);
   // 전투 중 외부에서 변경된 재화(오프라인 보상/임무 등)를 보존: 전투 획득분만 반영
   PERM.gold = Math.max(PERM.gold, G.gold);
   PERM.gems = PERM.gems + _battleGemsEarned;
