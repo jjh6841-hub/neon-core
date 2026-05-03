@@ -4819,27 +4819,55 @@ function render() {
       var sg=_bx.createRadialGradient(CW*0.1,CH*0.9,0,CW*0.1,CH*0.9,CW*0.15);
       sg.addColorStop(0,'rgba(255,200,50,0.2)');sg.addColorStop(0.5,'rgba(255,150,30,0.08)');sg.addColorStop(1,'transparent');
       _bx.fillStyle=sg;_bx.fillRect(0,0,CW,CH);
-    } else if(_bt===99){ // 주파수 전쟁: 적색 에너지 균열 + 시안 파동
-      // 중앙 적색 에너지 코어
-      var ng=_bx.createRadialGradient(CW*0.5,CH*0.45,0,CW*0.5,CH*0.45,CW*0.6);
-      ng.addColorStop(0,'rgba(220,30,80,0.14)');ng.addColorStop(0.3,'rgba(150,20,60,0.06)');ng.addColorStop(1,'transparent');
+    } else if(_bt===99){ // 주파수 전쟁: 전장 분위기
+      // ── 깊은 적색 워프 존 (중앙 하단) ──
+      var ng=_bx.createRadialGradient(CW*0.5,CH*0.6,0,CW*0.5,CH*0.6,CW*0.7);
+      ng.addColorStop(0,'rgba(180,20,50,0.12)');ng.addColorStop(0.4,'rgba(100,10,30,0.05)');ng.addColorStop(1,'transparent');
       _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
-      // 시안 파동 (좌상)
-      var ng2=_bx.createRadialGradient(CW*0.15,CH*0.15,0,CW*0.15,CH*0.15,CW*0.4);
-      ng2.addColorStop(0,'rgba(0,221,221,0.1)');ng2.addColorStop(0.5,'rgba(0,150,180,0.03)');ng2.addColorStop(1,'transparent');
+      // ── 시안 주파수 파동 (좌상 → 우하 방향) ──
+      var ng2=_bx.createRadialGradient(CW*0.2,CH*0.1,0,CW*0.2,CH*0.1,CW*0.5);
+      ng2.addColorStop(0,'rgba(0,200,220,0.08)');ng2.addColorStop(0.5,'rgba(0,120,160,0.03)');ng2.addColorStop(1,'transparent');
       _bx.fillStyle=ng2;_bx.fillRect(0,0,CW,CH);
-      // 보라 안개 (우하)
-      var ng3=_bx.createRadialGradient(CW*0.85,CH*0.8,0,CW*0.85,CH*0.8,CW*0.35);
-      ng3.addColorStop(0,'rgba(120,50,200,0.08)');ng3.addColorStop(1,'transparent');
+      // ── 보라 성운 잔해 (우측) ──
+      var ng3=_bx.createRadialGradient(CW*0.9,CH*0.35,0,CW*0.9,CH*0.35,CW*0.3);
+      ng3.addColorStop(0,'rgba(100,40,180,0.07)');ng3.addColorStop(1,'transparent');
       _bx.fillStyle=ng3;_bx.fillRect(0,0,CW,CH);
-      // 에너지 균열선 (대각선)
-      _bx.save();
-      _bx.strokeStyle='rgba(0,221,221,0.06)';_bx.lineWidth=1;
-      for(var _li=0;_li<5;_li++){
-        var lx=CW*(0.1+_li*0.2);
-        _bx.beginPath();_bx.moveTo(lx,0);_bx.lineTo(lx+CW*0.15,CH);_bx.stroke();
-      }
+      // ── 파괴된 함선 잔해 (좌하, 미세한 실루엣) ──
+      _bx.save();_bx.globalAlpha=0.04;
+      _bx.translate(CW*0.12,CH*0.78);_bx.rotate(-0.15);
+      _bx.fillStyle='#8888aa';
+      _bx.fillRect(-25,-4,50,8);_bx.fillRect(-15,-12,10,20);_bx.fillRect(10,-8,8,16);
+      // 파편 조각들
+      _bx.fillRect(35,-2,12,3);_bx.fillRect(-40,1,10,2);_bx.fillRect(20,8,6,2);
       _bx.restore();
+      // ── 파괴된 함선 잔해 2 (우상, 작음) ──
+      _bx.save();_bx.globalAlpha=0.03;
+      _bx.translate(CW*0.82,CH*0.15);_bx.rotate(0.4);
+      _bx.fillStyle='#7777aa';
+      _bx.fillRect(-18,-3,36,6);_bx.fillRect(-8,-10,6,14);
+      _bx.fillRect(14,-2,8,2);_bx.fillRect(-22,1,6,2);
+      _bx.restore();
+      // ── 원형 충격파 잔상 (전투 흔적) ──
+      _bx.save();_bx.globalAlpha=1;
+      // 충격파 1 (중앙 좌)
+      _bx.beginPath();_bx.arc(CW*0.3,CH*0.45,CW*0.12,0,Math.PI*2);
+      _bx.strokeStyle='rgba(220,60,80,0.04)';_bx.lineWidth=1.5;_bx.stroke();
+      _bx.beginPath();_bx.arc(CW*0.3,CH*0.45,CW*0.08,0,Math.PI*2);
+      _bx.strokeStyle='rgba(220,60,80,0.025)';_bx.lineWidth=1;_bx.stroke();
+      // 충격파 2 (우측 하)
+      _bx.beginPath();_bx.arc(CW*0.72,CH*0.7,CW*0.09,0,Math.PI*2);
+      _bx.strokeStyle='rgba(0,180,200,0.035)';_bx.lineWidth=1.2;_bx.stroke();
+      _bx.restore();
+      // ── 미세 먼지 파티클 (전장 잔재, 아주 희미한 점들) ──
+      _bx.fillStyle='rgba(200,180,160,0.06)';
+      var _ds=99*54321;
+      for(var _di=0;_di<25;_di++){
+        _ds=(_ds*1103515245+12345)&0x7fffffff;
+        var dx=(_ds%1000)/1000*CW;_ds=(_ds*1103515245+12345)&0x7fffffff;
+        var dy=(_ds%1000)/1000*CH;_ds=(_ds*1103515245+12345)&0x7fffffff;
+        var dr=0.4+(_ds%100)/150;
+        _bx.beginPath();_bx.arc(dx,dy,dr,0,Math.PI*2);_bx.fill();
+      }
     } else { // 에이온: 은은한 시안 글로우
       var ng=_bx.createRadialGradient(CW*0.5,CH*0.3,0,CW*0.5,CH*0.3,CW*0.6);
       ng.addColorStop(0,'rgba(0,255,255,0.06)');ng.addColorStop(1,'transparent');
@@ -4866,6 +4894,8 @@ function render() {
   const oy   = (CH - visH) / 2;
 
   // Grid (extended to fill visible area)
+  // FW 모드에서는 그리드 숨김
+  if(window._fwBattleBg){/* 그리드 없음 */} else {
   ctx.strokeStyle = 'rgba(0,255,255,0.03)';
   ctx.lineWidth = 0.5;
   const gs = 40;
@@ -4875,6 +4905,7 @@ function render() {
   for (let y = Math.floor(oy / gs) * gs; y <= oy + visH + gs; y += gs) {
     ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + visW, y); ctx.stroke();
   }
+  } // end grid (FW 분기)
 
   // range-dom은 tower-dom과 함께 아래에서 동기화
 
