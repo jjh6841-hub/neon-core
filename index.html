@@ -360,6 +360,8 @@ canvas {
   background: #030b10;
 }
 #tab-content::-webkit-scrollbar { display: none; }
+#fw-tab-content::-webkit-scrollbar { display: none; }
+#fw-tab-content { -ms-overflow-style: none; scrollbar-width: none; }
 .tab-pane { display: none; }
 .tab-pane.active {
   display: -webkit-flex;
@@ -16226,10 +16228,10 @@ var FW_RULES = [
 
 var FW_TIERS = [
   {id:'iron',     name:'\uC544\uC774\uC5B8',     color:'#8B9AA8', icon:'\u2B21'},
-  {id:'bronze',   name:'\uBE0C\uB860\uC988',     color:'#CD7F32', icon:'\uD83E\uDD49'},
-  {id:'silver',   name:'\uC2E4\uBC84',       color:'#C0C0C0', icon:'\uD83E\uDD48'},
-  {id:'gold',     name:'\uACE8\uB4DC',       color:'#FFD700', icon:'\uD83E\uDD47'},
-  {id:'platinum', name:'\uD50C\uB798\uD2F0\uB118',   color:'#00BFFF', icon:'\uD83D\uDC8E'},
+  {id:'bronze',   name:'\uBE0C\uB860\uC988',     color:'#CD7F32', icon:'\u2694'},
+  {id:'silver',   name:'\uC2E4\uBC84',       color:'#C0C0C0', icon:'\u2727'},
+  {id:'gold',     name:'\uACE8\uB4DC',       color:'#FFD700', icon:'\u269C'},
+  {id:'platinum', name:'\uD50C\uB798\uD2F0\uB118',   color:'#00BFFF', icon:'\u265B'},
 ];
 
 window._fwMode = { active:false, rule:null };
@@ -16245,6 +16247,8 @@ window._saveFW = _saveFW;
 var _fwGroupId=null;
 var _fwGroupData=null;
 var _fwGroupLoading=false;
+var _fwGroupCacheTime=0; // 마지막 서버 조회 시각
+var _FW_CACHE_TTL=300000; // 5분 캐시
 
 // 이번 시즌 키 (해당 주 월요일 날짜, 월요일 01시 전이면 전주)
 function _getSeasonKey(){
@@ -16347,11 +16351,16 @@ function _saveGroupLocal(groupId,seasonKey){
   _saveFW(fw);
 }
 
-function _refreshGroupData(callback){
+function _refreshGroupData(callback, forceRefresh){
   if(!window._fbDb||!_fwGroupId){callback(null);return;}
+  // 캐시 유효하면 서버 안 읽음
+  if(!forceRefresh&&_fwGroupData&&(Date.now()-_fwGroupCacheTime<_FW_CACHE_TTL)){
+    callback(_fwGroupData);return;
+  }
   window._fbDb.collection('fw_groups').doc(_fwGroupId).get().then(function(doc){
     if(doc.exists){
       _fwGroupData=doc.data(); _fwGroupData._id=doc.id;
+      _fwGroupCacheTime=Date.now();
       callback(_fwGroupData);
     } else {
       _fwGroupId=null; _fwGroupData=null;
@@ -16362,11 +16371,13 @@ function _refreshGroupData(callback){
 }
 window._refreshGroupData=_refreshGroupData;
 
-// 점수 업데이트 (게임 종료 시)
+// 점수 업데이트 (게임 종료 시) — 업데이트 후 캐시 무효화
 function _updateFWScore(newScore){
   if(!window._fbDb||!_fwGroupId||!window._fbUid) return;
   var upd={}; upd['members.'+window._fbUid+'.score']=newScore;
-  window._fbDb.collection('fw_groups').doc(_fwGroupId).update(upd).catch(function(){});
+  window._fbDb.collection('fw_groups').doc(_fwGroupId).update(upd).then(function(){
+    _fwGroupCacheTime=0; // 캐시 무효화 → 다음 renderFW에서 최신 데이터 로드
+  }).catch(function(){});
 }
 window._updateFWScore=_updateFWScore;
 
@@ -16471,6 +16482,10 @@ function renderFW(){
       lb.innerHTML='<div style="color:#556677;font-size:10px;text-align:center;padding:12px;">그룹 배정 중...</div>';
       _assignFWGroup(function(data){ if(data) renderFW(); });
     }
+    // 캐시 만료 시 백그라운드 갱신 (화면 열려 있을 때)
+    if(_fwGroupId&&(Date.now()-_fwGroupCacheTime>=_FW_CACHE_TTL)&&!_fwGroupLoading){
+      _refreshGroupData(function(data){ if(data) renderFW(); });
+    }
 
     // 그룹 데이터로 리더보드 구성
     var gd=_fwGroupData;
@@ -16512,17 +16527,30 @@ function renderFW(){
       var tierBase=[20,40,70,120,200];
       var base=tierBase[fw.tier||0]||20;
       var inactiveCount=Math.min(botCount,7+((seed%2)?1:0)); // 7~8명 비활성
+      // 시간 단위 슬롯 (봇이 실제 플레이하는 시점 — 하루 1~3회 느낌)
+      var hourSlot=Math.floor(Date.now()/3600000); // 현재 시간 슬롯
 
       for(var i=0;i<botCount;i++){
         var fakeSeed=((seed+i*31337+i*i*7)%10000)/10000;
         if(i>=botCount-inactiveCount){
           scores.push({name:botNames[i], score:0});
         } else {
+          // 각 봇의 첫 참가 시점 (주 시작 후 0~60% 구간)
           var playStart=fakeSeed*0.6;
-          var progress=Math.max(0,(weekProg-playStart)/(1-playStart));
-          var maxScore=Math.max(1,Math.round(base*(0.3+fakeSeed*1.5)));
-          var curScore=Math.round(maxScore*Math.pow(progress,0.5));
-          scores.push({name:botNames[i], score:curScore});
+          if(weekProg<playStart){
+            // 아직 참가 안 함
+            scores.push({name:botNames[i], score:0});
+          } else {
+            // 하루 1~3회 플레이 시뮬레이션: 6~12시간마다 점수 갱신
+            var botInterval=6+Math.floor(fakeSeed*6); // 6~12시간 간격
+            var botStartHour=Math.floor(playStart*168); // 주 시작 후 시작 시간(0~100)
+            var playedSessions=Math.max(1,Math.floor((hourSlot-botStartHour)/botInterval));
+            var maxScore=Math.max(1,Math.round(base*(0.3+fakeSeed*1.5)));
+            // 세션마다 조금씩 올라감 (최종 maxScore의 일정 비율까지)
+            var totalSessions=Math.ceil(168/botInterval); // 주 전체 예상 세션 수
+            var curScore=Math.min(maxScore,Math.round(maxScore*(playedSessions/totalSessions)*1.1));
+            scores.push({name:botNames[i], score:curScore});
+          }
         }
       }
     }
