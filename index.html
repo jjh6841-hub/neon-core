@@ -8091,9 +8091,9 @@ if (dailyPopup) {
     <span style="color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
   </div>
 
-  <div style="padding:10px;">
+  <div style="padding:12px 14px;">
     <!-- 상단: 도움말 | 시즌 | 남은 시간 -->
-    <div style="display:flex;align-items:center;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;margin-bottom:12px;">
       <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;">?</button>
       <span style="flex:1;text-align:center;color:#00dddd;font-size:13px;font-weight:900;letter-spacing:2px;text-shadow:0 0 6px #00dddd44;">시즌 1</span>
       <div style="text-align:right;flex-shrink:0;">
@@ -8103,8 +8103,8 @@ if (dailyPopup) {
     </div>
 
     <!-- 1행: 내 정보(좌) + 규칙(우) -->
-    <div style="display:flex;gap:6px;margin-bottom:8px;">
-      <div id="fw-league-card" style="flex:1;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px;text-align:center;">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div id="fw-league-card" style="flex:1;padding:10px;text-align:center;">
         <div id="fw-league-icon" style="font-size:28px;">🔵</div>
         <div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>
         <div style="display:flex;justify-content:space-around;margin-top:8px;">
@@ -8113,22 +8113,24 @@ if (dailyPopup) {
         </div>
         <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
       </div>
-      <div id="fw-rule-card" style="flex:1;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
+      <div style="width:1px;background:#1a3444;opacity:0.4;"></div>
+      <div id="fw-rule-card" style="flex:1;padding:8px;"></div>
     </div>
 
     <!-- 순위 + 보상 (가로 배치) -->
-    <div style="display:flex;gap:6px;margin-bottom:8px;">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;min-width:0;">
-        <div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">순위</div>
-        <div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;max-height:200px;overflow-y:auto;">
+        <div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">순위</div>
+        <div id="fw-tab-content" style="max-height:200px;overflow-y:auto;padding:2px 0;">
           <div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">
             <div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>
           </div>
         </div>
       </div>
+      <div style="width:1px;background:#1a3444;opacity:0.4;"></div>
       <div style="flex:1;min-width:0;">
-        <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"></div>
-        <div style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:6px;">
+        <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>
+        <div style="padding:2px 0;">
           <div id="fw-rewards"></div>
         </div>
       </div>
@@ -15834,17 +15836,16 @@ function _injectScreens() {
           '<span style="color:#ffc800;font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>' +
         '</span>' +
       '</div>' +
-      '<div style="padding:12px;">' +
+      '<div style="padding:12px 14px;">' +
         /* 시즌 + 타이머 */
-        '<div style="display:flex;justify-content:space-between;align-items:center;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:10px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
           '<div><div style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:2px;">FREQUENCY WARS</div><div style="color:#445566;font-size:8px;margin-top:2px;">시즌 1</div></div>' +
           '<div style="text-align:right;"><div style="color:#556677;font-size:8px;">주파수 전쟁 종료</div><div id="fw-timer" style="color:#00dddd;font-size:13px;font-weight:bold;">--:--:--</div></div>' +
         '</div>' +
-        /* 2열: 내 정보 + 순위/보상 */
-        '<div style="display:flex;gap:8px;margin-bottom:10px;">' +
-          /* 좌: 내 정보 */
+        /* 2열: 내 정보 + 규칙 */
+        '<div style="display:flex;gap:10px;margin-bottom:14px;">' +
           '<div style="width:120px;flex-shrink:0;">' +
-            '<div id="fw-league-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px;text-align:center;margin-bottom:8px;">' +
+            '<div id="fw-league-card" style="padding:10px;text-align:center;">' +
               '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
               '<div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>' +
               '<div style="display:flex;justify-content:space-around;margin-top:8px;">' +
@@ -15854,29 +15855,32 @@ function _injectScreens() {
               '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
             '</div>' +
           '</div>' +
-          /* 우: 순위 + 시즌 보상 (가로 배치) */
-          '<div style="flex:1;min-width:0;display:flex;gap:6px;">' +
-            '<div style="flex:1;min-width:0;">' +
-              '<div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:4px;letter-spacing:1px;">순위</div>' +
-              '<div id="fw-tab-content" style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;max-height:180px;overflow-y:auto;">' +
-                '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">' +
-                  '<div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>' +
-                '</div>' +
+          '<div style="width:1px;background:#1a3444;opacity:0.4;"></div>' +
+          '<div id="fw-rule-card" style="flex:1;padding:8px;"></div>' +
+        '</div>' +
+        /* 순위 + 보상 */
+        '<div style="display:flex;gap:10px;margin-bottom:14px;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">순위</div>' +
+            '<div id="fw-tab-content" style="max-height:180px;overflow-y:auto;padding:2px 0;">' +
+              '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">' +
+                '<div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>' +
               '</div>' +
             '</div>' +
-            '<div style="flex:1;min-width:0;">' +
-              '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"></div>' +
-              '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:8px;padding:8px;">' +
-                '<div id="fw-rewards"></div>' +
-              '</div>' +
+          '</div>' +
+          '<div style="width:1px;background:#1a3444;opacity:0.4;"></div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>' +
+            '<div style="padding:2px 0;">' +
+              '<div id="fw-rewards"></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
         /* 이번 주 규칙 */
-        '<div id="fw-rule-card" style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:10px 12px;margin-bottom:10px;"></div>' +
+        '<div id="fw-rule-card" style="padding:10px 0;margin-bottom:10px;border-top:1px solid #1a344422;"></div>' +
         /* 버튼들 */
         '<button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #00dddd;border-radius:10px;color:#ffffff;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;padding:12px;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #00dddd;margin-bottom:8px;">참가하기</button>' +
-        '<button id="fw-shop-btn" style="width:100%;background:#0c0c22;border:1px solid #ffc800;border-radius:10px;color:#ffc800;font-family:\'Courier New\',monospace;font-size:11px;padding:8px;cursor:pointer;letter-spacing:1px;">✦ 주파수 상점</button>' +
+        '<button id="fw-shop-btn" style="width:100%;background:transparent;border:1px solid #ffc80044;border-radius:10px;color:#ffc800;font-family:\'Courier New\',monospace;font-size:11px;padding:8px;cursor:pointer;letter-spacing:1px;">✦ 주파수 상점</button>' +
       '</div>';
     document.body.appendChild(fw);
   }
