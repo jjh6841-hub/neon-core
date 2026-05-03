@@ -17011,7 +17011,7 @@ function _checkFWSettlement(){
     delete fw._groupId; delete fw._groupSeason;
     _fwGroupId=null; _fwGroupData=null;
     _saveFW(fw);
-    if(window.showRewardPopup) showRewardPopup([{icon:'\u2726',label:'펄스 조각',amount:pulse,color:'#ffc800'}],'주파수 전쟁 보상');
+    // 주파수 전쟁 보상은 우편함으로만 안내 (팝업 제거)
     try{syncPulse();}catch(_){}
   }
 
