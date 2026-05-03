@@ -592,6 +592,17 @@ function renderModal() {
     html += '<div class="modal-row"><label>'+el.label+'</label><input type="number" data-exp="core_'+el.id+'" value="'+(exp['core_'+el.id]||0)+'"></div>';
   });
 
+  html += '<div class="modal-section">기본 강화 레벨</div>';
+  var baseLvs = [
+    { key:'dmgLv',  label:'공격력 Lv', val:p.dmgLv||0 },
+    { key:'spdLv',  label:'공격속도 Lv', val:p.spdLv||0 },
+    { key:'hpLv',   label:'체력 Lv',    val:p.hpLv||0 },
+    { key:'rngLv',  label:'사거리 Lv',  val:p.rngLv||0 },
+  ];
+  baseLvs.forEach(function(b){
+    html += '<div class="modal-row"><label>'+b.label+'</label><input type="number" data-field="'+b.key+'" value="'+b.val+'"></div>';
+  });
+
   html += '<div class="modal-section" style="color:#00ff88;">기록</div>';
   var records = [
     { key:'totalKills',   label:'총 처치수',    val:p.totalKills||0 },
@@ -629,17 +640,29 @@ function renderModal() {
     html += '<div class="modal-row"><label>'+el.label+' 클리어</label><input type="number" data-exp="cleared_'+el.id+'" value="'+(exp['cleared_'+el.id]||0)+'"></div>';
   });
 
-  html += '<div class="modal-section">강화 레벨</div>';
+  html += '<div class="modal-section">강화 레벨 (워크샵)</div>';
   var wsItems = [
-    { key:'damage',     label:'대미지',     val:ws.damage||0 },
-    { key:'atkspd',     label:'공격 속도',  val:ws.atkspd||0 },
-    { key:'critChance', label:'치명타 확률', val:ws.critChance||0 },
-    { key:'critMult',   label:'치명타 계수', val:ws.critMult||0 },
-    { key:'maxHp',      label:'최대 체력',  val:ws.maxHp||0 },
-    { key:'hpRegen',    label:'체력 회복',  val:ws.hpRegen||0 },
-    { key:'defense',    label:'방어',       val:ws.defense||0 },
-    { key:'lifeSteal',  label:'흡혈',       val:ws.lifeSteal||0 },
-    { key:'goldGain',   label:'골드 획득',  val:ws.goldGain||0 },
+    { key:'damage',       label:'공격력',         val:ws.damage||0 },
+    { key:'atkspd',       label:'공격 속도',       val:ws.atkspd||0 },
+    { key:'critChance',   label:'치명타 확률',     val:ws.critChance||0 },
+    { key:'critMult',     label:'치명타 계수',     val:ws.critMult||0 },
+    { key:'enhCritChance',label:'강화 치명타 확률', val:ws.enhCritChance||0 },
+    { key:'enhCritMult',  label:'강화 치명타 계수', val:ws.enhCritMult||0 },
+    { key:'maxHp',        label:'최대 체력',       val:ws.maxHp||0 },
+    { key:'hpRegen',      label:'체력 회복',       val:ws.hpRegen||0 },
+    { key:'defRate',      label:'방어율',          val:ws.defRate||0 },
+    { key:'defAbs',       label:'절대 방어',       val:ws.defAbs||0 },
+    { key:'vampChance',   label:'흡혈',           val:ws.vampChance||0 },
+    { key:'reflectDmg',   label:'반사 데미지',     val:ws.reflectDmg||0 },
+    { key:'knockChance',  label:'넉백 확률',       val:ws.knockChance||0 },
+    { key:'shieldHP',     label:'쉴드 HP',         val:ws.shieldHP||0 },
+    { key:'wsRange',      label:'사거리',          val:ws.wsRange||0 },
+    { key:'enemyDefReduce',label:'적 방어 감소',    val:ws.enemyDefReduce||0 },
+    { key:'dmgPerMeter',  label:'거리 피해',       val:ws.dmgPerMeter||0 },
+    { key:'multiChance',  label:'분열탄 확률',     val:ws.multiChance||0 },
+    { key:'bounceChance', label:'도약탄 확률',     val:ws.bounceChance||0 },
+    { key:'bounceTargets',label:'도약탄 수',       val:ws.bounceTargets||0 },
+    { key:'rapidChance',  label:'연사 확률',       val:ws.rapidChance||0 },
   ];
   wsItems.forEach(function(w){
     html += '<div class="modal-row"><label>'+w.label+'</label><input type="number" data-ws="'+w.key+'" value="'+w.val+'"></div>';
