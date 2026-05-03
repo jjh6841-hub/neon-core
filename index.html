@@ -19086,14 +19086,24 @@ _injectLabScreen();
 var _origStartFW=window.startNewGame;
 if(typeof _origStartFW==='function'){
   window.startNewGame=function(){
-    // FW 모드 시 전용 배경 + 스펙트라급 난이도 적용
+    // FW 모드 시 전용 배경 + 난이도 + 스킬의 반란 사전 처리
     if(window._fwMode&&window._fwMode.active){
       window._cachedBgColor=null;
       window._battleBgCache=null;
-      window._fwBattleBg=true; // FW 전용 배경 플래그
-      // 난이도: 스킬의 반란은 에이온(0), 나머지는 스펙트라(1)
+      window._fwBattleBg=true;
       if(typeof _curTierIdx!=='undefined') window._fwPrevTier=_curTierIdx;
-      _curTierIdx=(window._fwMode.rule==='skill_rebellion')?0:1;
+      var _fwTierVal=(window._fwMode.rule==='skill_rebellion')?0:1;
+      _curTierIdx=_fwTierVal;
+      // localStorage의 td_tier도 임시 변경 (여러 곳에서 직접 읽으므로)
+      window._fwPrevTierLS=localStorage.getItem('td_tier');
+      localStorage.setItem('td_tier',String(_fwTierVal+1)); // td_tier는 1-based
+      // 스킬의 반란: startGame 전에 PERM.ws 교체 (초기값으로 시작)
+      if(window._fwMode.rule==='skill_rebellion'){
+        window._fwOrigWs=PERM.ws;
+        window._fwOrigDmgLv=PERM.dmgLv; window._fwOrigSpdLv=PERM.spdLv;
+        window._fwOrigHpLv=PERM.hpLv; window._fwOrigRngLv=PERM.rngLv;
+        PERM.ws={}; PERM.dmgLv=0; PERM.spdLv=0; PERM.hpLv=0; PERM.rngLv=0;
+      }
     }
     _origStartFW.apply(this,arguments);
     if(!window._fwMode||!window._fwMode.active) return;
@@ -19182,14 +19192,8 @@ if(typeof _origStartFW==='function'){
       }
 
       if(rule==='skill_rebellion'){
-        // 강화소/모듈/코어랩 미적용 — 영구 스탯을 가짜 빈 객체로 덮어쓰기
+        // PERM.ws는 startGame 전에 이미 교체됨 — 플래그만 설정
         G._fwSkillRebellion=true;
-        // PERM.ws를 빈 객체로 백업 교체 (apply 시 영구 스탯 0으로)
-        window._fwOrigWs=PERM.ws;
-        window._fwOrigDmgLv=PERM.dmgLv; window._fwOrigSpdLv=PERM.spdLv;
-        window._fwOrigHpLv=PERM.hpLv; window._fwOrigRngLv=PERM.rngLv;
-        PERM.ws={}; PERM.dmgLv=0; PERM.spdLv=0; PERM.hpLv=0; PERM.rngLv=0;
-        // 스탯 재계산
         _fwResetToBase();
       }
 
@@ -19254,6 +19258,11 @@ if(typeof _origGameOverFW==='function'){
     window._battleBgCache=null;
     if(window._fwPrevTier!==undefined&&typeof _curTierIdx!=='undefined'){
       _curTierIdx=window._fwPrevTier; delete window._fwPrevTier;
+    }
+    // localStorage td_tier 복원
+    if(window._fwPrevTierLS!==undefined){
+      localStorage.setItem('td_tier',window._fwPrevTierLS);
+      delete window._fwPrevTierLS;
     }
 
     var fw=window._loadFW?window._loadFW():{};
