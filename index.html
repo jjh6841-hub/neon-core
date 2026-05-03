@@ -3405,13 +3405,16 @@ function getTargetZoom() {
 ═══════════════════════════════════════════════════════════════ */
 function applyPermStats() {
   const t  = G.tower;
-  const ws = PERM.ws || {};
-  t.dmg        = 5 * Math.pow(1.20, (PERM.dmgLv||0) + (ws.damage||0));
-  var _spdMult = 1 + (PERM.spdLv || 0) * 0.05 + (ws.atkspd || 0) * 0.05;
+  var ws = PERM.ws || {};
+  // 스킬의 반란: 영구 스탯 무시 (ws, dmgLv 등을 0으로 취급)
+  var _sr=G._fwSkillRebellion||window._fwSkillRebellionPending;
+  if(_sr) ws={};
+  t.dmg        = 5 * Math.pow(1.20, (_sr?0:(PERM.dmgLv||0)) + (ws.damage||0));
+  var _spdMult = 1 + (_sr?0:(PERM.spdLv || 0)) * 0.05 + (ws.atkspd || 0) * 0.05;
   t.atkMs      = Math.max(200, Math.round((window.BASE_ATKMS || 1000) / _spdMult));
-  t.maxHp      = 25 * Math.pow(1.20, (PERM.hpLv||0) + (ws.maxHp||0));
+  t.maxHp      = 25 * Math.pow(1.20, (_sr?0:(PERM.hpLv||0)) + (ws.maxHp||0));
   t.hp         = t.maxHp;
-  t.range      = Math.min(CW, CH) * 0.45 + PERM.rngLv * 30;
+  t.range      = Math.min(CW, CH) * 0.45 + (_sr?0:PERM.rngLv) * 30;
   t.critChance = (ws.critChance || 0) * 0.005;
   t.critMult   = 1.5 + (ws.critMult   || 0) * 0.1;
   t.defense    = Math.min(0.80, (ws.defRate || 0) * 0.01);  // 회피율 1%/lv, 80% 캡
@@ -8143,6 +8146,11 @@ if (dailyPopup) {
     <div style="display:flex;flex:1;min-height:0;margin-bottom:8px;">
       <!-- 좌측 열 (넓게) -->
       <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">
+        <!-- 시즌 전적 (상단) -->
+        <div id="fw-history-btn" style="background:linear-gradient(135deg,#0a1520,#0c0c22);border-left:2px solid #00dddd44;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#00dddd" stroke-width="1.2" opacity="0.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#00dddd" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span style="color:#7aacac;font-family:'Courier New',monospace;font-size:9px;">시즌 전적</span>
+        </div>
         <!-- 내 정보 -->
         <div id="fw-league-card" style="padding:8px;text-align:center;background:#0a0e1a;">
           <div id="fw-league-icon" style="font-size:28px;">🔵</div>
@@ -8153,11 +8161,6 @@ if (dailyPopup) {
           </div>
           <div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
         </div>
-        <!-- 시즌 전적 -->
-        <button id="fw-history-btn" style="background:#0a0e1a;border:1px solid #00dddd22;color:#7aacac;font-family:'Courier New',monospace;font-size:9px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:4px;">
-          <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#7aacac" stroke-width="1.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#7aacac" stroke-width="1.5" stroke-linecap="round"/></svg>
-          시즌 전적
-        </button>
         <!-- 상점 -->
         <button id="fw-shop-btn" style="flex:1;background:#0a0e1a;border:1px solid #ffc80033;color:#ffc800;font-family:'Courier New',monospace;font-size:10px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">
           <svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg>
@@ -15935,6 +15938,7 @@ function _injectScreens() {
         /* 2열: 좌(내 정보+전적+상점) | 구분선 | 우(순위) */
         '<div style="display:flex;flex:1;min-height:0;margin-bottom:8px;">' +
           '<div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">' +
+            '<div id="fw-history-btn" style="background:linear-gradient(135deg,#0a1520,#0c0c22);border-left:2px solid #00dddd44;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#00dddd" stroke-width="1.2" opacity="0.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#00dddd" stroke-width="1.5" stroke-linecap="round"/></svg><span style="color:#7aacac;font-family:\'Courier New\',monospace;font-size:9px;">시즌 전적</span></div>' +
             '<div id="fw-league-card" style="padding:8px;text-align:center;background:#0a0e1a;">' +
               '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
               '<div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:3px;">TIER F</div>' +
@@ -15944,7 +15948,6 @@ function _injectScreens() {
               '</div>' +
               '<div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
             '</div>' +
-            '<button id="fw-history-btn" style="background:#0a0e1a;border:1px solid #00dddd22;color:#7aacac;font-family:\'Courier New\',monospace;font-size:9px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#7aacac" stroke-width="1.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#7aacac" stroke-width="1.5" stroke-linecap="round"/></svg>시즌 전적</button>' +
             '<button id="fw-shop-btn" style="flex:1;background:#0a0e1a;border:1px solid #ffc80033;color:#ffc800;font-family:\'Courier New\',monospace;font-size:10px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg><span>주파수 상점</span></button>' +
           '</div>' +
           '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 6px;"></div>' +
@@ -19286,6 +19289,28 @@ function _fwResetToBase(){
   G.elemCrits=[]; G.pierce=0; G.dmgPerMeter=1;
   G._resProtoCdReduce=0; G._augRegenPct=0; G._augChipMult=false;
   G.tower.shdMax=0; G.tower.shdCur=0; G.tower.absorbPct=0;
+  // 전투 업그레이드(G.upgLvl)를 초기값 위에 재적용
+  var u=G.upgLvl||{};
+  if(u.dmg>0) for(var _i=0;_i<u.dmg;_i++) G.tower.dmg=Math.round(G.tower.dmg*1.20);
+  if(u.spd>0){ var _sm=1+u.spd*0.05; G.tower.atkMs=Math.max(200,Math.round(1000/_sm)); }
+  if(u.maxhp>0) for(var _i=0;_i<u.maxhp;_i++){ var _inc=Math.round(G.tower.maxHp*0.20); G.tower.maxHp+=_inc; }
+  G.tower.hp=G.tower.maxHp;
+  if(u.critChance>0) G.tower.critChance=Math.min(1.0,u.critChance*0.005);
+  if(u.critMult>0) G.tower.critMult=1.5+u.critMult*0.1;
+  if(u.defRate>0) G.tower.defense=Math.min(0.90,u.defRate*0.01);
+  if(u.defAbs>0) G.defenseAbs=u.defAbs;
+  if(u.range>0) G.tower.range+=u.range*30;
+  if(u.enhCritChance>0) G.enhCritChance=Math.min(0.9,u.enhCritChance*0.005);
+  if(u.enhCritMult>0) G.enhCritMult=1.5+u.enhCritMult*0.1;
+  if(u.enemyDefReduce>0) G.enemyDefReduce=Math.min(74,u.enemyDefReduce);
+  if(u.multiChance>0) G.multiChance=Math.min(0.5,u.multiChance*0.005);
+  if(u.bounceChance>0) G.bounceChance=Math.min(0.70,u.bounceChance*0.005);
+  if(u.bounceTargets>0) G.bounceTargets=u.bounceTargets;
+  if(u.bounceRange>0) G.bounceRange=u.bounceRange*4;
+  if(u.rapidChance>0) G.rapidChance=Math.min(0.40,u.rapidChance*0.005);
+  if(u.rapidDuration>0) G.rapidDuration=u.rapidDuration*0.2;
+  if(u.dmgPerMeter>0) G.dmgPerMeter=1+u.dmgPerMeter*0.05;
+  if(u.shieldHP>0){ G.tower.shdMax=Math.round(G.tower.maxHp*Math.min(50,u.shieldHP)/100); G.tower.shdCur=G.tower.shdMax; }
 }
 window._fwResetToBase=_fwResetToBase;
 if(typeof _origApplyPermFW==='function'){
