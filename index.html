@@ -19157,18 +19157,51 @@ if(typeof _origStartFW==='function'){
       }
 
       if(rule==='skill_rebellion'){
+        // 강화소/모듈/코어랩 미적용 — 모든 영구 스탯 초기값으로
+        G._fwSkillRebellion=true;
         if(G.tower){
-          G.tower.dmg=10;
-          G.tower.maxHp=100;
-          G.tower.hp=100;
-          G.tower.range=120;
-          G.tower.fireRate=1;
+          G.tower.dmg=5;
+          G.tower.maxHp=25;
+          G.tower.hp=25;
+          G.tower.range=Math.min(CW||300,CH||500)*0.45;
+          G.tower.atkMs=1000;
+          G.tower.critChance=0;
+          G.tower.critMult=1.5;
+          G.tower.defense=0;
+          G.tower.hpRegen=0;
         }
         G.regenRate=0;
         G.lifeSteal=0;
+        G.defenseAbs=0;
+        G.enhCritChance=0;
+        G.enhCritMult=1.5;
+        G.enemyDefReduce=0;
+        G.critChance=0;
+        G.critMult=1.5;
+        G.reflectPct=0;
+        G.knockbackChance=0;
       }
 
     },300);
+  };
+}
+
+/* ── applyPermStats 래핑: 스킬의 반란에서 영구 스탯 무시 ── */
+var _origApplyPermFW=window.applyPermStats;
+function _fwResetToBase(){
+  if(!G||!G.tower) return;
+  G.tower.dmg=5; G.tower.maxHp=25; G.tower.hp=Math.min(G.tower.hp,25);
+  G.tower.atkMs=1000; G.tower.critChance=0; G.tower.critMult=1.5;
+  G.tower.defense=0; G.tower.hpRegen=0;
+  G.tower.range=Math.min(window.CW||300,window.CH||500)*0.45;
+  G.regenRate=0; G.lifeSteal=0; G.defenseAbs=0;
+  G.enhCritChance=0; G.enhCritMult=1.5; G.enemyDefReduce=0;
+  G.critChance=0; G.critMult=1.5; G.reflectPct=0; G.knockbackChance=0;
+}
+if(typeof _origApplyPermFW==='function'){
+  window.applyPermStats=function(){
+    _origApplyPermFW.apply(this,arguments);
+    if(window.G&&G._fwSkillRebellion) _fwResetToBase();
   };
 }
 
