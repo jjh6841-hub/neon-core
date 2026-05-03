@@ -16289,9 +16289,10 @@ window._saveFW = _saveFW;
 var _fwGroupId=null;
 var _fwGroupData=null;
 var _fwGroupLoading=false;
-var _fwGroupCacheTime=0; // 마지막 서버 조회 시각
+var _fwGroupCacheTime=parseInt(localStorage.getItem('fw_cache_ts')||'0',10);
 var _FW_CACHE_TTL=3600000; // 1시간 캐시
-var _fwScreenEntered=false; // 화면 진입 시 1회 갱신 플래그
+// 앱 시작 시 캐시된 그룹 데이터 복원
+try{var _cachedGD=localStorage.getItem('fw_cache_data');if(_cachedGD&&(Date.now()-_fwGroupCacheTime<_FW_CACHE_TTL)){_fwGroupData=JSON.parse(_cachedGD);}}catch(_){}
 
 // 이번 시즌 키 (해당 주 월요일 날짜, 월요일 01시 전이면 전주)
 function _getSeasonKey(){
@@ -16404,6 +16405,7 @@ function _refreshGroupData(callback, forceRefresh){
     if(doc.exists){
       _fwGroupData=doc.data(); _fwGroupData._id=doc.id;
       _fwGroupCacheTime=Date.now();
+      try{localStorage.setItem('fw_cache_ts',_fwGroupCacheTime);localStorage.setItem('fw_cache_data',JSON.stringify(_fwGroupData));}catch(_){}
       callback(_fwGroupData);
     } else {
       _fwGroupId=null; _fwGroupData=null;
@@ -16414,16 +16416,18 @@ function _refreshGroupData(callback, forceRefresh){
 }
 window._refreshGroupData=_refreshGroupData;
 
-// 캐시 무효화 (외부에서 호출 가능)
-function _invalidateFWCache(){ _fwGroupCacheTime=0; }
+// 캐시 무효화 (정산 시 사용)
+function _invalidateFWCache(){ _fwGroupCacheTime=0; _fwGroupData=null; try{localStorage.removeItem('fw_cache_ts');localStorage.removeItem('fw_cache_data');}catch(_){} }
 window._invalidateFWCache=_invalidateFWCache;
 
-// 점수 업데이트 (게임 종료 시) — 업데이트 후 캐시 무효화
+// 점수 업데이트 (게임 종료 시) — 서버 전송 + 캐시 무효화로 최신 리더보드 갱신
 function _updateFWScore(newScore){
   if(!window._fbDb||!_fwGroupId||!window._fbUid) return;
   var upd={}; upd['members.'+window._fbUid+'.score']=newScore;
   window._fbDb.collection('fw_groups').doc(_fwGroupId).update(upd).then(function(){
-    _fwGroupCacheTime=0; // 캐시 무효화 → 다음 renderFW에서 최신 데이터 로드
+    // 점수 갱신 성공 → 캐시 무효화 (다음 renderFW에서 서버 재조회)
+    _fwGroupCacheTime=0;
+    try{localStorage.removeItem('fw_cache_ts');localStorage.removeItem('fw_cache_data');}catch(_){}
   }).catch(function(){});
 }
 window._updateFWScore=_updateFWScore;
@@ -19861,8 +19865,7 @@ function renderSkinGrid() {
       if (name === 'home') { _injectHome(); _startHomeBg(); }
       if (name === 'skin') { try { renderSkinGrid(); } catch(_) {} }
       if (name === 'frequency-wars') {
-        // 진입 시 1회 강제 갱신
-        if(window._invalidateFWCache) window._invalidateFWCache();
+        // 진입 시 renderFW 호출 (1시간 캐시 만료 시에만 서버 갱신)
         try{ renderFW(); }catch(_){}
       }
     };
