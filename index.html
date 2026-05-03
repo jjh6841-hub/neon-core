@@ -19411,6 +19411,10 @@ if(typeof _origGameOverFW==='function'){
     fw.plays=(fw.plays||0)+1;
     if(window._saveFW) window._saveFW(fw);
 
+    // 결과 화면 최고 기록을 FW 시즌 최고로 표시
+    var _rBest=document.getElementById('r-best');
+    if(_rBest) _rBest.textContent=fw.seasonScore||0;
+
     // 공격 탭 복원 (방어의 시험)
     var atkTab=document.getElementById('tab-atk');
     if(atkTab){ atkTab.style.opacity='1'; atkTab.style.pointerEvents='auto'; }
