@@ -16545,12 +16545,11 @@ function _getCurrentRule(){
 window._getCurrentRule = _getCurrentRule;
 
 function _getNextWeekRule(){
-  var now=new Date();
-  var adj=new Date(now);
-  if(adj.getDay()===1 && adj.getHours()<1) adj.setDate(adj.getDate()-1);
-  var jan1=new Date(adj.getFullYear(),0,1);
-  var weekNum=Math.floor(((adj-jan1)/86400000+jan1.getDay())/7);
-  return FW_RULES[(weekNum+1) % FW_RULES.length];
+  // 현재 규칙의 다음 규칙 (배열 순서 기준)
+  var cur=_getCurrentRule();
+  var curIdx=0;
+  for(var i=0;i<FW_RULES.length;i++){if(FW_RULES[i].id===cur.id){curIdx=i;break;}}
+  return FW_RULES[(curIdx+1) % FW_RULES.length];
 }
 
 // Firestore에서 관리자 규칙 + FW 설정 로드
