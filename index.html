@@ -11601,7 +11601,7 @@ else setTimeout(_init, 200);
 var BASE_DMG   = 2;
 var BASE_ATKMS = 1100;
 var BASE_HP    = 10;
-var BASE_RANGE = 180;
+var BASE_RANGE = 162;
 
 /* §3 — 적 타입별 기본 스탯 */
 var TYPE_BASE = {
@@ -19268,7 +19268,7 @@ function _fwResetToBase(){
   G.tower.dmg=5; G.tower.maxHp=25; G.tower.hp=Math.min(G.tower.hp,25);
   G.tower.atkMs=1000; G.tower.critChance=0; G.tower.critMult=1.5;
   G.tower.defense=0; G.tower.hpRegen=0;
-  G.tower.range=Math.min(window.CW||300,window.CH||500)*0.45;
+  G.tower.range=162;
   // 영구 스탯
   G.regenRate=0; G.lifeSteal=0; G.defenseAbs=0;
   G.enhCritChance=0; G.enhCritMult=1.5; G.enemyDefReduce=0;
