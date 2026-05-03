@@ -19135,7 +19135,15 @@ _injectLabScreen();
 var _origStartFW=window.startNewGame;
 if(typeof _origStartFW==='function'){
   window.startNewGame=function(){
-    // FW 모드 시 전용 배경 + 난이도 + 스킬의 반란 사전 처리
+    // FW 모드 시 PERM 자동 백업 (안전장치 — localStorage + Firestore)
+    if(window._fwMode&&window._fwMode.active&&window.PERM){
+      var _backupData=JSON.stringify(PERM);
+      var _backupTs=new Date().toISOString();
+      try{localStorage.setItem('td_perm_backup',_backupData);localStorage.setItem('td_perm_backup_ts',_backupTs);}catch(_){}
+      if(window._fbDb&&window._fbUid){
+        try{window._fbDb.collection('users').doc(window._fbUid).set({permBackup:{data:_backupData,ts:_backupTs}},{merge:true});}catch(_){}
+      }
+    }
     if(window._fwMode&&window._fwMode.active){
       window._cachedBgColor=null;
       window._battleBgCache=null;

@@ -668,7 +668,37 @@ function renderModal() {
     html += '<div class="modal-row"><label>'+w.label+'</label><input type="number" data-ws="'+w.key+'" value="'+w.val+'"></div>';
   });
 
+  // 백업 복원 섹션
+  var backup = currentUser.data.permBackup;
+  html += '<div class="modal-section" style="color:#ef4444;">PERM 백업 복원</div>';
+  if(backup&&backup.data){
+    var bpWs={};
+    try{bpWs=JSON.parse(backup.data).ws||{};}catch(_){}
+    html += '<div style="color:#556677;font-size:9px;margin-bottom:6px;">백업 시각: '+formatTime(backup.ts)+'</div>';
+    html += '<div style="color:#94a3b8;font-size:9px;margin-bottom:6px;max-height:80px;overflow-y:auto;background:#0a1520;padding:6px;word-break:break-all;">';
+    var bpKeys=Object.keys(bpWs);
+    if(bpKeys.length>0){
+      bpKeys.forEach(function(k){html+='<span style="color:#00dddd;">'+k+'</span>:'+bpWs[k]+' ';});
+    } else { html+='ws 데이터 없음'; }
+    html += '</div>';
+    html += '<button id="btn-restore-backup" style="width:100%;background:#1a0505;border:1px solid #ef4444;color:#ef4444;font-family:monospace;font-size:11px;padding:8px;cursor:pointer;">백업에서 PERM 복원</button>';
+  } else {
+    html += '<div style="color:#334455;font-size:10px;">백업 데이터 없음</div>';
+  }
+
   document.getElementById('modal-tab-info').innerHTML = html;
+
+  // 백업 복원 버튼 이벤트
+  var restoreBtn=document.getElementById('btn-restore-backup');
+  if(restoreBtn) restoreBtn.addEventListener('click', async function(){
+    if(!confirm('백업 데이터로 PERM을 복원합니다. 현재 데이터가 덮어씌워집니다. 계속하시겠습니까?')) return;
+    try{
+      var backupPerm=JSON.parse(backup.data);
+      await db.collection('users').doc(currentUser.id).set({perm:backupPerm},{merge:true});
+      showToast('PERM 복원 완료');
+      openModal(currentUser);
+    }catch(e){showToast('복원 실패: '+e.message);}
+  });
 
   /* ── 로그 탭 ── */
   var logs = p.currencyLog || [];
