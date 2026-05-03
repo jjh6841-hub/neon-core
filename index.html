@@ -16218,7 +16218,7 @@ function _hookFWButtons() {
       // 하루 3회 입장 제한
       var dayKey='fw_entry_'+new Date().toDateString();
       var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
-      if(dayCount>=3){ if(window.showToastMsg) showToastMsg('오늘 입장 횟수를 모두 사용했습니다 (3/3)','#ef4444'); return; }
+      if(dayCount>=_fwMaxEntries){ if(window.showToastMsg) showToastMsg('오늘 입장 횟수를 모두 사용했습니다 ('+_fwMaxEntries+'/'+_fwMaxEntries+')','#ef4444'); return; }
       localStorage.setItem(dayKey, dayCount+1);
       var rule=_getCurrentRule();
       window._fwMode={active:true, rule:rule.id};
@@ -16472,6 +16472,7 @@ function _syncFWGroupName(){
 window._syncFWGroupName=_syncFWGroupName;
 
 var _fwOverrideRule=null; // Firestore에서 관리자가 설정한 규칙
+var _fwMaxEntries=3; // 하루 최대 입장 횟수 (관리자 설정 가능)
 function _getCurrentRule(){
   // 관리자 수동 설정 우선
   if(_fwOverrideRule){
@@ -16488,13 +16489,16 @@ function _getCurrentRule(){
   return FW_RULES[weekNum % FW_RULES.length];
 }
 window._getCurrentRule = _getCurrentRule;
-// Firestore에서 관리자 규칙 로드
+// Firestore에서 관리자 규칙 + FW 설정 로드
 function _loadFWRuleOverride(){
   if(!window._fbDb) return;
   try{
     window._fbDb.collection('system').doc('fw_rule').get().then(function(doc){
-      if(doc.exists&&doc.data().ruleId) _fwOverrideRule=doc.data().ruleId;
-      else _fwOverrideRule=null;
+      if(doc.exists){
+        if(doc.data().ruleId) _fwOverrideRule=doc.data().ruleId;
+        else _fwOverrideRule=null;
+        if(doc.data().maxEntries) _fwMaxEntries=parseInt(doc.data().maxEntries,10)||3;
+      }
     }).catch(function(){});
   }catch(_){}
 }
@@ -16676,8 +16680,8 @@ function renderFW(){
     } else {
       var dayKey='fw_entry_'+new Date().toDateString();
       var used=parseInt(localStorage.getItem(dayKey)||'0',10);
-      var remain=Math.max(0,3-used);
-      joinBtn.textContent='참가하기 ('+remain+'/3)';
+      var remain=Math.max(0,_fwMaxEntries-used);
+      joinBtn.textContent='참가하기 ('+remain+'/'+_fwMaxEntries+')';
       if(remain<=0){ joinBtn.style.opacity='0.4'; joinBtn.style.borderColor='#334455'; joinBtn.style.textShadow='none'; }
       else { joinBtn.style.opacity='1'; joinBtn.style.borderColor='#00dddd'; joinBtn.style.textShadow='0 0 8px #00dddd'; }
     }
@@ -16711,7 +16715,7 @@ function renderFW(){
       if(prevBtn) prevBtn.onclick=function(){if(viewIdx>0){_fwRewardViewTier=viewIdx-1;renderFW();}};
       if(nextBtn) nextBtn.onclick=function(){if(viewIdx<FW_TIERS.length-1){_fwRewardViewTier=viewIdx+1;renderFW();}};
     }
-    var _rr=function(label,rankColor,v){return '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:'+rankColor+';font-size:13px;font-weight:bold;">'+label+'</span><span style="color:#ffc800;font-size:13px;">\u2726 '+v+'</span></div>';};
+    var _rr=function(label,rankColor,v){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;"><span style="color:'+rankColor+';font-size:14px;font-weight:bold;">'+label+'</span><span style="color:#ffc800;font-size:13px;">\u2726 '+v+'</span></div>';};
     rwEl.innerHTML=
       '<div style="display:flex;flex-direction:column;gap:1px;">'+
         _rr('1위','#ffc800',rw[0])+

@@ -289,6 +289,14 @@ tr { cursor:pointer; }
     <div style="color:#556677;font-size:10px;margin-bottom:10px;">현재 적용 중인 규칙을 수동으로 변경합니다. 변경 시 Firestore에 저장되어 모든 유저에게 적용됩니다.</div>
     <div id="fw-rule-current" style="margin-bottom:10px;color:#94a3b8;font-size:11px;"></div>
     <div id="fw-rule-buttons" style="display:flex;flex-direction:column;gap:4px;"></div>
+
+    <h2 style="color:#ffc800;font-size:14px;letter-spacing:2px;margin:20px 0 12px;">✦ 주파수 전쟁 입장 횟수</h2>
+    <div style="color:#556677;font-size:10px;margin-bottom:10px;">하루 최대 입장 횟수를 변경합니다. 테스트 시 높게 설정하세요.</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input id="fw-max-entries" type="number" min="1" max="999" value="3" style="background:#0a1a2a;border:1px solid #1a3444;color:#f1f5f9;font-family:monospace;font-size:13px;padding:8px;width:80px;text-align:center;">
+      <button id="fw-max-entries-btn" style="background:#030b10;border:1px solid #ffc800;color:#ffc800;font-family:monospace;font-size:11px;padding:8px 16px;cursor:pointer;">적용</button>
+      <span id="fw-max-entries-status" style="color:#556677;font-size:10px;"></span>
+    </div>
   </div>
 
   <!-- ===== 공지 탭 ===== -->
@@ -1477,6 +1485,7 @@ loadUsers = async function() {
   loadDeletedUsers();
   loadMaintenanceStatus();
   loadFWRule();
+  loadFWMaxEntries();
   loadGuilds();
   loadNotices();
   renderMonitor();
@@ -1536,6 +1545,35 @@ async function loadFWRule() {
     btnsEl.appendChild(btn);
   });
 }
+
+// ── 주파수 전쟁 입장 횟수 관리 ──
+async function loadFWMaxEntries(){
+  var input=document.getElementById('fw-max-entries');
+  var status=document.getElementById('fw-max-entries-status');
+  if(!input) return;
+  try{
+    var doc=await db.collection('system').doc('fw_rule').get();
+    if(doc.exists&&doc.data().maxEntries){
+      input.value=doc.data().maxEntries;
+      if(status) status.textContent='현재: '+doc.data().maxEntries+'회';
+    } else {
+      input.value=3;
+      if(status) status.textContent='현재: 3회 (기본값)';
+    }
+  }catch(_){}
+}
+
+document.getElementById('fw-max-entries-btn').addEventListener('click',async function(){
+  var input=document.getElementById('fw-max-entries');
+  var status=document.getElementById('fw-max-entries-status');
+  var val=parseInt(input.value,10);
+  if(isNaN(val)||val<1){showToast('1 이상 입력하세요');return;}
+  try{
+    await db.collection('system').doc('fw_rule').set({maxEntries:val},{merge:true});
+    if(status) status.textContent='적용 완료: '+val+'회';
+    showToast('입장 횟수 변경: '+val+'회');
+  }catch(e){showToast('오류: '+e.message);}
+});
 
 // ══════════════════════════════════════════════════════
 // 관리자 탭 전환
