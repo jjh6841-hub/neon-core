@@ -3413,7 +3413,7 @@ function applyPermStats() {
   t.atkMs      = Math.max(200, Math.round((window.BASE_ATKMS || 1000) / _spdMult));
   t.maxHp      = 25 * Math.pow(1.20, (_sr?0:(PERM.hpLv||0)) + (ws.maxHp||0));
   t.hp         = t.maxHp;
-  t.range      = BASE_RANGE + (_sr?0:PERM.rngLv) * 30;
+  t.range      = 162 + (_sr?0:PERM.rngLv) * 30;
   t.critChance = (ws.critChance || 0) * 0.005;
   t.critMult   = 1.5 + (ws.critMult   || 0) * 0.1;
   t.defense    = Math.min(0.80, (ws.defRate || 0) * 0.01);  // 회피율 1%/lv, 80% 캡
