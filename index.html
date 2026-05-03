@@ -8128,15 +8128,17 @@ if (dailyPopup) {
       </div>
     </div>
 
-    <!-- 규칙 배너 (상단 전체 너비) -->
-    <div id="fw-rule-card" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0a0e1a;margin-bottom:10px;"></div>
+    <!-- 규칙 배너 -->
+    <div id="fw-rule-card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(135deg,#0c1025 0%,#0a0e1a 50%,#10081a 100%);border:1px solid #1a344433;margin-bottom:10px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,221,221,0.02));pointer-events:none;"></div>
+    </div>
 
-    <!-- 2열: 좌(내 정보+상점) | 구분선 | 우(순위) -->
+    <!-- 2열: 좌(내 정보+전적+상점) | 구분선 | 우(순위) -->
     <div style="display:flex;flex:1;min-height:0;margin-bottom:8px;">
-      <!-- 좌측 열 -->
-      <div style="width:110px;flex-shrink:0;display:flex;flex-direction:column;">
+      <!-- 좌측 열 (넓게) -->
+      <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">
         <!-- 내 정보 -->
-        <div id="fw-league-card" style="padding:8px;text-align:center;background:#0a0e1a;margin-bottom:6px;">
+        <div id="fw-league-card" style="padding:8px;text-align:center;background:#0a0e1a;">
           <div id="fw-league-icon" style="font-size:28px;">🔵</div>
           <div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:3px;">TIER F</div>
           <div style="display:flex;justify-content:space-around;margin-top:6px;">
@@ -8145,14 +8147,19 @@ if (dailyPopup) {
           </div>
           <div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
         </div>
+        <!-- 시즌 전적 -->
+        <button id="fw-history-btn" style="background:#0a0e1a;border:1px solid #00dddd22;color:#7aacac;font-family:'Courier New',monospace;font-size:9px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#7aacac" stroke-width="1.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#7aacac" stroke-width="1.5" stroke-linecap="round"/></svg>
+          시즌 전적
+        </button>
         <!-- 상점 -->
-        <button id="fw-shop-btn" style="flex:1;background:#0a0e1a;border:1px solid #ffc80033;color:#ffc800;font-family:'Courier New',monospace;font-size:10px;padding:10px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
-          <svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><line x1="12" y1="4" x2="12" y2="2" stroke="#ffc800" stroke-width="1.5"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg>
+        <button id="fw-shop-btn" style="flex:1;background:#0a0e1a;border:1px solid #ffc80033;color:#ffc800;font-family:'Courier New',monospace;font-size:10px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">
+          <svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg>
           <span>주파수 상점</span>
         </button>
       </div>
       <!-- 구분선 -->
-      <div style="width:1px;background:#1a3444;opacity:0.3;margin:0 8px;"></div>
+      <div style="width:1px;background:#1a3444;opacity:0.3;margin:0 6px;"></div>
       <!-- 우측 열 (순위) -->
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -8176,12 +8183,20 @@ if (dailyPopup) {
     </div>
   </div>
 
-  <!-- 보상 팝업 (숨김) -->
+  <!-- 보상 팝업 -->
   <div id="fw-reward-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.85);z-index:10001;align-items:center;justify-content:center;font-family:'Courier New',monospace;">
     <div style="background:#0d1520;border:1px solid #ffc800;border-radius:12px;max-width:280px;width:85%;padding:16px;">
       <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"></div>
       <div id="fw-rewards" style="display:flex;flex-direction:column;gap:2px;"></div>
       <button onclick="document.getElementById('fw-reward-popup').style.display='none'" style="width:100%;margin-top:14px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">닫기</button>
+    </div>
+  </div>
+  <!-- 시즌 전적 팝업 -->
+  <div id="fw-history-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.85);z-index:10001;align-items:center;justify-content:center;font-family:'Courier New',monospace;">
+    <div style="background:#0d1520;border:1px solid #00dddd;border-radius:12px;max-width:300px;width:85%;padding:16px;">
+      <div style="color:#00dddd;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">시즌 전적</div>
+      <div id="fw-history-content" style="max-height:200px;overflow-y:auto;"></div>
+      <button onclick="document.getElementById('fw-history-popup').style.display='none'" style="width:100%;margin-top:14px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">닫기</button>
     </div>
   </div>
 </div>
@@ -15910,11 +15925,11 @@ function _injectScreens() {
           '<div style="text-align:right;"><div style="color:#556677;font-size:8px;">주파수 전쟁 종료</div><div id="fw-timer" style="color:#00dddd;font-size:13px;font-weight:bold;">--:--:--</div></div>' +
         '</div>' +
         /* 규칙 배너 */
-        '<div id="fw-rule-card" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0a0e1a;margin-bottom:10px;"></div>' +
-        /* 2열: 좌(내 정보+상점) | 구분선 | 우(순위) */
+        '<div id="fw-rule-card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(135deg,#0c1025 0%,#0a0e1a 50%,#10081a 100%);border:1px solid #1a344433;margin-bottom:10px;position:relative;overflow:hidden;"><div style="position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,221,221,0.02));pointer-events:none;"></div></div>' +
+        /* 2열: 좌(내 정보+전적+상점) | 구분선 | 우(순위) */
         '<div style="display:flex;flex:1;min-height:0;margin-bottom:8px;">' +
-          '<div style="width:110px;flex-shrink:0;display:flex;flex-direction:column;">' +
-            '<div id="fw-league-card" style="padding:8px;text-align:center;background:#0a0e1a;margin-bottom:6px;">' +
+          '<div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">' +
+            '<div id="fw-league-card" style="padding:8px;text-align:center;background:#0a0e1a;">' +
               '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
               '<div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:3px;">TIER F</div>' +
               '<div style="display:flex;justify-content:space-around;margin-top:6px;">' +
@@ -15923,24 +15938,17 @@ function _injectScreens() {
               '</div>' +
               '<div style="text-align:center;margin-top:4px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
             '</div>' +
-            '<button id="fw-shop-btn" style="flex:1;background:#0a0e1a;border:1px solid #ffc80033;color:#ffc800;font-family:\'Courier New\',monospace;font-size:10px;padding:10px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
-              '<svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><line x1="12" y1="4" x2="12" y2="2" stroke="#ffc800" stroke-width="1.5"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg>' +
-              '<span>주파수 상점</span>' +
-            '</button>' +
+            '<button id="fw-history-btn" style="background:#0a0e1a;border:1px solid #00dddd22;color:#7aacac;font-family:\'Courier New\',monospace;font-size:9px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;align-items:center;justify-content:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#7aacac" stroke-width="1.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#7aacac" stroke-width="1.5" stroke-linecap="round"/></svg>시즌 전적</button>' +
+            '<button id="fw-shop-btn" style="flex:1;background:#0a0e1a;border:1px solid #ffc80033;color:#ffc800;font-family:\'Courier New\',monospace;font-size:10px;padding:6px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg><span>주파수 상점</span></button>' +
           '</div>' +
-          '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 8px;"></div>' +
+          '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 6px;"></div>' +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
               '<span style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:1px;">순위</span>' +
-              '<button id="fw-reward-popup-btn" style="background:#0a0e1a;border:1px solid #ffc80044;color:#ffc800;font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-appearance:none;">' +
-                '<svg width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="12" rx="2" fill="#ffc800" opacity="0.3" stroke="#ffc800" stroke-width="1.2"/><path d="M3,10 L5,5 L19,5 L21,10" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1"/><rect x="9" y="7" width="6" height="5" rx="1" fill="none" stroke="#ffc800" stroke-width="1"/><circle cx="12" cy="16" r="1.5" fill="#ffc800" opacity="0.7"/></svg>' +
-                '보상' +
-              '</button>' +
+              '<button id="fw-reward-popup-btn" style="background:#0a0e1a;border:1px solid #ffc80044;color:#ffc800;font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-appearance:none;"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="12" rx="2" fill="#ffc800" opacity="0.3" stroke="#ffc800" stroke-width="1.2"/><path d="M3,10 L5,5 L19,5 L21,10" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1"/><rect x="9" y="7" width="6" height="5" rx="1" fill="none" stroke="#ffc800" stroke-width="1"/><circle cx="12" cy="16" r="1.5" fill="#ffc800" opacity="0.7"/></svg>보상</button>' +
             '</div>' +
             '<div id="fw-tab-content" style="max-height:255px;overflow-y:auto;padding:2px 0;">' +
-              '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">' +
-                '<div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>' +
-              '</div>' +
+              '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;"><div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -15953,6 +15961,13 @@ function _injectScreens() {
           '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"></div>' +
           '<div id="fw-rewards" style="display:flex;flex-direction:column;gap:2px;"></div>' +
           '<button onclick="document.getElementById(\'fw-reward-popup\').style.display=\'none\'" style="width:100%;margin-top:14px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">닫기</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="fw-history-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.85);z-index:10001;align-items:center;justify-content:center;font-family:\'Courier New\',monospace;">' +
+        '<div style="background:#0d1520;border:1px solid #00dddd;border-radius:12px;max-width:300px;width:85%;padding:16px;">' +
+          '<div style="color:#00dddd;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">시즌 전적</div>' +
+          '<div id="fw-history-content" style="max-height:200px;overflow-y:auto;"></div>' +
+          '<button onclick="document.getElementById(\'fw-history-popup\').style.display=\'none\'" style="width:100%;margin-top:14px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">닫기</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(fw);
@@ -16285,6 +16300,30 @@ function _hookFWButtons() {
       '</div>';
     ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
     document.body.appendChild(ov);
+  });
+
+  /* 시즌 전적 버튼 */
+  var histBtn=document.getElementById('fw-history-btn');
+  if(histBtn) histBtn.addEventListener('click',function(){
+    var popup=document.getElementById('fw-history-popup');
+    if(!popup) return;
+    popup.style.display='flex';
+    var content=document.getElementById('fw-history-content');
+    if(!content) return;
+    var fw=_loadFW();
+    var history=fw.seasonHistory||[];
+    if(history.length===0){
+      content.innerHTML='<div style="color:#334455;font-size:10px;text-align:center;padding:16px;">기록이 없습니다</div>';
+    } else {
+      var html='';
+      history.slice().reverse().forEach(function(h,i){
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid #0a1a2a;">'+
+          '<div><div style="color:#94a3b8;font-size:11px;">'+h.season+'</div><div style="color:#445566;font-size:8px;">'+FW_TIERS[h.tier||0].name+'</div></div>'+
+          '<div style="text-align:right;"><div style="color:#ffc800;font-size:12px;font-weight:bold;">'+h.rank+'위</div><div style="color:#00dddd;font-size:10px;">W'+h.wave+'</div></div>'+
+        '</div>';
+      });
+      content.innerHTML=html;
+    }
   });
 
   /* 보상 팝업 버튼 */
@@ -16654,10 +16693,11 @@ function renderFW(){
   var ruleCard=document.getElementById('fw-rule-card');
   if(ruleCard){
     ruleCard.innerHTML=
-      _fwRuleIconHTML(rule.id,28)+
+      '<div style="flex-shrink:0;">'+_fwRuleIconHTML(rule.id,32)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
-        '<div style="display:flex;align-items:center;gap:6px;"><span style="color:#7aacac;font-size:9px;">이번 주</span><span style="color:#00dddd;font-size:13px;font-weight:bold;">'+rule.name+'</span></div>'+
-        '<div style="color:#556677;font-size:10px;margin-top:2px;line-height:1.3;word-break:keep-all;">'+rule.desc+'</div>'+
+        '<div style="color:#445566;font-size:8px;letter-spacing:1px;margin-bottom:2px;">THIS WEEK</div>'+
+        '<div style="color:#00dddd;font-size:14px;font-weight:bold;text-shadow:0 0 8px #00dddd22;">'+rule.name+'</div>'+
+        '<div style="color:#667788;font-size:10px;margin-top:3px;line-height:1.3;word-break:keep-all;">'+rule.desc+'</div>'+
       '</div>';
   }
 
@@ -16755,9 +16795,9 @@ function renderFW(){
     var html='<div style="display:flex;justify-content:space-between;padding:3px 4px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:6px;"><span style="color:#556677;font-size:11px;width:20px;">No</span><span style="color:#556677;font-size:11px;">닉네임</span></div><span style="color:#556677;font-size:11px;">\uC6E8\uC774\uBE0C</span></div>';
     scores.forEach(function(s,idx){
       var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
-      html+='<div style="display:flex;align-items:center;padding:5px 4px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd08;':'')+'">'+
-          '<span style="color:'+rc+';font-size:12px;width:20px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 4px;">'+s.name+'</span>'+
+      html+='<div style="display:flex;align-items:center;padding:5px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd08;':'')+'">'+
+          '<span style="color:'+rc+';font-size:12px;width:18px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 2px;">'+s.name+'</span>'+
           '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:12px;font-weight:bold;flex-shrink:0;">'+s.score+'</span>'+
       '</div>';
     });
@@ -16908,6 +16948,10 @@ function _checkFWSettlement(){
     }
     window.pulseFragments=(window.pulseFragments||0)+pulse;
     try{localStorage.setItem('pulseFragments',window.pulseFragments);}catch(_){}
+    // 시즌 전적 기록 저장
+    if(!fw.seasonHistory) fw.seasonHistory=[];
+    fw.seasonHistory.push({season:weekKey, rank:rank, wave:score, tier:tier});
+    if(fw.seasonHistory.length>20) fw.seasonHistory=fw.seasonHistory.slice(-20); // 최근 20시즌
     fw.seasonScore=0;
     fw.plays=0;
     fw.rank=rank;
