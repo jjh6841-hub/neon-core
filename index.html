@@ -8079,10 +8079,10 @@ if (dailyPopup) {
         <div id="fw-league-icon" style="font-size:28px;">🔵</div>
         <div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>
         <div style="display:flex;justify-content:space-around;margin-top:8px;">
-          <div style="text-align:center;"><div style="color:#445566;font-size:9px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:13px;font-weight:bold;">0</div></div>
-          <div style="text-align:center;"><div style="color:#445566;font-size:9px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:13px;font-weight:bold;">0</div></div>
+          <div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>
+          <div style="text-align:center;"><div style="color:#445566;font-size:10px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>
         </div>
-        <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:9px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:16px;font-weight:bold;">-</div></div>
+        <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
       </div>
       <div id="fw-rule-card" style="flex:1;background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:8px;"></div>
     </div>
@@ -15814,10 +15814,10 @@ function _injectScreens() {
               '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
               '<div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>' +
               '<div style="display:flex;justify-content:space-around;margin-top:8px;">' +
-                '<div style="text-align:center;"><div style="color:#445566;font-size:9px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:13px;font-weight:bold;">0</div></div>' +
-                '<div style="text-align:center;"><div style="color:#445566;font-size:9px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:13px;font-weight:bold;">0</div></div>' +
+                '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>' +
+                '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>' +
               '</div>' +
-              '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:9px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:16px;font-weight:bold;">-</div></div>' +
+              '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
             '</div>' +
           '</div>' +
           /* 우: 순위 + 시즌 보상 (가로 배치) */
@@ -16518,10 +16518,10 @@ function renderFW(){
   var ruleCard=document.getElementById('fw-rule-card');
   if(ruleCard){
     ruleCard.innerHTML=
-      '<div style="color:#7aacac;font-size:9px;margin-bottom:4px;letter-spacing:1px;">이번 주 규칙</div>'+
-      '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,24)+'</div>'+
-      '<div style="color:#00dddd;font-size:12px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
-      '<div style="color:#556677;font-size:9px;margin-top:2px;text-align:center;line-height:1.4;">'+rule.desc+'</div>';
+      '<div style="color:#7aacac;font-size:10px;margin-bottom:4px;letter-spacing:1px;">이번 주 규칙</div>'+
+      '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,28)+'</div>'+
+      '<div style="color:#00dddd;font-size:13px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
+      '<div style="color:#556677;font-size:10px;margin-top:2px;text-align:center;line-height:1.4;">'+rule.desc+'</div>';
   }
 
   var lb=document.getElementById('fw-leaderboard');
@@ -16609,15 +16609,15 @@ function renderFW(){
 
     scores.sort(function(a,b){return b.score-a.score;});
     // 순위 렌더링 (전체 50명, 스크롤 가능)
-    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:9px;width:16px;">#</span><span style="color:#556677;font-size:9px;">닉네임</span></div><span style="color:#556677;font-size:9px;">W</span></div>';
+    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:10px;width:16px;">No</span><span style="color:#556677;font-size:10px;">닉네임</span></div><span style="color:#556677;font-size:10px;">\uC6E8\uC774\uBE0C</span></div>';
     scores.forEach(function(s,idx){
       var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
-      html+='<div '+(s.isPlayer?'data-fw-me ':'')+' style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd0a;':'')+'">'+
+      html+='<div '+(s.isPlayer?'data-fw-me ':'')+' style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd0a;':'')+'">'+
         '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
-          '<span style="color:'+rc+';font-size:10px;width:16px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
+          '<span style="color:'+rc+';font-size:11px;width:18px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
         '</div>'+
-        '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:10px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
+        '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:11px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
       '</div>';
     });
     lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
@@ -16680,7 +16680,7 @@ function renderFW(){
       if(prevBtn) prevBtn.onclick=function(){if(viewIdx>0){_fwRewardViewTier=viewIdx-1;renderFW();}};
       if(nextBtn) nextBtn.onclick=function(){if(viewIdx<FW_TIERS.length-1){_fwRewardViewTier=viewIdx+1;renderFW();}};
     }
-    var _rr=function(label,c,v){return '<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="color:'+c+';font-size:11px;">'+label+'</span><span style="color:'+c+';font-size:11px;">\u2726 '+v+'</span></div>';};
+    var _rr=function(label,rankColor,v){return '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:'+rankColor+';font-size:13px;font-weight:bold;">'+label+'</span><span style="color:#ffc800;font-size:13px;">\u2726 '+v+'</span></div>';};
     rwEl.innerHTML=
       '<div style="display:flex;flex-direction:column;gap:1px;">'+
         _rr('1위','#ffc800',rw[0])+
