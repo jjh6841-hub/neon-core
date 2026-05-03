@@ -16616,11 +16616,21 @@ function renderFW(){
 
     // 실제 유저 추가
     var realCount=0;
+    var myUid=window._fbUid;
     Object.keys(realMembers).forEach(function(uid){
       var m=realMembers[uid];
-      scores.push({name:m.name||uid.slice(0,8), score:m.score||0, isPlayer:uid===window._fbUid});
+      var isMe=uid===myUid;
+      // 내 점수는 로컬 seasonScore와 서버 값 중 큰 값 사용 (캐시 지연 대응)
+      var sc=isMe?Math.max(m.score||0, playerWave):m.score||0;
+      var nm=isMe?(window.PERM&&PERM.nickname||m.name||'\uB098'):m.name||uid.slice(0,8);
+      scores.push({name:nm, score:sc, isPlayer:isMe});
       realCount++;
     });
+    // 그룹에 아직 등록 안 된 경우에도 내 점수 표시
+    if(playerWave>0&&!realMembers[myUid]){
+      scores.push({name:(window.PERM&&PERM.nickname)||'\uB098', score:playerWave, isPlayer:true});
+      realCount++;
+    }
 
     // 나머지 봇으로 채우기 (50명까지)
     var botCount=Math.max(0,50-realCount);
@@ -19156,11 +19166,11 @@ if(typeof _origGameOverFW==='function'){
     }
 
     var fw=window._loadFW?window._loadFW():{};
-    var wave=G?G.wave||0:0;
-    if(wave>(fw.seasonScore||0)){
-      fw.seasonScore=wave;
+    var clearedWave=G?Math.max(0,(G.wave||1)-1):0; // 클리어한 웨이브 (결과 화면과 동일)
+    if(clearedWave>(fw.seasonScore||0)){
+      fw.seasonScore=clearedWave;
       // Firestore 그룹 점수 동기화
-      if(window._updateFWScore) window._updateFWScore(wave);
+      if(window._updateFWScore) window._updateFWScore(clearedWave);
     }
     fw.participating=false;
     var tierBase=[20,40,70,120,200];
