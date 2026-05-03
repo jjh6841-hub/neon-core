@@ -19048,25 +19048,19 @@ if(typeof _origStartFW==='function'){
         });
         // 프로토콜: 회복 기능 있는 것만 비활성 (나노봇 수복)
         G._fwBlockedProtos=['pt_nano'];
-        // 나노봇 수복 슬롯 비활성 표시
-        setTimeout(function(){
-          var bar=document.getElementById('proto-battle-bar');
-          if(!bar) return;
-          var slots=bar.querySelectorAll('[data-proto-slot]');
-          slots.forEach(function(slot){
-            var pid=slot.getAttribute('data-proto-id')||slot.getAttribute('data-proto-slot-id');
-            // 슬롯 내 프로토콜 ID 확인
-            if(!pid){
-              var txt=slot.textContent||'';
-              if(txt.indexOf('나노봇')!==-1||txt.indexOf('수복')!==-1) pid='pt_nano';
-            }
-            if(pid==='pt_nano'){
-              slot.style.opacity='0.25';
-              slot.style.pointerEvents='none';
-              slot.style.filter='grayscale(1)';
+        // 나노봇 수복 버튼 비활성 표시 (proto-btn-pt_nano)
+        function _disableFWProtos(){
+          G._fwBlockedProtos.forEach(function(pid){
+            var btn=document.getElementById('proto-btn-'+pid);
+            if(btn){
+              btn.style.opacity='0.2';
+              btn.style.pointerEvents='none';
+              btn.style.filter='grayscale(1)';
             }
           });
-        },500);
+        }
+        setTimeout(_disableFWProtos,500);
+        setTimeout(_disableFWProtos,1500);
       }
 
       if(rule==='silent_core'){
@@ -19156,12 +19150,14 @@ if(typeof _origGameOverFW==='function'){
         if(ov) ov.remove();
       }
     });
-    // 프로토콜 슬롯 복원
+    // 프로토콜 버튼 복원
     var protoBar=document.getElementById('proto-battle-bar');
     if(protoBar){
       protoBar.style.display='';
-      var slots=protoBar.querySelectorAll('[data-proto-slot]');
-      slots.forEach(function(s){ s.style.opacity='1'; s.style.pointerEvents='auto'; s.style.filter=''; });
+      ['pt_nano'].forEach(function(pid){
+        var btn=document.getElementById('proto-btn-'+pid);
+        if(btn){ btn.style.opacity='1'; btn.style.pointerEvents='auto'; btn.style.filter=''; }
+      });
     }
   };
 }
