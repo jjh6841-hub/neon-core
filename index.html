@@ -19205,13 +19205,22 @@ if(typeof _origStartFW==='function'){
 var _origApplyPermFW=window.applyPermStats;
 function _fwResetToBase(){
   if(!G||!G.tower) return;
+  // 타워 기본 스탯
   G.tower.dmg=5; G.tower.maxHp=25; G.tower.hp=Math.min(G.tower.hp,25);
   G.tower.atkMs=1000; G.tower.critChance=0; G.tower.critMult=1.5;
   G.tower.defense=0; G.tower.hpRegen=0;
   G.tower.range=Math.min(window.CW||300,window.CH||500)*0.45;
+  // 영구 스탯
   G.regenRate=0; G.lifeSteal=0; G.defenseAbs=0;
   G.enhCritChance=0; G.enhCritMult=1.5; G.enemyDefReduce=0;
   G.critChance=0; G.critMult=1.5; G.reflectPct=0; G.knockbackChance=0;
+  // 프리즘 효과 전부 초기화
+  G.splashPct=0; G._prismSpdBonus=0; G._prismChipWaveBonus=0;
+  G._prismChipKillBonus=0; G.freeUpgChance=0; G.auraSlowPct=0;
+  G.lastStandPct=0; G.emergencyHealPct=0; G.overloadPct=0;
+  G.vulnPct=0; G.jamPct=0; G.waveSkipChance=0; G.introBonus=0;
+  G.goldDmgPct=0; G._goldDmgFlat=false;
+  G.goldMult=1; G.gemMult=1;
 }
 if(typeof _origApplyPermFW==='function'){
   window.applyPermStats=function(){
