@@ -11653,8 +11653,26 @@ Object.defineProperty(window,'_curTierIdx',{
 
 /* §6 — WS 영구 강화 기본 비용 */
 var WS_BASE_COSTS = {
-  damage:8, atkspd:10, critChance:12, critMult:15, enhCritChance:20, enhCritMult:30,
   maxHp:10, defense:9, hpRegen:10, lifeSteal:14,
+};
+/* 공격 탭 테이블 기반 비용 (t=레벨별 고정값, r=이후 증가율) */
+var WS_ATK_COST_TABLES = {
+  damage:       {t:[8,20,50,120,250,470,810], r:0.30},
+  atkspd:       {t:[10,30,80,190,410,780,1120,1850,2900,4080,6800], r:0.35},
+  critChance:   {t:[12,27,65,137,265,492,832], r:0.35},
+  critMult:     {t:[15,32,68,132,251,473,812], r:0.30},
+  enhCritChance:{t:[20,80,270,820,2350,6210,12080,23900,45100,82100,138000], r:0.35},
+  enhCritMult:  {t:[30,91,267,627,1790,3610,7520,13800,23100,41700,68100,100100], r:0.30},
+  enemyDefReduce:{t:[10,29,68,178,380,730,1380,2410,4010,7120,11800,18200,30100], r:0.35},
+  wsRange:      {t:[8,27,71,153,327,610,1230,2370,4380,8100,14700,26100,47250,81100,145700], r:0},
+  dmgPerMeter:  {t:[12,25,49,87,161,317,610,1170,2300,4490,9150,15100], r:0.35},
+  multiChance:  {t:[15,35,72,139,251,483,910,1670,2910,4630,7220], r:0.35},
+  multiTargets: {t:[30,300,3000,30000,300000], r:0},
+  rapidChance:  {t:[18,40,92,191,375,711,1380,2450,4100,6320,9890], r:0.35},
+  rapidDuration:{t:[20,49,91,210,505,1020,1825,2450,4110,6830,9220], r:0.35},
+  bounceChance: {t:[20,52,112,223,410,782,1430,2600,4810,7120], r:0.35},
+  bounceTargets:{t:[35,350,3500,35000,350000], r:0},
+  bounceRange:  {t:[22,48,91,179,362,710,1290,2200,3620,5900,9890,14100,23700], r:0.35},
 };
 
 /* ════════════════════════════════════════════════════════
@@ -11814,19 +11832,22 @@ function _applyWsCostPatches() {
   if (!items || items._fBalCost) return;
   items._fBalCost = true;
 
-  // 비용 공식: base * pow(1.35, lv)
+  // 공격 탭: 테이블 기반 비용
+  Object.keys(WS_ATK_COST_TABLES).forEach(function(k) {
+    if (!items[k]) return;
+    var ct = WS_ATK_COST_TABLES[k];
+    items[k].cost = function(lv) {
+      if (lv < ct.t.length) return ct.t[lv];
+      if (ct.r <= 0) return ct.t[ct.t.length - 1];
+      return Math.round(ct.t[ct.t.length - 1] * Math.pow(1 + ct.r, lv - ct.t.length + 1));
+    };
+  });
+  // 방어 탭: 기존 공식 유지 (base * 1.35^lv)
   Object.keys(WS_BASE_COSTS).forEach(function(k) {
     if (!items[k]) return;
     var base = WS_BASE_COSTS[k];
-    var tab = items[k].tab;
     items[k].cost = function(lv) {
-      var raw = Math.floor(base * Math.pow(1.35, lv));
-      var discKey = tab==='atk'?'res_atk_discount':tab==='def'?'res_def_discount':tab==='utl'?'res_utl_discount':'';
-      if (discKey) {
-        var disc = parseInt(localStorage.getItem(discKey)||'0',10);
-        if (disc > 0) raw = Math.max(1, Math.floor(raw * (1 - disc * 0.005)));
-      }
-      return raw;
+      return Math.floor(base * Math.pow(1.35, lv));
     };
   });
 
