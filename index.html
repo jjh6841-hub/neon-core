@@ -3503,6 +3503,14 @@ function startGame() {
   requestAnimationFrame(function(ts) { gameLoop(gen, ts); });
 }
 
+/* 웨이브별 적 1마리당 기본 골드 (행성·goldMult 적용 전) */
+function getWaveGold(wave) {
+  if (wave >= 10001) return 12.5;
+  if (wave >= 1001) return Math.min(10, 5 + Math.ceil((wave - 1000) / 1000));
+  return Math.ceil(wave / 100) * 0.5;
+}
+window.getWaveGold = getWaveGold;
+
 function getWaveEnemies(wave) {
   var list = [];
   var totalCount = Math.min(150, Math.floor(4 + wave * 1.5));
@@ -3510,16 +3518,16 @@ function getWaveEnemies(wave) {
 
   // 유닛 풀 구성 (웨이브별 등장 + 행성 조건)
   var pool = [{type:'basic',pct:1}];
-  if(wave>=10) pool.push({type:'rusher', pct:Math.min(0.18,(wave-10)*0.004)});
-  if(wave>=20) pool.push({type:'tank',   pct:Math.min(0.15,(wave-20)*0.004)});
-  if(wave>=30) pool.push({type:'shield',  pct:Math.min(0.12,(wave-30)*0.003)});
-  if(wave>=40) pool.push({type:'sniper',  pct:Math.min(0.10,(wave-40)*0.003)});
-  if(wave>=51) pool.push({type:'vampire', pct:Math.min(0.10,(wave-51)*0.003)});
+  if(wave>=11) pool.push({type:'rusher', pct:Math.min(0.18,(wave-11)*0.004)});
+  if(wave>=21) pool.push({type:'tank',   pct:Math.min(0.15,(wave-21)*0.004)});
+  if(wave>=41) pool.push({type:'shield',  pct:Math.min(0.12,(wave-41)*0.003)});
+  if(wave>=61) pool.push({type:'sniper',  pct:Math.min(0.10,(wave-61)*0.003)});
+  if(wave>=81) pool.push({type:'vampire', pct:Math.min(0.10,(wave-81)*0.003)});
   if(wave>=51&&_tier>=2) pool.push({type:'resist', pct:Math.min(0.08,(wave-51)*0.002)});
-  if(wave>=60) pool.push({type:'split',   pct:Math.min(0.10,(wave-60)*0.003)});
-  if(wave>=70) pool.push({type:'regen',   pct:Math.min(0.08,(wave-70)*0.002)});
-  if(wave>=81) pool.push({type:'stealth', pct:Math.min(0.08,(wave-81)*0.002)});
-  if(wave>=101) pool.push({type:'spawner', pct:Math.min(0.05,(wave-101)*0.001)});
+  if(wave>=101) pool.push({type:'split',   pct:Math.min(0.10,(wave-101)*0.003)});
+  if(wave>=121) pool.push({type:'regen',   pct:Math.min(0.08,(wave-121)*0.002)});
+  if(wave>=141) pool.push({type:'stealth', pct:Math.min(0.08,(wave-141)*0.002)});
+  if(wave>=161) pool.push({type:'spawner', pct:Math.min(0.05,(wave-161)*0.001)});
   if(wave>=101&&_tier>=2) pool.push({type:'kamikaze', pct:Math.min(0.10,(wave-101)*0.003)});
 
   // 특수 적 비율 합산 후 기본 적으로 나머지 채움
@@ -3746,11 +3754,12 @@ function update(dt) {
         if (!_nwBoss) {
           // 스킵되는 웨이브의 전체 보상 (적 처치 + 웨이브 클리어) × 1.1배
           var _skipEnemies = getWaveEnemies(_nw);
-          var _enemyGoldMap = {basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500};
+          var _skipWaveGoldBase = getWaveGold(_nw);
+          var _skipPlanetMult = [1, 1, 2, 3, 4, 5][parseInt(localStorage.getItem('td_tier')||'1',10)] || 1;
           var _skipKillGold = 0, _skipKillChips = 0;
           for (var _sei = 0; _sei < _skipEnemies.length; _sei++) {
-            var _seGold = (_enemyGoldMap[_skipEnemies[_sei]] || 1);
-            _skipKillGold += Math.round(_seGold * (G.goldMult||1) * 0.5);
+            var _seGold = _skipWaveGoldBase * _skipPlanetMult;
+            _skipKillGold += _seGold * (G.goldMult||1);
             _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult?0.5:0)));
           }
           var _skipWaveGold = Math.round(Math.min(50, 5 + Math.floor(_nw / 100) * 5) * (G.goldMult||1));
@@ -3967,9 +3976,9 @@ function update(dt) {
           _infKill(e.type);
           var _eGold = e.gold || 1;
           var _eBaseRaw = e.baseGold || Math.round(_eGold / (e._planetGoldMult||1));
-          // 골드 소수점 누적 (2마리당 1골드 구현)
-          var _rawBase = _eBaseRaw * 0.5;
-          var _rawTotal = _eGold * (G.goldMult||1) * 0.5;
+          // 웨이브 기반 골드 (소수점 누적)
+          var _rawBase = _eBaseRaw;
+          var _rawTotal = _eGold * (G.goldMult||1);
           G._goldFrac = (G._goldFrac||0) + _rawTotal;
           _eGold = Math.floor(G._goldFrac);
           G._goldFrac -= _eGold;
@@ -4251,44 +4260,45 @@ function mkEnemy(etype) {
   var baseSpd = Math.min(5.0, 0.8 + _effW * 0.0042) * _planetSpdMult;
   var baseR   = 9;
   var _planetGoldMult = [1, 1, 2, 3, 4, 5][_tier] || 1;
-  var baseGold = Math.round((({basic:1,tank:3,rusher:2,sniper:2,shield:3,split:1,regen:3,vampire:3,stealth:4,spawner:5,resist:4,kamikaze:2,boss:15,boss_elite:50,boss_hyper:150,boss_galaxy:500}[etype]) || 1) * _planetGoldMult);
+  var _waveGold = (typeof getWaveGold==='function') ? getWaveGold(w) : 1;
+  var baseGold = _waveGold * _planetGoldMult;
   var baseAtk = Math.max(1, Math.round(1 * Math.pow(1.08, _effW - 1) * _planetAtkMult));
 
   var hp, spd, r, gold, gem = 0;
   var _isBoss = etype==='boss'||etype==='boss_elite'||etype==='boss_hyper'||etype==='boss_galaxy';
 
   if (_isBoss) {
-    var bm = etype === 'boss_galaxy' ? { hp:500, dmg:20, speed:0.05, reward:100 }
-           : etype === 'boss_hyper'  ? { hp:100, dmg:10, speed:0.1,  reward:30  }
-           : etype === 'boss_elite'  ? { hp:30,  dmg:5,  speed:0.3,  reward:15  }
-           :                           { hp:10,  dmg:2,  speed:0.5,  reward:5   };
+    var bm = etype === 'boss_galaxy' ? { hp:500, dmg:20, speed:0.05 }
+           : etype === 'boss_hyper'  ? { hp:100, dmg:10, speed:0.1  }
+           : etype === 'boss_elite'  ? { hp:30,  dmg:5,  speed:0.3  }
+           :                           { hp:10,  dmg:2,  speed:0.5  };
     hp   = baseHp * bm.hp;
     spd  = baseSpd * bm.speed;
     r    = Math.round(baseR * (etype==='boss_galaxy'?4.5:etype==='boss_hyper'?3.5:etype==='boss_elite'?3.0:2.5));
-    gold = baseGold * bm.reward;
+    gold = ({boss:5,boss_elite:15,boss_hyper:150,boss_galaxy:1000}[etype]||5) * _planetGoldMult;
     gem  = etype==='boss_galaxy'?50:etype==='boss_hyper'?5:etype==='boss_elite'?3:1;
   } else if (etype === 'tank') {
-    hp = baseHp*4; spd = baseSpd*0.5; r = Math.round(baseR*1.6); gold = baseGold*3;
+    hp = baseHp*4; spd = baseSpd*0.5; r = Math.round(baseR*1.6); gold = baseGold;
   } else if (etype === 'rusher') {
-    hp = baseHp*0.5; spd = baseSpd*2.5; r = Math.round(baseR*0.9); gold = baseGold*2;
+    hp = baseHp*0.5; spd = baseSpd*2.5; r = Math.round(baseR*0.9); gold = baseGold;
   } else if (etype === 'sniper') {
-    hp = baseHp*0.8; spd = baseSpd*0.8; r = baseR; gold = baseGold*4;
+    hp = baseHp*0.8; spd = baseSpd*0.8; r = baseR; gold = baseGold;
   } else if (etype === 'shield') {
-    hp = baseHp*1.5; spd = baseSpd*0.7; r = Math.round(baseR*1.1); gold = baseGold*3;
+    hp = baseHp*1.5; spd = baseSpd*0.7; r = Math.round(baseR*1.1); gold = baseGold;
   } else if (etype === 'split') {
     hp = baseHp*0.8; spd = baseSpd*1.0; r = Math.round(baseR*0.9); gold = baseGold;
   } else if (etype === 'regen') {
-    hp = baseHp*2; spd = baseSpd*0.6; r = baseR; gold = baseGold*3;
+    hp = baseHp*2; spd = baseSpd*0.6; r = baseR; gold = baseGold;
   } else if (etype === 'vampire') {
-    hp = baseHp*1.2; spd = baseSpd*0.9; r = baseR; gold = baseGold*3;
+    hp = baseHp*1.2; spd = baseSpd*0.9; r = baseR; gold = baseGold;
   } else if (etype === 'stealth') {
-    hp = baseHp*0.7; spd = baseSpd*1.3; r = Math.round(baseR*0.8); gold = baseGold*4;
+    hp = baseHp*0.7; spd = baseSpd*1.3; r = Math.round(baseR*0.8); gold = baseGold;
   } else if (etype === 'spawner') {
-    hp = baseHp*3; spd = baseSpd*0.4; r = Math.round(baseR*1.4); gold = baseGold*5;
+    hp = baseHp*3; spd = baseSpd*0.4; r = Math.round(baseR*1.4); gold = baseGold;
   } else if (etype === 'resist') {
-    hp = baseHp*2; spd = baseSpd*0.7; r = Math.round(baseR*1.2); gold = baseGold*4;
+    hp = baseHp*2; spd = baseSpd*0.7; r = Math.round(baseR*1.2); gold = baseGold;
   } else if (etype === 'kamikaze') {
-    hp = baseHp*0.3; spd = baseSpd*1.5; r = Math.round(baseR*0.6); gold = baseGold*2;
+    hp = baseHp*0.3; spd = baseSpd*1.5; r = Math.round(baseR*0.6); gold = baseGold;
   } else {
     hp = baseHp; spd = baseSpd; r = baseR; gold = baseGold;
   }
@@ -4353,8 +4363,8 @@ function fireTower() {
         if (_mChip > 0) { coreChips += _mChip; }
         G.killCount++; PERM.totalKills++;
         if (typeof _infKill==='function') _infKill(target.type);
-        var _eG2Base = Math.round((target.gold||1)*0.5);
-        var _eG2 = Math.round((target.gold||1)*(G.goldMult||1)*0.5);
+        var _eG2Base = target.baseGold || Math.round((target.gold||1) / (target._planetGoldMult||1));
+        var _eG2 = Math.round((target.gold||1)*(G.goldMult||1));
         if (_eG2>0){G.gold+=_eG2;G.goldEarned+=_eG2;G.goldBaseEarned+=_eG2Base;PERM.gold+=_eG2;G.floatTexts.push({x:target.x,y:target.y+12,text:'+'+_eG2+' ◈',color:'#f59e0b',timer:0});}
         if(target.boss){PERM.bossKills++;if(target.bossGrade==='galaxy'){var _gT=parseInt(localStorage.getItem('td_tier')||'1',10);localStorage.setItem('galaxy_t'+_gT,'true');try{checkAchievements();}catch(_){}}}
         if(target.type==='split'&&!target._isSplitChild){for(var _si3=0;_si3<2;_si3++){var _sc2=mkEnemy('basic',target.x+(Math.random()-0.5)*16,target.y+(Math.random()-0.5)*16);_sc2.hp=Math.ceil(target.maxHp*0.5);_sc2.maxHp=_sc2.hp;_sc2.gold=0;_sc2._isSplitChild=true;G.enemies.push(_sc2);}}
