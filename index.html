@@ -4744,10 +4744,10 @@ function triggerGameOver() {
 
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'none';
-  // 주파수 전쟁: 재시도 버튼 숨김
+  // 주파수 전쟁: 재시도 버튼 숨김 (FW 전투 중일 때만)
   var _btnRetry = document.getElementById('btn-retry');
   if (_btnRetry) {
-    var _isFW = window._fwLastRule || (window._fwMode && window._fwMode.active);
+    var _isFW = window._fwMode && window._fwMode.active;
     _btnRetry.style.display = _isFW ? 'none' : '';
   }
   document.getElementById('results-screen').classList.add('show');
@@ -6032,12 +6032,6 @@ function restartGame() {
   if (G && G.speed) { try { localStorage.setItem('neoncore_speed', G.speed); } catch(_){} }
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
-  // 주파수 전쟁: 다시하기 완전 차단
-  var _wasFW=window._fwLastRule||(window._fwMode&&window._fwMode.active&&window._fwMode.rule);
-  if(_wasFW){
-    if(window.showToastMsg) showToastMsg('주파수 전쟁에서는 다시하기를 사용할 수 없습니다','#ef4444');
-    return;
-  }
   startNewGame();
 }
 window.restartGame = restartGame;
@@ -6372,17 +6366,18 @@ function bindOverlayBtn(id, fn) {
 }
 
 bindOverlayBtn('btn-retry', function() {
-  // 주파수 전쟁: 재시도 완전 차단
-  var _wasFW=window._fwLastRule;
-  if(_wasFW){
-    if(window.showToastMsg) showToastMsg('주파수 전쟁에서는 재시도를 사용할 수 없습니다','#ef4444');
-    return;
-  }
   document.getElementById('results-screen').classList.remove('show');
   startNewGame();
 });
 bindOverlayBtn('btn-go-home', function() {
   document.getElementById('results-screen').classList.remove('show');
+  // 주파수 전쟁이었으면 FW 화면으로 복귀
+  if (window._fwLastRule) {
+    delete window._fwLastRule;
+    document.getElementById('screen-game').style.display = 'none';
+    if (typeof showScreen === 'function') showScreen('frequency-wars');
+    return;
+  }
   openShop();
 });
 bindOverlayBtn('btn-start-game', startNewGame);
