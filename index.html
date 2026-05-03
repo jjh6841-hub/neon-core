@@ -20507,8 +20507,12 @@ window._getElementDetailRows = _getElementDetailRows;
 /* ── 속성 탭 렌더링 (강화 워크샵 내) ── */
 var _elemActiveTab = 'fire';
 function _eIcon(el, basePx) {
-  var extra=el.id==='water'?'display:inline-block;transform:scale(1.35);':'';
-  return '<span style="font-size:'+basePx+'px;vertical-align:middle;'+extra+'">'+el.icon+'</span>';
+  if(el.id==='water'){
+    // ⎈ 글리프가 작으므로 SVG로 동일 크기 렌더링
+    var s=basePx;
+    return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="vertical-align:middle;"><circle cx="8" cy="8" r="6.5" fill="none" stroke="'+el.color+'" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" fill="none" stroke="'+el.color+'" stroke-width="1"/><line x1="8" y1="1" x2="8" y2="4" stroke="'+el.color+'" stroke-width="1"/><line x1="8" y1="12" x2="8" y2="15" stroke="'+el.color+'" stroke-width="1"/><line x1="1" y1="8" x2="4" y2="8" stroke="'+el.color+'" stroke-width="1"/><line x1="12" y1="8" x2="15" y2="8" stroke="'+el.color+'" stroke-width="1"/></svg>';
+  }
+  return '<span style="font-size:'+basePx+'px;vertical-align:middle;">'+el.icon+'</span>';
 }
 
 window._renderElementTab = function(container) {
