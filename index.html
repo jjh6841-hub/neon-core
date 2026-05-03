@@ -6003,12 +6003,12 @@ window.resumeGame = resumeGame;
 
 function restartGame() {
   isPaused = false;
-  // 현재 배속 저장
   if (G && G.speed) { try { localStorage.setItem('neoncore_speed', G.speed); } catch(_){} }
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
-  // 주파수 전쟁: 다시하기 시 참가횟수 차감
-  if(window._fwMode&&window._fwMode.active){
+  // 주파수 전쟁: FW 모드 복원 + 참가횟수 차감
+  var _wasFW=window._fwLastRule||(window._fwMode&&window._fwMode.active&&window._fwMode.rule);
+  if(_wasFW){
     var dayKey='fw_entry_'+new Date().toDateString();
     var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
     var maxE=window._fwMaxEntries||3;
@@ -6017,6 +6017,9 @@ function restartGame() {
       return;
     }
     localStorage.setItem(dayKey, dayCount+1);
+    // FW 모드 재활성화
+    window._fwMode={active:true, rule:_wasFW};
+    delete window._fwLastRule;
   }
   startNewGame();
 }
@@ -6352,6 +6355,20 @@ function bindOverlayBtn(id, fn) {
 }
 
 bindOverlayBtn('btn-retry', function() {
+  // 주파수 전쟁: FW 모드 복원 + 참가횟수 차감
+  var _wasFW=window._fwLastRule;
+  if(_wasFW){
+    var dayKey='fw_entry_'+new Date().toDateString();
+    var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
+    var maxE=window._fwMaxEntries||3;
+    if(dayCount>=maxE){
+      if(window.showToastMsg) showToastMsg('참가 횟수가 부족하여 다시하기가 불가합니다 ('+maxE+'/'+maxE+')','#ef4444');
+      return;
+    }
+    localStorage.setItem(dayKey, dayCount+1);
+    window._fwMode={active:true, rule:_wasFW};
+    delete window._fwLastRule;
+  }
   document.getElementById('results-screen').classList.remove('show');
   startNewGame();
 });
@@ -16965,8 +16982,8 @@ function _checkFWSettlement(){
       window._fbDb.collection('mails').add({
         type:'personal',
         targetUid:window._fbUid,
-        title:'주파수 전쟁 시즌 보상',
-        body:'시즌 최고 웨이브: '+score+' ('+FW_TIERS[tier].name+' '+rank+'위/50)',
+        title:'주파수 전쟁 시즌 보상 축하합니다!',
+        body:FW_TIERS[tier].icon+' '+FW_TIERS[tier].name+' 티어 '+rank+'위 달성! (최고 웨이브: W'+score+')\n보상으로 펄스 조각 '+pulse+'개를 지급합니다.',
         rewards:{pulseFragments:pulse},
         createdAt:new Date().toISOString()
       }).catch(function(){});
@@ -19370,6 +19387,8 @@ if(typeof _origGameOverFW==='function'){
     _origGameOverFW.apply(this,arguments);
     if(!window._fwMode||!window._fwMode.active) return;
     window._fwMode.active=false;
+    // 다시하기용: 마지막 FW 규칙 보존
+    window._fwLastRule=window._fwMode.rule;
     // FW 전용 배경/티어 복원
     window._fwBattleBg=false;
     window._cachedBgColor=null;
