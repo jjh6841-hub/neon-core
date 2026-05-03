@@ -8704,12 +8704,7 @@ window.createState = function() {
   // 파장: 강화소 레벨 반영
   g.pulseRange = (ws.pulseSize || 0) * 10;
   g.pulseCd    = (ws.pulseCd || 0) > 0 ? Math.max(20, 60 - (ws.pulseCd||0) * 2) * 1000 : -1;
-  g.orbSpeed        = 1 + (ws.orbSpeed    || 0) * 0.1;
-  g.orbCount        = ws.orbCount || 0;
-  g.orbAngle        = 0;
-  g.thornDamage     = Math.min(0.99, ((ws.thornDamage || 0) + parseInt(localStorage.getItem('res_r_reflect')||'0',10)) * 0.01);
-  g.deathDefy       = (ws.deathDefy   || 0) * 0.001;
-  g.defenseAbs      = _getDefAbs(ws.defenseAbsolute || 0);
+  g.thornDamage     = Math.min(0.99, parseInt(localStorage.getItem('res_r_reflect')||'0',10) * 0.01);
   g.mines           = [];
   // Utility
   // cashBonusM 제거됨 (새 유틸 시스템으로 대체)
@@ -8889,17 +8884,8 @@ var NEW_ITEMS = {
   bounceTargets: { tab:'atk', name:'도약탄 수',   tier:5, atkGroup:5, maxLv:5,  cost:function(lv){return 35+lv*18;},              cur:function(lv){return ''+(lv+1);},                   nxt:function(lv){return ''+(lv+2);} },
   bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:20, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return lv*4+'px';},       nxt:function(lv){return (lv+1)*4+'px';} },
 
-  // 방어 탭 2단계
-  defenseAbsolute: { tab:'def', name:'절대 방어',        tier:2, maxLv:99, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return ''+_getDefAbs(lv);},      nxt:function(lv){return ''+_getDefAbs(lv+1);} },
-  thornDamage:     { tab:'def', name:'가시 피해',        tier:2, maxLv:99, cost:function(lv){return 10+Math.floor(lv*1.8);}, cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
   // 방어 탭 3단계
-  knockbackChance: { tab:'def', name:'넉백 확률',        tier:3, maxLv:99, cost:function(lv){return 14+Math.floor(lv*2.2);}, cur:function(lv){return (lv*0.8)._tf1();},     nxt:function(lv){return ((lv+1)*0.8)._tf1();} },
   knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, defGroup:4, maxLv:10, cost:function(lv){return 12+Math.floor(lv*2);},   cur:function(lv){return (lv*2)+'px';},              nxt:function(lv){return ((lv+1)*2)+'px';} },
-  // 방어 탭 4단계
-  orbSpeed:        { tab:'def', name:'에너지 구체 속도', tier:4, maxLv:99, cost:function(lv){return 15+Math.floor(lv*2.5);}, cur:function(lv){return (1+lv*0.1)._tf1();},   nxt:function(lv){return (1+(lv+1)*0.1)._tf1();} },
-  orbCount:        { tab:'def', name:'에너지 구체 수',   tier:4, maxLv:4,  cost:function(lv){return 50+lv*25;},              cur:function(lv){return ''+lv;},                   nxt:function(lv){return ''+(lv+1);} },
-  // 방어 탭 5단계
-  deathDefy:       { tab:'def', name:'코어 방어막',      tier:5, maxLv:99, cost:function(lv){return 25+Math.floor(lv*4);},   cur:function(lv){return (lv*0.1)._tf1();},     nxt:function(lv){return ((lv+1)*0.1)._tf1();} },
 
 };
 
@@ -13963,8 +13949,6 @@ function _showStatsPopup() {
   var _drl=ws.defRate||0;  h+=_row('방어율 Lv.'+_drl, _drl+'%');
   var _dal=ws.defAbs||0;   h+=_row('절대 방어 Lv.'+_dal, _dal);
   var _hrl=ws.hpRegen||0;  h+=_row('체력 재생 Lv.'+_hrl, (_hrl*0.05)._tf2()+'/s');
-  var _kbl=ws.knockbackChance||0; h+=_row('넉백 확률 Lv.'+_kbl, (_kbl*0.5)._tf1()+'%');
-  var _tdl=ws.thornDamage||0; h+=_row('반사 데미지 Lv.'+_tdl, (_tdl*0.5)._tf1()+'%');
   var _vcl=ws.vampChance||0; h+=_row('흡혈 Lv.'+_vcl, (_vcl*0.1)._tf1()+'%');
   var _shl=ws.shieldHP||0;  h+=_row('쉴드 HP Lv.'+_shl, _shl+'%');
 
