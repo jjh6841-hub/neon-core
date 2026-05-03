@@ -8125,9 +8125,9 @@ if (dailyPopup) {
   <div style="padding:12px 14px;">
     <!-- 상단: 도움말 | 시즌 | 남은 시간 -->
     <div style="display:flex;align-items:center;margin-bottom:12px;">
-      <button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;flex-shrink:0;">?</button>
+      <div style="width:60px;flex-shrink:0;"><button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button></div>
       <span style="flex:1;text-align:center;color:#00dddd;font-size:13px;font-weight:900;letter-spacing:2px;text-shadow:0 0 6px #00dddd44;">시즌 1</span>
-      <div style="text-align:right;flex-shrink:0;">
+      <div style="width:60px;flex-shrink:0;text-align:right;">
         <div style="color:#556677;font-size:7px;">종료까지</div>
         <div id="fw-timer" style="color:#00dddd;font-size:11px;font-weight:bold;">--:--:--</div>
       </div>
@@ -16545,6 +16545,16 @@ function _getCurrentRule(){
   return FW_RULES[weekNum % FW_RULES.length];
 }
 window._getCurrentRule = _getCurrentRule;
+
+function _getNextWeekRule(){
+  var now=new Date();
+  var adj=new Date(now);
+  if(adj.getDay()===1 && adj.getHours()<1) adj.setDate(adj.getDate()-1);
+  var jan1=new Date(adj.getFullYear(),0,1);
+  var weekNum=Math.floor(((adj-jan1)/86400000+jan1.getDay())/7);
+  return FW_RULES[(weekNum+1) % FW_RULES.length];
+}
+
 // Firestore에서 관리자 규칙 + FW 설정 로드
 function _loadFWRuleOverride(){
   if(!window._fbDb) return;
@@ -16612,7 +16622,16 @@ function renderFW(){
       '<div style="color:#7aacac;font-size:11px;margin-bottom:6px;letter-spacing:1px;">이번 주 규칙</div>'+
       '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,32)+'</div>'+
       '<div style="color:#00dddd;font-size:14px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
-      '<div style="color:#556677;font-size:11px;margin-top:3px;text-align:center;line-height:1.4;">'+rule.desc+'</div>';
+      '<div style="color:#556677;font-size:11px;margin-top:3px;text-align:center;line-height:1.4;">'+rule.desc+'</div>'+
+      // 다음 주 규칙 예정
+      (function(){
+        var nr=_getNextWeekRule();
+        return '<div style="margin-top:12px;padding-top:8px;border-top:1px solid #1a344433;">'+
+          '<div style="color:#445566;font-size:9px;margin-bottom:4px;">다음 주 규칙 예정</div>'+
+          '<div style="color:#94a3b8;font-size:12px;font-weight:bold;">'+nr.name+'</div>'+
+          '<div style="color:#445566;font-size:9px;margin-top:2px;line-height:1.3;">'+nr.desc+'</div>'+
+        '</div>';
+      })();
   }
 
   var lb=document.getElementById('fw-leaderboard');
@@ -16709,7 +16728,7 @@ function renderFW(){
     var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:10px;width:18px;">No</span><span style="color:#556677;font-size:10px;">닉네임</span></div><span style="color:#556677;font-size:10px;">\uC6E8\uC774\uBE0C</span></div>';
     scores.forEach(function(s,idx){
       var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
-      html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd08;':'')+'">'+
+      html+='<div style="display:flex;justify-content:space-between;padding:5px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd08;':'')+'">'+
         '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
           '<span style="color:'+rc+';font-size:11px;width:18px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
           '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
