@@ -3277,8 +3277,7 @@ function resizeCanvas() {
   if (G) {
     G.cx = w / 2;
     G.cy = h * 0.48;
-    var _baseRange = Math.min(w, h) * 0.45;
-    if (!G.tower.range || G.tower.range < _baseRange) G.tower.range = _baseRange;
+    // range는 BASE_RANGE 기준 — 화면 크기로 덮어쓰지 않음
   }
 }
 window.addEventListener('resize', function() { window.resizeCanvas(); }, false);
@@ -3414,7 +3413,7 @@ function applyPermStats() {
   t.atkMs      = Math.max(200, Math.round((window.BASE_ATKMS || 1000) / _spdMult));
   t.maxHp      = 25 * Math.pow(1.20, (_sr?0:(PERM.hpLv||0)) + (ws.maxHp||0));
   t.hp         = t.maxHp;
-  t.range      = Math.min(CW, CH) * 0.45 + (_sr?0:PERM.rngLv) * 30;
+  t.range      = BASE_RANGE + (_sr?0:PERM.rngLv) * 30;
   t.critChance = (ws.critChance || 0) * 0.005;
   t.critMult   = 1.5 + (ws.critMult   || 0) * 0.1;
   t.defense    = Math.min(0.80, (ws.defRate || 0) * 0.01);  // 회피율 1%/lv, 80% 캡
@@ -8187,7 +8186,7 @@ if (dailyPopup) {
           <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
         </div>
         <!-- 상점 -->
-        <button id="fw-shop-btn" style="flex:1;background:linear-gradient(180deg,#0c1020,#0a0e1a);border:1px solid #ffc80033;color:#ffc800;font-family:'Courier New',monospace;font-size:10px;padding:8px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;" ontouchstart="this.style.background='linear-gradient(180deg,#1a1830,#141020)';this.style.borderColor='#ffc80066'" ontouchend="this.style.background='linear-gradient(180deg,#0c1020,#0a0e1a)';this.style.borderColor='#ffc80033'" onmousedown="this.style.background='linear-gradient(180deg,#1a1830,#141020)';this.style.borderColor='#ffc80066'" onmouseup="this.style.background='linear-gradient(180deg,#0c1020,#0a0e1a)';this.style.borderColor='#ffc80033'">
+        <button id="fw-shop-btn" style="flex:1;background:linear-gradient(180deg,#1a1535,#0e0c22);border:1px solid #ffc80055;color:#ffc800;font-family:'Courier New',monospace;font-size:10px;padding:8px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;" ontouchstart="this.style.background='linear-gradient(180deg,#2a2050,#1a1535)';this.style.borderColor='#ffc80088'" ontouchend="this.style.background='linear-gradient(180deg,#1a1535,#0e0c22)';this.style.borderColor='#ffc80055'" onmousedown="this.style.background='linear-gradient(180deg,#2a2050,#1a1535)';this.style.borderColor='#ffc80088'" onmouseup="this.style.background='linear-gradient(180deg,#1a1535,#0e0c22)';this.style.borderColor='#ffc80055'">
           <svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg>
           <span>주파수 상점</span>
         </button>
@@ -15978,7 +15977,7 @@ function _injectScreens() {
               '</div>' +
               '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
             '</div>' +
-            '<button id="fw-shop-btn" style="background:linear-gradient(180deg,#0c1020,#0a0e1a);border:1px solid #ffc80033;color:#ffc800;font-family:\'Courier New\',monospace;font-size:10px;padding:8px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;" ontouchstart="this.style.background=\'linear-gradient(180deg,#1a1830,#141020)\';this.style.borderColor=\'#ffc80066\'" ontouchend="this.style.background=\'linear-gradient(180deg,#0c1020,#0a0e1a)\';this.style.borderColor=\'#ffc80033\'"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg><span>주파수 상점</span></button>' +
+            '<button id="fw-shop-btn" style="background:linear-gradient(180deg,#1a1535,#0e0c22);border:1px solid #ffc80055;color:#ffc800;font-family:\'Courier New\',monospace;font-size:10px;padding:8px 0;cursor:pointer;text-align:center;-webkit-appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;" ontouchstart="this.style.background=\'linear-gradient(180deg,#2a2050,#1a1535)\';this.style.borderColor=\'#ffc80088\'" ontouchend="this.style.background=\'linear-gradient(180deg,#1a1535,#0e0c22)\';this.style.borderColor=\'#ffc80055\'"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="12" rx="2" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1.2"/><path d="M4,10 L6,4 L18,4 L20,10" fill="none" stroke="#ffc800" stroke-width="1.2"/><circle cx="12" cy="15" r="2" fill="#ffc800" opacity="0.5"/></svg><span>주파수 상점</span></button>' +
           '</div>' +
           '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 6px;"></div>' +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;">' +
@@ -19730,7 +19729,7 @@ window.resizeCanvas = function() {
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       cv.style.width = w + 'px'; cv.style.height = h + 'px';
       window.CW = w; window.CH = h;
-      if (window.G) { G.cx = w / 2; G.cy = h * 0.48; var _br2=Math.min(w,h)*0.45; if(!G.tower.range||G.tower.range<_br2) G.tower.range=_br2; }
+      if (window.G) { G.cx = w / 2; G.cy = h * 0.48; }
     }
     return;
   }
