@@ -4732,6 +4732,12 @@ function triggerGameOver() {
 
   var bnav = document.getElementById('bottom-nav');
   if (bnav) bnav.style.display = 'none';
+  // 주파수 전쟁: 재시도 버튼 숨김
+  var _btnRetry = document.getElementById('btn-retry');
+  if (_btnRetry) {
+    var _isFW = window._fwLastRule || (window._fwMode && window._fwMode.active);
+    _btnRetry.style.display = _isFW ? 'none' : '';
+  }
   document.getElementById('results-screen').classList.add('show');
 }
 
@@ -5949,6 +5955,14 @@ function togglePause() {
   isPaused = !isPaused;
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = isPaused ? 'flex' : 'none';
+  // 주파수 전쟁: 다시하기 버튼 숨김
+  if (isPaused) {
+    var _btnR = document.getElementById('btn-restart');
+    if (_btnR) {
+      var _isFW = window._fwMode && window._fwMode.active;
+      _btnR.style.display = _isFW ? 'none' : '';
+    }
+  }
   // 일시정지 시 BGM 정지/재개
   if (isPaused) {
     if (AudioManager && AudioManager.bgmInterval) AudioManager.stopBGM();
@@ -6006,20 +6020,11 @@ function restartGame() {
   if (G && G.speed) { try { localStorage.setItem('neoncore_speed', G.speed); } catch(_){} }
   var overlay = document.getElementById('pause-overlay');
   if (overlay) overlay.style.display = 'none';
-  // 주파수 전쟁: FW 모드 복원 + 참가횟수 차감
+  // 주파수 전쟁: 다시하기 완전 차단
   var _wasFW=window._fwLastRule||(window._fwMode&&window._fwMode.active&&window._fwMode.rule);
   if(_wasFW){
-    var dayKey='fw_entry_'+new Date().toDateString();
-    var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
-    var maxE=window._fwMaxEntries||3;
-    if(dayCount>=maxE){
-      if(window.showToastMsg) showToastMsg('참가 횟수가 부족하여 다시하기가 불가합니다 ('+maxE+'/'+maxE+')','#ef4444');
-      return;
-    }
-    localStorage.setItem(dayKey, dayCount+1);
-    // FW 모드 재활성화
-    window._fwMode={active:true, rule:_wasFW};
-    delete window._fwLastRule;
+    if(window.showToastMsg) showToastMsg('주파수 전쟁에서는 다시하기를 사용할 수 없습니다','#ef4444');
+    return;
   }
   startNewGame();
 }
@@ -6355,19 +6360,11 @@ function bindOverlayBtn(id, fn) {
 }
 
 bindOverlayBtn('btn-retry', function() {
-  // 주파수 전쟁: FW 모드 복원 + 참가횟수 차감
+  // 주파수 전쟁: 재시도 완전 차단
   var _wasFW=window._fwLastRule;
   if(_wasFW){
-    var dayKey='fw_entry_'+new Date().toDateString();
-    var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
-    var maxE=window._fwMaxEntries||3;
-    if(dayCount>=maxE){
-      if(window.showToastMsg) showToastMsg('참가 횟수가 부족하여 다시하기가 불가합니다 ('+maxE+'/'+maxE+')','#ef4444');
-      return;
-    }
-    localStorage.setItem(dayKey, dayCount+1);
-    window._fwMode={active:true, rule:_wasFW};
-    delete window._fwLastRule;
+    if(window.showToastMsg) showToastMsg('주파수 전쟁에서는 재시도를 사용할 수 없습니다','#ef4444');
+    return;
   }
   document.getElementById('results-screen').classList.remove('show');
   startNewGame();
