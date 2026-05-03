@@ -8155,28 +8155,28 @@ if (dailyPopup) {
 <!-- ══════════════════════════════════════════════════════
      주파수 전쟁 화면 (정적 HTML — JS 동적 주입 중복 방지용)
 ══════════════════════════════════════════════════════ -->
-<div id="screen-frequency-wars" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
+<div id="screen-frequency-wars" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#4488ff;">
   <!-- 헤더 -->
   <div style="display:flex; align-items:center; justify-content:space-between; padding:calc(12px + var(--sat)) 12px 10px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
-    <button onclick="showScreen('home')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
-    <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">주파수 전쟁</span>
+    <button onclick="showScreen('home')" style="background:none; border:none; color:#4488ff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer;">◀ 뒤로</button>
+    <span style="font-size:13px; letter-spacing:2px; color:#4488ff;">주파수 전쟁</span>
     <span style="color:#ffc800; font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>
   </div>
 
   <div style="padding:12px 14px;">
     <!-- 상단: 도움말 | 시즌 | 남은 시간 -->
     <div style="display:flex;align-items:center;margin-bottom:12px;">
-      <div style="width:60px;flex-shrink:0;"><button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button></div>
-      <span style="flex:1;text-align:center;color:#00dddd;font-size:13px;font-weight:900;letter-spacing:2px;text-shadow:0 0 6px #00dddd44;">시즌 1</span>
+      <div style="width:60px;flex-shrink:0;"><button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#6688bb;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button></div>
+      <span style="flex:1;text-align:center;color:#4488ff;font-size:13px;font-weight:900;letter-spacing:2px;text-shadow:0 0 6px #4488ff44;">시즌 1</span>
       <div style="width:60px;flex-shrink:0;text-align:right;">
         <div style="color:#556677;font-size:7px;">종료까지</div>
-        <div id="fw-timer" style="color:#00dddd;font-size:11px;font-weight:bold;">--:--:--</div>
+        <div id="fw-timer" style="color:#4488ff;font-size:11px;font-weight:bold;">--:--:--</div>
       </div>
     </div>
 
     <!-- 규칙 배너 -->
     <div id="fw-rule-card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(135deg,#0c1025 0%,#0a0e1a 50%,#10081a 100%);border:1px solid #1a344433;margin-bottom:10px;position:relative;overflow:hidden;">
-      <div style="position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,221,221,0.02));pointer-events:none;"></div>
+      <div style="position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(68,136,255,0.02));pointer-events:none;"></div>
     </div>
 
     <!-- 2열: 좌(내 정보+전적+상점) | 구분선 | 우(순위) -->
@@ -8184,16 +8184,16 @@ if (dailyPopup) {
       <!-- 좌측 열 (넓게) -->
       <div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">
         <!-- 시즌 전적 (상단) -->
-        <div id="fw-history-btn" style="background:linear-gradient(135deg,#0a1520,#0c0c22);border-left:2px solid #00dddd44;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#00dddd" stroke-width="1.2" opacity="0.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#00dddd" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <span style="color:#7aacac;font-family:'Courier New',monospace;font-size:9px;">시즌 전적</span>
+        <div id="fw-history-btn" style="background:linear-gradient(135deg,#0a1520,#0c0c22);border-left:2px solid #4488ff44;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#4488ff" stroke-width="1.2" opacity="0.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#4488ff" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span style="color:#6688bb;font-family:'Courier New',monospace;font-size:9px;">시즌 전적</span>
         </div>
         <!-- 내 정보 -->
         <div id="fw-league-card" style="padding:10px;text-align:center;background:#0a0e1a;">
           <div id="fw-league-icon" style="font-size:28px;">🔵</div>
           <div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>
           <div style="display:flex;justify-content:space-around;margin-top:8px;">
-            <div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>
+            <div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#4488ff;font-size:14px;font-weight:bold;">0</div></div>
             <div style="text-align:center;"><div style="color:#445566;font-size:10px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>
           </div>
           <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
@@ -8209,7 +8209,7 @@ if (dailyPopup) {
       <!-- 우측 열 (순위) -->
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:1px;">순위</span>
+          <span style="color:#4488ff;font-size:13px;font-weight:bold;letter-spacing:1px;">순위</span>
           <button id="fw-reward-popup-btn" style="background:#0a0e1a;border:1px solid #ffc80044;color:#ffc800;font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-appearance:none;">
             <svg width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="12" rx="2" fill="#ffc800" opacity="0.3" stroke="#ffc800" stroke-width="1.2"/><path d="M3,10 L5,5 L19,5 L21,10" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1"/><rect x="9" y="7" width="6" height="5" rx="1" fill="none" stroke="#ffc800" stroke-width="1"/><circle cx="12" cy="16" r="1.5" fill="#ffc800" opacity="0.7"/></svg>
             보상
@@ -8225,7 +8225,7 @@ if (dailyPopup) {
 
     <!-- 참가하기 (하단 고정) -->
     <div style="padding:0 20px 4px;">
-      <button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #00dddd;border-radius:12px;color:#ffffff;font-family:'Courier New',monospace;font-size:14px;font-weight:bold;padding:14px;cursor:pointer;letter-spacing:3px;text-shadow:0 0 10px #00dddd;-webkit-appearance:none;">참가하기</button>
+      <button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #4488ff;border-radius:12px;color:#ffffff;font-family:'Courier New',monospace;font-size:14px;font-weight:bold;padding:14px;cursor:pointer;letter-spacing:3px;text-shadow:0 0 10px #4488ff;-webkit-appearance:none;">참가하기</button>
     </div>
   </div>
 
@@ -8239,8 +8239,8 @@ if (dailyPopup) {
   </div>
   <!-- 시즌 전적 팝업 -->
   <div id="fw-history-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.85);z-index:10001;align-items:center;justify-content:center;font-family:'Courier New',monospace;">
-    <div style="background:#0d1520;border:1px solid #00dddd;border-radius:12px;max-width:300px;width:85%;padding:16px;">
-      <div style="color:#00dddd;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">시즌 전적</div>
+    <div style="background:#0d1520;border:1px solid #4488ff;border-radius:12px;max-width:300px;width:85%;padding:16px;">
+      <div style="color:#4488ff;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">시즌 전적</div>
       <div id="fw-history-content" style="max-height:200px;overflow-y:auto;"></div>
       <button onclick="document.getElementById('fw-history-popup').style.display='none'" style="width:100%;margin-top:14px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">닫기</button>
     </div>
@@ -8250,14 +8250,14 @@ if (dailyPopup) {
 <!-- ══════════════════════════════════════════════════════
      시그널 마켓 화면 (정적 HTML — JS 동적 주입 중복 방지용)
 ══════════════════════════════════════════════════════ -->
-<div id="screen-signal-market" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#00dddd;">
+<div id="screen-signal-market" style="display:none; flex-direction:column; width:100%; height:100%; background:#06061a; position:fixed; top:0; left:0; right:0; bottom:0; z-index:600; overflow-y:auto; font-family:'Courier New',monospace; color:#4488ff;">
   <div style="display:flex; align-items:center; padding:calc(12px + var(--sat)) 16px 12px; border-bottom:1px solid #1a2a3a; background:#0a0a22; flex-shrink:0;">
-    <button onclick="showScreen('frequency-wars')" style="background:none; border:none; color:#00dddd; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
-    <span style="font-size:13px; letter-spacing:2px; color:#00dddd;">주파수 상점</span>
+    <button onclick="showScreen('frequency-wars')" style="background:none; border:none; color:#4488ff; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; margin-right:12px;">◀ 뒤로</button>
+    <span style="font-size:13px; letter-spacing:2px; color:#4488ff;">주파수 상점</span>
     <span style="margin-left:auto; color:#ffc800; font-size:12px;">✦ <span id="sm-pulse-display">0</span></span>
   </div>
   <div style="display:flex; border-bottom:1px solid #1a2a3a; flex-shrink:0;">
-    <button id="sm-tab-mission" onclick="smTab('mission')" style="flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; background:transparent; border:none; border-bottom:2px solid #00dddd; color:#00dddd; cursor:pointer;">미션</button>
+    <button id="sm-tab-mission" onclick="smTab('mission')" style="flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; background:transparent; border:none; border-bottom:2px solid #4488ff; color:#4488ff; cursor:pointer;">미션</button>
     <button id="sm-tab-market" onclick="smTab('market')" style="flex:1; padding:10px; font-family:'Courier New',monospace; font-size:11px; background:transparent; border:none; border-bottom:2px solid transparent; color:#445566; cursor:pointer;">주파수 상점</button>
   </div>
   <!-- 미션 탭 -->
@@ -8272,35 +8272,35 @@ if (dailyPopup) {
     <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:10px;">▸ 일일 미션 — 매일 자정 초기화</div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div style="font-size:11px; color:#00dddd;">1게임 플레이</div>
+        <div style="font-size:11px; color:#4488ff;">1게임 플레이</div>
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="color:#ffc800; font-size:11px;">✦ +10</span>
           <button id="m-daily1-btn" onclick="claimMission('daily1', 10)" style="background:#00aa88; color:#001a14; border:none; border-radius:6px; padding:5px 10px; font-family:'Courier New',monospace; font-size:10px; cursor:pointer; font-weight:bold;">수령</button>
         </div>
       </div>
-      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily1-bar" style="background:#00dddd; height:100%; border-radius:3px; width:100%;"></div></div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily1-bar" style="background:#4488ff; height:100%; border-radius:3px; width:100%;"></div></div>
       <div id="m-daily1-text" style="font-size:9px; color:#557766; margin-top:3px;">1/1 완료</div>
     </div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div style="font-size:11px; color:#00dddd;">웨이브 30 도달</div>
+        <div style="font-size:11px; color:#4488ff;">웨이브 30 도달</div>
         <span style="color:#ffc800; font-size:11px;">✦ +25</span>
       </div>
-      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily2-bar" style="background:#00dddd; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily2-bar" style="background:#4488ff; height:100%; border-radius:3px; width:0%;"></div></div>
       <div id="m-daily2-text" style="font-size:9px; color:#445566; margin-top:3px;">0 / 30</div>
     </div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div style="font-size:11px; color:#00dddd;">강화 3회 실시</div>
+        <div style="font-size:11px; color:#4488ff;">강화 3회 실시</div>
         <span style="color:#ffc800; font-size:11px;">✦ +15</span>
       </div>
-      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily3-bar" style="background:#00dddd; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-daily3-bar" style="background:#4488ff; height:100%; border-radius:3px; width:0%;"></div></div>
       <div id="m-daily3-text" style="font-size:9px; color:#445566; margin-top:3px;">0 / 3</div>
     </div>
     <div style="font-size:10px; color:#445566; letter-spacing:1px; margin:14px 0 10px;">▸ 주간 미션 — 매주 월요일 초기화</div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div style="font-size:11px; color:#00dddd;">주파수 전쟁 TOP 10 진입</div>
+        <div style="font-size:11px; color:#4488ff;">주파수 전쟁 TOP 10 진입</div>
         <span style="color:#ffc800; font-size:11px;">✦ +100</span>
       </div>
       <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div style="background:#334; height:100%; border-radius:3px; width:0%;"></div></div>
@@ -8308,13 +8308,13 @@ if (dailyPopup) {
     </div>
     <div style="background:#0c0c22; border:1px solid #1a3444; border-radius:10px; padding:12px; margin-bottom:8px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <div style="font-size:11px; color:#00dddd;">웨이브 100 도달</div>
+        <div style="font-size:11px; color:#4488ff;">웨이브 100 도달</div>
         <span style="color:#ffc800; font-size:11px;">✦ +80</span>
       </div>
-      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-weekly2-bar" style="background:#00dddd; height:100%; border-radius:3px; width:0%;"></div></div>
+      <div style="background:#1a2a3a; border-radius:3px; height:5px;"><div id="m-weekly2-bar" style="background:#4488ff; height:100%; border-radius:3px; width:0%;"></div></div>
       <div id="m-weekly2-text" style="font-size:9px; color:#445566; margin-top:3px;">0 / 100</div>
     </div>
-    <div id="mission-toast" style="display:none; background:#0a1a1a; border:1px solid #00dddd; border-radius:8px; padding:8px 12px; font-size:11px; color:#00dddd; text-align:center; margin-top:8px;"></div>
+    <div id="mission-toast" style="display:none; background:#0a1018; border:1px solid #4488ff; border-radius:8px; padding:8px 12px; font-size:11px; color:#4488ff; text-align:center; margin-top:8px;"></div>
   </div>
   <!-- 마켓 탭 -->
   <div id="sm-s-market" style="display:none; padding:14px;">
@@ -8325,7 +8325,7 @@ if (dailyPopup) {
       </div>
       <div style="flex:1; background:#0a1018; border:1px solid #1a3444; border-radius:8px; padding:8px; text-align:center;">
         <div style="font-size:9px; color:#334455; margin-bottom:3px;">보석</div>
-        <div style="font-size:14px; color:#00dddd; font-family:'Courier New',monospace;">❖ <span id="sm-gem-val">0</span></div>
+        <div style="font-size:14px; color:#4488ff; font-family:'Courier New',monospace;">❖ <span id="sm-gem-val">0</span></div>
       </div>
     </div>
     <div style="font-size:10px; color:#445566; letter-spacing:1px; margin-bottom:8px;">▸ 통화 교환</div>
@@ -15958,34 +15958,34 @@ function _injectScreens() {
     fw.style.cssText =
       'display:none;flex-direction:column;width:100%;height:100%;' +
       'background:#06061a;position:fixed;top:0;left:0;right:0;bottom:0;z-index:600;' +
-      'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
+      'overflow-y:auto;font-family:\'Courier New\',monospace;color:#4488ff;';
     fw.innerHTML =
       /* 헤더 */
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
-        '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;width:48px;text-align:left;">◀ 뒤로</button>' +
-        '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">주파수 전쟁</span>' +
+        '<button onclick="showScreen(\'home\')" style="background:none;border:none;color:#4488ff;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;width:48px;text-align:left;">◀ 뒤로</button>' +
+        '<span style="font-size:13px;letter-spacing:2px;color:#4488ff;">주파수 전쟁</span>' +
         '<span style="display:flex;align-items:center;gap:6px;">' +
-          '<button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#7aacac;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button>' +
+          '<button id="fw-help-btn" style="background:none;border:1px solid #334455;border-radius:4px;color:#6688bb;font-family:monospace;font-size:10px;padding:2px 6px;cursor:pointer;-webkit-appearance:none;">?</button>' +
           '<span style="color:#ffc800;font-size:12px;">✦ <span id="fw-pulse-display">0</span></span>' +
         '</span>' +
       '</div>' +
       '<div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;">' +
         /* 시즌 + 타이머 */
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">' +
-          '<div><div style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:2px;">FREQUENCY WARS</div><div style="color:#445566;font-size:8px;margin-top:2px;">시즌 1</div></div>' +
-          '<div style="text-align:right;"><div style="color:#556677;font-size:8px;">주파수 전쟁 종료</div><div id="fw-timer" style="color:#00dddd;font-size:13px;font-weight:bold;">--:--:--</div></div>' +
+          '<div><div style="color:#4488ff;font-size:13px;font-weight:bold;letter-spacing:2px;">FREQUENCY WARS</div><div style="color:#445566;font-size:8px;margin-top:2px;">시즌 1</div></div>' +
+          '<div style="text-align:right;"><div style="color:#556677;font-size:8px;">주파수 전쟁 종료</div><div id="fw-timer" style="color:#4488ff;font-size:13px;font-weight:bold;">--:--:--</div></div>' +
         '</div>' +
         /* 규칙 배너 */
-        '<div id="fw-rule-card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(135deg,#0c1025 0%,#0a0e1a 50%,#10081a 100%);border:1px solid #1a344433;margin-bottom:10px;position:relative;overflow:hidden;"><div style="position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,221,221,0.02));pointer-events:none;"></div></div>' +
+        '<div id="fw-rule-card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:linear-gradient(135deg,#0c1025 0%,#0a0e1a 50%,#10081a 100%);border:1px solid #1a344433;margin-bottom:10px;position:relative;overflow:hidden;"><div style="position:absolute;top:0;right:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(68,136,255,0.02));pointer-events:none;"></div></div>' +
         /* 2열: 좌(내 정보+전적+상점) | 구분선 | 우(순위) */
         '<div style="display:flex;flex:1;min-height:0;margin-bottom:8px;">' +
           '<div style="width:130px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;">' +
-            '<div id="fw-history-btn" style="background:linear-gradient(135deg,#0a1520,#0c0c22);border-left:2px solid #00dddd44;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#00dddd" stroke-width="1.2" opacity="0.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#00dddd" stroke-width="1.5" stroke-linecap="round"/></svg><span style="color:#7aacac;font-family:\'Courier New\',monospace;font-size:9px;">시즌 전적</span></div>' +
+            '<div id="fw-history-btn" style="background:linear-gradient(135deg,#0a1520,#0c0c22);border-left:2px solid #4488ff44;padding:5px 8px;cursor:pointer;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#4488ff" stroke-width="1.2" opacity="0.5"/><polyline points="12,6 12,12 16,14" fill="none" stroke="#4488ff" stroke-width="1.5" stroke-linecap="round"/></svg><span style="color:#6688bb;font-family:\'Courier New\',monospace;font-size:9px;">시즌 전적</span></div>' +
             '<div id="fw-league-card" style="padding:10px;text-align:center;background:#0a0e1a;">' +
               '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
               '<div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>' +
               '<div style="display:flex;justify-content:space-around;margin-top:8px;">' +
-                '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>' +
+                '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#4488ff;font-size:14px;font-weight:bold;">0</div></div>' +
                 '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>' +
               '</div>' +
               '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
@@ -15995,7 +15995,7 @@ function _injectScreens() {
           '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 6px;"></div>' +
           '<div style="flex:1;min-width:0;display:flex;flex-direction:column;">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
-              '<span style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:1px;">순위</span>' +
+              '<span style="color:#4488ff;font-size:13px;font-weight:bold;letter-spacing:1px;">순위</span>' +
               '<button id="fw-reward-popup-btn" style="background:#0a0e1a;border:1px solid #ffc80044;color:#ffc800;font-family:monospace;font-size:10px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-appearance:none;"><svg width="14" height="14" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="12" rx="2" fill="#ffc800" opacity="0.3" stroke="#ffc800" stroke-width="1.2"/><path d="M3,10 L5,5 L19,5 L21,10" fill="#ffc800" opacity="0.15" stroke="#ffc800" stroke-width="1"/><rect x="9" y="7" width="6" height="5" rx="1" fill="none" stroke="#ffc800" stroke-width="1"/><circle cx="12" cy="16" r="1.5" fill="#ffc800" opacity="0.7"/></svg>보상</button>' +
             '</div>' +
             '<div id="fw-tab-content" style="max-height:255px;overflow-y:auto;padding:2px 0;">' +
@@ -16004,7 +16004,7 @@ function _injectScreens() {
           '</div>' +
         '</div>' +
         '<div style="padding:0 20px 4px;">' +
-          '<button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #00dddd;border-radius:12px;color:#ffffff;font-family:\'Courier New\',monospace;font-size:14px;font-weight:bold;padding:14px;cursor:pointer;letter-spacing:3px;text-shadow:0 0 10px #00dddd;-webkit-appearance:none;">참가하기</button>' +
+          '<button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #4488ff;border-radius:12px;color:#ffffff;font-family:\'Courier New\',monospace;font-size:14px;font-weight:bold;padding:14px;cursor:pointer;letter-spacing:3px;text-shadow:0 0 10px #4488ff;-webkit-appearance:none;">참가하기</button>' +
         '</div>' +
       '</div>' +
       '<div id="fw-reward-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.85);z-index:10001;align-items:center;justify-content:center;font-family:\'Courier New\',monospace;">' +
@@ -16015,8 +16015,8 @@ function _injectScreens() {
         '</div>' +
       '</div>' +
       '<div id="fw-history-popup" style="display:none;position:fixed;inset:0;background:rgba(3,11,16,0.85);z-index:10001;align-items:center;justify-content:center;font-family:\'Courier New\',monospace;">' +
-        '<div style="background:#0d1520;border:1px solid #00dddd;border-radius:12px;max-width:300px;width:85%;padding:16px;">' +
-          '<div style="color:#00dddd;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">시즌 전적</div>' +
+        '<div style="background:#0d1520;border:1px solid #4488ff;border-radius:12px;max-width:300px;width:85%;padding:16px;">' +
+          '<div style="color:#4488ff;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">시즌 전적</div>' +
           '<div id="fw-history-content" style="max-height:200px;overflow-y:auto;"></div>' +
           '<button onclick="document.getElementById(\'fw-history-popup\').style.display=\'none\'" style="width:100%;margin-top:14px;padding:8px;background:#030b10;border:1px solid #334455;border-radius:6px;color:#556677;font-family:monospace;font-size:10px;cursor:pointer;-webkit-appearance:none;">닫기</button>' +
         '</div>' +
@@ -16031,17 +16031,17 @@ function _injectScreens() {
     sm.style.cssText =
       'display:none;flex-direction:column;width:100%;height:100%;' +
       'background:#06061a;position:fixed;top:0;left:0;z-index:600;' +
-      'overflow-y:auto;font-family:\'Courier New\',monospace;color:#00dddd;';
+      'overflow-y:auto;font-family:\'Courier New\',monospace;color:#4488ff;';
     sm.innerHTML =
       /* 상단 바 */
       '<div style="display:flex;align-items:center;padding:calc(12px + var(--sat)) 16px 12px;border-bottom:1px solid #1a2a3a;background:#0a0a22;flex-shrink:0;">' +
-        '<button onclick="showScreen(\'frequency-wars\')" style="background:none;border:none;color:#00dddd;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
-        '<span style="font-size:13px;letter-spacing:2px;color:#00dddd;">주파수 상점</span>' +
+        '<button onclick="showScreen(\'frequency-wars\')" style="background:none;border:none;color:#4488ff;font-family:\'Courier New\',monospace;font-size:12px;cursor:pointer;margin-right:12px;">◀ 뒤로</button>' +
+        '<span style="font-size:13px;letter-spacing:2px;color:#4488ff;">주파수 상점</span>' +
         '<span style="margin-left:auto;color:#ffc800;font-size:12px;">✦ <span id="sm-pulse-display">0</span></span>' +
       '</div>' +
       /* 탭 바 */
       '<div style="display:flex;border-bottom:1px solid #1a2a3a;flex-shrink:0;">' +
-        '<button id="sm-tab-mission" onclick="smTab(\'mission\')" style="flex:1;padding:10px;font-family:\'Courier New\',monospace;font-size:11px;background:transparent;border:none;border-bottom:2px solid #00dddd;color:#00dddd;cursor:pointer;">미션</button>' +
+        '<button id="sm-tab-mission" onclick="smTab(\'mission\')" style="flex:1;padding:10px;font-family:\'Courier New\',monospace;font-size:11px;background:transparent;border:none;border-bottom:2px solid #4488ff;color:#4488ff;cursor:pointer;">미션</button>' +
         '<button id="sm-tab-market" onclick="smTab(\'market\')" style="flex:1;padding:10px;font-family:\'Courier New\',monospace;font-size:11px;background:transparent;border:none;border-bottom:2px solid transparent;color:#445566;cursor:pointer;">주파수 상점</button>' +
       '</div>' +
       /* 미션 탭 */
@@ -16053,7 +16053,7 @@ function _injectScreens() {
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin:14px 0 10px;">▸ 주간 미션 — 매주 월요일 초기화</div>' +
         _smMissionBarW('weekly1','주파수 전쟁 TOP 10 진입',100,'0 / 1') +
         _smMissionBar('weekly2','웨이브 100 도달',80,'0 / 100') +
-        '<div id="mission-toast" style="display:none;background:#0a1a1a;border:1px solid #00dddd;border-radius:8px;padding:8px 12px;font-size:11px;color:#00dddd;text-align:center;margin-top:8px;"></div>' +
+        '<div id="mission-toast" style="display:none;background:#0a1a1a;border:1px solid #4488ff;border-radius:8px;padding:8px 12px;font-size:11px;color:#4488ff;text-align:center;margin-top:8px;"></div>' +
       '</div>' +
       /* 마켓 탭 */
       '<div id="sm-s-market" style="display:none;padding:14px;">' +
@@ -16065,13 +16065,13 @@ function _injectScreens() {
           '</div>' +
           '<div style="flex:1;background:#0a1018;border:1px solid #1a3444;border-radius:8px;padding:8px;text-align:center;">' +
             '<div style="font-size:9px;color:#334455;margin-bottom:3px;">보석</div>' +
-            '<div style="font-size:14px;color:#00dddd;font-family:\'Courier New\',monospace;">❖ <span id="sm-gem-val">0</span></div>' +
+            '<div style="font-size:14px;color:#4488ff;font-family:\'Courier New\',monospace;">❖ <span id="sm-gem-val">0</span></div>' +
           '</div>' +
         '</div>' +
         /* 통화 교환 */
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 통화 교환</div>' +
         '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px;">' +
-          _smShopCard('❖','#00dddd','보석 x100','✦ 200','gem100',200) +
+          _smShopCard('❖','#4488ff','보석 x100','✦ 200','gem100',200) +
         '</div>' +
         /* 테마 */
         '<div style="font-size:10px;color:#445566;letter-spacing:1px;margin-bottom:8px;">▸ 테마 <span style="color:#cc44cc;font-size:9px;background:#2a0a2a;border:1px solid #660066;padding:1px 5px;border-radius:3px;">한정</span></div>' +
@@ -16084,7 +16084,7 @@ function _injectScreens() {
         _smBoost('boost_dmg','오버클럭 레이저','공격력 +3000% · 1게임','사거리 변동 없음',80,'#ff8822','#1a0a00','#884400','border:3px solid #ff8822;border-radius:50%;') +
         _smBoost('boost_range','레이더 확장 펄스','사거리 +40m · 1게임','공격력 변동 없음',60,'#00ccaa','#001a14','#007755','border:2px solid #00cc88;border-radius:50%;') +
         _smBoost('boost_hp','방어막 과충전','최대 HP +200% · 1게임','공격력 변동 없음',50,'#bb44ff','#1a001a','#660066','border:2px solid #bb44ff;transform:rotate(45deg);') +
-        '<div id="market-toast" style="display:none;background:#0a1a1a;border:1px solid #00dddd;border-radius:8px;padding:8px 12px;font-size:11px;color:#00dddd;text-align:center;margin-top:8px;"></div>' +
+        '<div id="market-toast" style="display:none;background:#0a1a1a;border:1px solid #4488ff;border-radius:8px;padding:8px 12px;font-size:11px;color:#4488ff;text-align:center;margin-top:8px;"></div>' +
       '</div>';
     document.body.appendChild(sm);
   }
@@ -16108,30 +16108,30 @@ function _fwTierRowS() {
 function _smMission(id, txt, pts, canClaim) {
   return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-      '<div style="font-size:11px;color:#00dddd;">' + txt + '</div>' +
+      '<div style="font-size:11px;color:#4488ff;">' + txt + '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
         '<span style="color:#ffc800;font-size:11px;">✦ +' + pts + '</span>' +
         (canClaim ? '<button id="m-' + id + '-btn" onclick="claimMission(\'' + id + '\',' + pts + ')" style="background:#00aa88;color:#001a14;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:10px;cursor:pointer;font-weight:bold;">수령</button>' : '') +
       '</div>' +
     '</div>' +
-    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div id="m-' + id + '-bar" style="background:#00dddd;height:100%;border-radius:3px;width:100%;"></div></div>' +
+    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div id="m-' + id + '-bar" style="background:#4488ff;height:100%;border-radius:3px;width:100%;"></div></div>' +
     '<div id="m-' + id + '-text" style="font-size:9px;color:#557766;margin-top:3px;">1/1 완료</div>' +
   '</div>';
 }
 function _smMissionBar(id, txt, pts, prog) {
   return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-      '<div style="font-size:11px;color:#00dddd;">' + txt + '</div>' +
+      '<div style="font-size:11px;color:#4488ff;">' + txt + '</div>' +
       '<span style="color:#ffc800;font-size:11px;">✦ +' + pts + '</span>' +
     '</div>' +
-    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div id="m-' + id + '-bar" style="background:#00dddd;height:100%;border-radius:3px;width:0%;"></div></div>' +
+    '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div id="m-' + id + '-bar" style="background:#4488ff;height:100%;border-radius:3px;width:0%;"></div></div>' +
     '<div id="m-' + id + '-text" style="font-size:9px;color:#445566;margin-top:3px;">' + prog + '</div>' +
   '</div>';
 }
 function _smMissionBarW(id, txt, pts, prog) {
   return '<div style="background:#0c0c22;border:1px solid #1a3444;border-radius:10px;padding:12px;margin-bottom:8px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-      '<div style="font-size:11px;color:#00dddd;">' + txt + '</div>' +
+      '<div style="font-size:11px;color:#4488ff;">' + txt + '</div>' +
       '<span style="color:#ffc800;font-size:11px;">✦ +' + pts + '</span>' +
     '</div>' +
     '<div style="background:#1a2a3a;border-radius:3px;height:5px;"><div style="background:#334;height:100%;border-radius:3px;width:0%;"></div></div>' +
@@ -16143,7 +16143,7 @@ function _smShopCard(icon, iconColor, label, price, id, cost) {
     '<div style="font-size:22px;color:' + iconColor + ';margin-bottom:4px;">' + icon + '</div>' +
     '<div style="font-size:10px;color:#778899;margin-bottom:6px;">' + label + '</div>' +
     '<div style="font-size:11px;color:#ffc800;margin-bottom:8px;">' + price + '</div>' +
-    '<button onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
+    '<button onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#4488ff;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
   '</div>';
 }
 function _smThemeCard(id, name, type, price, cost, clr, bg, border, iconStyle) {
@@ -16155,7 +16155,7 @@ function _smThemeCard(id, name, type, price, cost, clr, bg, border, iconStyle) {
     '<div style="font-size:10px;color:' + clr + ';margin-bottom:2px;">' + name + '</div>' +
     '<div style="font-size:9px;color:#445566;margin-bottom:6px;">' + type + '</div>' +
     '<div style="font-size:11px;color:#ffc800;margin-bottom:8px;">' + price + '</div>' +
-    '<button id="btn-' + id + '" onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
+    '<button id="btn-' + id + '" onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#4488ff;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
   '</div>';
 }
 function _smBoost(id, name, desc1, desc2, cost, clr, bg, border, iconStyle) {
@@ -16171,7 +16171,7 @@ function _smBoost(id, name, desc1, desc2, cost, clr, bg, border, iconStyle) {
       '</div>' +
       '<div style="text-align:right;flex-shrink:0;">' +
         '<div style="font-size:11px;color:#ffc800;margin-bottom:6px;">✦ ' + cost + '</div>' +
-        '<button onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#00dddd;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
+        '<button onclick="smBuy(\'' + id + '\',' + cost + ')" style="background:#4488ff;color:#001a1a;border:none;border-radius:6px;padding:5px 10px;font-family:\'Courier New\',monospace;font-size:11px;cursor:pointer;font-weight:bold;">구매</button>' +
       '</div>' +
     '</div>' +
   '</div>';
@@ -16185,8 +16185,8 @@ window.smTab = function (tab) {
   ['mission','market'].forEach(function (t) {
     var b = document.getElementById('sm-tab-' + t);
     if (!b) return;
-    b.style.borderBottomColor = t === tab ? '#00dddd' : 'transparent';
-    b.style.color             = t === tab ? '#00dddd' : '#445566';
+    b.style.borderBottomColor = t === tab ? '#4488ff' : 'transparent';
+    b.style.color             = t === tab ? '#4488ff' : '#445566';
   });
   if (tab === 'market') syncPulse();
 };
@@ -16270,14 +16270,14 @@ window.smBuy = function (item, cost) {
     void:'VOID CIRCUIT 적용됨!', abyss:'CYBER ABYSS 적용됨!',
     boost_dmg:'오버클럭 레이저 활성화!', boost_range:'레이더 확장 펄스 활성화!', boost_hp:'방어막 과충전 활성화!'
   };
-  _mktToast(msgs[item] || '구매 완료!', '#00dddd');
+  _mktToast(msgs[item] || '구매 완료!', '#4488ff');
 };
 
 function _mktToast(msg, color) {
   var el = document.getElementById('market-toast');
   if (!el) return;
-  el.textContent = msg; el.style.color = color || '#00dddd';
-  el.style.borderColor = color || '#00dddd';
+  el.textContent = msg; el.style.color = color || '#4488ff';
+  el.style.borderColor = color || '#4488ff';
   el.style.display = 'block';
   setTimeout(function () { el.style.display = 'none'; }, 2200);
 }
@@ -16328,10 +16328,10 @@ function _hookFWButtons() {
     ov.id='fw-help-popup';
     ov.style.cssText='position:fixed;inset:0;background:rgba(3,11,16,0.9);z-index:10001;display:flex;align-items:center;justify-content:center;font-family:Courier New,monospace;';
     ov.innerHTML=
-      '<div style="background:#0d1520;border:1px solid #00dddd;border-radius:12px;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;padding:16px;">'+
-        '<div style="color:#00dddd;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">주파수 전쟁 안내</div>'+
+      '<div style="background:#0d1520;border:1px solid #4488ff;border-radius:12px;max-width:320px;width:90%;max-height:80vh;overflow-y:auto;padding:16px;">'+
+        '<div style="color:#4488ff;font-size:13px;font-weight:bold;margin-bottom:10px;text-align:center;">주파수 전쟁 안내</div>'+
         '<div style="color:#94a3b8;font-size:9px;line-height:1.8;">'+
-          '<b style="color:#00dddd;">진행 방식</b><br>'+
+          '<b style="color:#4488ff;">진행 방식</b><br>'+
           '• 매주 월요일 01:00 새 시즌 시작<br>'+
           '• 월요일 00:00~01:00 랭킹 정산<br>'+
           '• 하루 3회 참가 가능<br>'+
@@ -16370,7 +16370,7 @@ function _hookFWButtons() {
       history.slice().reverse().forEach(function(h,i){
         html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid #0a1a2a;">'+
           '<div><div style="color:#94a3b8;font-size:11px;">'+h.season+'</div><div style="color:#445566;font-size:8px;">'+FW_TIERS[h.tier||0].name+'</div></div>'+
-          '<div style="text-align:right;"><div style="color:#ffc800;font-size:12px;font-weight:bold;">'+h.rank+'위</div><div style="color:#00dddd;font-size:10px;">W'+h.wave+'</div></div>'+
+          '<div style="text-align:right;"><div style="color:#ffc800;font-size:12px;font-weight:bold;">'+h.rank+'위</div><div style="color:#4488ff;font-size:10px;">W'+h.wave+'</div></div>'+
         '</div>';
       });
       content.innerHTML=html;
@@ -16747,7 +16747,7 @@ function renderFW(){
       '<div style="flex-shrink:0;">'+_fwRuleIconHTML(rule.id,32)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="color:#445566;font-size:8px;letter-spacing:1px;margin-bottom:2px;">THIS WEEK</div>'+
-        '<div style="color:#00dddd;font-size:14px;font-weight:bold;text-shadow:0 0 8px #00dddd22;">'+rule.name+'</div>'+
+        '<div style="color:#4488ff;font-size:14px;font-weight:bold;text-shadow:0 0 8px #4488ff22;">'+rule.name+'</div>'+
         '<div style="color:#667788;font-size:10px;margin-top:3px;line-height:1.3;word-break:keep-all;">'+rule.desc+'</div>'+
       '</div>';
   }
@@ -16846,9 +16846,9 @@ function renderFW(){
     var html='<div style="display:flex;justify-content:space-between;padding:3px 4px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:6px;"><span style="color:#556677;font-size:11px;width:20px;">No</span><span style="color:#556677;font-size:11px;">닉네임</span></div><span style="color:#556677;font-size:11px;">\uC6E8\uC774\uBE0C</span></div>';
     scores.forEach(function(s,idx){
       var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
-      html+='<div style="display:flex;align-items:center;padding:5px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd08;':'')+'">'+
+      html+='<div style="display:flex;align-items:center;padding:5px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#4488ff08;':'')+'">'+
           '<span style="color:'+rc+';font-size:12px;width:18px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 2px;">'+s.name+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#4488ff':'#94a3b8')+';font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 2px;">'+s.name+'</span>'+
           '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:12px;font-weight:bold;flex-shrink:0;">'+s.score+'</span>'+
       '</div>';
     });
@@ -16864,10 +16864,10 @@ function renderFW(){
     }
     if(myEntry&&myRank>0){
       var mrc=myRank<=1?'#ffc800':myRank<=2?'#C0C0C0':myRank<=3?'#CD7F32':myRank<=10?'#5a7a8a':'#334455';
-      myBar.innerHTML='<div style="display:flex;justify-content:space-between;padding:5px 4px;background:#00dddd08;">'+
+      myBar.innerHTML='<div style="display:flex;justify-content:space-between;padding:5px 4px;background:#4488ff08;">'+
         '<div style="display:flex;gap:6px;align-items:center;overflow:hidden;">'+
           '<span style="color:'+mrc+';font-size:12px;width:20px;font-weight:bold;flex-shrink:0;">'+myRank+'</span>'+
-          '<span style="color:#00dddd;font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+myEntry.name+'</span>'+
+          '<span style="color:#4488ff;font-size:12px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+myEntry.name+'</span>'+
         '</div>'+
         '<span style="color:#ffc800;font-size:12px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+myEntry.score+'</span>'+
       '</div>';
@@ -16894,7 +16894,7 @@ function renderFW(){
       var remain=Math.max(0,_fwMaxEntries-used);
       joinBtn.textContent='참가하기 ('+remain+'/'+_fwMaxEntries+')';
       if(remain<=0){ joinBtn.style.opacity='0.4'; joinBtn.style.borderColor='#334455'; joinBtn.style.textShadow='none'; }
-      else { joinBtn.style.opacity='1'; joinBtn.style.borderColor='#00dddd'; joinBtn.style.textShadow='0 0 8px #00dddd'; }
+      else { joinBtn.style.opacity='1'; joinBtn.style.borderColor='#4488ff'; joinBtn.style.textShadow='0 0 8px #4488ff'; }
     }
   }
 
@@ -17081,7 +17081,7 @@ window.showMarketToast = function (msg, color) {
   if (typeof window._mktToast === 'function') { window._mktToast(msg, color); return; }
   var el = document.getElementById('market-toast');
   if (!el) return;
-  el.textContent = msg; el.style.color = color || '#00dddd'; el.style.borderColor = color || '#00dddd';
+  el.textContent = msg; el.style.color = color || '#4488ff'; el.style.borderColor = color || '#4488ff';
   el.style.display = 'block';
   setTimeout(function () { el.style.display = 'none'; }, 2200);
 };
