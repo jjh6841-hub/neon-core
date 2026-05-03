@@ -6011,6 +6011,11 @@ function restartGame() {
   if(window._fwMode&&window._fwMode.active){
     var dayKey='fw_entry_'+new Date().toDateString();
     var dayCount=parseInt(localStorage.getItem(dayKey)||'0',10);
+    var maxE=window._fwMaxEntries||3;
+    if(dayCount>=maxE){
+      if(window.showToastMsg) showToastMsg('참가 횟수가 부족하여 다시하기가 불가합니다 ('+maxE+'/'+maxE+')','#ef4444');
+      return;
+    }
     localStorage.setItem(dayKey, dayCount+1);
   }
   startNewGame();
