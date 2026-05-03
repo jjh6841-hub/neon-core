@@ -8157,16 +8157,14 @@ if (dailyPopup) {
       </div>
       <!-- 연속 구분선 -->
       <div style="width:1px;background:#1a3444;opacity:0.3;margin:0 10px;"></div>
-      <!-- 우측 열 (하단 정렬: 규칙 상단, 보상 하단) -->
-      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;">
+      <!-- 우측 열 -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <!-- 규칙 -->
         <div id="fw-rule-card" style="padding:8px;background:#0a0e1a;margin-bottom:8px;"></div>
-        <!-- 보상 (하단 밀착) -->
-        <div>
+        <!-- 보상 (남은 공간 채움) -->
+        <div style="flex:1;display:flex;flex-direction:column;">
           <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>
-          <div style="padding:2px 0;">
-            <div id="fw-rewards"></div>
-          </div>
+          <div id="fw-rewards" style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;"></div>
         </div>
       </div>
     </div>
@@ -15920,13 +15918,11 @@ function _injectScreens() {
             '</div>' +
           '</div>' +
           '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 10px;"></div>' +
-          '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;">' +
+          '<div style="flex:1;min-width:0;display:flex;flex-direction:column;">' +
             '<div id="fw-rule-card" style="padding:8px;background:#0a0e1a;margin-bottom:8px;"></div>' +
-            '<div>' +
+            '<div style="flex:1;display:flex;flex-direction:column;">' +
               '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>' +
-              '<div style="padding:2px 0;">' +
-                '<div id="fw-rewards"></div>' +
-              '</div>' +
+              '<div id="fw-rewards" style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly;"></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -16622,14 +16618,14 @@ function renderFW(){
       '<div style="color:#7aacac;font-size:11px;margin-bottom:6px;letter-spacing:1px;">이번 주 규칙</div>'+
       '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,32)+'</div>'+
       '<div style="color:#00dddd;font-size:14px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
-      '<div style="color:#556677;font-size:11px;margin-top:3px;text-align:center;line-height:1.4;">'+rule.desc+'</div>'+
+      '<div style="color:#556677;font-size:11px;margin-top:3px;text-align:center;line-height:1.5;word-break:keep-all;">'+rule.desc+'</div>'+
       // 다음 주 규칙 예정
       (function(){
         var nr=_getNextWeekRule();
         return '<div style="margin-top:12px;padding-top:8px;border-top:1px solid #1a344433;">'+
           '<div style="color:#445566;font-size:9px;margin-bottom:4px;">다음 주 규칙 예정</div>'+
           '<div style="color:#94a3b8;font-size:12px;font-weight:bold;">'+nr.name+'</div>'+
-          '<div style="color:#445566;font-size:9px;margin-top:2px;line-height:1.3;">'+nr.desc+'</div>'+
+          '<div style="color:#556677;font-size:10px;margin-top:3px;line-height:1.4;word-break:keep-all;">'+nr.desc+'</div>'+
         '</div>';
       })();
   }
@@ -16812,14 +16808,12 @@ function renderFW(){
     }
     var _rr=function(label,rankColor,v){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;"><span style="color:'+rankColor+';font-size:14px;font-weight:bold;">'+label+'</span><span style="color:#ffc800;font-size:13px;">\u2726 '+v+'</span></div>';};
     rwEl.innerHTML=
-      '<div style="display:flex;flex-direction:column;gap:1px;">'+
         _rr('1위','#ffc800',rw[0])+
         _rr('2위','#C0C0C0',rw[1])+
         _rr('3위','#CD7F32',rw[2])+
         _rr('4~10위','#5a7a8a',rw[3])+
         _rr('11~30위','#445566',rw[4])+
-        _rr('31~50위','#334455',rw[5])+
-      '</div>';
+        _rr('31~50위','#334455',rw[5]);
   }
 
   syncPulse();
