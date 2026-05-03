@@ -4747,10 +4747,16 @@ function render() {
   // ── 1. Background (full canvas, before shake) ─────────────────
   if (!window._cachedBgColor) {
     try {
-      var _bTier = parseInt(localStorage.getItem('td_tier')||'1',10);
-      var _tierBg = {1:'#030b10',2:'#040a0e',3:'#030820',4:'#100515',5:'#0a0805'};
-      window._cachedBgColor = _tierBg[_bTier] || '#030b10';
-      window._cachedBgTier = _bTier;
+      if (window._fwBattleBg) {
+        // 주파수 전쟁 전용 배경 (심우주 인디고)
+        window._cachedBgColor = '#06031a';
+        window._cachedBgTier = 99; // FW 전용 식별자
+      } else {
+        var _bTier = parseInt(localStorage.getItem('td_tier')||'1',10);
+        var _tierBg = {1:'#030b10',2:'#040a0e',3:'#030820',4:'#100515',5:'#0a0805'};
+        window._cachedBgColor = _tierBg[_bTier] || '#030b10';
+        window._cachedBgTier = _bTier;
+      }
     } catch(_){ window._cachedBgColor = '#030b10'; }
   }
   ctx.fillStyle = window._cachedBgColor;
@@ -4813,6 +4819,27 @@ function render() {
       var sg=_bx.createRadialGradient(CW*0.1,CH*0.9,0,CW*0.1,CH*0.9,CW*0.15);
       sg.addColorStop(0,'rgba(255,200,50,0.2)');sg.addColorStop(0.5,'rgba(255,150,30,0.08)');sg.addColorStop(1,'transparent');
       _bx.fillStyle=sg;_bx.fillRect(0,0,CW,CH);
+    } else if(_bt===99){ // 주파수 전쟁: 적색 에너지 균열 + 시안 파동
+      // 중앙 적색 에너지 코어
+      var ng=_bx.createRadialGradient(CW*0.5,CH*0.45,0,CW*0.5,CH*0.45,CW*0.6);
+      ng.addColorStop(0,'rgba(220,30,80,0.14)');ng.addColorStop(0.3,'rgba(150,20,60,0.06)');ng.addColorStop(1,'transparent');
+      _bx.fillStyle=ng;_bx.fillRect(0,0,CW,CH);
+      // 시안 파동 (좌상)
+      var ng2=_bx.createRadialGradient(CW*0.15,CH*0.15,0,CW*0.15,CH*0.15,CW*0.4);
+      ng2.addColorStop(0,'rgba(0,221,221,0.1)');ng2.addColorStop(0.5,'rgba(0,150,180,0.03)');ng2.addColorStop(1,'transparent');
+      _bx.fillStyle=ng2;_bx.fillRect(0,0,CW,CH);
+      // 보라 안개 (우하)
+      var ng3=_bx.createRadialGradient(CW*0.85,CH*0.8,0,CW*0.85,CH*0.8,CW*0.35);
+      ng3.addColorStop(0,'rgba(120,50,200,0.08)');ng3.addColorStop(1,'transparent');
+      _bx.fillStyle=ng3;_bx.fillRect(0,0,CW,CH);
+      // 에너지 균열선 (대각선)
+      _bx.save();
+      _bx.strokeStyle='rgba(0,221,221,0.06)';_bx.lineWidth=1;
+      for(var _li=0;_li<5;_li++){
+        var lx=CW*(0.1+_li*0.2);
+        _bx.beginPath();_bx.moveTo(lx,0);_bx.lineTo(lx+CW*0.15,CH);_bx.stroke();
+      }
+      _bx.restore();
     } else { // 에이온: 은은한 시안 글로우
       var ng=_bx.createRadialGradient(CW*0.5,CH*0.3,0,CW*0.5,CH*0.3,CW*0.6);
       ng.addColorStop(0,'rgba(0,255,255,0.06)');ng.addColorStop(1,'transparent');
@@ -11527,6 +11554,11 @@ var TIER_CFG = [
 ];
 var _curTierIdx = 0;
 function _getTierCfg() { return TIER_CFG[_curTierIdx] || TIER_CFG[0]; }
+// FW 등 외부 스크립트에서 티어 인덱스 접근용
+Object.defineProperty(window,'_curTierIdx',{
+  get:function(){return _curTierIdx;},
+  set:function(v){_curTierIdx=v;}
+});
 
 /* §6 — WS 영구 강화 기본 비용 */
 var WS_BASE_COSTS = {
@@ -16191,13 +16223,10 @@ function _hookFWButtons() {
       var fw=_loadFW();
       fw.participating=true;
       _saveFW(fw);
-      showScreen('home');
-      setTimeout(function(){
-        try{
-          var startBtn=document.getElementById('btn-start-game');
-          if(startBtn) startBtn.click();
-        }catch(_){}
-      },200);
+      // FW 화면 닫고 즉시 전투 진입 (홈 경유 없음)
+      var fwScreen=document.getElementById('screen-frequency-wars');
+      if(fwScreen) fwScreen.style.display='none';
+      if(typeof startNewGame==='function') startNewGame();
     });
   }
 }
@@ -18932,6 +18961,15 @@ _injectLabScreen();
 var _origStartFW=window.startNewGame;
 if(typeof _origStartFW==='function'){
   window.startNewGame=function(){
+    // FW 모드 시 전용 배경 + 스펙트라급 난이도 적용
+    if(window._fwMode&&window._fwMode.active){
+      window._cachedBgColor=null;
+      window._battleBgCache=null;
+      window._fwBattleBg=true; // FW 전용 배경 플래그
+      // 스펙트라급 난이도 (enemyMult:1.3, goldMult:1.8)
+      if(typeof _curTierIdx!=='undefined') window._fwPrevTier=_curTierIdx;
+      _curTierIdx=1; // 스펙트라
+    }
     _origStartFW.apply(this,arguments);
     if(!window._fwMode||!window._fwMode.active) return;
     var rule=window._fwMode.rule;
@@ -19010,6 +19048,13 @@ if(typeof _origGameOverFW==='function'){
     _origGameOverFW.apply(this,arguments);
     if(!window._fwMode||!window._fwMode.active) return;
     window._fwMode.active=false;
+    // FW 전용 배경/티어 복원
+    window._fwBattleBg=false;
+    window._cachedBgColor=null;
+    window._battleBgCache=null;
+    if(window._fwPrevTier!==undefined&&typeof _curTierIdx!=='undefined'){
+      _curTierIdx=window._fwPrevTier; delete window._fwPrevTier;
+    }
 
     var fw=window._loadFW?window._loadFW():{};
     var wave=G?G.wave||0:0;
