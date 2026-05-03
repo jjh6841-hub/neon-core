@@ -16241,6 +16241,143 @@ function _saveFW(d){ localStorage.setItem('td_fw',JSON.stringify(d)); }
 window._loadFW = _loadFW;
 window._saveFW = _saveFW;
 
+/* ── 주파수 전쟁 Firestore 그룹 매칭 ── */
+var _fwGroupId=null;
+var _fwGroupData=null;
+var _fwGroupLoading=false;
+
+// 이번 시즌 키 (해당 주 월요일 날짜, 월요일 01시 전이면 전주)
+function _getSeasonKey(){
+  var now=new Date();
+  var d=new Date(now); d.setHours(0,0,0,0);
+  var day=d.getDay(); var diff=day===0?6:day-1;
+  d.setDate(d.getDate()-diff);
+  if(now.getDay()===1&&now.getHours()<1) d.setDate(d.getDate()-7);
+  return d.toISOString().slice(0,10);
+}
+
+// 그룹 배정 (첫 참가 시 호출)
+function _assignFWGroup(callback){
+  if(!window._fbDb||!window._fbUid){callback(null);return;}
+  if(_fwGroupLoading){callback(null);return;}
+  var seasonKey=_getSeasonKey();
+  var fw=_loadFW();
+  var tier=fw.tier||0;
+  // 이미 이번 시즌 그룹이 있으면 로드만
+  if(fw._groupId&&fw._groupSeason===seasonKey){
+    _fwGroupId=fw._groupId;
+    _refreshGroupData(callback);
+    return;
+  }
+  _fwGroupLoading=true;
+  var db=window._fbDb;
+  db.collection('fw_groups')
+    .where('seasonKey','==',seasonKey)
+    .where('tier','==',tier)
+    .where('memberCount','<',50)
+    .limit(1).get()
+    .then(function(snap){
+      if(!snap.empty){
+        return _joinGroup(snap.docs[0].id,snap.docs[0].data(),seasonKey,tier,callback);
+      } else {
+        return _createGroup(seasonKey,tier,callback);
+      }
+    }).catch(function(err){
+      console.warn('FW group assign:',err);
+      _fwGroupLoading=false; callback(null);
+    });
+}
+window._assignFWGroup=_assignFWGroup;
+
+function _joinGroup(groupId,groupData,seasonKey,tier,callback){
+  var db=window._fbDb; var uid=window._fbUid;
+  var playerName=(window.PERM&&PERM.nickname)||'\uB098';
+  // 이미 멤버인지 확인
+  if(groupData.members&&groupData.members[uid]){
+    _saveGroupLocal(groupId,seasonKey);
+    _fwGroupLoading=false;
+    _refreshGroupData(callback);
+    return;
+  }
+  var ref=db.collection('fw_groups').doc(groupId);
+  db.runTransaction(function(t){
+    return t.get(ref).then(function(doc){
+      var d=doc.data();
+      if((d.memberCount||0)>=50) throw 'full';
+      var upd={};
+      upd['members.'+uid]={name:playerName,score:0};
+      upd.memberCount=(d.memberCount||0)+1;
+      t.update(ref,upd);
+    });
+  }).then(function(){
+    _saveGroupLocal(groupId,seasonKey);
+    _fwGroupLoading=false;
+    _refreshGroupData(callback);
+  }).catch(function(err){
+    _fwGroupLoading=false;
+    if(err==='full') _assignFWGroup(callback);
+    else { console.warn('FW join:',err); callback(null); }
+  });
+}
+
+function _createGroup(seasonKey,tier,callback){
+  var db=window._fbDb; var uid=window._fbUid;
+  var playerName=(window.PERM&&PERM.nickname)||'\uB098';
+  var members={}; members[uid]={name:playerName,score:0};
+  db.collection('fw_groups').add({
+    seasonKey:seasonKey, tier:tier, memberCount:1,
+    seed:Math.floor(Math.random()*100000),
+    members:members,
+    createdAt:new Date().toISOString()
+  }).then(function(ref){
+    _saveGroupLocal(ref.id,seasonKey);
+    _fwGroupLoading=false;
+    _refreshGroupData(callback);
+  }).catch(function(err){
+    console.warn('FW create:',err);
+    _fwGroupLoading=false; callback(null);
+  });
+}
+
+function _saveGroupLocal(groupId,seasonKey){
+  _fwGroupId=groupId;
+  var fw=_loadFW();
+  fw._groupId=groupId;
+  fw._groupSeason=seasonKey;
+  _saveFW(fw);
+}
+
+function _refreshGroupData(callback){
+  if(!window._fbDb||!_fwGroupId){callback(null);return;}
+  window._fbDb.collection('fw_groups').doc(_fwGroupId).get().then(function(doc){
+    if(doc.exists){
+      _fwGroupData=doc.data(); _fwGroupData._id=doc.id;
+      callback(_fwGroupData);
+    } else {
+      _fwGroupId=null; _fwGroupData=null;
+      var fw=_loadFW(); delete fw._groupId; delete fw._groupSeason; _saveFW(fw);
+      callback(null);
+    }
+  }).catch(function(){callback(null);});
+}
+window._refreshGroupData=_refreshGroupData;
+
+// 점수 업데이트 (게임 종료 시)
+function _updateFWScore(newScore){
+  if(!window._fbDb||!_fwGroupId||!window._fbUid) return;
+  var upd={}; upd['members.'+window._fbUid+'.score']=newScore;
+  window._fbDb.collection('fw_groups').doc(_fwGroupId).update(upd).catch(function(){});
+}
+window._updateFWScore=_updateFWScore;
+
+// 닉네임 동기화 (닉네임 변경 시 그룹에도 반영)
+function _syncFWGroupName(){
+  if(!window._fbDb||!_fwGroupId||!window._fbUid||!window.PERM) return;
+  var upd={}; upd['members.'+window._fbUid+'.name']=PERM.nickname||'\uB098';
+  window._fbDb.collection('fw_groups').doc(_fwGroupId).update(upd).catch(function(){});
+}
+window._syncFWGroupName=_syncFWGroupName;
+
 var _fwOverrideRule=null; // Firestore에서 관리자가 설정한 규칙
 function _getCurrentRule(){
   // 관리자 수동 설정 우선
@@ -16313,7 +16450,8 @@ function renderFW(){
   var rankEl=document.getElementById('fw-rank');
   if(bestEl) bestEl.textContent=fw.seasonScore||0;
   if(playsEl) playsEl.textContent=fw.plays||0;
-  if(rankEl) rankEl.textContent=fw.rank||'-';
+  // 실시간 순위는 리더보드 렌더 후 갱신 (아래에서 처리)
+  var _fwRankEl=rankEl;
 
   var ruleCard=document.getElementById('fw-rule-card');
   if(ruleCard){
@@ -16327,29 +16465,95 @@ function renderFW(){
   var lb=document.getElementById('fw-leaderboard');
   if(lb){
     var playerWave=fw.seasonScore||0;
-    var seed=Math.floor(Date.now()/(7*86400000));
-    var names=['SIGNAL_01','FREQ_07','WAVE_X','NEON_33','PULSE_9','CORE_77','VOID_21','ARC_55','FLUX_42','ECHO_88'];
-    var scores=[];
-    var tierBase=[20,40,70,120,200];
-    var base=tierBase[fw.tier||0]||20;
-    for(var i=0;i<10;i++){
-      var fakeSeed=((seed+i*31337)%1000)/1000;
-      scores.push({name:names[i], score:Math.max(1,Math.round(base*(0.5+fakeSeed*1.2)))});
+
+    // Firestore 그룹 미배정이면 배정 시도
+    if(!_fwGroupData&&!_fwGroupLoading){
+      lb.innerHTML='<div style="color:#556677;font-size:10px;text-align:center;padding:12px;">그룹 배정 중...</div>';
+      _assignFWGroup(function(data){ if(data) renderFW(); });
     }
-    if(playerWave>0) scores.push({name:fw.playerName||'\uB098', score:playerWave, isPlayer:true});
+
+    // 그룹 데이터로 리더보드 구성
+    var gd=_fwGroupData;
+    var seed=gd?gd.seed||0:Math.floor(Date.now()/(7*86400000));
+    var realMembers=gd?gd.members||{}:{};
+    var scores=[];
+
+    // 실제 유저 추가
+    var realCount=0;
+    Object.keys(realMembers).forEach(function(uid){
+      var m=realMembers[uid];
+      scores.push({name:m.name||uid.slice(0,8), score:m.score||0, isPlayer:uid===window._fbUid});
+      realCount++;
+    });
+
+    // 나머지 봇으로 채우기 (50명까지)
+    var botCount=Math.max(0,50-realCount);
+    if(botCount>0){
+      var _namePool=['SIGNAL_01','FREQ_07','WAVE_X','NEON_33','PULSE_9','CORE_77',
+        'VOID_21','ARC_55','FLUX_42','ECHO_88','NOVA_13','ZERO_99',
+        'BLAZE_6','ORBIT_22','GRID_55','BOLT_19','PHASE_3','APEX_5',
+        'DRIFT_44','HELIX_8','ION_16','NEXUS_27','QUASAR_4','RIFT_31',
+        'SYNC_12','THETA_9','ULTRA_7','VENOM_15','WARP_23','XENON_2',
+        'ZETA_11','ALPHA_39','BETA_28','CYPHER_6','DELTA_17','EMBER_3',
+        'FROST_48','GAMMA_14','HYDRA_26','IOTA_35','JADE_41','KRYPTO_8',
+        'LUMEN_19','MATRIX_5','NEBULA_32','OMEGA_10','PRISM_24','RADIX_7',
+        'SPARK_36','TITAN_20','UNITY_43','VERTEX_11','XENITH_6','ASTRO_29',
+        'CIPHER_37','DYNAMO_18','FLARE_45','GLITCH_9','HAVOC_34','LUCID_22'];
+      var _shuffled=_namePool.slice();
+      for(var si=_shuffled.length-1;si>0;si--){
+        var sj=((seed*7+si*31337)%(_shuffled.length));
+        var tmp=_shuffled[si];_shuffled[si]=_shuffled[sj];_shuffled[sj]=tmp;
+      }
+      var botNames=_shuffled.slice(0,botCount);
+      // 주간 진행도 (월요일 01시=0 ~ 일요일 24시=1)
+      var _nxtMon=_getNextMondayReset();
+      var _weekStart=new Date(_nxtMon); _weekStart.setDate(_weekStart.getDate()-7);
+      var weekProg=Math.min(1,Math.max(0,(Date.now()-_weekStart.getTime())/(7*86400000)));
+      var tierBase=[20,40,70,120,200];
+      var base=tierBase[fw.tier||0]||20;
+      var inactiveCount=Math.min(botCount,7+((seed%2)?1:0)); // 7~8명 비활성
+
+      for(var i=0;i<botCount;i++){
+        var fakeSeed=((seed+i*31337+i*i*7)%10000)/10000;
+        if(i>=botCount-inactiveCount){
+          scores.push({name:botNames[i], score:0});
+        } else {
+          var playStart=fakeSeed*0.6;
+          var progress=Math.max(0,(weekProg-playStart)/(1-playStart));
+          var maxScore=Math.max(1,Math.round(base*(0.3+fakeSeed*1.5)));
+          var curScore=Math.round(maxScore*Math.pow(progress,0.5));
+          scores.push({name:botNames[i], score:curScore});
+        }
+      }
+    }
+
     scores.sort(function(a,b){return b.score-a.score;});
-    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:9px;width:14px;">#</span><span style="color:#556677;font-size:9px;">닉네임</span></div><span style="color:#556677;font-size:9px;">W</span></div>';
-    scores.slice(0,10).forEach(function(s,idx){
-      var rc=idx===0?'#ffc800':idx===1?'#C0C0C0':idx===2?'#CD7F32':'#334455';
-      html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;">'+
+    // 순위 렌더링 (전체 50명, 스크롤 가능)
+    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:9px;width:16px;">#</span><span style="color:#556677;font-size:9px;">닉네임</span></div><span style="color:#556677;font-size:9px;">W</span></div>';
+    scores.forEach(function(s,idx){
+      var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
+      html+='<div '+(s.isPlayer?'data-fw-me ':'')+' style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd0a;':'')+'">'+
         '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
-          '<span style="color:'+rc+';font-size:11px;width:14px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
+          '<span style="color:'+rc+';font-size:10px;width:16px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
         '</div>'+
-        '<span style="color:#ffc800;font-size:11px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
+        '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:10px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
       '</div>';
     });
     lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
+    // 실시간 순위 반영
+    if(_fwRankEl && playerWave>0){
+      var myRank=1;
+      for(var ri=0;ri<scores.length;ri++){if(scores[ri].isPlayer){myRank=ri+1;break;}}
+      _fwRankEl.textContent=myRank+'/'+scores.length;
+    } else if(_fwRankEl){
+      _fwRankEl.textContent=fw.rank||'-';
+    }
+    // 내 순위로 스크롤
+    if(playerWave>0){
+      var myRow=lb.querySelector('[data-fw-me]');
+      if(myRow) myRow.scrollIntoView({block:'center',behavior:'smooth'});
+    }
   }
 
   // 남은 입장 횟수 + 정산 상태 표시
@@ -16454,37 +16658,74 @@ function _checkFWSettlement(){
     [300,220,160,90,50,30]
   ];
   var rw=tierRewards[tier]||tierRewards[0];
-  // 가상 순위 계산 (시즌 점수 기반)
-  var tierBase=[20,40,70,120,200];
-  var base=tierBase[tier]||20;
-  var rank=score>=base*2?1:score>=base*1.5?2:score>=base?3:score>=base*0.7?8:score>=base*0.4?20:40;
-  var pulse=rank<=3?rw[rank-1]:rank<=10?rw[3]:rank<=30?rw[4]:rw[5];
 
-  // 우편함으로 보상 발송
-  if(window._fbDb&&window._fbUid){
-    window._fbDb.collection('mails').add({
-      type:'personal',
-      targetUid:window._fbUid,
-      title:'주파수 전쟁 시즌 보상',
-      body:'시즌 최고 웨이브: '+score+' ('+FW_TIERS[tier].name+' '+rank+'위)',
-      rewards:{pulseFragments:pulse},
-      createdAt:new Date().toISOString()
-    }).catch(function(){});
+  // 실제 그룹 순위 계산 (Firestore 그룹 데이터 사용)
+  function _doSettle(rank){
+    var pulse=rank<=3?rw[rank-1]:rank<=10?rw[3]:rank<=30?rw[4]:rw[5];
+    // 우편함으로 보상 발송
+    if(window._fbDb&&window._fbUid){
+      window._fbDb.collection('mails').add({
+        type:'personal',
+        targetUid:window._fbUid,
+        title:'주파수 전쟁 시즌 보상',
+        body:'시즌 최고 웨이브: '+score+' ('+FW_TIERS[tier].name+' '+rank+'위/50)',
+        rewards:{pulseFragments:pulse},
+        createdAt:new Date().toISOString()
+      }).catch(function(){});
+    }
+    window.pulseFragments=(window.pulseFragments||0)+pulse;
+    try{localStorage.setItem('pulseFragments',window.pulseFragments);}catch(_){}
+    fw.seasonScore=0;
+    fw.plays=0;
+    fw.rank=rank;
+    fw.lastSettleWeek=weekKey;
+    // 그룹 초기화
+    delete fw._groupId; delete fw._groupSeason;
+    _fwGroupId=null; _fwGroupData=null;
+    _saveFW(fw);
+    if(window.showRewardPopup) showRewardPopup([{icon:'\u2726',label:'펄스 조각',amount:pulse,color:'#ffc800'}],'주파수 전쟁 보상');
+    try{syncPulse();}catch(_){}
   }
-  // 로컬 펄스 조각도 즉시 지급
-  window.pulseFragments=(window.pulseFragments||0)+pulse;
-  try{localStorage.setItem('pulseFragments',window.pulseFragments);}catch(_){}
 
-  // 시즌 리셋
-  fw.seasonScore=0;
-  fw.plays=0;
-  fw.rank=rank;
-  fw.lastSettleWeek=weekKey;
-  _saveFW(fw);
-
-  // 보상 알림
-  if(window.showRewardPopup) showRewardPopup([{icon:'✦',label:'펄스 조각',amount:pulse,color:'#ffc800'}],'주파수 전쟁 보상');
-  try{syncPulse();}catch(_){}
+  // Firestore 그룹에서 실제 순위 계산
+  if(window._fbDb&&fw._groupId){
+    window._fbDb.collection('fw_groups').doc(fw._groupId).get().then(function(doc){
+      if(!doc.exists){ _doSettle(25); return; } // 그룹 없으면 중간 순위
+      var gd=doc.data();
+      var members=gd.members||{};
+      // 봇 포함 전체 50명 점수 생성
+      var allScores=[];
+      Object.keys(members).forEach(function(uid){
+        allScores.push({uid:uid, score:members[uid].score||0});
+      });
+      // 봇 채우기 (정산 시에도 동일한 봇 로직)
+      var botCount=Math.max(0,50-allScores.length);
+      var seed=gd.seed||0;
+      var tierBase2=[20,40,70,120,200];
+      var base2=tierBase2[gd.tier||0]||20;
+      var inactiveCount=Math.min(botCount,7+((seed%2)?1:0));
+      for(var bi=0;bi<botCount;bi++){
+        var fs=((seed+bi*31337+bi*bi*7)%10000)/10000;
+        if(bi>=botCount-inactiveCount){
+          allScores.push({uid:'bot_'+bi, score:0});
+        } else {
+          allScores.push({uid:'bot_'+bi, score:Math.max(1,Math.round(base2*(0.3+fs*1.5)))});
+        }
+      }
+      allScores.sort(function(a,b){return b.score-a.score;});
+      var rank=25;
+      for(var ri=0;ri<allScores.length;ri++){
+        if(allScores[ri].uid===window._fbUid){rank=ri+1;break;}
+      }
+      _doSettle(rank);
+    }).catch(function(){ _doSettle(25); });
+  } else {
+    // Firestore 없으면 기존 가상 순위 폴백
+    var tierBase=[20,40,70,120,200];
+    var base=tierBase[tier]||20;
+    var rank=score>=base*2?1:score>=base*1.5?2:score>=base?3:score>=base*0.7?8:score>=base*0.4?20:40;
+    _doSettle(rank);
+  }
 }
 
 setTimeout(_initFW, 1000);
@@ -18692,7 +18933,11 @@ if(typeof _origGameOverFW==='function'){
 
     var fw=window._loadFW?window._loadFW():{};
     var wave=G?G.wave||0:0;
-    if(wave>(fw.seasonScore||0)) fw.seasonScore=wave;
+    if(wave>(fw.seasonScore||0)){
+      fw.seasonScore=wave;
+      // Firestore 그룹 점수 동기화
+      if(window._updateFWScore) window._updateFWScore(wave);
+    }
     fw.participating=false;
     var tierBase=[20,40,70,120,200];
     var base=tierBase[fw.tier||0]||20;
