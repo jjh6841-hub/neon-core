@@ -8133,24 +8133,21 @@ if (dailyPopup) {
       </div>
     </div>
 
-    <!-- 1행: 내 정보(좌) + 규칙(우) -->
-    <div style="display:flex;gap:10px;margin-bottom:14px;">
-      <div id="fw-league-card" style="flex:1;padding:10px;text-align:center;">
-        <div id="fw-league-icon" style="font-size:28px;">🔵</div>
-        <div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>
-        <div style="display:flex;justify-content:space-around;margin-top:8px;">
-          <div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>
-          <div style="text-align:center;"><div style="color:#445566;font-size:10px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>
-        </div>
-        <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>
-      </div>
-      <div style="width:1px;background:#1a3444;opacity:0.4;"></div>
-      <div id="fw-rule-card" style="flex:1;padding:8px;"></div>
-    </div>
-
-    <!-- 순위 + 보상 (가로 배치) -->
-    <div style="display:flex;gap:10px;margin-bottom:14px;">
+    <!-- 2열 레이아웃: 좌(내 정보+순위) | 구분선 | 우(규칙+보상) -->
+    <div style="display:flex;margin-bottom:14px;">
+      <!-- 좌측 열 -->
       <div style="flex:1;min-width:0;">
+        <!-- 내 정보 -->
+        <div id="fw-league-card" style="padding:10px;text-align:center;background:#0a0e1a;margin-bottom:8px;">
+          <div id="fw-league-icon" style="font-size:28px;">🔵</div>
+          <div id="fw-league-name" style="color:#4488ff;font-size:14px;font-weight:bold;margin-top:4px;">TIER F</div>
+          <div style="display:flex;justify-content:space-around;margin-top:8px;">
+            <div style="text-align:center;"><div style="color:#445566;font-size:11px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:16px;font-weight:bold;">0</div></div>
+            <div style="text-align:center;"><div style="color:#445566;font-size:11px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:16px;font-weight:bold;">0</div></div>
+          </div>
+          <div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:11px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:20px;font-weight:bold;">-</div></div>
+        </div>
+        <!-- 순위 -->
         <div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">순위</div>
         <div id="fw-tab-content" style="max-height:200px;overflow-y:auto;padding:2px 0;">
           <div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">
@@ -8158,8 +8155,13 @@ if (dailyPopup) {
           </div>
         </div>
       </div>
-      <div style="width:1px;background:#1a3444;opacity:0.4;"></div>
+      <!-- 연속 구분선 -->
+      <div style="width:1px;background:#1a3444;opacity:0.3;margin:0 10px;"></div>
+      <!-- 우측 열 -->
       <div style="flex:1;min-width:0;">
+        <!-- 규칙 -->
+        <div id="fw-rule-card" style="padding:8px;background:#0a0e1a;margin-bottom:8px;"></div>
+        <!-- 보상 -->
         <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>
         <div style="padding:2px 0;">
           <div id="fw-rewards"></div>
@@ -13259,11 +13261,14 @@ function _showCardFirstVisit() {
 /* ════════════════════════════════════════════════════════
    FEATURE 2: 랭킹 시스템
 ════════════════════════════════════════════════════════ */
-var _RNAMES = ['NeonKing','IronWall','StormRider','VoidHunter','DarkNova','CyberGhost','DataStar','CodeBreaker',
-  'NightFox','ShadowCore','ArcLight','BioShield','OmegaForce','QuantumX','CrystalBorn','PhantomEdge',
-  'StarPulse','GlitchWave','NanoStrike','HoloMind','EtherBlade','FluxDrive','CerberusX','ZeroPoint',
-  'MegaCore','TurboSoul','FrostByte','BlazePath','GravityWell','EchoVoid','RiftWalker','TechPulse',
-  'CrimsonArc','NexusBot','VortexX','PrismLight','SpectralX','QuantumZ','StellarX','OrbitCore'];
+// KR_XXXXX 시드 기반 닉네임 생성 (실제 유저 닉네임 공식과 동일)
+function _genBotName(seed,idx){
+  var c='ABCDEFGHIJKLMNOPQRSTUVWXYZ',n='KR_',s=seed;
+  for(var i=0;i<5;i++){s=(s*1103515245+12345+idx*7+i*13)&0x7fffffff;n+=c.charAt(s%26);}
+  return n;
+}
+var _RNAMES=[];
+for(var _ri=0;_ri<50;_ri++) _RNAMES.push(_genBotName(77777,_ri));
 
 function _genRanking(playerWave) {
   var seed=42, rows=[];
@@ -13424,11 +13429,10 @@ function _renderRanking() {
     var myPower=_getPlayerPower();
     var myName=(window.PERM&&PERM.nickname)||'나';
     var seed=Math.floor(Date.now()/(86400000));
-    var fakeNames=['NEON_01','SHADOW_X','VORTEX_7','LASER_9','CORE_21','PHASE_3','VOID_77','APEX_5','FLUX_44','ECHO_16','NOVA_8','ZERO_99','IRON_13','BLAZE_6','PULSE_31','ORBIT_22','GRID_55','BOLT_19'];
     var rows=[];
     for(var i=0;i<18;i++){
       var s=((seed+i*31337)%1000)/1000;
-      rows.push({name:fakeNames[i], score:Math.max(110,Math.round(myPower*(0.4+s*1.3)))});
+      rows.push({name:_RNAMES[i%_RNAMES.length], score:Math.max(110,Math.round(myPower*(0.4+s*1.3)))});
     }
     rows.push({name:myName, score:myPower, isPlayer:true});
     rows.sort(function(a,b){return b.score-a.score;});
@@ -15873,42 +15877,34 @@ function _injectScreens() {
           '<div><div style="color:#00dddd;font-size:13px;font-weight:bold;letter-spacing:2px;">FREQUENCY WARS</div><div style="color:#445566;font-size:8px;margin-top:2px;">시즌 1</div></div>' +
           '<div style="text-align:right;"><div style="color:#556677;font-size:8px;">주파수 전쟁 종료</div><div id="fw-timer" style="color:#00dddd;font-size:13px;font-weight:bold;">--:--:--</div></div>' +
         '</div>' +
-        /* 2열: 내 정보 + 규칙 */
-        '<div style="display:flex;gap:10px;margin-bottom:14px;">' +
-          '<div style="width:120px;flex-shrink:0;">' +
-            '<div id="fw-league-card" style="padding:10px;text-align:center;">' +
-              '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
-              '<div id="fw-league-name" style="color:#4488ff;font-size:13px;font-weight:bold;margin-top:4px;">TIER F</div>' +
-              '<div style="display:flex;justify-content:space-around;margin-top:8px;">' +
-                '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:14px;font-weight:bold;">0</div></div>' +
-                '<div style="text-align:center;"><div style="color:#445566;font-size:10px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:14px;font-weight:bold;">0</div></div>' +
-              '</div>' +
-              '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:10px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:18px;font-weight:bold;">-</div></div>' +
-            '</div>' +
-          '</div>' +
-          '<div style="width:1px;background:#1a3444;opacity:0.4;"></div>' +
-          '<div id="fw-rule-card" style="flex:1;padding:8px;"></div>' +
-        '</div>' +
-        /* 순위 + 보상 */
-        '<div style="display:flex;gap:10px;margin-bottom:14px;">' +
+        /* 2열 레이아웃: 좌(내 정보+순위) | 구분선 | 우(규칙+보상) */
+        '<div style="display:flex;margin-bottom:14px;">' +
           '<div style="flex:1;min-width:0;">' +
+            '<div id="fw-league-card" style="padding:10px;text-align:center;background:#0a0e1a;margin-bottom:8px;">' +
+              '<div id="fw-league-icon" style="font-size:28px;">🔵</div>' +
+              '<div id="fw-league-name" style="color:#4488ff;font-size:14px;font-weight:bold;margin-top:4px;">TIER F</div>' +
+              '<div style="display:flex;justify-content:space-around;margin-top:8px;">' +
+                '<div style="text-align:center;"><div style="color:#445566;font-size:11px;">최고</div><div id="fw-best" style="color:#00dddd;font-size:16px;font-weight:bold;">0</div></div>' +
+                '<div style="text-align:center;"><div style="color:#445566;font-size:11px;">참가</div><div id="fw-plays" style="color:#94a3b8;font-size:16px;font-weight:bold;">0</div></div>' +
+              '</div>' +
+              '<div style="text-align:center;margin-top:6px;"><div style="color:#445566;font-size:11px;">순위</div><div id="fw-rank" style="color:#ffc800;font-size:20px;font-weight:bold;">-</div></div>' +
+            '</div>' +
             '<div style="color:#00dddd;font-size:12px;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">순위</div>' +
-            '<div id="fw-tab-content" style="max-height:180px;overflow-y:auto;padding:2px 0;">' +
+            '<div id="fw-tab-content" style="max-height:200px;overflow-y:auto;padding:2px 0;">' +
               '<div id="fw-leaderboard" style="display:flex;flex-direction:column;gap:2px;">' +
                 '<div style="color:#334455;font-size:9px;text-align:center;padding:10px;">참가 후 순위가 표시됩니다</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
-          '<div style="width:1px;background:#1a3444;opacity:0.4;"></div>' +
+          '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 10px;"></div>' +
           '<div style="flex:1;min-width:0;">' +
+            '<div id="fw-rule-card" style="padding:8px;background:#0a0e1a;margin-bottom:8px;"></div>' +
             '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>' +
             '<div style="padding:2px 0;">' +
               '<div id="fw-rewards"></div>' +
             '</div>' +
           '</div>' +
         '</div>' +
-        /* 이번 주 규칙 */
-        '<div id="fw-rule-card" style="padding:10px 0;margin-bottom:10px;border-top:1px solid #1a344422;"></div>' +
         /* 버튼들 */
         '<button id="fw-join-btn" style="width:100%;background:#030b10;border:2px solid #00dddd;border-radius:10px;color:#ffffff;font-family:\'Courier New\',monospace;font-size:13px;font-weight:bold;padding:12px;cursor:pointer;letter-spacing:2px;text-shadow:0 0 8px #00dddd;margin-bottom:8px;">참가하기</button>' +
         '<button id="fw-shop-btn" style="width:100%;background:transparent;border:1px solid #ffc80044;border-radius:10px;color:#ffc800;font-family:\'Courier New\',monospace;font-size:11px;padding:8px;cursor:pointer;letter-spacing:1px;">✦ 주파수 상점</button>' +
@@ -16588,10 +16584,10 @@ function renderFW(){
   var ruleCard=document.getElementById('fw-rule-card');
   if(ruleCard){
     ruleCard.innerHTML=
-      '<div style="color:#7aacac;font-size:10px;margin-bottom:4px;letter-spacing:1px;">이번 주 규칙</div>'+
-      '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,28)+'</div>'+
-      '<div style="color:#00dddd;font-size:13px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
-      '<div style="color:#556677;font-size:10px;margin-top:2px;text-align:center;line-height:1.4;">'+rule.desc+'</div>';
+      '<div style="color:#7aacac;font-size:11px;margin-bottom:6px;letter-spacing:1px;">이번 주 규칙</div>'+
+      '<div style="text-align:center;margin-bottom:4px;">'+_fwRuleIconHTML(rule.id,32)+'</div>'+
+      '<div style="color:#00dddd;font-size:14px;font-weight:bold;text-align:center;">'+rule.name+'</div>'+
+      '<div style="color:#556677;font-size:11px;margin-top:3px;text-align:center;line-height:1.4;">'+rule.desc+'</div>';
   }
 
   var lb=document.getElementById('fw-leaderboard');
@@ -16632,25 +16628,18 @@ function renderFW(){
       realCount++;
     }
 
-    // 나머지 봇으로 채우기 (50명까지)
+    // 나머지 봇으로 채우기 (50명까지, KR_XXXXX 닉네임)
     var botCount=Math.max(0,50-realCount);
     if(botCount>0){
-      var _namePool=['SIGNAL_01','FREQ_07','WAVE_X','NEON_33','PULSE_9','CORE_77',
-        'VOID_21','ARC_55','FLUX_42','ECHO_88','NOVA_13','ZERO_99',
-        'BLAZE_6','ORBIT_22','GRID_55','BOLT_19','PHASE_3','APEX_5',
-        'DRIFT_44','HELIX_8','ION_16','NEXUS_27','QUASAR_4','RIFT_31',
-        'SYNC_12','THETA_9','ULTRA_7','VENOM_15','WARP_23','XENON_2',
-        'ZETA_11','ALPHA_39','BETA_28','CYPHER_6','DELTA_17','EMBER_3',
-        'FROST_48','GAMMA_14','HYDRA_26','IOTA_35','JADE_41','KRYPTO_8',
-        'LUMEN_19','MATRIX_5','NEBULA_32','OMEGA_10','PRISM_24','RADIX_7',
-        'SPARK_36','TITAN_20','UNITY_43','VERTEX_11','XENITH_6','ASTRO_29',
-        'CIPHER_37','DYNAMO_18','FLARE_45','GLITCH_9','HAVOC_34','LUCID_22'];
-      var _shuffled=_namePool.slice();
-      for(var si=_shuffled.length-1;si>0;si--){
-        var sj=((seed*7+si*31337)%(_shuffled.length));
-        var tmp=_shuffled[si];_shuffled[si]=_shuffled[sj];_shuffled[sj]=tmp;
+      // 시드 기반 KR_XXXXX 닉네임 생성 (실제 유저 닉네임 공식과 동일)
+      var _chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      var botNames=[];
+      var _ns=seed;
+      for(var ni=0;ni<botCount;ni++){
+        var nn='KR_';
+        for(var ci=0;ci<5;ci++){_ns=(_ns*1103515245+12345+ni*7)&0x7fffffff;nn+=_chars.charAt(_ns%26);}
+        botNames.push(nn);
       }
-      var botNames=_shuffled.slice(0,botCount);
       // 주간 진행도 (월요일 01시=0 ~ 일요일 24시=1)
       var _nxtMon=_getNextMondayReset();
       var _weekStart=new Date(_nxtMon); _weekStart.setDate(_weekStart.getDate()-7);
@@ -16688,31 +16677,49 @@ function renderFW(){
     }
 
     scores.sort(function(a,b){return b.score-a.score;});
-    // 순위 렌더링 (전체 50명, 스크롤 가능)
-    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:10px;width:16px;">No</span><span style="color:#556677;font-size:10px;">닉네임</span></div><span style="color:#556677;font-size:10px;">\uC6E8\uC774\uBE0C</span></div>';
+    // 내 순위 계산
+    var myRank=0,myEntry=null;
+    for(var ri=0;ri<scores.length;ri++){if(scores[ri].isPlayer){myRank=ri+1;myEntry=scores[ri];break;}}
+    // 순위 렌더링 (1위부터, 내 순위는 하단 고정)
+    var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:10px;width:18px;">No</span><span style="color:#556677;font-size:10px;">닉네임</span></div><span style="color:#556677;font-size:10px;">\uC6E8\uC774\uBE0C</span></div>';
     scores.forEach(function(s,idx){
+      if(s.isPlayer) return; // 내 행은 하단 고정에 별도 표시
       var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
-      html+='<div '+(s.isPlayer?'data-fw-me ':'')+' style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd0a;':'')+'">'+
+      html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;">'+
         '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
           '<span style="color:'+rc+';font-size:11px;width:18px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
+          '<span style="color:#94a3b8;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
         '</div>'+
         '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:11px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
       '</div>';
     });
     lb.innerHTML=html||'<div style="color:#334455;font-size:10px;text-align:center;padding:12px;">\uCC38\uAC00 \uD6C4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
-    // 실시간 순위 반영
-    if(_fwRankEl && playerWave>0){
-      var myRank=1;
-      for(var ri=0;ri<scores.length;ri++){if(scores[ri].isPlayer){myRank=ri+1;break;}}
+    // 내 순위 하단 고정 표시
+    var myBar=document.getElementById('fw-my-rank-bar');
+    if(!myBar){
+      myBar=document.createElement('div');
+      myBar.id='fw-my-rank-bar';
+      myBar.style.cssText='border-top:1px solid #1a3444;padding:4px 2px;margin-top:4px;';
+      var tabContent=document.getElementById('fw-tab-content');
+      if(tabContent) tabContent.parentNode.insertBefore(myBar,tabContent.nextSibling);
+    }
+    if(myEntry&&myRank>0){
+      var mrc=myRank<=1?'#ffc800':myRank<=2?'#C0C0C0':myRank<=3?'#CD7F32':myRank<=10?'#5a7a8a':'#334455';
+      myBar.innerHTML='<div style="display:flex;justify-content:space-between;padding:3px 2px;background:#00dddd08;">'+
+        '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
+          '<span style="color:'+mrc+';font-size:11px;width:18px;font-weight:bold;flex-shrink:0;">'+myRank+'</span>'+
+          '<span style="color:#00dddd;font-size:11px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+myEntry.name+'</span>'+
+        '</div>'+
+        '<span style="color:#ffc800;font-size:11px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+myEntry.score+'</span>'+
+      '</div>';
+    } else {
+      myBar.innerHTML='<div style="color:#334455;font-size:10px;text-align:center;padding:3px;">\uCC38\uAC00 \uD6C4 \uB0B4 \uC21C\uC704\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4</div>';
+    }
+    // 순위 갱신
+    if(_fwRankEl && myRank>0){
       _fwRankEl.textContent=myRank+'/'+scores.length;
     } else if(_fwRankEl){
       _fwRankEl.textContent=fw.rank||'-';
-    }
-    // 내 순위로 스크롤
-    if(playerWave>0){
-      var myRow=lb.querySelector('[data-fw-me]');
-      if(myRow) myRow.scrollIntoView({block:'center',behavior:'smooth'});
     }
   }
 
@@ -20458,7 +20465,7 @@ window._getElementDetailRows = _getElementDetailRows;
 var _elemActiveTab = 'fire';
 // ⎈(심해) 글리프가 다른 아이콘보다 작으므로 크기 보정
 function _eIcon(el, basePx) {
-  var sz = el.id==='water' ? Math.round(basePx*1.4) : basePx;
+  var sz = el.id==='water' ? Math.round(basePx*1.25) : basePx;
   return '<span style="font-size:'+sz+'px;vertical-align:middle;">'+el.icon+'</span>';
 }
 
