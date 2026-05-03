@@ -19157,29 +19157,15 @@ if(typeof _origStartFW==='function'){
       }
 
       if(rule==='skill_rebellion'){
-        // 강화소/모듈/코어랩 미적용 — 모든 영구 스탯 초기값으로
+        // 강화소/모듈/코어랩 미적용 — 영구 스탯을 가짜 빈 객체로 덮어쓰기
         G._fwSkillRebellion=true;
-        if(G.tower){
-          G.tower.dmg=5;
-          G.tower.maxHp=25;
-          G.tower.hp=25;
-          G.tower.range=Math.min(CW||300,CH||500)*0.45;
-          G.tower.atkMs=1000;
-          G.tower.critChance=0;
-          G.tower.critMult=1.5;
-          G.tower.defense=0;
-          G.tower.hpRegen=0;
-        }
-        G.regenRate=0;
-        G.lifeSteal=0;
-        G.defenseAbs=0;
-        G.enhCritChance=0;
-        G.enhCritMult=1.5;
-        G.enemyDefReduce=0;
-        G.critChance=0;
-        G.critMult=1.5;
-        G.reflectPct=0;
-        G.knockbackChance=0;
+        // PERM.ws를 빈 객체로 백업 교체 (apply 시 영구 스탯 0으로)
+        window._fwOrigWs=PERM.ws;
+        window._fwOrigDmgLv=PERM.dmgLv; window._fwOrigSpdLv=PERM.spdLv;
+        window._fwOrigHpLv=PERM.hpLv; window._fwOrigRngLv=PERM.rngLv;
+        PERM.ws={}; PERM.dmgLv=0; PERM.spdLv=0; PERM.hpLv=0; PERM.rngLv=0;
+        // 스탯 재계산
+        _fwResetToBase();
       }
 
     },300);
@@ -19279,6 +19265,14 @@ if(typeof _origGameOverFW==='function'){
         var btn=document.getElementById('proto-btn-'+pid);
         if(btn){ btn.style.opacity='1'; btn.style.pointerEvents='auto'; btn.style.filter=''; }
       });
+    }
+    // 스킬의 반란: PERM.ws 복원
+    if(window._fwOrigWs!==undefined){
+      PERM.ws=window._fwOrigWs; delete window._fwOrigWs;
+      PERM.dmgLv=window._fwOrigDmgLv||0; delete window._fwOrigDmgLv;
+      PERM.spdLv=window._fwOrigSpdLv||0; delete window._fwOrigSpdLv;
+      PERM.hpLv=window._fwOrigHpLv||0; delete window._fwOrigHpLv;
+      PERM.rngLv=window._fwOrigRngLv||0; delete window._fwOrigRngLv;
     }
   };
 }
