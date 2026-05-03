@@ -2865,7 +2865,7 @@ var _UPG_WS_MAP = {
 };
 function _totalLv(upgKey) {
   var wsKey = _UPG_WS_MAP[upgKey];
-  var wsLv = wsKey && PERM.ws ? (PERM.ws[wsKey]||0) : 0;
+  var wsLv = (G&&G._fwSkillRebellion) ? 0 : (wsKey && PERM.ws ? (PERM.ws[wsKey]||0) : 0);
   var upgLv = G ? (G.upgLvl[upgKey]||0) : 0;
   return wsLv + upgLv;
 }
