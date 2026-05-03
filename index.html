@@ -1495,7 +1495,7 @@ canvas {
         <span id="panel-core-fire" style="color:#ef4444; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#3b82f6; font-family:monospace; font-size:11px;">⎈ 심해 코어</span>
+        <span style="color:#3b82f6; font-family:monospace; font-size:11px;">◎ 심해 코어</span>
         <span id="panel-core-water" style="color:#3b82f6; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
@@ -3122,10 +3122,10 @@ var ACHIEVEMENTS = [
   { key:'exp_fire20',  icon:'✹', name:'화염 탐사 20',  desc:'화염 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('fire')>=20,  prog:()=>Math.min(_achExpCleared('fire'),20)+'/20', gems:10 },
   { key:'exp_fire30',  icon:'✹', name:'화염 탐사 30',  desc:'화염 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('fire')>=30,  prog:()=>Math.min(_achExpCleared('fire'),30)+'/30', gems:20 },
   // ── 요일탐사 (심해) ──
-  { key:'exp_water1',  icon:'⎈', name:'심해 탐사 1',   desc:'심해 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('water')>=1,   prog:()=>Math.min(_achExpCleared('water'),1)+'/1',   gems:2 },
-  { key:'exp_water10', icon:'⎈', name:'심해 탐사 10',  desc:'심해 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('water')>=10,  prog:()=>Math.min(_achExpCleared('water'),10)+'/10', gems:5 },
-  { key:'exp_water20', icon:'⎈', name:'심해 탐사 20',  desc:'심해 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('water')>=20,  prog:()=>Math.min(_achExpCleared('water'),20)+'/20', gems:10 },
-  { key:'exp_water30', icon:'⎈', name:'심해 탐사 30',  desc:'심해 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('water')>=30,  prog:()=>Math.min(_achExpCleared('water'),30)+'/30', gems:20 },
+  { key:'exp_water1',  icon:'◎', name:'심해 탐사 1',   desc:'심해 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('water')>=1,   prog:()=>Math.min(_achExpCleared('water'),1)+'/1',   gems:2 },
+  { key:'exp_water10', icon:'◎', name:'심해 탐사 10',  desc:'심해 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('water')>=10,  prog:()=>Math.min(_achExpCleared('water'),10)+'/10', gems:5 },
+  { key:'exp_water20', icon:'◎', name:'심해 탐사 20',  desc:'심해 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('water')>=20,  prog:()=>Math.min(_achExpCleared('water'),20)+'/20', gems:10 },
+  { key:'exp_water30', icon:'◎', name:'심해 탐사 30',  desc:'심해 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('water')>=30,  prog:()=>Math.min(_achExpCleared('water'),30)+'/30', gems:20 },
   // ── 요일탐사 (번개) ──
   { key:'exp_elec1',   icon:'⚛', name:'번개 탐사 1',   desc:'번개 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('electric')>=1,   prog:()=>Math.min(_achExpCleared('electric'),1)+'/1',   gems:2 },
   { key:'exp_elec10',  icon:'⚛', name:'번개 탐사 10',  desc:'번개 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('electric')>=10,  prog:()=>Math.min(_achExpCleared('electric'),10)+'/10', gems:5 },
@@ -8157,14 +8157,16 @@ if (dailyPopup) {
       </div>
       <!-- 연속 구분선 -->
       <div style="width:1px;background:#1a3444;opacity:0.3;margin:0 10px;"></div>
-      <!-- 우측 열 -->
-      <div style="flex:1;min-width:0;">
+      <!-- 우측 열 (하단 정렬: 규칙 상단, 보상 하단) -->
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;">
         <!-- 규칙 -->
         <div id="fw-rule-card" style="padding:8px;background:#0a0e1a;margin-bottom:8px;"></div>
-        <!-- 보상 -->
-        <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>
-        <div style="padding:2px 0;">
-          <div id="fw-rewards"></div>
+        <!-- 보상 (하단 밀착) -->
+        <div>
+          <div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>
+          <div style="padding:2px 0;">
+            <div id="fw-rewards"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -13270,6 +13272,23 @@ function _genBotName(seed,idx){
 var _RNAMES=[];
 for(var _ri=0;_ri<50;_ri++) _RNAMES.push(_genBotName(77777,_ri));
 
+// 내 순위 하단 고정 바
+function _showRankMyBar(listEl,rank,name,valueText,valueColor){
+  var bar=listEl.parentNode.querySelector('.rank-my-bar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.className='rank-my-bar';
+    bar.style.cssText='border-top:1px solid #1a3444;padding:6px 10px;background:#0a1a2a;flex-shrink:0;';
+    listEl.parentNode.appendChild(bar);
+  }
+  var rc=rank<=1?'#f59e0b':rank<=2?'#94a3b8':rank<=3?'#cd7f32':'#334455';
+  bar.innerHTML='<div style="display:flex;align-items:center;gap:10px;">'+
+    '<span style="min-width:28px;text-align:center;color:'+rc+';font-family:monospace;font-size:12px;font-weight:bold;">'+rank+'</span>'+
+    '<span style="flex:1;font-family:monospace;font-size:11px;color:#00ffff;font-weight:bold;">'+name+'</span>'+
+    '<span style="font-family:monospace;font-size:11px;color:'+valueColor+';">'+valueText+'</span>'+
+  '</div>';
+}
+
 function _genRanking(playerWave) {
   var seed=42, rows=[];
   function rand(max){ seed=(seed*1103515245+12345)&0x7fffffff; return seed%max; }
@@ -13438,11 +13457,13 @@ function _renderRanking() {
     rows.sort(function(a,b){return b.score-a.score;});
     var medals=['🥇','🥈','🥉'];
     var html='';
+    var myPowerRank=0;
     rows.slice(0,20).forEach(function(row,idx){
       var rank=idx+1;
+      if(row.isPlayer) myPowerRank=rank;
       var isTop3=rank<=3;
       var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
-      var bg=row.isPlayer?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
+      var bg='background:#060f18;border:1px solid #0a2233;';
       html+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
         '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals[rank-1]:rank)+'</span>'+
         '<span style="flex:1;font-family:monospace;font-size:11px;color:'+(row.isPlayer?'#00ffff':'#94a3b8')+';">'+row.name+'</span>'+
@@ -13450,6 +13471,8 @@ function _renderRanking() {
       '</div>';
     });
     list.innerHTML=html;
+    // 내 순위 하단 고정
+    _showRankMyBar(list,myPowerRank,myName,'⚔ '+myPower.toLocaleString(),'#ff8822');
     return;
   }
 
@@ -13460,11 +13483,14 @@ function _renderRanking() {
   var medals2=['🥇','🥈','🥉'];
   var pNames={tier1:'에이온',tier2:'스펙트라',tier3:'넥사르',tier4:'피라온',tier5:'오메가'};
   var html2='';
+  var myWaveRank=0;
+  var myName2=(window.PERM&&PERM.nickname)||'나';
   rows2.forEach(function(row,idx){
     var rank=idx+1;
+    if(row.isPlayer) myWaveRank=rank;
     var isTop3=rank<=3;
     var rankColor=rank===1?'#f59e0b':rank===2?'#94a3b8':rank===3?'#cd7f32':'#334455';
-    var bg=row.isPlayer?'background:#0a1a2a;border:1px solid #00ffff44;':'background:#060f18;border:1px solid #0a2233;';
+    var bg='background:#060f18;border:1px solid #0a2233;';
     html2+='<div style="'+bg+'display:flex;align-items:center;padding:8px 10px;gap:10px;">'+
       '<span style="font-size:'+(isTop3?'16px':'12px')+';min-width:28px;text-align:center;color:'+rankColor+';font-family:monospace;font-weight:bold;">'+(isTop3?medals2[rank-1]:rank)+'</span>'+
       '<span style="flex:1;font-family:monospace;font-size:11px;color:'+(row.isPlayer?'#00ffff':'#94a3b8')+';">'+row.name+'</span>'+
@@ -13472,11 +13498,8 @@ function _renderRanking() {
     '</div>';
   });
   list.innerHTML=html2;
-  var playerIdx=-1; for(var ri=0;ri<rows2.length;ri++){ if(rows2[ri].isPlayer){ playerIdx=ri; break; } }
-  if(playerIdx>5) setTimeout(function(){
-    var items=list.children;
-    if(items[playerIdx]) items[playerIdx].scrollIntoView({block:'center'});
-  },100);
+  // 내 순위 하단 고정
+  _showRankMyBar(list,myWaveRank,myName2,'웨이브 '+playerWave,'#00ffff');
 }
 
 function _openRanking() {
@@ -15897,11 +15920,13 @@ function _injectScreens() {
             '</div>' +
           '</div>' +
           '<div style="width:1px;background:#1a3444;opacity:0.3;margin:0 10px;"></div>' +
-          '<div style="flex:1;min-width:0;">' +
+          '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;">' +
             '<div id="fw-rule-card" style="padding:8px;background:#0a0e1a;margin-bottom:8px;"></div>' +
-            '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>' +
-            '<div style="padding:2px 0;">' +
-              '<div id="fw-rewards"></div>' +
+            '<div>' +
+              '<div id="fw-rewards-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"></div>' +
+              '<div style="padding:2px 0;">' +
+                '<div id="fw-rewards"></div>' +
+              '</div>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -16683,12 +16708,11 @@ function renderFW(){
     // 순위 렌더링 (1위부터, 내 순위는 하단 고정)
     var html='<div style="display:flex;justify-content:space-between;padding:2px 2px;border-bottom:1px solid #1a3444;margin-bottom:2px;"><div style="display:flex;gap:4px;"><span style="color:#556677;font-size:10px;width:18px;">No</span><span style="color:#556677;font-size:10px;">닉네임</span></div><span style="color:#556677;font-size:10px;">\uC6E8\uC774\uBE0C</span></div>';
     scores.forEach(function(s,idx){
-      if(s.isPlayer) return; // 내 행은 하단 고정에 별도 표시
       var rc=idx<1?'#ffc800':idx<2?'#C0C0C0':idx<3?'#CD7F32':idx<10?'#5a7a8a':'#334455';
-      html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;">'+
+      html+='<div style="display:flex;justify-content:space-between;padding:3px 2px;border-bottom:1px solid #0a1a2a;'+(s.isPlayer?'background:#00dddd08;':'')+'">'+
         '<div style="display:flex;gap:4px;align-items:center;overflow:hidden;">'+
           '<span style="color:'+rc+';font-size:11px;width:18px;font-weight:bold;flex-shrink:0;">'+(idx+1)+'</span>'+
-          '<span style="color:#94a3b8;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
+          '<span style="color:'+(s.isPlayer?'#00dddd':'#94a3b8')+';font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.name+'</span>'+
         '</div>'+
         '<span style="color:'+(s.score>0?'#ffc800':'#334455')+';font-size:11px;font-weight:bold;flex-shrink:0;margin-left:4px;">'+s.score+'</span>'+
       '</div>';
@@ -17115,7 +17139,7 @@ window.toggleCurrencyDropdown = function () {
       _sep+_cat('요일탐사')+
       _r('🎫','탐사 티켓','#5bc0de','dd-ticket')+
       _r('✹','화염 코어','#ef4444','dd-core-fire')+
-      _r('⎈','심해 코어','#3b82f6','dd-core-water')+
+      _r('◎','심해 코어','#3b82f6','dd-core-water')+
       _r('⚛','번개 코어','#f59e0b','dd-core-electric')+
       _r('⏣','대지 코어','#d4a04a','dd-core-earth')+
       _r('❊','질풍 코어','#10b981','dd-core-wind')+
@@ -20412,7 +20436,7 @@ function _submitCoupon() {
 /* ── 속성 정의 ── */
 var ELEMENTS = [
   { id:'fire',    name:'화염', color:'#ef4444', core:'화염 코어', icon:'✹', day:1 },
-  { id:'water',   name:'심해', color:'#3b82f6', core:'심해 코어', icon:'⎈', day:2 },
+  { id:'water',   name:'심해', color:'#3b82f6', core:'심해 코어', icon:'◎', day:2 },
   { id:'electric',name:'번개', color:'#f59e0b', core:'번개 코어', icon:'⚛', day:3 },
   { id:'earth',   name:'대지', color:'#d4a04a', core:'대지 코어', icon:'⏣', day:4 },
   { id:'wind',    name:'질풍', color:'#10b981', core:'질풍 코어', icon:'❊', day:5 },
@@ -20463,10 +20487,8 @@ window._getElementDetailRows = _getElementDetailRows;
 
 /* ── 속성 탭 렌더링 (강화 워크샵 내) ── */
 var _elemActiveTab = 'fire';
-// ⎈(심해) 글리프가 다른 아이콘보다 작으므로 크기 보정
 function _eIcon(el, basePx) {
-  var sz = el.id==='water' ? Math.round(basePx*1.25) : basePx;
-  return '<span style="font-size:'+sz+'px;vertical-align:middle;">'+el.icon+'</span>';
+  return '<span style="font-size:'+basePx+'px;vertical-align:middle;">'+el.icon+'</span>';
 }
 
 window._renderElementTab = function(container) {
