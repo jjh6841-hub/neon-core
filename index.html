@@ -1495,7 +1495,7 @@ canvas {
         <span id="panel-core-fire" style="color:#ef4444; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
-        <span style="color:#3b82f6; font-family:monospace; font-size:11px;">◎ 심해 코어</span>
+        <span style="color:#3b82f6; font-family:monospace; font-size:11px;">⎈ 심해 코어</span>
         <span id="panel-core-water" style="color:#3b82f6; font-family:monospace; font-size:13px; font-weight:bold;">0</span>
       </div>
       <div class="currency-row">
@@ -2938,7 +2938,7 @@ var UPGRADES = [
     canBuy() { return _canUpg('bounceTargets',5) && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
     apply()  { var c=50*Math.pow(2,G.upgLvl.bounceTargets||0); coreChips-=c; G.upgLvl.bounceTargets=(G.upgLvl.bounceTargets||0)+1; G.bounceTargets=(PERM.ws&&PERM.ws.bounceTargets||0)+(G.upgLvl.bounceTargets||0); },
   },
-  { key:'bounceRange', tab:'atk', icon:'◎', name:'도약탄<br>범위', baseCost:50, unlock:'bounceChance', maxLv:20,
+  { key:'bounceRange', tab:'atk', icon:'⎈', name:'도약탄<br>범위', baseCost:50, unlock:'bounceChance', maxLv:20,
     cost()   { return upgCost('bounceRange',12); },
     stat()   { return ((PERM.ws&&PERM.ws.bounceRange||0) + (G.upgLvl.bounceRange||0)) * 4 + 'px'; },
     canBuy() { return _canUpg('bounceRange',20) && coreChips>=upgCost('bounceRange',12); },
@@ -3017,7 +3017,7 @@ var UPGRADES = [
     canBuy() { return _canUpg('shieldHP',50) && coreChips>=upgCost('shieldHP',12); },
     apply()  { var c=upgCost('shieldHP',12); coreChips-=c; G.upgLvl.shieldHP=(G.upgLvl.shieldHP||0)+1; if(G.tower){ var _sLv=(PERM.ws&&PERM.ws.shieldHP||0)+(G.upgLvl.shieldHP||0); var _newMax=Math.round(G.tower.maxHp*Math.min(50,_sLv)/100); var _inc=_newMax-(G.tower.shdMax||0); G.tower.shdMax=_newMax; G.tower.shdCur=Math.min((G.tower.shdCur||0)+Math.max(0,_inc),G.tower.shdMax); } },
   },
-  { key:'pulseSize', tab:'def', icon:'◎', name:'파장 크기',  baseCost:15, unlock:'pulse', maxLv:10,
+  { key:'pulseSize', tab:'def', icon:'⎈', name:'파장 크기',  baseCost:15, unlock:'pulse', maxLv:10,
     cost()   { return upgCost('pulseSize',15); },
     stat()   { return (_totalLv('pulseSize')*10) + 'px'; },
     canBuy() { return _canUpg('pulseSize',10) && coreChips>=upgCost('pulseSize',15); },
@@ -3122,10 +3122,10 @@ var ACHIEVEMENTS = [
   { key:'exp_fire20',  icon:'✹', name:'화염 탐사 20',  desc:'화염 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('fire')>=20,  prog:()=>Math.min(_achExpCleared('fire'),20)+'/20', gems:10 },
   { key:'exp_fire30',  icon:'✹', name:'화염 탐사 30',  desc:'화염 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('fire')>=30,  prog:()=>Math.min(_achExpCleared('fire'),30)+'/30', gems:20 },
   // ── 요일탐사 (심해) ──
-  { key:'exp_water1',  icon:'◎', name:'심해 탐사 1',   desc:'심해 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('water')>=1,   prog:()=>Math.min(_achExpCleared('water'),1)+'/1',   gems:2 },
-  { key:'exp_water10', icon:'◎', name:'심해 탐사 10',  desc:'심해 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('water')>=10,  prog:()=>Math.min(_achExpCleared('water'),10)+'/10', gems:5 },
-  { key:'exp_water20', icon:'◎', name:'심해 탐사 20',  desc:'심해 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('water')>=20,  prog:()=>Math.min(_achExpCleared('water'),20)+'/20', gems:10 },
-  { key:'exp_water30', icon:'◎', name:'심해 탐사 30',  desc:'심해 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('water')>=30,  prog:()=>Math.min(_achExpCleared('water'),30)+'/30', gems:20 },
+  { key:'exp_water1',  icon:'⎈', name:'심해 탐사 1',   desc:'심해 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('water')>=1,   prog:()=>Math.min(_achExpCleared('water'),1)+'/1',   gems:2 },
+  { key:'exp_water10', icon:'⎈', name:'심해 탐사 10',  desc:'심해 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('water')>=10,  prog:()=>Math.min(_achExpCleared('water'),10)+'/10', gems:5 },
+  { key:'exp_water20', icon:'⎈', name:'심해 탐사 20',  desc:'심해 탐사 20스테이지 클리어',  cond:()=>_achExpCleared('water')>=20,  prog:()=>Math.min(_achExpCleared('water'),20)+'/20', gems:10 },
+  { key:'exp_water30', icon:'⎈', name:'심해 탐사 30',  desc:'심해 탐사 30스테이지 클리어',  cond:()=>_achExpCleared('water')>=30,  prog:()=>Math.min(_achExpCleared('water'),30)+'/30', gems:20 },
   // ── 요일탐사 (번개) ──
   { key:'exp_elec1',   icon:'⚛', name:'번개 탐사 1',   desc:'번개 탐사 1스테이지 클리어',   cond:()=>_achExpCleared('electric')>=1,   prog:()=>Math.min(_achExpCleared('electric'),1)+'/1',   gems:2 },
   { key:'exp_elec10',  icon:'⚛', name:'번개 탐사 10',  desc:'번개 탐사 10스테이지 클리어',  cond:()=>_achExpCleared('electric')>=10,  prog:()=>Math.min(_achExpCleared('electric'),10)+'/10', gems:5 },
@@ -3155,10 +3155,10 @@ var ACHIEVEMENTS = [
   { key:'skin_ship20', icon:'▲', name:'함대 사령관', desc:'탐사선 스킨 20개 보유',  cond:()=>_achShipSkinCount()>=20,  prog:()=>Math.min(_achShipSkinCount(),20)+'/20', gems:20 },
 
   // ── 배경 스킨 (기본 제외) ──
-  { key:'skin_bg1',    icon:'◎', name:'탐험가 I',    desc:'배경 스킨 1개 보유',     cond:()=>_achBgSkinCount()>=1,    prog:()=>Math.min(_achBgSkinCount(),1)+'/1',    gems:2 },
-  { key:'skin_bg5',    icon:'◎', name:'탐험가 II',   desc:'배경 스킨 5개 보유',     cond:()=>_achBgSkinCount()>=5,    prog:()=>Math.min(_achBgSkinCount(),5)+'/5',    gems:5 },
-  { key:'skin_bg10',   icon:'◎', name:'탐험가 III',  desc:'배경 스킨 10개 보유',    cond:()=>_achBgSkinCount()>=10,   prog:()=>Math.min(_achBgSkinCount(),10)+'/10',  gems:10 },
-  { key:'skin_bg15',   icon:'◎', name:'우주 정복자', desc:'배경 스킨 15개 보유',    cond:()=>_achBgSkinCount()>=15,   prog:()=>Math.min(_achBgSkinCount(),15)+'/15',  gems:20 },
+  { key:'skin_bg1',    icon:'⎈', name:'탐험가 I',    desc:'배경 스킨 1개 보유',     cond:()=>_achBgSkinCount()>=1,    prog:()=>Math.min(_achBgSkinCount(),1)+'/1',    gems:2 },
+  { key:'skin_bg5',    icon:'⎈', name:'탐험가 II',   desc:'배경 스킨 5개 보유',     cond:()=>_achBgSkinCount()>=5,    prog:()=>Math.min(_achBgSkinCount(),5)+'/5',    gems:5 },
+  { key:'skin_bg10',   icon:'⎈', name:'탐험가 III',  desc:'배경 스킨 10개 보유',    cond:()=>_achBgSkinCount()>=10,   prog:()=>Math.min(_achBgSkinCount(),10)+'/10',  gems:10 },
+  { key:'skin_bg15',   icon:'⎈', name:'우주 정복자', desc:'배경 스킨 15개 보유',    cond:()=>_achBgSkinCount()>=15,   prog:()=>Math.min(_achBgSkinCount(),15)+'/15',  gems:20 },
 
   // ── 행성별 웨이브 (에이온=1, 스펙트라=2, 넥사르=3, 피라온=4, 오메가=5) ──
   { key:'p1_100',   icon:'☆', name:'에이온 100',     desc:'에이온 웨이브 100 클리어',    cond:()=>_achTierBest(1)>=100,   prog:()=>Math.min(_achTierBest(1),100)+'/100',     gems:5 },
@@ -10686,7 +10686,7 @@ setTimeout(_updateBadge, 500);
     _create();
     var inner = document.getElementById('_up_inner');
     if (!inner) return;
-    var icons = { atk:'⚔', def:'◎', spc:'★', utl:'⚙' };
+    var icons = { atk:'⚔', def:'⎈', spc:'★', utl:'⚙' };
     document.getElementById('_up_icon').textContent  = node.icon || icons[node.tab] || '🔒';
     document.getElementById('_up_name').textContent  = node.name;
     document.getElementById('_up_desc').textContent  = node.desc || '';
@@ -17139,7 +17139,7 @@ window.toggleCurrencyDropdown = function () {
       _sep+_cat('요일탐사')+
       _r('🎫','탐사 티켓','#5bc0de','dd-ticket')+
       _r('✹','화염 코어','#ef4444','dd-core-fire')+
-      _r('◎','심해 코어','#3b82f6','dd-core-water')+
+      _r('⎈','심해 코어','#3b82f6','dd-core-water')+
       _r('⚛','번개 코어','#f59e0b','dd-core-electric')+
       _r('⏣','대지 코어','#d4a04a','dd-core-earth')+
       _r('❊','질풍 코어','#10b981','dd-core-wind')+
@@ -17620,7 +17620,7 @@ var PROTOCOLS = window.PROTOCOLS = [
   {id:'pt_blackhole',  icon:'◉', color:'#8b5cf6', name:'블랙홀',           maxLv:5, baseCd:180,
    desc:'범위 내 적을 시작 위치로 워프 (보스 제외) + 무적',
    cdReduce:18, durBase:2, durPerLv:0.6},
-  {id:'pt_timewarp',   icon:'◎', color:'#6366f1', name:'시간 왜곡',         maxLv:5, baseCd:90,
+  {id:'pt_timewarp',   icon:'⎈', color:'#6366f1', name:'시간 왜곡',         maxLv:5, baseCd:90,
    desc:'적 이동속도 감소',
    cdReduce:9, durBase:5, durPerLv:1, slowBase:20, slowPerLv:10},
   {id:'pt_nano',       icon:'✚', color:'#00ff88', name:'나노봇 수복',       maxLv:5, baseCd:120,
@@ -20436,7 +20436,7 @@ function _submitCoupon() {
 /* ── 속성 정의 ── */
 var ELEMENTS = [
   { id:'fire',    name:'화염', color:'#ef4444', core:'화염 코어', icon:'✹', day:1 },
-  { id:'water',   name:'심해', color:'#3b82f6', core:'심해 코어', icon:'◎', day:2 },
+  { id:'water',   name:'심해', color:'#3b82f6', core:'심해 코어', icon:'⎈', day:2 },
   { id:'electric',name:'번개', color:'#f59e0b', core:'번개 코어', icon:'⚛', day:3 },
   { id:'earth',   name:'대지', color:'#d4a04a', core:'대지 코어', icon:'⏣', day:4 },
   { id:'wind',    name:'질풍', color:'#10b981', core:'질풍 코어', icon:'❊', day:5 },
@@ -20488,7 +20488,8 @@ window._getElementDetailRows = _getElementDetailRows;
 /* ── 속성 탭 렌더링 (강화 워크샵 내) ── */
 var _elemActiveTab = 'fire';
 function _eIcon(el, basePx) {
-  return '<span style="font-size:'+basePx+'px;vertical-align:middle;">'+el.icon+'</span>';
+  var extra=el.id==='water'?'display:inline-block;transform:scale(1.35);':'';
+  return '<span style="font-size:'+basePx+'px;vertical-align:middle;'+extra+'">'+el.icon+'</span>';
 }
 
 window._renderElementTab = function(container) {
@@ -20922,7 +20923,7 @@ var AUGMENTS = [
   { id:'aug_hp',    name:'에너지 실드',   desc:'최대 HP +50%',           cost:3, icon:'◆', color:'#00ff88' },
   { id:'aug_chips', name:'자원 스캐너',   desc:'코어칩 획득 +50%',       cost:3, icon:'◈', color:'#f59e0b' },
   { id:'aug_regen', name:'나노 수복',     desc:'10초당 최대체력 3% 재생',  cost:2, icon:'✦', color:'#00dddd' },
-  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',        cost:3, icon:'◎', color:'#cc44ff' },
+  { id:'aug_crit',  name:'정밀 조준',     desc:'치명타 확률 +5%',        cost:3, icon:'⎈', color:'#cc44ff' },
   { id:'aug_start', name:'선행 보급',     desc:'시작 코어칩 +300',       cost:2, icon:'▣', color:'#3b82f6' },
 ];
 
@@ -23006,7 +23007,7 @@ function _renderSearchResults(results) {
   if (!container) return;
   if (results.length === 0) {
     // 랜덤 길드 10개 표시 (실제 길드가 없을 때)
-    var fakeIcons=['⬡','◈','✦','⊕','◆','★','⚔','⬢','▣','◎'];
+    var fakeIcons=['⬡','◈','✦','⊕','◆','★','⚔','⬢','▣','⎈'];
     var fakeNames=['노바 연합','스텔라 기사단','에코 분대','오메가 포스','네온 클랜','보이드 군단','사이버 팀','퀀텀 유닛','플럭스 조','아크 길드'];
     var fakeTags=['NOVA','STLR','ECHO','OMEG','NEON','VOID','CYBR','QNTM','FLUX','ARC0'];
     var fakeHtml='<div style="color:#556677;font-size:9px;margin-bottom:6px;">추천 길드</div>';
