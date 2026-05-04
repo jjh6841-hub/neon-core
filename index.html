@@ -13624,7 +13624,7 @@ function _loadServerMails() {
       var d = doc.data();
       // 전체 발송이거나, 본인 대상 개인 발송만
       if (d.type === 'all' || (d.type === 'personal' && d.targetUid === uid)) {
-        var mail = { id:'sv_'+doc.id, title:d.title||'우편', body:d.body||'' };
+        var mail = { id:'sv_'+doc.id, title:d.title||'우편', body:d.body||'', titleColor:d.titleColor||'' };
         var rw = d.rewards || {};
         if (rw.gold) mail.gold = rw.gold;
         if (rw.gems) mail.gems = rw.gems;
@@ -13691,14 +13691,14 @@ function _renderMailTab() {
     var rwParts=[];
     if(mail.gold) rwParts.push('<span style="color:#f59e0b;">◈ '+mail.gold+'</span>');
     if(mail.gems) rwParts.push('<span style="color:#00ffff;">❖ '+mail.gems+'</span>');
-    if(mail.powerCores) rwParts.push('<span style="color:#ff8822;">파워코어 '+mail.powerCores+'</span>');
-    if(mail.accessCodes) rwParts.push('<span style="color:#bb44ff;">접근코드 '+mail.accessCodes+'</span>');
-    if(mail.dataCells) rwParts.push('<span style="color:#00ff88;">데이터셀 '+mail.dataCells+'</span>');
-    if(mail.prismFragments) rwParts.push('<span style="color:#cc44ff;">파편 '+mail.prismFragments+'</span>');
-    if(mail.pulseFragments) rwParts.push('<span style="color:#cc44ff;">펄스 '+mail.pulseFragments+'</span>');
+    if(mail.powerCores) rwParts.push('<span style="color:#ff8822;">⊕ '+mail.powerCores+'</span>');
+    if(mail.accessCodes) rwParts.push('<span style="color:#bb44ff;">⊿ '+mail.accessCodes+'</span>');
+    if(mail.dataCells) rwParts.push('<span style="color:#00ff88;">▣ '+mail.dataCells+'</span>');
+    if(mail.prismFragments) rwParts.push('<span style="color:#cc44ff;">◇ '+mail.prismFragments+'</span>');
+    if(mail.pulseFragments) rwParts.push('<span style="color:#ffc800;">✦ '+mail.pulseFragments+'</span>');
     html+='<div style="background:#0a1a2a;border:1px solid '+(claimed?'#0a2233':'#0a3344')+';padding:12px;display:flex;flex-direction:column;gap:6px;opacity:'+(claimed?0.5:1)+';">'+
-      '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':'#f1f5f9')+';font-weight:bold;">'+mail.title+'</div>'+
-      (mail.body?'<div style="font-family:monospace;font-size:10px;color:#556677;line-height:1.6;">'+mail.body+'</div>':'')+
+      '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':(mail.titleColor||'#f1f5f9'))+';font-weight:bold;">'+mail.title+'</div>'+
+      (mail.body?'<div style="font-family:monospace;font-size:11px;color:#8899aa;line-height:1.6;">'+mail.body+'</div>':'')+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'+
         '<span style="font-family:monospace;font-size:10px;">'+rwParts.join('  ')+'</span>'+
         (claimed
@@ -13732,10 +13732,11 @@ function _renderMailTab() {
       var rwItems=[];
       if(mail.gold) rwItems.push({icon:'◈',label:'',amount:mail.gold,color:'#f59e0b'});
       if(mail.gems) rwItems.push({icon:'❖',label:'',amount:mail.gems,color:'#00ffff'});
-      if(mail.powerCores) rwItems.push({icon:'⊕',label:'파워코어',amount:mail.powerCores,color:'#ff8822'});
-      if(mail.accessCodes) rwItems.push({icon:'⌘',label:'접근코드',amount:mail.accessCodes,color:'#bb44ff'});
-      if(mail.dataCells) rwItems.push({icon:'▣',label:'데이터셀',amount:mail.dataCells,color:'#00ff88'});
-      if(mail.prismFragments) rwItems.push({icon:'◆',label:'파편',amount:mail.prismFragments,color:'#cc44ff'});
+      if(mail.powerCores) rwItems.push({icon:'⊕',label:'',amount:mail.powerCores,color:'#ff8822'});
+      if(mail.accessCodes) rwItems.push({icon:'⊿',label:'',amount:mail.accessCodes,color:'#bb44ff'});
+      if(mail.dataCells) rwItems.push({icon:'▣',label:'',amount:mail.dataCells,color:'#00ff88'});
+      if(mail.prismFragments) rwItems.push({icon:'◇',label:'',amount:mail.prismFragments,color:'#cc44ff'});
+      if(mail.pulseFragments) rwItems.push({icon:'✦',label:'',amount:mail.pulseFragments,color:'#ffc800'});
       if(rwItems.length&&window.showRewardPopup) showRewardPopup(rwItems,'우편 보상');
       _renderMailTab();
       _updateMailBadge();
@@ -17025,8 +17026,9 @@ function _checkFWSettlement(){
       window._fbDb.collection('mails').add({
         type:'personal',
         targetUid:window._fbUid,
-        title:'주파수 전쟁 시즌 보상 축하합니다!',
-        body:FW_TIERS[tier].icon+' '+FW_TIERS[tier].name+' 티어 '+rank+'위 달성! (최고 웨이브: W'+score+')\n보상으로 펄스 조각 '+pulse+'개를 지급합니다.',
+        title:'주파수 전쟁 시즌 보상',
+        titleColor:'#4488ff',
+        body:FW_TIERS[tier].icon+' '+FW_TIERS[tier].name+' 티어 <b style="color:#4488ff;">'+rank+'위</b> 달성! (최고 웨이브: W'+score+')<br>보상으로 펄스 조각 '+pulse+'개를 지급합니다.',
         rewards:{pulseFragments:pulse},
         createdAt:new Date().toISOString()
       }).catch(function(){});
