@@ -6356,6 +6356,8 @@ function toggleSetting(key) {
    SHOP LOGIC
 ═══════════════════════════════════════════════════════════════ */
 function openShop() {
+  // 첫 전투 완료 플래그
+  if (!localStorage.getItem('first_battle_done')) localStorage.setItem('first_battle_done','1');
   document.getElementById('results-screen').classList.remove('show');
   document.getElementById('screen-game').style.display = 'none';
   var _tDomH = document.getElementById('tower-dom'); if(_tDomH) { _tDomH.style.display='none'; _tDomH.style.opacity='1'; _tDomH.style.transform='translate(-50%,-50%)'; }
@@ -6983,6 +6985,18 @@ document.addEventListener('touchend', function(e) {
             }
             titleTapped = true;
             AudioManager.init();
+            // 신규 유저: 첫 전투 바로 시작
+            var _isNewUser = !PERM.totalKills && !localStorage.getItem('first_battle_done');
+            if (_isNewUser) {
+              if (PERM.settings.music) AudioManager.playBGM('battle');
+              titleScreen.classList.add('fade-out');
+              setTimeout(function() {
+                titleScreen.classList.remove('show');
+                titleScreen.classList.remove('fade-out');
+                startNewGame();
+              }, 400);
+              return;
+            }
             if (PERM.settings.music) AudioManager.playBGM('home');
             titleScreen.classList.add('fade-out');
             setTimeout(function() {
@@ -11230,9 +11244,7 @@ setTimeout(_updateBadge, 500);
 ════════════════════════════════════════ */
 (function() {
   var STEPS = [
-    { id:'ob_ws',   target:'h-nav-workshop', title:'워크샵에서 강화하세요',  desc:'골드를 사용해 타워를 영구 강화할 수 있습니다.' },
-    { id:'ob_play', target:'btn-start-game',  title:'전투를 시작해 보세요!',  desc:'업그레이드 후 전투 버튼을 눌러 게임을 시작하세요.' },
-    { id:'ob_ms',   target:'btn-missions',    title:'임무를 완료하세요',      desc:'일일 임무를 달성하면 골드와 보석을 획득합니다.' },
+    { id:'ob_ws',   target:'h-nav-workshop', title:'강화소에서 강화하세요',  desc:'골드를 사용해 타워를 영구 강화할 수 있습니다.' },
   ];
   var _ov=null, _cur=-1, _pending=false, _ptid=null;
 
@@ -11272,10 +11284,8 @@ setTimeout(_updateBadge, 500);
     _cur=-1; _pending=false;
     if(_ov) _ov.style.display='none';
     clearTimeout(_ptid);
-    // 확인 후 해당 화면으로 이동
-    if(stepId==='ob_ms' && window._openMissions) {
-      setTimeout(function(){ window._openMissions(); },150);
-    } else if(stepId==='ob_ws') {
+    // 확인 후 강화소로 이동
+    if(stepId==='ob_ws') {
       var wsBtn=document.getElementById('h-nav-workshop');
       if(wsBtn) setTimeout(function(){ wsBtn.click(); },150);
     }
