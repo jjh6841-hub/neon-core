@@ -2572,12 +2572,20 @@ function loadPerm() {
       PERM.ws           = (d.ws && typeof d.ws === 'object') ? d.ws : {};
       PERM.ws_atk_unlocks = d.ws_atk_unlocks ?? 0;
       PERM.ws_def_unlocks = d.ws_def_unlocks ?? 0;
+      PERM.ws_utl_unlocks = d.ws_utl_unlocks ?? 0;
       // 해금 상태 동기화 (기존 데이터 마이그레이션)
       if (!PERM.unlocks) PERM.unlocks = {};
       var _atkUMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce'], 7:['enhCrit']};
       var _defUMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield']};
       for (var _gi=1; _gi<=PERM.ws_atk_unlocks; _gi++) { if(_atkUMap[_gi]) _atkUMap[_gi].forEach(function(k){PERM.unlocks[k]=true;}); }
       for (var _gj=1; _gj<=PERM.ws_def_unlocks; _gj++) { if(_defUMap[_gj]) _defUMap[_gj].forEach(function(k){PERM.unlocks[k]=true;}); }
+      // 유틸 탭 마이그레이션: 기존에 유틸 항목 레벨이 있으면 해당 그룹까지 자동 해금
+      if (PERM.ws_utl_unlocks === 0 && PERM.ws) {
+        var _utlMig = {protoCdReduce:5, enemySkip:4, autoAtkUpg:3, autoDefUpg:3, autoUtlUpg:3, freeUpgrade:2, goldBoost:1};
+        var _maxUtlG = 0;
+        for (var _uk in _utlMig) { if ((PERM.ws[_uk]||0) > 0 && _utlMig[_uk] > _maxUtlG) _maxUtlG = _utlMig[_uk]; }
+        if (_maxUtlG > 0) PERM.ws_utl_unlocks = _maxUtlG;
+      }
       // 프리즘 데이터 복원
       PERM.prisms         = (d.prisms && typeof d.prisms === 'object') ? d.prisms : {};
       PERM.prismFragments = d.prismFragments ?? 0;
@@ -7452,11 +7460,11 @@ if (dailyPopup) {
       cost: function(lv) { return 30 + lv * 15; },
       cur:  function(lv) { return (1.5 + lv * 0.1)._tf1() + 'x'; },
       nxt:  function(lv) { return (1.5 + (lv + 1) * 0.1)._tf1() + 'x'; } },
-    chipKillBonus: { tab:'utl', name:'코어칩 보너스', maxLv:999, utlGroup:1,
+    chipKillBonus: { tab:'utl', name:'코어칩 보너스', maxLv:999, utlGroup:0,
       cost: _wsTbl([8,21,52,127,259,475,817],1.35),
       cur:  function(lv) { return '+' + (lv * 2) + '%'; },
       nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
-    chipWaveBonus: { tab:'utl', name:'코어칩 웨이브', maxLv:999, utlGroup:1,
+    chipWaveBonus: { tab:'utl', name:'코어칩 웨이브', maxLv:999, utlGroup:0,
       cost: _wsTbl([8,21,52,127,259,475,817],1.35),
       cur:  function(lv) { return '+' + (lv * 2); },
       nxt:  function(lv) { return '+' + ((lv+1) * 2); } },
@@ -7468,23 +7476,23 @@ if (dailyPopup) {
       cost: _wsTbl([15,75,375,1875,9375,56000,100000,200000,400000,700000],1.35),
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv+1) + '%'; } },
-    autoAtkUpg: { tab:'utl', name:'공격 자동 업글', maxLv:20, utlGroup:2,
+    autoAtkUpg: { tab:'utl', name:'공격 자동 업글', maxLv:20, utlGroup:3,
       cost: _wsTbl([12,50,240,1180,4210,12100,34100,72010,108000,173000,251000],1.35),
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv+1) + '%'; } },
-    autoDefUpg: { tab:'utl', name:'방어 자동 업글', maxLv:20, utlGroup:2,
+    autoDefUpg: { tab:'utl', name:'방어 자동 업글', maxLv:20, utlGroup:3,
       cost: _wsTbl([12,50,240,1180,4210,12100,34100,72010,108000,173000,251000],1.35),
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv+1) + '%'; } },
-    autoUtlUpg: { tab:'utl', name:'유틸 자동 업글', maxLv:20, utlGroup:2,
+    autoUtlUpg: { tab:'utl', name:'유틸 자동 업글', maxLv:20, utlGroup:3,
       cost: _wsTbl([12,50,240,1180,4210,12100,34100,72010,108000,173000,251000],1.35),
       cur:  function(lv) { return lv + '%'; },
       nxt:  function(lv) { return (lv+1) + '%'; } },
-    enemySkip: { tab:'utl', name:'적 레벨 건너뛰기', maxLv:300, utlGroup:3,
+    enemySkip: { tab:'utl', name:'적 레벨 건너뛰기', maxLv:300, utlGroup:4,
       cost: _wsTbl([1000,5000,25000,100000,375000,920000,3520000,7100000,12700000],1.35),
       cur:  function(lv) { return Math.min(15, (lv * 0.05))._tf2() + '%'; },
       nxt:  function(lv) { return Math.min(15, ((lv+1) * 0.05))._tf2() + '%'; } },
-    protoCdReduce: { tab:'utl', name:'프로토콜 쿨감', maxLv:40, utlGroup:3,
+    protoCdReduce: { tab:'utl', name:'프로토콜 쿨감', maxLv:40, utlGroup:5,
       cost: _wsTbl([20,75,240,820,3590,10920,30500,70100,100200,149300],1.35),
       cur:  function(lv) { return (lv * 0.5)._tf1() + '%'; },
       nxt:  function(lv) { return ((lv+1) * 0.5)._tf1() + '%'; } },
@@ -7657,6 +7665,51 @@ if (dailyPopup) {
             buildWorkshopContent('def');
           });
         })(nextGroup, nextDef.cost||0, _isCond, _condMet);
+        container.appendChild(unlockCard);
+      }
+    } else if (tab === 'utl') {
+      var UTL_UNLOCK_GROUPS = [
+        { group:0, name:null, cost:0 },                    // 코어칩 보너스, 코어칩 웨이브
+        { group:1, name:'골드 강화', cost:500 },            // 골드 강화
+        { group:2, name:'무료 업그레이드', cost:2000 },      // 무료 업그레이드
+        { group:3, name:'자동 업글', cond:{tier:2, wave:100} }, // 스펙트라 100웨이브
+        { group:4, name:'적 레벨 건너뛰기', cond:{tier:3, wave:100} }, // 넥사르 100웨이브
+        { group:5, name:'프로토콜 쿨감', cost:50000 },       // 5만 골드
+      ];
+      var utlUnlocks = PERM.ws_utl_unlocks || 0;
+      var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'utl'; });
+      var _utlKeys = keys.filter(function(key){ var c=WS_ITEMS[key]; return (c.utlGroup!==undefined?c.utlGroup:99)<=utlUnlocks; });
+      _utlKeys.sort(function(a,b){ var ma=(ws[a]||0)>=WS_ITEMS[a].maxLv?1:0, mb=(ws[b]||0)>=WS_ITEMS[b].maxLv?1:0; return ma-mb || (WS_ITEMS[a].utlGroup||0)-(WS_ITEMS[b].utlGroup||0); });
+      _utlKeys.forEach(function(key) { appendCard(container, key, ws); });
+      var nextGroup = utlUnlocks + 1;
+      var nextU = UTL_UNLOCK_GROUPS.filter(function(g){ return g.group === nextGroup; })[0];
+      if (nextU) {
+        var _isCond = !!nextU.cond;
+        var _condMet = _isCond ? _isContentUnlocked(nextU.cond) : false;
+        var afford = _isCond ? _condMet : (PERM.gold >= nextU.cost);
+        var _condText = _isCond ? _unlockCondText(nextU.cond) : '';
+        var unlockCard = document.createElement('div');
+        unlockCard.style.cssText = 'grid-column:1/-1;background:#060f18;border:1px solid '+(afford?'#0a3344':'#1a2a3a')+';border-left:2px solid rgba(0,255,255,0.15);padding:14px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:4px;';
+        unlockCard.innerHTML =
+          '<div style="display:flex;flex-direction:column;gap:2px;">'+
+            '<span style="font-size:11px;color:'+(afford?'#00ffff':'#334455')+';font-family:monospace;">'+nextU.name+' 잠금 해제</span>'+
+            (_isCond?'<span style="font-size:9px;color:#556677;font-family:monospace;">'+_condText+(_condMet?' ✓':'')+'</span>':'')+
+          '</div>'+
+          (_isCond
+            ? '<button data-utl-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(_condMet?'#00ff88':'#334455')+';color:'+(_condMet?'#00ff88':'#334455')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">'+(_condMet?'해금':'미달성')+'</button>'
+            : '<button data-utl-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextU.cost+'</button>');
+        var btn = unlockCard.querySelector('button');
+        (function(grp, cost, isCond, condMet) {
+          btn.addEventListener('click', function() {
+            if (isCond) { if (!condMet) return; }
+            else { if (PERM.gold < cost) return; PERM.gold -= cost; }
+            PERM.ws_utl_unlocks = grp;
+            if (window.G) G.gold = PERM.gold;
+            savePerm();
+            syncWorkshopHUD();
+            buildWorkshopContent('utl');
+          });
+        })(nextGroup, nextU.cost||0, _isCond, _condMet);
         container.appendChild(unlockCard);
       }
     } else {
