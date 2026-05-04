@@ -4485,8 +4485,11 @@ function fireTower() {
         if (_mChip > 0) { coreChips += _mChip; }
         G.killCount++; PERM.totalKills++;
         if (typeof _infKill==='function') _infKill(target.type);
-        var _eG2Base = target.baseGold || Math.round((target.gold||1) / (target._planetGoldMult||1));
-        var _eG2 = Math.round((target.gold||1)*(G.goldMult||1));
+        var _eG2Raw = target.baseGold || ((target.gold||1) / (target._planetGoldMult||1));
+        G._goldFrac = (G._goldFrac||0) + (target.gold||1) * (G.goldMult||1);
+        var _eG2 = Math.floor(G._goldFrac); G._goldFrac -= _eG2;
+        G._goldBaseFrac = (G._goldBaseFrac||0) + _eG2Raw;
+        var _eG2Base = Math.floor(G._goldBaseFrac); G._goldBaseFrac -= _eG2Base;
         if (_eG2>0){G.gold+=_eG2;G.goldEarned+=_eG2;G.goldBaseEarned+=_eG2Base;PERM.gold+=_eG2;G.floatTexts.push({x:target.x,y:target.y+12,text:'+'+_eG2+' ◈',color:'#f59e0b',timer:0});}
         if(target.boss){PERM.bossKills++;if(target.bossGrade==='galaxy'){var _gT=parseInt(localStorage.getItem('td_tier')||'1',10);localStorage.setItem('galaxy_t'+_gT,'true');try{checkAchievements();}catch(_){}}}
         if(target.type==='split'&&!target._isSplitChild){for(var _si3=0;_si3<2;_si3++){var _sc2=mkEnemy('basic',target.x+(Math.random()-0.5)*16,target.y+(Math.random()-0.5)*16);_sc2.hp=Math.ceil(target.maxHp*0.5);_sc2.maxHp=_sc2.hp;_sc2.gold=0;_sc2._isSplitChild=true;G.enemies.push(_sc2);}}
