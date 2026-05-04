@@ -2862,6 +2862,9 @@ var _UPG_WS_MAP = {
   defRate:'defRate', vamp:'vampChance', reflect:'reflectDmg', knockback:'knockChance', knockForce:'knockbackForce', shieldHP:'shieldHP',
   pulseSize:'pulseSize', pulseCd:'pulseCd',
   maxhp:'maxHp', hpRegen:'hpRegen', defAbs:'defAbs',
+  chipKill:'chipKillBonus', chipWave:'chipWaveBonus', goldBst:'goldBoost',
+  freeUpg:'freeUpgrade', autoAtk:'autoAtkUpg', autoDef:'autoDefUpg', autoUtl:'autoUtlUpg',
+  enemySkip:'enemySkip', protoCd:'protoCdReduce',
 };
 function _totalLv(upgKey) {
   var wsKey = _UPG_WS_MAP[upgKey];
@@ -3033,7 +3036,61 @@ var UPGRADES = [
     canBuy() { return (G.upgLvl.pulseSize||0)>0 && _canUpg('pulseCd',20) && coreChips>=upgCost('pulseCd',12); },
     apply()  { var c=upgCost('pulseCd',12); coreChips-=c; G.upgLvl.pulseCd=(G.upgLvl.pulseCd||0)+1; G.pulseCd=Math.max(20,60-_totalLv('pulseCd')*2)*1000; },
   },
-  // ─ 특수 탭 ─
+  // ─ 유틸 탭 ─
+  { key:'chipKill', tab:'utl', icon:'⊕', name:'코어칩<br>보너스', baseCost:8, unlock:null, maxLv:50,
+    cost()   { return upgCost('chipKill',8); },
+    stat()   { return '+'+(_totalLv('chipKill')*2)+'%'; },
+    canBuy() { return _canUpg('chipKill',50) && coreChips>=upgCost('chipKill',8); },
+    apply()  { var c=upgCost('chipKill',8); coreChips-=c; G.upgLvl.chipKill=(G.upgLvl.chipKill||0)+1; G._prismChipKillBonus=(G._prismChipKillBonus||0)+0.02; },
+  },
+  { key:'chipWave', tab:'utl', icon:'⊕', name:'코어칩<br>웨이브', baseCost:8, unlock:null, maxLv:50,
+    cost()   { return upgCost('chipWave',8); },
+    stat()   { return '+'+(_totalLv('chipWave')*2)+'%'; },
+    canBuy() { return _canUpg('chipWave',50) && coreChips>=upgCost('chipWave',8); },
+    apply()  { var c=upgCost('chipWave',8); coreChips-=c; G.upgLvl.chipWave=(G.upgLvl.chipWave||0)+1; G._prismChipWaveBonus=(G._prismChipWaveBonus||0)+0.02; },
+  },
+  { key:'goldBst', tab:'utl', icon:'◈', name:'골드<br>강화', baseCost:8, unlock:null, maxLv:50,
+    cost()   { return upgCost('goldBst',8); },
+    stat()   { return '+'+(_totalLv('goldBst')*2)+'%'; },
+    canBuy() { return _canUpg('goldBst',50) && coreChips>=upgCost('goldBst',8); },
+    apply()  { var c=upgCost('goldBst',8); coreChips-=c; G.upgLvl.goldBst=(G.upgLvl.goldBst||0)+1; G._goldBoost=(G._goldBoost||0)+0.02; },
+  },
+  { key:'freeUpg', tab:'utl', icon:'★', name:'무료<br>업그레이드', baseCost:15, unlock:null, maxLv:10,
+    cost()   { return upgCost('freeUpg',15); },
+    stat()   { return (_totalLv('freeUpg'))+'%'; },
+    canBuy() { return _canUpg('freeUpg',10) && coreChips>=upgCost('freeUpg',15); },
+    apply()  { var c=upgCost('freeUpg',15); coreChips-=c; G.upgLvl.freeUpg=(G.upgLvl.freeUpg||0)+1; G.freeUpgChance=(G.freeUpgChance||0)+0.01; },
+  },
+  { key:'autoAtk', tab:'utl', icon:'⚔', name:'공격<br>자동업글', baseCost:12, unlock:null, maxLv:20,
+    cost()   { return upgCost('autoAtk',12); },
+    stat()   { return (_totalLv('autoAtk'))+'%'; },
+    canBuy() { return _canUpg('autoAtk',20) && coreChips>=upgCost('autoAtk',12); },
+    apply()  { var c=upgCost('autoAtk',12); coreChips-=c; G.upgLvl.autoAtk=(G.upgLvl.autoAtk||0)+1; G._autoAtkChance=(G._autoAtkChance||0)+0.01; },
+  },
+  { key:'autoDef', tab:'utl', icon:'⛊', name:'방어<br>자동업글', baseCost:12, unlock:null, maxLv:20,
+    cost()   { return upgCost('autoDef',12); },
+    stat()   { return (_totalLv('autoDef'))+'%'; },
+    canBuy() { return _canUpg('autoDef',20) && coreChips>=upgCost('autoDef',12); },
+    apply()  { var c=upgCost('autoDef',12); coreChips-=c; G.upgLvl.autoDef=(G.upgLvl.autoDef||0)+1; G._autoDefChance=(G._autoDefChance||0)+0.01; },
+  },
+  { key:'autoUtl', tab:'utl', icon:'☆', name:'유틸<br>자동업글', baseCost:12, unlock:null, maxLv:20,
+    cost()   { return upgCost('autoUtl',12); },
+    stat()   { return (_totalLv('autoUtl'))+'%'; },
+    canBuy() { return _canUpg('autoUtl',20) && coreChips>=upgCost('autoUtl',12); },
+    apply()  { var c=upgCost('autoUtl',12); coreChips-=c; G.upgLvl.autoUtl=(G.upgLvl.autoUtl||0)+1; G._autoUtlChance=(G._autoUtlChance||0)+0.01; },
+  },
+  { key:'enemySkip', tab:'utl', icon:'»', name:'적 레벨<br>건너뛰기', baseCost:10, unlock:null, maxLv:300,
+    cost()   { return upgCost('enemySkip',10); },
+    stat()   { return (Math.min(15,_totalLv('enemySkip')*0.05))._tf2()+'%'; },
+    canBuy() { return coreChips>=upgCost('enemySkip',10); },
+    apply()  { var c=upgCost('enemySkip',10); coreChips-=c; G.upgLvl.enemySkip=(G.upgLvl.enemySkip||0)+1; G._enemySkipChance=Math.min(0.20,_totalLv('enemySkip')*0.0005); },
+  },
+  { key:'protoCd', tab:'utl', icon:'⏱', name:'프로토콜<br>쿨감', baseCost:15, unlock:null, maxLv:40,
+    cost()   { return upgCost('protoCd',15); },
+    stat()   { return (_totalLv('protoCd')*0.5)._tf1()+'%'; },
+    canBuy() { return _canUpg('protoCd',40) && coreChips>=upgCost('protoCd',15); },
+    apply()  { var c=upgCost('protoCd',15); coreChips-=c; G.upgLvl.protoCd=(G.upgLvl.protoCd||0)+1; G._protoCdReduce=_totalLv('protoCd')*0.005; },
+  },
 ];
 
 
@@ -19361,6 +19418,9 @@ function _fwResetToBase(){
   G.elemCrits=[]; G.pierce=0; G.dmgPerMeter=1;
   G._resProtoCdReduce=0; G._augRegenPct=0; G._augChipMult=false;
   G.tower.shdMax=0; G.tower.shdCur=0; G.tower.absorbPct=0;
+  // 유틸 스탯 초기화
+  G._goldBoost=0; G._enemySkipChance=0; G._protoCdReduce=0;
+  G._autoAtkChance=0; G._autoDefChance=0; G._autoUtlChance=0;
   // 전투 업그레이드(G.upgLvl)를 초기값 위에 재적용
   var u=G.upgLvl||{};
   if(u.dmg>0) for(var _i=0;_i<u.dmg;_i++) G.tower.dmg=Math.round(G.tower.dmg*1.20);
@@ -19384,6 +19444,16 @@ function _fwResetToBase(){
   if(u.dmgPerMeter>0) G.dmgPerMeter=1+u.dmgPerMeter*0.05;
   if(u.knockForce>0) G.knockbackForce=u.knockForce*2;
   if(u.shieldHP>0){ G.tower.shdMax=Math.round(G.tower.maxHp*Math.min(50,u.shieldHP)/100); G.tower.shdCur=G.tower.shdMax; }
+  // 유틸 전투 업그레이드 재적용
+  if(u.chipKill>0) G._prismChipKillBonus=(G._prismChipKillBonus||0)+u.chipKill*0.02;
+  if(u.chipWave>0) G._prismChipWaveBonus=(G._prismChipWaveBonus||0)+u.chipWave*0.02;
+  if(u.goldBst>0) G._goldBoost=(G._goldBoost||0)+u.goldBst*0.02;
+  if(u.freeUpg>0) G.freeUpgChance=(G.freeUpgChance||0)+u.freeUpg*0.01;
+  if(u.autoAtk>0) G._autoAtkChance=(G._autoAtkChance||0)+u.autoAtk*0.01;
+  if(u.autoDef>0) G._autoDefChance=(G._autoDefChance||0)+u.autoDef*0.01;
+  if(u.autoUtl>0) G._autoUtlChance=(G._autoUtlChance||0)+u.autoUtl*0.01;
+  if(u.enemySkip>0) G._enemySkipChance=Math.min(0.20,u.enemySkip*0.0005);
+  if(u.protoCd>0) G._protoCdReduce=(G._protoCdReduce||0)+u.protoCd*0.005;
 }
 window._fwResetToBase=_fwResetToBase;
 if(typeof _origApplyPermFW==='function'){
