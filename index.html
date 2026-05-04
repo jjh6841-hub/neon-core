@@ -4244,8 +4244,8 @@ function update(dt) {
       continue;
     }
 
-    // 스나이퍼: 120px 거리에서 정지 (원거리 공격)
-    if (e.type === 'sniper' && dist <= 120) {
+    // 스나이퍼: 170px 거리에서 정지 (원거리 공격)
+    if (e.type === 'sniper' && dist <= 170) {
       continue;
     }
     // Slow tick
@@ -4290,7 +4290,7 @@ function update(dt) {
     se.atkTimer += dt;
     var sdx = G.cx - se.x, sdy = G.cy - se.y;
     var sDist = Math.sqrt(sdx * sdx + sdy * sdy);
-    if (sDist <= 120 && se.atkTimer >= 2000) {
+    if (sDist <= 175 && se.atkTimer >= 2000) {
       se.atkTimer = 0;
       G.sniperBullets.push({
         x: se.x, y: se.y,
