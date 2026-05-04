@@ -13697,10 +13697,10 @@ function _renderMailTab() {
     if(mail.prismFragments) rwParts.push('<span style="color:#cc44ff;">◇ '+mail.prismFragments+'</span>');
     if(mail.pulseFragments) rwParts.push('<span style="color:#ffc800;">✦ '+mail.pulseFragments+'</span>');
     html+='<div style="background:#0a1a2a;border:1px solid '+(claimed?'#0a2233':'#0a3344')+';padding:12px;display:flex;flex-direction:column;gap:6px;opacity:'+(claimed?0.5:1)+';">'+
-      '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':(mail.titleColor||'#f1f5f9'))+';font-weight:bold;">'+mail.title+'</div>'+
+      '<div style="font-family:monospace;font-size:12px;color:'+(claimed?'#334455':(mail.title.indexOf('주파수 전쟁')!==-1?'#4488ff':(mail.titleColor||'#f1f5f9')))+';font-weight:bold;">'+mail.title+'</div>'+
       (mail.body?'<div style="font-family:monospace;font-size:11px;color:#8899aa;line-height:1.6;">'+mail.body+'</div>':'')+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">'+
-        '<span style="font-family:monospace;font-size:10px;">'+rwParts.join('  ')+'</span>'+
+        '<span style="font-family:monospace;font-size:11px;">'+rwParts.join('  ')+'</span>'+
         (claimed
           ? '<span style="font-family:monospace;font-size:10px;color:#334455;">수령완료</span>'
           : (rwParts.length?'<button data-mail-claim="'+mail.id+'" style="background:#030b10;border:1px solid #00ffff;color:#00ffff;font-family:monospace;font-size:10px;padding:5px 12px;cursor:pointer;flex-shrink:0;">수령</button>':''))+
