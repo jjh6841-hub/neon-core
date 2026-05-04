@@ -3881,7 +3881,8 @@ function update(dt) {
           var _skipWaveChips = Math.round((2 + (G._chipWaveFlat||0)) * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
           var _totalGold = Math.round((_skipKillGold + _skipWaveGold) * 1.1);
           var _totalChips = Math.round((_skipKillChips + _skipWaveChips) * 1.1 * 10) / 10;
-          G.gold += _totalGold; G.goldEarned += _totalGold; PERM.gold += _totalGold;
+          var _totalBaseGold = Math.round((_skipEnemies.length * _skipWaveGoldBase + Math.min(50, 5 + Math.floor(_nw / 100) * 5)) * 1.1);
+          G.gold += _totalGold; G.goldEarned += _totalGold; G.goldBaseEarned += _totalBaseGold; PERM.gold += _totalGold;
           coreChips += _totalChips;
           G.wave++;
           G.floatTexts.push({ x: G.cx, y: G.cy - 40, text: '차원 도약! +' + _totalGold + '◈ +' + _totalChips + '⊕', color: '#cc44ff', timer: 0 });
@@ -4071,7 +4072,7 @@ function update(dt) {
               if(G.floatTexts) G.floatTexts.push({x:_te.x,y:_te.y-((_te.r||10)+5),text:'-'+_cDmg+' ⚡',color:'#bb44ff',timer:0});
               if(_te.hp<=0){
                 G.killCount++; PERM.totalKills++;
-                var _ceG=Math.round((_te.gold||1)*(G.goldMult||1)); G.gold+=_ceG; G.goldEarned+=_ceG; PERM.gold+=_ceG;
+                var _ceG=Math.round((_te.gold||1)*(G.goldMult||1)); var _ceGb=Math.round((_te.gold||1)/(_te._planetGoldMult||1)); G.gold+=_ceG; G.goldEarned+=_ceG; G.goldBaseEarned+=_ceGb; PERM.gold+=_ceG;
                 addFx(_te.x,_te.y,(_te.r||10)*2,'#ffc800');
               }
             }
@@ -18829,7 +18830,7 @@ function _useProtocol(id){
     // EMP로 즉사한 적 처리
     _empKills.forEach(function(e){
       G.killCount++; PERM.totalKills++;
-      var _eGold=Math.round((e.gold||1)*(G.goldMult||1)); G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
+      var _eGold=Math.round((e.gold||1)*(G.goldMult||1)); var _eGb=Math.round((e.gold||1)/(e._planetGoldMult||1)); G.gold+=_eGold; G.goldEarned+=_eGold; G.goldBaseEarned+=_eGb; PERM.gold+=_eGold;
       addFx(e.x,e.y,(e.r||10)*2,'#3b82f6');
     });
     if(_empKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
@@ -18913,7 +18914,7 @@ function _useProtocol(id){
           });
           _gKills.forEach(function(e){
             G.killCount++; PERM.totalKills++;
-            var _eG=Math.round((e.gold||1)*(G.goldMult||1)); G.gold+=_eG; G.goldEarned+=_eG; PERM.gold+=_eG;
+            var _eG=Math.round((e.gold||1)*(G.goldMult||1)); var _eGb=Math.round((e.gold||1)/(e._planetGoldMult||1)); G.gold+=_eG; G.goldEarned+=_eG; G.goldBaseEarned+=_eGb; PERM.gold+=_eG;
             addFx(e.x,e.y,(e.r||10)*2,'#ffcc00');
           });
           if(_gKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
@@ -19094,7 +19095,7 @@ function _startProtoTick(){
       // 스킬 즉사 처리
       var _slKills=enemies.filter(function(e){return e.hp<=0;});
       if(_slKills.length>0){
-        _slKills.forEach(function(e){G.killCount++;PERM.totalKills++;var _eG=Math.round((e.gold||1)*(G.goldMult||1));G.gold+=_eG;G.goldEarned+=_eG;PERM.gold+=_eG;});
+        _slKills.forEach(function(e){G.killCount++;PERM.totalKills++;var _eG=Math.round((e.gold||1)*(G.goldMult||1));var _eGb=Math.round((e.gold||1)/(e._planetGoldMult||1));G.gold+=_eG;G.goldEarned+=_eG;G.goldBaseEarned+=_eGb;PERM.gold+=_eG;});
         G.enemies=enemies.filter(function(e){return e.hp>0;});
       }
       if(sl.remaining<=0){
@@ -19127,7 +19128,7 @@ function _startProtoTick(){
         });
         _giKills.forEach(function(e){
           G.killCount++; PERM.totalKills++;
-          var _eGold=Math.round((e.gold||1)*(G.goldMult||1)); G.gold+=_eGold; G.goldEarned+=_eGold; PERM.gold+=_eGold;
+          var _eGold=Math.round((e.gold||1)*(G.goldMult||1)); var _eGb=Math.round((e.gold||1)/(e._planetGoldMult||1)); G.gold+=_eGold; G.goldEarned+=_eGold; G.goldBaseEarned+=_eGb; PERM.gold+=_eGold;
           addFx(e.x,e.y,(e.r||10)*2,'#ef4444');
         });
         if(_giKills.length>0) G.enemies=G.enemies.filter(function(e){return e.hp>0;});
