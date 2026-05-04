@@ -3920,6 +3920,12 @@ function update(dt) {
           if (_healAmt > 0) G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _healAmt);
         }
         e.hp -= dmg;
+        // 넉백: 분열탄 적중 시
+        if (b._isMulti && e.hp > 0 && G.knockbackChance > 0 && G.knockbackForce > 0 && Math.random() < G.knockbackChance) {
+          var _mkf = G.knockbackForce;
+          if (e.boss) { _mkf *= e.bossGrade==='galaxy'?0.01:e.bossGrade==='hyper'?0.10:e.bossGrade==='elite'?0.30:0.50; }
+          if (_mkf > 0) { var _mkd = Math.sqrt((e.x-G.cx)*(e.x-G.cx)+(e.y-G.cy)*(e.y-G.cy))||1; e.x+=((e.x-G.cx)/_mkd)*_mkf; e.y+=((e.y-G.cy)/_mkd)*_mkf; }
+        }
         // 체인 라이트닝: 레이저가 적 적중 시 주변 적에게 전기 데미지
         if(window._protoActiveEffects&&window._protoActiveEffects.chain){
           (function(_hitE){
@@ -14950,6 +14956,12 @@ function _mechBounceDmg(fromX, fromY, count, range, dmg) {
     if (tgt.type === 'resist') { var _cap = Math.ceil(tgt.maxHp * 0.3); if (_bd > _cap) _bd = _cap; }
     tgt.hp -= _bd;
     tgt.hitFlash = 2;
+    // 넉백: 도약탄 적중 시
+    if (tgt.hp > 0 && G.knockbackChance > 0 && G.knockbackForce > 0 && Math.random() < G.knockbackChance) {
+      var _bkf = G.knockbackForce;
+      if (tgt.boss) { _bkf *= tgt.bossGrade==='galaxy'?0.01:tgt.bossGrade==='hyper'?0.10:tgt.bossGrade==='elite'?0.30:0.50; }
+      if (_bkf > 0) { var _bkd = Math.sqrt((tgt.x-G.cx)*(tgt.x-G.cx)+(tgt.y-G.cy)*(tgt.y-G.cy))||1; tgt.x+=((tgt.x-G.cx)/_bkd)*_bkf; tgt.y+=((tgt.y-G.cy)/_bkd)*_bkf; }
+    }
     // 도약 이펙트 라인
     addFx(tgt.x, tgt.y, 8, '#f59e0b');
   }
@@ -15009,6 +15021,7 @@ window.fireTower = function() {
         crit: isCrit,
         pierceLeft: G.pierce || 0,
         hitSet: (G.pierce > 0) ? new Set() : null,
+        _isMulti: true,
       });
     }
   }
