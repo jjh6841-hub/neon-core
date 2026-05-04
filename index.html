@@ -14349,16 +14349,16 @@ function _showEncyclopedia() {
     atk:{ label:'공격', rows:[
       ['공격력','레이저가 적에게 입히는 기본 공격력. 강화소·코어랩·속성·스킨 등에서 증가.'],
       ['공격속도','레이저 발사 간격. 배속으로 표시 (x1.00 기준). 강화소에서 레벨당 +5%.'],
-      ['치명타 확률','레이저 적중 시 치명타가 발생할 확률 (%). 강화소에서 레벨당 +5%.'],
-      ['공격범위','타워의 레이저 최대 사거리. 강화소에서 레벨당 +12px.'],
-      ['거리피해','적이 타워에서 멀수록 피해가 증가. 강화소에서 레벨당 +1%.'],
-      ['분열탄 확률','레이저가 여러 갈래로 동시에 발사될 확률. 강화소에서 레벨당 +1%.'],
+      ['치명타 확률','레이저 적중 시 치명타가 발생할 확률 (%). 강화소에서 레벨당 +1%.'],
+      ['공격범위','타워의 레이저 최대 사거리. 강화소에서 레벨당 +8px.'],
+      ['거리피해','적이 타워에서 멀수록 피해가 증가. 강화소에서 레벨당 +5%.'],
+      ['분열탄 확률','레이저가 여러 갈래로 동시에 발사될 확률. 강화소에서 레벨당 +0.5%.'],
       ['분열탄 수','분열탄 발동 시 추가 발사되는 레이저 수. 강화소에서 레벨당 +1.'],
-      ['연사 확률','일정 확률로 고속 연사 모드가 발동. 강화소에서 레벨당 +1%.'],
-      ['연사 지속','고속 연사 모드의 지속 시간. 강화소에서 레벨당 +0.1초.'],
-      ['도약탄 확률','레이저가 적에게 맞은 뒤 다른 적에게 튕길 확률. 강화소에서 레벨당 +1%.'],
+      ['연사 확률','일정 확률로 고속 연사 모드가 발동. 강화소에서 레벨당 +0.5%.'],
+      ['연사 지속','고속 연사 모드의 지속 시간. 강화소에서 레벨당 +0.2초.'],
+      ['도약탄 확률','레이저가 적에게 맞은 뒤 다른 적에게 튕길 확률. 강화소에서 레벨당 +0.5%.'],
       ['도약탄 수','도약탄 발동 시 최대 튕기는 적 수. 강화소에서 레벨당 +1.'],
-      ['도약탄 범위','도약탄이 다른 적에게 튕기는 최대 거리. 강화소에서 레벨당 +8px.'],
+      ['도약탄 범위','도약탄이 다른 적에게 튕기는 최대 거리. 강화소에서 레벨당 +4px.'],
       ['적 방어력 감소','적의 방어력을 무시하는 비율. 강화소에서 레벨당 +1%.'],
       ['강화치명타 확률','일반 치명타보다 더 강력한 치명타가 발생할 확률. 강화소에서 레벨당 +0.5%.'],
       ['강화치명타 계수','강화치명타 발생 시 추가 공격력 승수. 강화소에서 레벨당 +0.10.'],
@@ -14366,15 +14366,15 @@ function _showEncyclopedia() {
     def:{ label:'방어', rows:[
       ['최대체력','코어의 최대 체력. 강화소에서 레벨당 +5.'],
       ['체력회복','초당 회복되는 코어 체력. 강화소에서 레벨당 +0.05/s.'],
-      ['방어율','받는 피해를 % 비율로 감소. 강화소에서 레벨당 +0.5%, 최대 60%.'],
+      ['방어율','받는 피해를 % 비율로 감소. 강화소에서 레벨당 +1%.'],
       ['절대방어','고정 수치만큼 피해를 감소. 방어율 적용 후 추가로 차감.'],
       ['흡혈','공격 적중 시 피해의 일정 %만큼 코어 HP를 회복. 강화소에서 레벨당 +0.1%.'],
-      ['반사 데미지','적이 코어를 공격할 때 피해의 일정 %를 반사. 강화소에서 레벨당 +0.5%.'],
+      ['반사 데미지','적이 코어를 공격할 때 피해의 일정 %를 반사. 강화소에서 레벨당 +1%.'],
       ['넉백 확률','적중 시 적을 뒤로 밀어내는 확률. 강화소에서 레벨당 +0.5%.'],
       ['넉백 거리','넉백 발동 시 적이 밀려나는 거리. 강화소에서 레벨당 +2px.'],
-      ['쉴드 HP','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용. 강화소에서 레벨당 +10.'],
-      ['파장 크기','에너지 파장의 범위. 파장 범위 내 적에게 피해. 강화소에서 레벨당 +15px.'],
-      ['파장 주기','에너지 파장의 발동 간격. 강화소에서 레벨당 -0.5초.'],
+      ['쉴드 HP','피해를 먼저 흡수하는 보호막. HP 감소 전에 적용. 강화소에서 레벨당 +1%.'],
+      ['파장 크기','에너지 파장의 범위. 파장 범위 내 적에게 피해. 강화소에서 레벨당 +10px.'],
+      ['파장 주기','에너지 파장의 발동 간격. 강화소에서 레벨당 -2초.'],
     ]},
     utl:{ label:'유틸리티', items:[
       { id:'gold_wave',  name:'골드/웨이브', desc:'웨이브 클리어 시 추가 지급 골드.' },
@@ -14400,9 +14400,9 @@ function _showEncyclopedia() {
       { id:'sniper',     name:'스나이퍼 드론',   color:'#00ffff', boss:false, desc:'사거리 밖에서 투사체 발사. 처치 시 골드 x4. 대응: 범위 확장. [웨이브 40~]' },
       { id:'vampire',    name:'흡혈 드론',       color:'#ff2266', boss:false, desc:'입힌 피해의 30% HP 회복. 처치 시 골드 x3. 대응: 한방 고대미지. [웨이브 51~]' },
       { id:'resist',     name:'저항 코어',       color:'#ff8844', boss:false, desc:'1회 피해가 최대HP 30% 초과분 무시. 처치 시 골드 x4. 대응: 공속 극대화. [스펙트라+, 웨이브 51~]' },
-      { id:'split',      name:'클러스터 드론',   color:'#ff44aa', boss:false, desc:'처치 시 2개로 분열. 처치 시 골드 x1. [웨이브 60~]' },
+      { id:'split',      name:'클러스터 드론',   color:'#ff44aa', boss:false, desc:'처치 시 2개로 분열. 처치 시 골드 x1. [웨이브 101~]' },
       { id:'regen',      name:'수리 드론',       color:'#44ff88', boss:false, desc:'초당 최대 체력 5% 회복. 속도 60%. 처치 시 골드 x3. 대응: 고DPS. [웨이브 70~]' },
-      { id:'stealth',    name:'은신 함선',       color:'#6688cc', boss:false, desc:'3초 은신(타겟팅 불가) ↔ 2초 출현 반복. 처치 시 골드 x4. 대응: 범위 공격. [웨이브 81~]' },
+      { id:'stealth',    name:'은신 함선',       color:'#6688cc', boss:false, desc:'3초 은신(타겟팅 불가) ↔ 2초 출현 반복. 처치 시 골드 x4. 대응: 범위 공격. [웨이브 141~]' },
       { id:'spawner',    name:'소환 모함',       color:'#aa66ff', boss:false, desc:'5초마다 기본 드론 소환(최대 3기). 본체 처치 시 소환체 소멸. 처치 시 골드 x5. 대응: 본체 우선. [웨이브 101~]' },
       { id:'kamikaze',   name:'자폭 드론',       color:'#ff6600', boss:false, desc:'코어 도달 시 3배 피해 후 자폭. 체력 30%, 속도 1.5배. 처치 시 골드 x2. 대응: 넉백. [스펙트라+, 웨이브 101~]' },
       { id:'boss',       name:'코어 드레드노트', color:'#ff4444', boss:true,  desc:'10웨이브마다 등장. HP 10배, 속도 50%. HP 50% 이하 시 분노(속도 증가). 처치 시 골드 x5.' },
@@ -16754,8 +16754,7 @@ function renderFW(){
       '<div style="background:#0d1a2e;border:1px solid #1a3355;border-radius:10px;padding:24px 28px;text-align:center;max-width:280px;width:85%;font-family:\'Courier New\',monospace;">'+
         '<div style="color:#4488ff;font-size:14px;font-weight:bold;letter-spacing:1px;margin-bottom:14px;">시즌 정산 결과</div>'+
         '<div style="margin-bottom:10px;">'+_fwTierIcon(sr.tier,40)+'</div>'+
-        '<div style="color:'+_srTier.color+';font-size:16px;font-weight:bold;margin-bottom:6px;">'+_srTier.name+' 티어</div>'+
-        '<div style="color:#c8d8e8;font-size:22px;font-weight:bold;margin-bottom:6px;">'+sr.rank+'<span style="font-size:13px;color:#8899aa;">위</span></div>'+
+        '<div style="color:'+_srTier.color+';font-size:16px;font-weight:bold;margin-bottom:12px;">'+_srTier.name+' 티어 <span style="color:#f1f5f9;">'+sr.rank+'<span style="font-size:11px;">위</span></span> 달성!</div>'+
         '<div style="color:#667788;font-size:11px;margin-bottom:16px;">최고 웨이브 W'+sr.wave+'</div>'+
         '<div style="color:#ffc800;font-size:12px;margin-bottom:18px;">✦ 펄스 조각 +'+sr.pulse+' (우편함 지급)</div>'+
         '<button style="background:#1a3355;border:1px solid #2a4466;border-radius:6px;color:#4488ff;font-family:\'Courier New\',monospace;font-size:13px;padding:8px 28px;cursor:pointer;-webkit-appearance:none;">확인</button>'+
@@ -17032,7 +17031,7 @@ function _checkFWSettlement(){
         targetUid:window._fbUid,
         title:'주파수 전쟁 시즌 보상',
         titleColor:'#4488ff',
-        body:FW_TIERS[tier].icon+' '+FW_TIERS[tier].name+' 티어 <b style="color:#4488ff;">'+rank+'위</b> 달성! (최고 웨이브: W'+score+')<br>보상으로 펄스 조각 '+pulse+'개를 지급합니다.',
+        body:'<b style="color:'+FW_TIERS[tier].color+';">'+FW_TIERS[tier].icon+' '+FW_TIERS[tier].name+' 티어 '+rank+'위 달성!</b><br>최고 웨이브: W'+score+'<br>보상으로 펄스 조각 '+pulse+'개를 지급합니다.',
         rewards:{pulseFragments:pulse},
         createdAt:new Date().toISOString()
       }).catch(function(){});
