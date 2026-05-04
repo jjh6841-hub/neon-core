@@ -17939,9 +17939,14 @@ function _getProtoLv(id){
 }
 function _getProtoCd(p, lv){
   var base = Math.max(5, p.baseCd - lv * p.cdReduce);
-  var wsReduce = window.G && G._protoCdReduce ? G._protoCdReduce : 0;
-  var resReduce = window.G && G._resProtoCdReduce ? G._resProtoCdReduce : 0;
-  var totalReduce = wsReduce + resReduce;
+  // 영구 소스에서 직접 읽기 (전투 후 G 잔존값 오염 방지)
+  var wsLv = (PERM.ws && PERM.ws.protoCdReduce) || 0;
+  var resLv = parseInt(localStorage.getItem('res_r_proto_cd')||'0',10);
+  var permReduce = wsLv * 0.005 + resLv * 0.005;
+  // 전투 업그레이드는 활성 전투 중에만 반영
+  var battleReduce = 0;
+  if (window.G && G.phase === 'playing' && G.upgLvl) battleReduce = (G.upgLvl.protoCd||0) * 0.005;
+  var totalReduce = permReduce + battleReduce;
   if (totalReduce > 0) base = Math.max(5, base * (1 - totalReduce));
   return base;
 }
