@@ -13727,7 +13727,7 @@ function _renderMailTab() {
       if(mail.powerCores){ var pc=parseInt(localStorage.getItem('powerCores')||'0',10); localStorage.setItem('powerCores',pc+mail.powerCores); }
       if(mail.accessCodes){ var ac=parseInt(localStorage.getItem('accessCodes')||'0',10); localStorage.setItem('accessCodes',ac+mail.accessCodes); }
       if(mail.dataCells){ var dc=parseInt(localStorage.getItem('dataCells')||'0',10); localStorage.setItem('dataCells',dc+mail.dataCells); }
-      if(mail.pulseFragments){ window.pulseFragments=(window.pulseFragments||0)+mail.pulseFragments; }
+      if(mail.pulseFragments){ window.pulseFragments=(window.pulseFragments||0)+mail.pulseFragments; try{localStorage.setItem('pulseFragments',window.pulseFragments);}catch(_){} try{logCurrency('pulseFragments',mail.pulseFragments,'우편: '+(mail.title||'').slice(0,20));}catch(_){} }
       // 보상 팝업
       var rwItems=[];
       if(mail.gold) rwItems.push({icon:'◈',label:'',amount:mail.gold,color:'#f59e0b'});
@@ -16222,6 +16222,7 @@ window.claimMission = function (id, amount) {
   _claimedMissions.push(id);
   try { localStorage.setItem('smClaimed', JSON.stringify(_claimedMissions)); } catch(_) {}
   window.pulseFragments += amount;
+  try{logCurrency('pulseFragments',amount,'미션: '+id);}catch(_){}
   syncPulse();
   var btn = document.getElementById('m-' + id + '-btn');
   if (btn) { btn.disabled = true; btn.textContent = '완료'; btn.style.background = '#334'; btn.style.color = '#667'; }
@@ -16251,6 +16252,7 @@ window.smBuy = function (item, cost) {
   {
     if (window.pulseFragments < cost) { _mktToast('펄스 조각이 부족합니다', '#ff4444'); return; }
     window.pulseFragments -= cost;
+    try{logCurrency('pulseFragments',-cost,'마켓: '+item);}catch(_){}
     if (item === 'gem100') {
       PERM.gems = (PERM.gems || 0) + 100;
       try { savePerm(); } catch(_) {}
@@ -17020,8 +17022,7 @@ function _checkFWSettlement(){
         createdAt:new Date().toISOString()
       }).catch(function(){});
     }
-    window.pulseFragments=(window.pulseFragments||0)+pulse;
-    try{localStorage.setItem('pulseFragments',window.pulseFragments);}catch(_){}
+    // 펄스 조각은 우편함 수령 시에만 지급 (직접 추가 제거 — 이중 지급 방지)
     // 시즌 전적 기록 저장
     if(!fw.seasonHistory) fw.seasonHistory=[];
     fw.seasonHistory.push({season:weekKey, rank:rank, wave:score, tier:tier});
