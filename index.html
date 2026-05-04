@@ -2835,10 +2835,48 @@ function getUpgradeCost(baseCost, currentLevel) {
   return Math.floor(baseCost * Math.pow(1.28, 10) * Math.pow(1.20, 20) * Math.pow(1.13, 30) * Math.pow(1.08, lv - 60));
 }
 
-/* ── 인게임 업그레이드 정의 (임시) ── */
+/* ── 인게임 업그레이드 비용 테이블 ── */
+var _BATTLE_COST = {
+  // 공격 탭
+  dmg:            {t:[5,9,16,27,45,71,97,132,172,227,281], r:1.18},
+  spd:            {t:[7,15,28,51,92,165,294,512,857,1120], r:1.20},
+  crit:           {t:[8,17,31,59,99,171,316,525,812,1315], r:1.20},
+  critMult:       {t:[10,19,33,56,91,131,173,223,279], r:1.18},
+  rng:            {t:[6,13,27,50,90,159,285,498,817,1010], r:1.20},
+  dmgPerMeter:    {t:[8,15,27,46,71,97,124,162], r:1.20},
+  multiChance:    {t:[10,15,22,32,45,65,91,126,165,206], r:1.18},
+  multi:          {t:[50,150,450,1350,4050], r:0},
+  rapidChance:    {t:[10,15,23,34,48,69,96,132,172,214,259], r:1.18},
+  rapidDuration:  {t:[10,19,35,62,97,125,163], r:1.20},
+  bounceChance:   {t:[12,18,26,37,51,72,99,137,177,221,266], r:1.18},
+  bounceTargets:  {t:[50,150,450,1350,4050], r:0},
+  bounceRange:    {t:[12,25,52,94,168,299,519,867,1132], r:1.20},
+  enemyDefReduce: {t:[15,26,37,51,72,99,137,177,221,266,317], r:1.18},
+  enhCritChance:  {t:[12,27,46,71,97,124,162,201], r:1.20},
+  enhCritMult:    {t:[15,24,39,62,97,137,179,229,285], r:1.18},
+  // 유틸 탭
+  chipKill:       {t:[10,19,33,56,91,131,173,223,279], r:1.18},
+  chipWave:       {t:[10,19,33,56,91,131,173,223,279], r:1.18},
+  goldBst:        {t:[10,19,33,56,91,131,173,223,279], r:1.18},
+  freeUpg:        {t:[12,25,52,98,174,317,539,922,1652,2984], r:0},
+  autoAtk:        {t:[15,32,62,107,188,336,562,921,1193], r:1.20},
+  autoDef:        {t:[15,32,62,107,188,336,562,921,1193], r:1.20},
+  autoUtl:        {t:[15,32,62,107,188,336,562,921,1193], r:1.20},
+  enemySkip:      {t:[10,19,35,59,98,143,194,273,340], r:1.18},
+  protoCd:        {t:[20,38,55,79,114,152,197,245,301], r:1.20},
+};
 function upgCost(key, base) {
   if (!G) return base;
-  return getUpgradeCost(base, G.upgLvl[key] || 0);
+  var lv = G.upgLvl[key] || 0;
+  var ct = _BATTLE_COST[key];
+  if (ct) {
+    if (lv < ct.t.length) return ct.t[lv];
+    if (ct.r <= 0) return ct.t[ct.t.length-1];
+    var v = ct.t[ct.t.length-1];
+    for (var i = ct.t.length; i <= lv; i++) v = Math.floor(v * ct.r);
+    return v;
+  }
+  return getUpgradeCost(base, lv);
 }
 // 소수점 절삭 (반올림 없이 내림) — Number prototype
 Number.prototype._tf3 = function() { var m=1000; return (Math.floor(this*m+0.0001)/m).toFixed(3); };
@@ -2915,37 +2953,37 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('multiChance',10); },
     apply()  { var c=upgCost('multiChance',10); coreChips-=c; G.upgLvl.multiChance=(G.upgLvl.multiChance||0)+1; G.multiChance=Math.min(0.5,((PERM.ws&&PERM.ws.multiChance||0)+(G.upgLvl.multiChance||0))*0.005); },
   },
-  { key:'multi',   tab:'atk', icon:'+',  name:'분열탄수', baseCost:10, unlock:'multi', maxLv:5,
-    cost()   { return upgCost('multi',10); },
+  { key:'multi',   tab:'atk', icon:'+',  name:'분열탄수', baseCost:50, unlock:'multi', maxLv:5,
+    cost()   { return upgCost('multi',50); },
     stat()   { return (G.multiShot-1)+'발'; },
-    canBuy() { return _canUpg('multi',5) && coreChips>=upgCost('multi',10); },
-    apply()  { var c=upgCost('multi',10); coreChips-=c; G.upgLvl.multi=(G.upgLvl.multi||0)+1; G.multiShot++; },
+    canBuy() { return _canUpg('multi',5) && coreChips>=upgCost('multi',50); },
+    apply()  { var c=upgCost('multi',50); coreChips-=c; G.upgLvl.multi=(G.upgLvl.multi||0)+1; G.multiShot++; },
   },
-  { key:'rapidChance', tab:'atk', icon:'R', name:'연사확률', baseCost:50, unlock:'rapidChance', maxLv:60,
-    cost()   { return 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
+  { key:'rapidChance', tab:'atk', icon:'R', name:'연사확률', baseCost:10, unlock:'rapidChance', maxLv:60,
+    cost()   { return upgCost('rapidChance',10); },
     stat()   { return ((G.rapidChance||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('rapidChance',60) && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidChance || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidChance||0); coreChips-=c; G.upgLvl.rapidChance=(G.upgLvl.rapidChance||0)+1; G.rapidChance=Math.min(0.40,((PERM.ws&&PERM.ws.rapidChance||0)+(G.upgLvl.rapidChance||0))*0.005); },
+    canBuy() { return _canUpg('rapidChance',60) && coreChips>=upgCost('rapidChance',10); },
+    apply()  { var c=upgCost('rapidChance',10); coreChips-=c; G.upgLvl.rapidChance=(G.upgLvl.rapidChance||0)+1; G.rapidChance=Math.min(0.40,((PERM.ws&&PERM.ws.rapidChance||0)+(G.upgLvl.rapidChance||0))*0.005); },
   },
-  { key:'rapidDuration', tab:'atk', icon:'T', name:'연사지속', baseCost:50, unlock:'rapidChance', maxLv:30,
-    cost()   { return 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
+  { key:'rapidDuration', tab:'atk', icon:'T', name:'연사지속', baseCost:10, unlock:'rapidChance', maxLv:30,
+    cost()   { return upgCost('rapidDuration',10); },
     stat()   { return (((G._fwSkillRebellion?0:(PERM.ws&&PERM.ws.rapidDuration||0))+(G.upgLvl.rapidDuration||0))*0.2)._tf1()+'s'; },
-    canBuy() { return _canUpg('rapidDuration',30) && coreChips >= 50 * Math.pow(2, G.upgLvl.rapidDuration || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.rapidDuration||0); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=((PERM.ws&&PERM.ws.rapidDuration||0)+(G.upgLvl.rapidDuration||0))*0.2; },
+    canBuy() { return _canUpg('rapidDuration',30) && coreChips>=upgCost('rapidDuration',10); },
+    apply()  { var c=upgCost('rapidDuration',10); coreChips-=c; G.upgLvl.rapidDuration=(G.upgLvl.rapidDuration||0)+1; G.rapidDuration=((PERM.ws&&PERM.ws.rapidDuration||0)+(G.upgLvl.rapidDuration||0))*0.2; },
   },
-  { key:'bounceChance', tab:'atk', icon:'B', name:'도약탄<br>확률', baseCost:50, unlock:'bounceChance', maxLv:60,
-    cost()   { return 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
+  { key:'bounceChance', tab:'atk', icon:'B', name:'도약탄<br>확률', baseCost:12, unlock:'bounceChance', maxLv:60,
+    cost()   { return upgCost('bounceChance',12); },
     stat()   { return ((G.bounceChance||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('bounceChance',60) && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceChance || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceChance||0); coreChips-=c; G.upgLvl.bounceChance=(G.upgLvl.bounceChance||0)+1; G.bounceChance=Math.min(0.70,((PERM.ws&&PERM.ws.bounceChance||0)+(G.upgLvl.bounceChance||0))*0.005); },
+    canBuy() { return _canUpg('bounceChance',60) && coreChips>=upgCost('bounceChance',12); },
+    apply()  { var c=upgCost('bounceChance',12); coreChips-=c; G.upgLvl.bounceChance=(G.upgLvl.bounceChance||0)+1; G.bounceChance=Math.min(0.70,((PERM.ws&&PERM.ws.bounceChance||0)+(G.upgLvl.bounceChance||0))*0.005); },
   },
   { key:'bounceTargets', tab:'atk', icon:'T', name:'도약탄수', baseCost:50, unlock:'bounceChance', maxLv:5,
-    cost()   { return 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
+    cost()   { return upgCost('bounceTargets',50); },
     stat()   { return ((G._fwSkillRebellion?0:(PERM.ws&&PERM.ws.bounceTargets||0))+(G.upgLvl.bounceTargets||0)) + ''; },
-    canBuy() { return _canUpg('bounceTargets',5) && coreChips >= 50 * Math.pow(2, G.upgLvl.bounceTargets || 0); },
-    apply()  { var c=50*Math.pow(2,G.upgLvl.bounceTargets||0); coreChips-=c; G.upgLvl.bounceTargets=(G.upgLvl.bounceTargets||0)+1; G.bounceTargets=(PERM.ws&&PERM.ws.bounceTargets||0)+(G.upgLvl.bounceTargets||0); },
+    canBuy() { return _canUpg('bounceTargets',5) && coreChips>=upgCost('bounceTargets',50); },
+    apply()  { var c=upgCost('bounceTargets',50); coreChips-=c; G.upgLvl.bounceTargets=(G.upgLvl.bounceTargets||0)+1; G.bounceTargets=(PERM.ws&&PERM.ws.bounceTargets||0)+(G.upgLvl.bounceTargets||0); },
   },
-  { key:'bounceRange', tab:'atk', icon:'⎈', name:'도약탄<br>범위', baseCost:50, unlock:'bounceChance', maxLv:20,
+  { key:'bounceRange', tab:'atk', icon:'⎈', name:'도약탄<br>범위', baseCost:12, unlock:'bounceChance', maxLv:20,
     cost()   { return upgCost('bounceRange',12); },
     stat()   { return ((G._fwSkillRebellion?0:(PERM.ws&&PERM.ws.bounceRange||0)) + (G.upgLvl.bounceRange||0)) * 4 + 'px'; },
     canBuy() { return _canUpg('bounceRange',20) && coreChips>=upgCost('bounceRange',12); },
@@ -3037,47 +3075,47 @@ var UPGRADES = [
     apply()  { var c=upgCost('pulseCd',12); coreChips-=c; G.upgLvl.pulseCd=(G.upgLvl.pulseCd||0)+1; G.pulseCd=Math.max(20,60-_totalLv('pulseCd')*2)*1000; },
   },
   // ─ 유틸 탭 ─
-  { key:'chipKill', tab:'utl', icon:'⊕', name:'코어칩<br>보너스', baseCost:8, unlock:null, maxLv:999,
-    cost()   { return upgCost('chipKill',8); },
+  { key:'chipKill', tab:'utl', icon:'⊕', name:'코어칩<br>보너스', baseCost:10, unlock:null, maxLv:999,
+    cost()   { return upgCost('chipKill',10); },
     stat()   { return '+'+((G._prismChipKillBonus||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('chipKill',50) && coreChips>=upgCost('chipKill',8); },
-    apply()  { var c=upgCost('chipKill',8); coreChips-=c; G.upgLvl.chipKill=(G.upgLvl.chipKill||0)+1; G._prismChipKillBonus=(G._prismChipKillBonus||0)+0.02; },
+    canBuy() { return coreChips>=upgCost('chipKill',10); },
+    apply()  { var c=upgCost('chipKill',10); coreChips-=c; G.upgLvl.chipKill=(G.upgLvl.chipKill||0)+1; G._prismChipKillBonus=(G._prismChipKillBonus||0)+0.02; },
   },
-  { key:'chipWave', tab:'utl', icon:'⊕', name:'코어칩<br>웨이브', baseCost:8, unlock:null, maxLv:999,
-    cost()   { return upgCost('chipWave',8); },
+  { key:'chipWave', tab:'utl', icon:'⊕', name:'코어칩<br>웨이브', baseCost:10, unlock:null, maxLv:999,
+    cost()   { return upgCost('chipWave',10); },
     stat()   { return '+'+((G._prismChipWaveBonus||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('chipWave',50) && coreChips>=upgCost('chipWave',8); },
-    apply()  { var c=upgCost('chipWave',8); coreChips-=c; G.upgLvl.chipWave=(G.upgLvl.chipWave||0)+1; G._prismChipWaveBonus=(G._prismChipWaveBonus||0)+0.02; },
+    canBuy() { return coreChips>=upgCost('chipWave',10); },
+    apply()  { var c=upgCost('chipWave',10); coreChips-=c; G.upgLvl.chipWave=(G.upgLvl.chipWave||0)+1; G._prismChipWaveBonus=(G._prismChipWaveBonus||0)+0.02; },
   },
-  { key:'goldBst', tab:'utl', icon:'◈', name:'골드<br>강화', baseCost:8, unlock:null, maxLv:999,
-    cost()   { return upgCost('goldBst',8); },
+  { key:'goldBst', tab:'utl', icon:'◈', name:'골드<br>강화', baseCost:10, unlock:null, maxLv:999,
+    cost()   { return upgCost('goldBst',10); },
     stat()   { return '+'+((G._goldBoost||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('goldBst',50) && coreChips>=upgCost('goldBst',8); },
-    apply()  { var c=upgCost('goldBst',8); coreChips-=c; G.upgLvl.goldBst=(G.upgLvl.goldBst||0)+1; G._goldBoost=(G._goldBoost||0)+0.02; G.goldMult=(G.goldMult||1)+0.02; },
+    canBuy() { return coreChips>=upgCost('goldBst',10); },
+    apply()  { var c=upgCost('goldBst',10); coreChips-=c; G.upgLvl.goldBst=(G.upgLvl.goldBst||0)+1; G._goldBoost=(G._goldBoost||0)+0.02; G.goldMult=(G.goldMult||1)+0.02; },
   },
-  { key:'freeUpg', tab:'utl', icon:'★', name:'무료<br>업그레이드', baseCost:15, unlock:null, maxLv:10,
-    cost()   { return upgCost('freeUpg',15); },
+  { key:'freeUpg', tab:'utl', icon:'★', name:'무료<br>업그레이드', baseCost:12, unlock:null, maxLv:10,
+    cost()   { return upgCost('freeUpg',12); },
     stat()   { return ((G.freeUpgChance||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('freeUpg',10) && coreChips>=upgCost('freeUpg',15); },
-    apply()  { var c=upgCost('freeUpg',15); coreChips-=c; G.upgLvl.freeUpg=(G.upgLvl.freeUpg||0)+1; G.freeUpgChance=(G.freeUpgChance||0)+0.01; },
+    canBuy() { return _canUpg('freeUpg',10) && coreChips>=upgCost('freeUpg',12); },
+    apply()  { var c=upgCost('freeUpg',12); coreChips-=c; G.upgLvl.freeUpg=(G.upgLvl.freeUpg||0)+1; G.freeUpgChance=(G.freeUpgChance||0)+0.01; },
   },
-  { key:'autoAtk', tab:'utl', icon:'⚔', name:'공격<br>자동업글', baseCost:12, unlock:null, maxLv:20,
-    cost()   { return upgCost('autoAtk',12); },
+  { key:'autoAtk', tab:'utl', icon:'⚔', name:'공격<br>자동업글', baseCost:15, unlock:null, maxLv:20,
+    cost()   { return upgCost('autoAtk',15); },
     stat()   { return ((G._autoAtkChance||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('autoAtk',20) && coreChips>=upgCost('autoAtk',12); },
-    apply()  { var c=upgCost('autoAtk',12); coreChips-=c; G.upgLvl.autoAtk=(G.upgLvl.autoAtk||0)+1; G._autoAtkChance=(G._autoAtkChance||0)+0.01; },
+    canBuy() { return _canUpg('autoAtk',20) && coreChips>=upgCost('autoAtk',15); },
+    apply()  { var c=upgCost('autoAtk',15); coreChips-=c; G.upgLvl.autoAtk=(G.upgLvl.autoAtk||0)+1; G._autoAtkChance=(G._autoAtkChance||0)+0.01; },
   },
-  { key:'autoDef', tab:'utl', icon:'⛊', name:'방어<br>자동업글', baseCost:12, unlock:null, maxLv:20,
-    cost()   { return upgCost('autoDef',12); },
+  { key:'autoDef', tab:'utl', icon:'⛊', name:'방어<br>자동업글', baseCost:15, unlock:null, maxLv:20,
+    cost()   { return upgCost('autoDef',15); },
     stat()   { return ((G._autoDefChance||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('autoDef',20) && coreChips>=upgCost('autoDef',12); },
-    apply()  { var c=upgCost('autoDef',12); coreChips-=c; G.upgLvl.autoDef=(G.upgLvl.autoDef||0)+1; G._autoDefChance=(G._autoDefChance||0)+0.01; },
+    canBuy() { return _canUpg('autoDef',20) && coreChips>=upgCost('autoDef',15); },
+    apply()  { var c=upgCost('autoDef',15); coreChips-=c; G.upgLvl.autoDef=(G.upgLvl.autoDef||0)+1; G._autoDefChance=(G._autoDefChance||0)+0.01; },
   },
-  { key:'autoUtl', tab:'utl', icon:'☆', name:'유틸<br>자동업글', baseCost:12, unlock:null, maxLv:20,
-    cost()   { return upgCost('autoUtl',12); },
+  { key:'autoUtl', tab:'utl', icon:'☆', name:'유틸<br>자동업글', baseCost:15, unlock:null, maxLv:20,
+    cost()   { return upgCost('autoUtl',15); },
     stat()   { return ((G._autoUtlChance||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('autoUtl',20) && coreChips>=upgCost('autoUtl',12); },
-    apply()  { var c=upgCost('autoUtl',12); coreChips-=c; G.upgLvl.autoUtl=(G.upgLvl.autoUtl||0)+1; G._autoUtlChance=(G._autoUtlChance||0)+0.01; },
+    canBuy() { return _canUpg('autoUtl',20) && coreChips>=upgCost('autoUtl',15); },
+    apply()  { var c=upgCost('autoUtl',15); coreChips-=c; G.upgLvl.autoUtl=(G.upgLvl.autoUtl||0)+1; G._autoUtlChance=(G._autoUtlChance||0)+0.01; },
   },
   { key:'enemySkip', tab:'utl', icon:'»', name:'적 레벨<br>건너뛰기', baseCost:10, unlock:null, maxLv:300,
     cost()   { return upgCost('enemySkip',10); },
@@ -3085,11 +3123,11 @@ var UPGRADES = [
     canBuy() { return coreChips>=upgCost('enemySkip',10); },
     apply()  { var c=upgCost('enemySkip',10); coreChips-=c; G.upgLvl.enemySkip=(G.upgLvl.enemySkip||0)+1; G._enemySkipChance=Math.min(0.20,(G._enemySkipChance||0)+0.0005); },
   },
-  { key:'protoCd', tab:'utl', icon:'⏱', name:'프로토콜<br>쿨감', baseCost:15, unlock:null, maxLv:40,
-    cost()   { return upgCost('protoCd',15); },
+  { key:'protoCd', tab:'utl', icon:'⏱', name:'프로토콜<br>쿨감', baseCost:20, unlock:null, maxLv:40,
+    cost()   { return upgCost('protoCd',20); },
     stat()   { return ((G._protoCdReduce||0)*100)._tf1()+'%'; },
-    canBuy() { return _canUpg('protoCd',40) && coreChips>=upgCost('protoCd',15); },
-    apply()  { var c=upgCost('protoCd',15); coreChips-=c; G.upgLvl.protoCd=(G.upgLvl.protoCd||0)+1; G._protoCdReduce=(G._protoCdReduce||0)+0.005; },
+    canBuy() { return _canUpg('protoCd',40) && coreChips>=upgCost('protoCd',20); },
+    apply()  { var c=upgCost('protoCd',20); coreChips-=c; G.upgLvl.protoCd=(G.upgLvl.protoCd||0)+1; G._protoCdReduce=(G._protoCdReduce||0)+0.005; },
   },
 ];
 
@@ -11315,14 +11353,11 @@ function _patchUpgrades() {
   if (!hasCM && critIdx >= 0) {
     UPGRADES.splice(critIdx + 1, 0, {
       key: 'critMult', tab: 'atk', icon: '×!', name: '치명타<br>계수', baseCost: 10, unlock: 'crit',
-      cost:   function() { return Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0)); },
+      cost:   function() { return upgCost('critMult',10); },
       stat:   function() { return (window.G ? (G.critMult || 1.5)._tf1() : '1.5'); },
-      canBuy: function() {
-        var c = Math.floor(10 * Math.pow(1.4, window.G ? (G.upgLvl.critMult || 0) : 0));
-        return !!(window.G && coreChips >= c);
-      },
+      canBuy: function() { return !!(window.G && coreChips >= upgCost('critMult',10)); },
       apply: function() {
-        var c = Math.floor(10 * Math.pow(1.4, G.upgLvl.critMult || 0));
+        var c = upgCost('critMult',10);
         coreChips -= c;
         G.upgLvl.critMult = (G.upgLvl.critMult || 0) + 1;
         G.critMult = (G.critMult || 1.5) + 0.1;
