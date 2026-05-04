@@ -16853,7 +16853,8 @@ function renderFW(){
         '<button style="background:#1a3355;border:1px solid #2a4466;border-radius:6px;color:#4488ff;font-family:\'Courier New\',monospace;font-size:13px;padding:8px 28px;cursor:pointer;-webkit-appearance:none;">확인</button>'+
       '</div>';
     _pop.querySelector('button').onclick=function(){_pop.remove();};
-    _pop.onclick=function(e){if(e.target===_pop)_pop.remove();};
+    _pop.addEventListener('click',function(){_pop.remove();});
+    _pop.addEventListener('touchend',function(){_pop.remove();});
     document.body.appendChild(_pop);
   }
 
