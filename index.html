@@ -7253,6 +7253,7 @@ if (dailyPopup) {
 
   /* 테이블 기반 비용 (table: 레벨별 고정 비용, m: 이후 증가율) */
   function _wsTbl(table,m){return function(lv){if(lv<table.length)return table[lv];var v=table[table.length-1];for(var i=table.length;i<=lv;i++)v=Math.floor(v*m);return v;};}
+  window._wsTbl = _wsTbl;
 
   /* ══ WS_ITEMS 정의 ══ */
   var WS_ITEMS = {
@@ -8888,7 +8889,7 @@ var NEW_ITEMS = {
   bounceRange:   { tab:'atk', name:'도약탄 범위', tier:5, atkGroup:5, maxLv:20, cost:function(lv){return 22+Math.floor(lv*4);},   cur:function(lv){return lv*4+'px';},       nxt:function(lv){return (lv+1)*4+'px';} },
 
   // 방어 탭 3단계
-  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, defGroup:4, maxLv:10, cost:_wsTbl([12,60,300,1500,7500,37500,75000,150000,300000,500000],1.35),   cur:function(lv){return (lv*2)+'px';},              nxt:function(lv){return ((lv+1)*2)+'px';} },
+  knockbackForce:  { tab:'def', name:'넉백 거리',        tier:3, defGroup:4, maxLv:10, cost:window._wsTbl([12,60,300,1500,7500,37500,75000,150000,300000,500000],1.35),   cur:function(lv){return (lv*2)+'px';},              nxt:function(lv){return ((lv+1)*2)+'px';} },
 
 };
 
