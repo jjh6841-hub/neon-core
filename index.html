@@ -16663,14 +16663,21 @@ function _getCurrentRule(){
     var found=FW_RULES.filter(function(r){return r.id===_fwOverrideRule;})[0];
     if(found) return found;
   }
-  // 자동: 주간 교체 (기존 공식 유지 + 월요일 01시 경계 보정)
+  // 자동: 월요일 01시 기준 주간 교체 (정산 주기와 동일)
   var now=new Date();
   var adj=new Date(now);
   // 월요일 00:00~01:00 사이면 아직 이전 주 규칙 유지 (정산 완료 전)
   if(adj.getDay()===1 && adj.getHours()<1) adj.setDate(adj.getDate()-1);
-  var jan1=new Date(adj.getFullYear(),0,1);
-  var weekNum=Math.floor(((adj-jan1)/86400000+jan1.getDay())/7);
-  return FW_RULES[weekNum % FW_RULES.length];
+  // 이번 주 월요일 구하기 (정산 weekKey와 동일한 로직)
+  var d=new Date(adj);
+  d.setHours(12,0,0,0);
+  var day=d.getDay(); var diff=day===0?6:day-1;
+  d.setDate(d.getDate()-diff);
+  // 기준 월요일(2024-01-01)로부터 주차 계산
+  var epoch=new Date(2024,0,1);
+  epoch.setHours(12,0,0,0);
+  var weekNum=Math.round((d-epoch)/(7*86400000));
+  return FW_RULES[((weekNum%FW_RULES.length)+FW_RULES.length)%FW_RULES.length];
 }
 window._getCurrentRule = _getCurrentRule;
 
@@ -16990,8 +16997,10 @@ function _checkFWSettlement(){
 
   // 이미 이번 주 정산 완료면 스킵
   if(lastSettle===weekKey) return;
-  // 월요일 01시 이후에만 정산 실행 (정산 완료 시점)
-  if(now.getDay()!==1 || now.getHours()<1) return;
+  // 이번 주 월요일 01시를 지났는지 확인 (월요일 외 요일에도 정산 가능)
+  var monday01=new Date(d.getTime());
+  monday01.setHours(1,0,0,0);
+  if(now<monday01) return;
   // 시즌 기록이 없으면 스킵
   if(!fw.seasonScore || fw.seasonScore<=0) return;
 
