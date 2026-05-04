@@ -2574,7 +2574,7 @@ function loadPerm() {
       PERM.ws_def_unlocks = d.ws_def_unlocks ?? 0;
       // 해금 상태 동기화 (기존 데이터 마이그레이션)
       if (!PERM.unlocks) PERM.unlocks = {};
-      var _atkUMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce']};
+      var _atkUMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce'], 7:['enhCrit']};
       var _defUMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield']};
       for (var _gi=1; _gi<=PERM.ws_atk_unlocks; _gi++) { if(_atkUMap[_gi]) _atkUMap[_gi].forEach(function(k){PERM.unlocks[k]=true;}); }
       for (var _gj=1; _gj<=PERM.ws_def_unlocks; _gj++) { if(_defUMap[_gj]) _defUMap[_gj].forEach(function(k){PERM.unlocks[k]=true;}); }
@@ -19359,7 +19359,7 @@ function _fwResetToBase(){
   // 영구 스탯
   G.regenRate=0; G.lifeSteal=0; G.defenseAbs=0;
   G.enhCritChance=0; G.enhCritMult=1.5; G.enemyDefReduce=0;
-  G.critChance=0; G.critMult=1.5; G.reflectPct=0; G.knockbackChance=0;
+  G.critChance=0; G.critMult=1.5; G.reflectPct=0; G.knockbackChance=0; G.knockbackForce=0;
   // 프리즘 효과 전부 초기화
   G.splashPct=0; G._prismSpdBonus=0; G._prismChipWaveBonus=0;
   G._prismChipKillBonus=0; G.freeUpgChance=0; G.auraSlowPct=0;
@@ -19394,6 +19394,7 @@ function _fwResetToBase(){
   if(u.rapidChance>0) G.rapidChance=Math.min(0.40,u.rapidChance*0.005);
   if(u.rapidDuration>0) G.rapidDuration=u.rapidDuration*0.2;
   if(u.dmgPerMeter>0) G.dmgPerMeter=1+u.dmgPerMeter*0.05;
+  if(u.knockForce>0) G.knockbackForce=u.knockForce*2;
   if(u.shieldHP>0){ G.tower.shdMax=Math.round(G.tower.maxHp*Math.min(50,u.shieldHP)/100); G.tower.shdCur=G.tower.shdMax; }
 }
 window._fwResetToBase=_fwResetToBase;
