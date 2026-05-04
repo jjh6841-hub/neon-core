@@ -7555,8 +7555,8 @@ if (dailyPopup) {
       { group:3, name:'멀티샷', cost:1200 },   // 분열탄 확률, 분열탄 수
       { group:4, name:'고속발사', cost:3000 }, // 연사 확률, 연사 지속
       { group:5, name:'바운스샷', cost:6000 }, // 도약탄 확률, 도약탄 수, 도약탄 범위
-      { group:6, name:'적 방어 감소', cost:10000 }, // 적 방어력 감소
-      { group:7, name:'강화 치명타', cost:15000 }, // 강화 치명타 확률, 강화 치명타 계수
+      { group:6, name:'적 방어 감소', cond:{tier:2, wave:100} }, // 스펙트라 100웨이브 클리어
+      { group:7, name:'강화 치명타', cost:20000 }, // 강화 치명타 확률, 강화 치명타 계수
     ];
 
     if (tab === 'atk') {
@@ -7575,21 +7575,26 @@ if (dailyPopup) {
       var nextGroup = atkUnlocks + 1;
       var nextDef = ATK_UNLOCK_GROUPS.filter(function(g){ return g.group === nextGroup; })[0];
       if (nextDef) {
-        var afford = PERM.gold >= nextDef.cost;
+        var _isCond = !!nextDef.cond;
+        var _condMet = _isCond ? _isContentUnlocked(nextDef.cond) : false;
+        var afford = _isCond ? _condMet : (PERM.gold >= nextDef.cost);
+        var _condText = _isCond ? _unlockCondText(nextDef.cond) : '';
         var unlockCard = document.createElement('div');
         unlockCard.style.cssText = 'grid-column:1/-1;background:#060f18;border:1px solid '+(afford?'#0a3344':'#1a2a3a')+';border-left:2px solid rgba(0,255,255,0.15);padding:14px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:4px;';
         unlockCard.innerHTML =
           '<div style="display:flex;flex-direction:column;gap:2px;">'+
             '<span style="font-size:11px;color:'+(afford?'#00ffff':'#334455')+';font-family:monospace;">'+nextDef.name+' 업그레이드 잠금 해제</span>'+
+            (_isCond?'<span style="font-size:9px;color:#556677;font-family:monospace;">'+_condText+(_condMet?' ✓':'')+'</span>':'')+
           '</div>'+
-          '<button data-atk-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextDef.cost+'</button>';
+          (_isCond
+            ? '<button data-atk-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(_condMet?'#00ff88':'#334455')+';color:'+(_condMet?'#00ff88':'#334455')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">'+(_condMet?'해금':'미달성')+'</button>'
+            : '<button data-atk-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextDef.cost+'</button>');
         var btn = unlockCard.querySelector('button');
-        (function(grp, cost) {
+        (function(grp, cost, isCond, condMet) {
           btn.addEventListener('click', function() {
-            if (PERM.gold < cost) return;
-            PERM.gold -= cost;
+            if (isCond) { if (!condMet) return; }
+            else { if (PERM.gold < cost) return; PERM.gold -= cost; }
             PERM.ws_atk_unlocks = grp;
-            // 전투 화면 인게임 업그레이드 잠금 해제 연동
             if (!PERM.unlocks) PERM.unlocks = {};
             var unlockMap = {1:['crit'], 2:['rng'], 3:['multi'], 4:['rapidChance'], 5:['bounceChance'], 6:['enemyDefReduce'], 7:['enhCrit']};
             var keys = unlockMap[grp];
@@ -7599,7 +7604,7 @@ if (dailyPopup) {
             syncWorkshopHUD();
             buildWorkshopContent('atk');
           });
-        })(nextGroup, nextDef.cost);
+        })(nextGroup, nextDef.cost||0, _isCond, _condMet);
         container.appendChild(unlockCard);
       }
     } else if (tab === 'def') {
@@ -7609,8 +7614,8 @@ if (dailyPopup) {
         { group:2, name:'반사', cost:800 },    // 반사 데미지
         { group:3, name:'흡혈', cost:1500 },   // 흡혈 확률
         { group:4, name:'넉백', cost:3000 },   // 넉백 확률
-        { group:5, name:'쉴드', cost:10000 },  // 쉴드 HP
-        { group:6, name:'파장', cost:15000 },  // 파장 크기/주기
+        { group:5, name:'쉴드', cond:{tier:1, wave:100} },  // 에이온 100웨이브 클리어
+        { group:6, name:'파장', cost:25000 },  // 파장 크기/주기
       ];
       var defUnlocks = PERM.ws_def_unlocks || 0;
       var keys = Object.keys(WS_ITEMS).filter(function(k) { return WS_ITEMS[k].tab === 'def'; });
@@ -7622,19 +7627,25 @@ if (dailyPopup) {
       var nextGroup = defUnlocks + 1;
       var nextDef = DEF_UNLOCK_GROUPS.filter(function(g){ return g.group === nextGroup; })[0];
       if (nextDef) {
-        var afford = PERM.gold >= nextDef.cost;
+        var _isCond = !!nextDef.cond;
+        var _condMet = _isCond ? _isContentUnlocked(nextDef.cond) : false;
+        var afford = _isCond ? _condMet : (PERM.gold >= nextDef.cost);
+        var _condText = _isCond ? _unlockCondText(nextDef.cond) : '';
         var unlockCard = document.createElement('div');
         unlockCard.style.cssText = 'grid-column:1/-1;background:#060f18;border:1px solid '+(afford?'#0a3344':'#1a2a3a')+';border-left:2px solid rgba(0,255,255,0.15);padding:14px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:4px;';
         unlockCard.innerHTML =
           '<div style="display:flex;flex-direction:column;gap:2px;">'+
             '<span style="font-size:11px;color:'+(afford?'#00ffff':'#334455')+';font-family:monospace;">'+nextDef.name+' 업그레이드 잠금 해제</span>'+
+            (_isCond?'<span style="font-size:9px;color:#556677;font-family:monospace;">'+_condText+(_condMet?' ✓':'')+'</span>':'')+
           '</div>'+
-          '<button data-def-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextDef.cost+'</button>';
+          (_isCond
+            ? '<button data-def-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(_condMet?'#00ff88':'#334455')+';color:'+(_condMet?'#00ff88':'#334455')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">'+(_condMet?'해금':'미달성')+'</button>'
+            : '<button data-def-unlock="'+nextGroup+'" style="background:#030b10;border:1px solid '+(afford?'#f59e0b':'#ef4444')+';color:'+(afford?'#f59e0b':'#ef4444')+';font-family:monospace;font-size:12px;padding:8px 14px;cursor:pointer;-webkit-appearance:none;">◈'+nextDef.cost+'</button>');
         var btn = unlockCard.querySelector('button');
-        (function(grp, cost) {
+        (function(grp, cost, isCond, condMet) {
           btn.addEventListener('click', function() {
-            if (PERM.gold < cost) return;
-            PERM.gold -= cost;
+            if (isCond) { if (!condMet) return; }
+            else { if (PERM.gold < cost) return; PERM.gold -= cost; }
             PERM.ws_def_unlocks = grp;
             if (!PERM.unlocks) PERM.unlocks = {};
             var unlockMap = {2:['reflect'], 3:['vamp'], 4:['knockback'], 5:['shield'], 6:['pulse']};
@@ -7645,7 +7656,7 @@ if (dailyPopup) {
             syncWorkshopHUD();
             buildWorkshopContent('def');
           });
-        })(nextGroup, nextDef.cost);
+        })(nextGroup, nextDef.cost||0, _isCond, _condMet);
         container.appendChild(unlockCard);
       }
     } else {
