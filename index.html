@@ -3095,9 +3095,9 @@ var UPGRADES = [
   },
   { key:'chipWave', tab:'utl', icon:'⊕', name:'코어칩<br>웨이브', baseCost:10, unlock:null, maxLv:999,
     cost()   { return upgCost('chipWave',10); },
-    stat()   { return '+'+((G._prismChipWaveBonus||0)*100)._tf1()+'%'; },
+    stat()   { return '+'+(G._chipWaveFlat||0); },
     canBuy() { return coreChips>=upgCost('chipWave',10); },
-    apply()  { var c=upgCost('chipWave',10); coreChips-=c; G.upgLvl.chipWave=(G.upgLvl.chipWave||0)+1; G._prismChipWaveBonus=(G._prismChipWaveBonus||0)+0.02; },
+    apply()  { var c=upgCost('chipWave',10); coreChips-=c; G.upgLvl.chipWave=(G.upgLvl.chipWave||0)+1; G._chipWaveFlat=(G._chipWaveFlat||0)+2; },
   },
   { key:'goldBst', tab:'utl', icon:'◈', name:'골드<br>강화', baseCost:10, unlock:null, maxLv:999,
     cost()   { return upgCost('goldBst',10); },
@@ -3674,7 +3674,7 @@ function startWave() {
   G.bossTimer   = -1;
   // Wave start core chip bonus (2웨이브부터, 고정 2 + 프리즘 코어 수확 보너스)
   if (w >= 2) {
-    var _rawBonus = 2 * (1 + (G._prismChipWaveBonus||0));
+    var _rawBonus = (2 + (G._chipWaveFlat||0)) * (1 + (G._prismChipWaveBonus||0));
     var bonus = Math.round(_rawBonus * 10) / 10; // 소수점 1자리 유지
     coreChips += bonus;
     G.waveBonusText = '+' + bonus + ' \u2295 웨이브 보너스';
@@ -3870,7 +3870,7 @@ function update(dt) {
             _skipKillChips += Math.ceil(_seGold * 0.1 * (1 + (G._prismChipKillBonus||0) + (G._augChipMult?0.5:0)));
           }
           var _skipWaveGold = Math.round(Math.min(50, 5 + Math.floor(_nw / 100) * 5) * (G.goldMult||1));
-          var _skipWaveChips = Math.round(2 * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
+          var _skipWaveChips = Math.round((2 + (G._chipWaveFlat||0)) * (1 + (G._prismChipWaveBonus||0)) * 10) / 10;
           var _totalGold = Math.round((_skipKillGold + _skipWaveGold) * 1.1);
           var _totalChips = Math.round((_skipKillChips + _skipWaveChips) * 1.1 * 10) / 10;
           G.gold += _totalGold; G.goldEarned += _totalGold; PERM.gold += _totalGold;
@@ -7444,8 +7444,8 @@ if (dailyPopup) {
       nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
     chipWaveBonus: { tab:'utl', name:'코어칩 웨이브', maxLv:999, utlGroup:1,
       cost: _wsTbl([8,21,52,127,259,475,817],1.35),
-      cur:  function(lv) { return '+' + (lv * 2) + '%'; },
-      nxt:  function(lv) { return '+' + ((lv+1) * 2) + '%'; } },
+      cur:  function(lv) { return '+' + (lv * 2); },
+      nxt:  function(lv) { return '+' + ((lv+1) * 2); } },
     goldBoost: { tab:'utl', name:'골드 강화', maxLv:999, utlGroup:1,
       cost: _wsTbl([8,23,57,131,265,488,828],1.35),
       cur:  function(lv) { return '+' + (lv * 2) + '%'; },
@@ -15155,7 +15155,7 @@ window.createState = function() {
   var ws = PERM.ws || {};
   // 코어칩: 프리즘 변수에 WS 값 합산 (프리즘 적용 후 이 값에 더해짐)
   g._wsChipKillBonus = (ws.chipKillBonus || 0) * 0.02;  // 강화소 코어칩 보너스
-  g._wsChipWaveBonus = (ws.chipWaveBonus || 0) * 0.02;  // 강화소 코어칩 웨이브
+  g._chipWaveFlat = (ws.chipWaveBonus || 0) * 2;  // 강화소 코어칩 웨이브 (합연산 +2/lv)
   // 골드
   g._goldBoost       = (ws.goldBoost     || 0) * 0.02;  // 골드 강화
   // 무료 업글: 프리즘 freeUpgChance에 WS 값 합산
@@ -15221,8 +15221,8 @@ window.applyPermStats = function() {
   var _rsc = parseInt(localStorage.getItem('res_r_start_chip')||'0',10);
   // 코어칩 보너스: 프리즘 + 강화소 + 코어랩 (합연산)
   G._prismChipKillBonus = (G._prismChipKillBonus || 0) + (G._wsChipKillBonus || 0) + _rck * 0.02;
-  // 코어칩 웨이브: 프리즘 + 강화소 + 코어랩 (합연산)
-  G._prismChipWaveBonus = (G._prismChipWaveBonus || 0) + (G._wsChipWaveBonus || 0) + _rcw * 0.02;
+  // 코어칩 웨이브: 프리즘 + 코어랩 (% 보너스만, 강화소/전투는 합연산으로 별도)
+  G._prismChipWaveBonus = (G._prismChipWaveBonus || 0) + _rcw * 0.02;
   // 무료 업글: 프리즘 + 강화소 (합연산)
   G.freeUpgChance = (G.freeUpgChance || 0) + (G._wsFreeUpgChance || 0);
   // 골드 강화: 강화소 + 코어랩 → G.goldMult 합연산
@@ -19453,7 +19453,7 @@ function _fwResetToBase(){
   G.enhCritChance=0; G.enhCritMult=1.5; G.enemyDefReduce=0;
   G.critChance=0; G.critMult=1.5; G.reflectPct=0; G.knockbackChance=0; G.knockbackForce=0;
   // 프리즘 효과 전부 초기화
-  G.splashPct=0; G._prismSpdBonus=0; G._prismChipWaveBonus=0;
+  G.splashPct=0; G._prismSpdBonus=0; G._prismChipWaveBonus=0; G._chipWaveFlat=0;
   G._prismChipKillBonus=0; G.freeUpgChance=0; G.auraSlowPct=0;
   G.lastStandPct=0; G.emergencyHealPct=0; G.overloadPct=0;
   G.vulnPct=0; G.jamPct=0; G.waveSkipChance=0; G.introBonus=0;
@@ -19493,7 +19493,7 @@ function _fwResetToBase(){
   if(u.shieldHP>0){ G.tower.shdMax=Math.round(G.tower.maxHp*Math.min(50,u.shieldHP)/100); G.tower.shdCur=G.tower.shdMax; }
   // 유틸 전투 업그레이드 재적용
   if(u.chipKill>0) G._prismChipKillBonus=(G._prismChipKillBonus||0)+u.chipKill*0.02;
-  if(u.chipWave>0) G._prismChipWaveBonus=(G._prismChipWaveBonus||0)+u.chipWave*0.02;
+  if(u.chipWave>0) G._chipWaveFlat=(G._chipWaveFlat||0)+u.chipWave*2;
   if(u.goldBst>0) G._goldBoost=(G._goldBoost||0)+u.goldBst*0.02;
   if(u.freeUpg>0) G.freeUpgChance=(G.freeUpgChance||0)+u.freeUpg*0.01;
   if(u.autoAtk>0) G._autoAtkChance=(G._autoAtkChance||0)+u.autoAtk*0.01;
