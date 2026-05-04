@@ -3920,8 +3920,8 @@ function update(dt) {
           if (_healAmt > 0) G.tower.hp = Math.min(G.tower.maxHp, G.tower.hp + _healAmt);
         }
         e.hp -= dmg;
-        // 넉백: 분열탄 적중 시
-        if (b._isMulti && e.hp > 0 && G.knockbackChance > 0 && G.knockbackForce > 0 && Math.random() < G.knockbackChance) {
+        // 넉백: 총알 적중 시 (일반·분열탄 공통)
+        if (e.hp > 0 && G.knockbackChance > 0 && G.knockbackForce > 0 && Math.random() < G.knockbackChance) {
           var _mkf = G.knockbackForce;
           if (e.boss) { _mkf *= e.bossGrade==='galaxy'?0.01:e.bossGrade==='hyper'?0.10:e.bossGrade==='elite'?0.30:0.50; }
           if (_mkf > 0) { var _mkd = Math.sqrt((e.x-G.cx)*(e.x-G.cx)+(e.y-G.cy)*(e.y-G.cy))||1; e.x+=((e.x-G.cx)/_mkd)*_mkf; e.y+=((e.y-G.cy)/_mkd)*_mkf; }
@@ -14842,31 +14842,7 @@ window.fireTower = function() {
   _origFire_mech.apply(this, arguments);
   if (!G || !G.enemies.length) return;
 
-  // ① 넉백: 발사 시 최근접 적을 확률로 밀어냄
-  if (G.knockbackChance > 0 && G.knockbackForce > 0) {
-    var kTgt = null, kMin = G.tower.range + 1;
-    for (var ki = 0; ki < G.enemies.length; ki++) {
-      var ke = G.enemies[ki];
-      var kdx = ke.x - G.cx, kdy = ke.y - G.cy;
-      var kd = Math.sqrt(kdx * kdx + kdy * kdy);
-      if (kd < kMin) { kMin = kd; kTgt = ke; }
-    }
-    if (kTgt && Math.random() < G.knockbackChance) {
-      var kf = (G.knockbackForce || 0);
-      // 보스 등급별 넉백 감소
-      if (kTgt.boss) {
-        var _kbr = kTgt.bossGrade==='galaxy'?0.01:kTgt.bossGrade==='hyper'?0.10:kTgt.bossGrade==='elite'?0.30:0.50;
-        kf = kf * _kbr;
-      }
-      if (kf > 0) {
-      var ktd = Math.sqrt((kTgt.x - G.cx) * (kTgt.x - G.cx) + (kTgt.y - G.cy) * (kTgt.y - G.cy)) || 1;
-      kTgt.x += ((kTgt.x - G.cx) / ktd) * kf;
-      kTgt.y += ((kTgt.y - G.cy) / ktd) * kf;
-      }
-    }
-  }
-
-  // ② 연사 트리거 (공격속도 x2)
+  // ① 연사 트리거 (공격속도 x2)
   if (G.rapidChance > 0 && !G._rapidActive && G.rapidDuration > 0 && Math.random() < G.rapidChance) {
     G._rapidActive = true;
     G._rapidTimer  = G.rapidDuration * 1000; // ms
