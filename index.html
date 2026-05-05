@@ -7722,7 +7722,8 @@ if (dailyPopup) {
 
   /* ══ 코어랩 할인 계수 (0.5%/Lv) ══ */
   function _wsDiscountMult(tab) {
-    var lab = _loadLab(), res = lab.research || {};
+    var lab; try { lab = JSON.parse(localStorage.getItem('td_lab') || '{}'); } catch(_) { lab = {}; }
+    var res = lab.research || {};
     var key = tab === 'atk' ? 'atk_discount' : tab === 'def' ? 'def_discount' : tab === 'utl' ? 'utl_discount' : null;
     if (!key) return 1;
     var lv = res[key] || 0;
