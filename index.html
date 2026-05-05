@@ -21617,8 +21617,14 @@ function _calcStats(){
     if(_modB.hp>0)bh=Math.round(bh*(1+_modB.hp/100));if(_modLv.hp>0)bh=Math.round(bh*(1+_modLv.hp/100));
   }
 
+  // 스토어 영구 능력 (바이탈 드레인 등 — 모든 요일 적용)
+  var lifeSteal=parseFloat(localStorage.getItem('shop_absorb_bonus')||'0');
+  // 강화소 흡혈
+  if(hasWS) lifeSteal+=(ws.vampChance||0)*0.001;
+
   return{hp:Math.max(50,bh),maxHp:Math.max(50,bh),dmg:Math.max(3,bd),def:def,
-    atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2)};
+    atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2),
+    lifeSteal:lifeSteal};
 }
 /* 적 난이도: 스테이지 N = 에이온 N*10 웨이브 동급 */
 function _eqWave(){return S.stage*10;}
@@ -21864,6 +21870,8 @@ function _update(dt){
   for(var bi=S.bullets.length-1;bi>=0;bi--){var b=S.bullets[bi],hit=false;
     for(var ei=S.enemies.length-1;ei>=0;ei--){var e=S.enemies[ei],ddx=b.x-e.x,ddy=b.y-e.y;
       if(ddx*ddx+ddy*ddy<(e.r+3)*(e.r+3)){var dmg=b.crit?Math.round(b.dmg*ship.critMult):b.dmg;e.hp-=dmg;
+        // 흡혈 (바이탈 드레인 + 강화소)
+        if(ship.lifeSteal>0){ship.hp=Math.min(ship.maxHp,ship.hp+dmg*ship.lifeSteal);}
         _addFx(b.x,b.y,b.crit?'#ffff00':'#00ffff',b.crit?6:3);
         if(b.crit)S.fx.push({x:b.x,y:b.y-8,vx:0,vy:-1,life:0.8,color:'#ffff00',sz:0,text:'CRIT!',textSize:8});
         if(e.hp<=0){_addFx(e.x,e.y,e.color,e.boss?20:8);if(e.boss)S.boss=null;S.enemies.splice(ei,1);S.killCount++;}hit=true;break;}}
@@ -22004,7 +22012,8 @@ window.startExploreBattle=function(elemId,stage,elemData){
   _resize();_initStars();
   var stats=_calcStats();
   S.ship={x:BASE_W/2,y:BASE_H-45,hp:stats.hp,maxHp:stats.maxHp,dmg:stats.dmg,def:stats.def,
-    atkMs:stats.atkMs,critRate:stats.critRate,critMult:stats.critMult,range:stats.range,_fireTimer:0};
+    atkMs:stats.atkMs,critRate:stats.critRate,critMult:stats.critMult,range:stats.range,
+    lifeSteal:stats.lifeSteal||0,_fireTimer:0};
   S.active=true;
   setTimeout(function(){if(S.active)_spawnWave();},500);
   S.rafId=requestAnimationFrame(_loop);
