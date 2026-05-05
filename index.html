@@ -21005,6 +21005,18 @@ function _submitCoupon() {
 <!-- ── 탐사 전투 화면 ── -->
 <div id="screen-explore-battle" style="display:none;position:fixed;inset:0;z-index:10600;background:#030b10;">
   <canvas id="explore-battle-canvas" style="display:block;margin:0 auto;"></canvas>
+  <!-- 우측 상단 일시정지 버튼 -->
+  <button id="eb-pause-btn" style="position:absolute;top:calc(8px + var(--sat));right:8px;z-index:10610;width:36px;height:36px;background:#0a1a2a;border:1px solid #1a3344;border-radius:6px;color:#00ffff;font-size:16px;cursor:pointer;-webkit-appearance:none;">☰</button>
+  <!-- 일시정지 오버레이 -->
+  <div id="eb-pause-overlay" style="display:none;position:fixed;inset:0;z-index:10620;background:rgba(3,11,16,0.92);flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+    <div style="font-family:'Courier New',monospace;font-size:16px;color:#00ffff;letter-spacing:4px;margin-bottom:32px;">‖ 일시정지</div>
+    <button id="eb-resume" style="width:240px;padding:14px;background:transparent;border:1px solid #00ffff;border-radius:8px;color:#00ffff;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">▶ 계속하기</button>
+    <button id="eb-home" style="width:240px;padding:14px;background:transparent;border:1px solid #1a3444;border-radius:8px;color:#7aacac;font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⌂ 탐사 화면으로</button>
+  </div>
+  <!-- 결과 오버레이 -->
+  <div id="eb-result-overlay" style="display:none;position:fixed;inset:0;z-index:10630;background:rgba(3,11,16,0.95);flex-direction:column;align-items:center;justify-content:center;gap:0;">
+    <div id="eb-result-content" style="display:flex;flex-direction:column;align-items:center;gap:12px;"></div>
+  </div>
 </div>
 
 <script>
@@ -21507,7 +21519,7 @@ window._exploreGetElemLv = _getElemLv;
 var BASE_W=360, BASE_H=640, SHIP_SC=1.5, SHIP_RANGE=120;
 
 var S={
-  active:false,rafId:0,canvas:null,ctx:null,cw:0,ch:0,dpr:1,scale:1,
+  active:false,paused:false,rafId:0,canvas:null,ctx:null,cw:0,ch:0,dpr:1,scale:1,
   ship:null,enemies:[],bullets:[],eBullets:[],fx:[],stars:[],
   wave:0,maxWave:2,phase:'idle',phaseTimer:0,
   boss:null,stage:0,elemId:'',elemColor:'#ff8822',elemData:null,
@@ -21732,7 +21744,7 @@ function _update(dt){
 
   if(S.phase==='warning'){S.warnTimer+=dt;if(S.warnTimer>=2500){S.phase='spawning';S.spawnTimer=0;
     S.spawnQ=[];S.bossQueued=true;S.boss=_mkBoss(3);S.enemies.push(S.boss);}return;}
-  if(S.phase==='result'){S.resultTimer+=dt;if(S.resultTimer>=3000)_endBattle();return;}
+  if(S.phase==='result'){S.resultTimer+=dt;if(S.resultTimer>=1500)_endBattle();return;}
   if(S.phase!=='spawning'&&S.phase!=='playing')return;
 
   // 타겟팅 자동 발사 — 범위 내 가장 가까운 적 조준
@@ -21841,18 +21853,82 @@ function _render(time){
   _drawShipHUD(ctx);_drawTopHUD(ctx);
   if(S.phase==='warning')_drawWarning(ctx,S.warnTimer/1000);
   if(S.phase==='waveTransition'){ctx.font='bold 16px monospace';ctx.fillStyle='#00ffff';ctx.textAlign='center';ctx.globalAlpha=0.8;ctx.fillText('WAVE '+S.wave+' CLEAR',BASE_W/2,BASE_H/2);ctx.globalAlpha=1;}
-  if(S.phase==='result'){var rw=window._exploreStageReward?window._exploreStageReward(S.stage):0;_drawResult(ctx,S._win,rw);}
   ctx.restore();
 }
 
-function _loop(ts){if(!S.active)return;var dt=S.lastTs>0?Math.min(ts-S.lastTs,50):16;S.lastTs=ts;_update(dt);_render(ts);S.rafId=requestAnimationFrame(_loop);}
+function _loop(ts){if(!S.active)return;var dt=S.lastTs>0?Math.min(ts-S.lastTs,50):16;S.lastTs=ts;
+  if(!S.paused)_update(dt);_render(ts);S.rafId=requestAnimationFrame(_loop);}
+
+/* ── 일시정지 ── */
+function _togglePause(){
+  S.paused=!S.paused;
+  var ov=document.getElementById('eb-pause-overlay');
+  if(ov)ov.style.display=S.paused?'flex':'none';
+}
+
+/* ── 결과 DOM 표시 ── */
+function _showResultDOM(){
+  var ov=document.getElementById('eb-result-overlay');if(!ov)return;
+  var cnt=document.getElementById('eb-result-content');if(!cnt)return;
+  var rw=window._exploreStageReward?window._exploreStageReward(S.stage):0;
+  var elemName=S.elemData?S.elemData.name:'';
+  var elemIcon=S.elemData?S.elemData.icon:'';
+  var elemCore=S.elemData?S.elemData.core:'코어';
+
+  if(S._win){
+    // 승리 보상 처리
+    if(window._exploreSetTickets&&window._exploreGetTickets)window._exploreSetTickets(window._exploreGetTickets()-1);
+    if(window._exploreSetCore)window._exploreSetCore(S.elemId,(window._getElementCore?window._getElementCore(S.elemId):0)+rw);
+    if(window._exploreSetCleared&&window._exploreGetCleared)window._exploreSetCleared(S.elemId,Math.max(window._exploreGetCleared(S.elemId),S.stage));
+    if(window._exploreSetStage)window._exploreSetStage(S.elemId,S.stage+1);
+    try{savePerm();}catch(_){}try{if(window.checkAchievements)window.checkAchievements();}catch(_){}
+  }
+
+  cnt.innerHTML=S._win
+    ?'<div style="font-family:\'Courier New\',monospace;font-size:11px;color:#556677;letter-spacing:6px;margin-bottom:4px;">EXPLORATION</div>'+
+     '<div style="font-family:\'Courier New\',monospace;font-size:36px;color:#00ff88;font-weight:bold;letter-spacing:6px;text-shadow:0 0 20px #00ff8844;">VICTORY</div>'+
+     '<div style="width:200px;height:1px;background:linear-gradient(90deg,transparent,#00ff88,transparent);margin:16px 0;"></div>'+
+     '<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">'+
+       '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#556677;font-family:monospace;">클리어 스테이지</span><span style="font-size:18px;color:'+S.elemColor+';font-family:monospace;font-weight:bold;">'+elemIcon+' STAGE '+S.stage+'</span></div>'+
+       '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:10px;color:#556677;font-family:monospace;">획득 보상</span><span style="font-size:18px;color:'+S.elemColor+';font-family:monospace;font-weight:bold;">'+elemCore+' +'+rw+'</span></div>'+
+     '</div>'+
+     '<div style="margin-top:28px;"><button id="eb-result-home" style="width:220px;padding:14px;background:transparent;border:1px solid #00ff88;border-radius:8px;color:#00ff88;font-family:\'Courier New\',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⌂ 탐사 화면</button></div>'
+    :'<div style="font-family:\'Courier New\',monospace;font-size:11px;color:#556677;letter-spacing:6px;margin-bottom:4px;">EXPLORATION</div>'+
+     '<div style="font-family:\'Courier New\',monospace;font-size:36px;color:#ef4444;font-weight:bold;letter-spacing:6px;text-shadow:0 0 20px #ef444444;">FAILED</div>'+
+     '<div style="width:200px;height:1px;background:linear-gradient(90deg,transparent,#ef4444,transparent);margin:16px 0;"></div>'+
+     '<div style="font-size:11px;color:#94a3b8;font-family:monospace;">탐사 실패 — 티켓 소모 없음</div>'+
+     '<div style="margin-top:28px;"><button id="eb-result-home" style="width:220px;padding:14px;background:transparent;border:1px solid #1a3344;border-radius:8px;color:#7aacac;font-family:\'Courier New\',monospace;font-size:13px;letter-spacing:2px;cursor:pointer;-webkit-appearance:none;">⌂ 탐사 화면</button></div>';
+
+  ov.style.display='flex';
+  var homeBtn=document.getElementById('eb-result-home');
+  if(homeBtn)homeBtn.onclick=function(){_closeBattle();};
+}
+
+/* ── 전투 종료 (결과 표시) ── */
+function _endBattle(){
+  S.active=false;if(S.rafId)cancelAnimationFrame(S.rafId);
+  _showResultDOM();
+}
+
+/* ── 화면 닫고 탐사 화면으로 ── */
+function _closeBattle(){
+  var scr=document.getElementById('screen-explore-battle');if(scr)scr.style.display='none';
+  var ov=document.getElementById('eb-result-overlay');if(ov)ov.style.display='none';
+  var pov=document.getElementById('eb-pause-overlay');if(pov)pov.style.display='none';
+  S.active=false;S.paused=false;
+  if(window._exploreRender)window._exploreRender();
+}
 
 /* ── 전투 시작 ── */
 window.startExploreBattle=function(elemId,stage,elemData){
   var scr=document.getElementById('screen-explore-battle');if(!scr)return;
   scr.style.display='flex';scr.style.alignItems='center';scr.style.justifyContent='center';
+  // 결과/일시정지 숨기기
+  var rov=document.getElementById('eb-result-overlay');if(rov)rov.style.display='none';
+  var pov=document.getElementById('eb-pause-overlay');if(pov)pov.style.display='none';
+
   S.elemId=elemId;S.stage=stage;S.elemData=elemData;S.elemColor=elemData?elemData.color:'#ff8822';
-  S.maxWave=(stage%5===0)?3:2;S.wave=0;S.phase='idle';S.boss=null;
+  S.maxWave=(stage%5===0)?3:2;S.wave=0;S.phase='idle';S.boss=null;S.paused=false;
   S.enemies=[];S.bullets=[];S.eBullets=[];S.fx=[];S.spawnQ=[];
   S.spawnTimer=0;S.warnTimer=0;S.resultTimer=0;S.invTimer=0;S.shakeTimer=0;S.shakeAmt=0;
   S._win=false;S.lastTs=0;S.killCount=0;S.totalEnemies=0;S.bossQueued=false;
@@ -21865,18 +21941,18 @@ window.startExploreBattle=function(elemId,stage,elemData){
   S.rafId=requestAnimationFrame(_loop);
 };
 
-function _endBattle(){
-  S.active=false;if(S.rafId)cancelAnimationFrame(S.rafId);
-  var scr=document.getElementById('screen-explore-battle');if(scr)scr.style.display='none';
-  if(S._win){var rw=window._exploreStageReward?window._exploreStageReward(S.stage):0;
-    if(window._exploreSetTickets&&window._exploreGetTickets)window._exploreSetTickets(window._exploreGetTickets()-1);
-    if(window._exploreSetCore)window._exploreSetCore(S.elemId,(window._getElementCore?window._getElementCore(S.elemId):0)+rw);
-    if(window._exploreSetCleared&&window._exploreGetCleared)window._exploreSetCleared(S.elemId,Math.max(window._exploreGetCleared(S.elemId),S.stage));
-    if(window._exploreSetStage)window._exploreSetStage(S.elemId,S.stage+1);
-    try{savePerm();}catch(_){}try{if(window.checkAchievements)window.checkAchievements();}catch(_){}
-    if(window.showToastMsg&&S.elemData)window.showToastMsg(S.elemData.icon+' '+S.stage+'단계 클리어! '+S.elemData.core+' +'+rw);}
-  if(window._exploreRender)window._exploreRender();
-}
+/* ── 버튼 이벤트 ── */
+document.addEventListener('DOMContentLoaded',function(){
+  var pauseBtn=document.getElementById('eb-pause-btn');
+  if(pauseBtn)pauseBtn.addEventListener('click',function(){if(S.active)_togglePause();});
+  var resumeBtn=document.getElementById('eb-resume');
+  if(resumeBtn)resumeBtn.addEventListener('click',function(){if(S.paused)_togglePause();});
+  var homeBtn=document.getElementById('eb-home');
+  if(homeBtn)homeBtn.addEventListener('click',function(){
+    S.active=false;if(S.rafId)cancelAnimationFrame(S.rafId);_closeBattle();
+  });
+});
+
 window.addEventListener('resize',function(){if(S.active)_resize();});
 }());
 </script>
