@@ -21626,8 +21626,12 @@ function _calcStats(){
     atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2),
     lifeSteal:lifeSteal};
 }
-/* 적 난이도: 스테이지 N = 에이온 N*10 웨이브 스케일링 기반, 탐사용 조정 */
-function _eqWave(){return S.stage*10;}
+/* 적 난이도: 월(강화소)=stage×10웨이브, 화~토=3+stage×2웨이브 */
+function _eqWave(){
+  var ds=window.DAY_SYSTEMS&&window.DAY_SYSTEMS[S.elemId];
+  var hasWS=ds&&ds.systems.indexOf('workshop')!==-1;
+  return hasWS ? S.stage*10 : 3+S.stage*2;
+}
 function _enemyHp(){var w=_eqWave();return Math.round(8+w*2.5);}
 function _enemyAtk(){var w=_eqWave();return Math.round(2+w*0.4);}
 
