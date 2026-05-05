@@ -20984,12 +20984,12 @@ function _submitCoupon() {
       </div>
       <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 적용 시스템</div>
       <div style="margin-bottom:8px;color:#778899;">
-        월: 강화소 + 모듈 + 스토어<br>
-        화: 코어랩 + 모듈 + 스토어<br>
-        수: 프리즘 + 모듈 + 스토어<br>
-        목: 스킨 + 모듈 + 스토어<br>
-        금: 프로토콜 + 모듈 + 스토어<br>
-        토: 모듈 + 스토어
+        월: 강화소 + 속성 + 모듈 + 스토어<br>
+        화: 코어랩 + 속성 + 모듈 + 스토어<br>
+        수: 프리즘 + 속성 + 모듈 + 스토어<br>
+        목: 스킨 + 속성 + 모듈 + 스토어<br>
+        금: 프로토콜 + 속성 + 모듈 + 스토어<br>
+        토: 속성 + 모듈 + 스토어
       </div>
       <div style="color:#ff8822;margin-bottom:4px;">▸ 규칙</div>
       <div style="color:#778899;">
@@ -21193,12 +21193,12 @@ function _getTodayElements() {
 
 /* ── 요일별 적용 시스템 ── */
 var DAY_SYSTEMS = {
-  fire:    { label:'강화소 + 모듈 + 스토어', systems:['workshop','module','store'] },
-  water:   { label:'코어랩 + 모듈 + 스토어', systems:['corelab','module','store'] },
-  electric:{ label:'프리즘 + 모듈 + 스토어', systems:['prism','module','store'] },
-  earth:   { label:'스킨 + 모듈 + 스토어', systems:['skin','module','store'] },
-  wind:    { label:'프로토콜 + 모듈 + 스토어', systems:['protocol','module','store'] },
-  dark:    { label:'모듈 + 스토어', systems:['module','store'] },
+  fire:    { label:'강화소 + 속성 + 모듈 + 스토어', systems:['workshop','element','module','store'] },
+  water:   { label:'코어랩 + 속성 + 모듈 + 스토어', systems:['corelab','element','module','store'] },
+  electric:{ label:'프리즘 + 속성 + 모듈 + 스토어', systems:['prism','element','module','store'] },
+  earth:   { label:'스킨 + 속성 + 모듈 + 스토어', systems:['skin','element','module','store'] },
+  wind:    { label:'프로토콜 + 속성 + 모듈 + 스토어', systems:['protocol','element','module','store'] },
+  dark:    { label:'속성 + 모듈 + 스토어', systems:['element','module','store'] },
 };
 
 /* ── 단계 관리 (속성별 1~30) ── */
