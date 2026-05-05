@@ -21549,9 +21549,8 @@ function _calcStats(){
   var bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)+(ws.maxHp||0))*(1+hL*0.03));
   var def=Math.min(0.70,(ws.defRate||0)*0.005+dL*0.01);
   var spd=1+(P.spdLv||0)*0.03+(ws.atkspd||0)*0.03;
-  var range=100+(P.rngLv||0)*8+(ws.wsRange||0)*8;
   return{hp:Math.max(50,bh),maxHp:Math.max(50,bh),dmg:Math.max(3,bd),def:def,
-    atkMs:Math.max(150,Math.round(400/spd)),critRate:Math.min(0.8,crL*0.002),critMult:1.5+cdL*0.03,range:Math.min(280,range)};
+    atkMs:Math.max(150,Math.round(400/spd)),critRate:Math.min(0.8,crL*0.002),critMult:1.5+cdL*0.03,range:Math.round(BASE_H/2)};
 }
 function _enemyHp(){return Math.round(20*Math.pow(1.18,S.stage-1));}
 function _enemyAtk(){return Math.round(3*Math.pow(1.12,S.stage-1));}
@@ -21587,8 +21586,8 @@ function _drawShip(ctx,x,y,sc,al,time){
 var ETYPES=[
   {id:'scout',color:'#ef4444',hpM:1,spd:1.4,r:6,atk:0,shape:'diamond'},
   {id:'fighter',color:'#ff6600',hpM:1.5,spd:1.0,r:8,atk:0,shape:'arrow'},
-  {id:'cruiser',color:'#cc44ff',hpM:3,spd:0.5,r:10,atk:1,shape:'hex'},
-  {id:'bomber',color:'#3b82f6',hpM:2,spd:0.8,r:9,atk:1,shape:'rect'},
+  {id:'cruiser',color:'#cc44ff',hpM:3,spd:0.5,r:10,atk:0,shape:'hex'},
+  {id:'sniper',color:'#3b82f6',hpM:1.2,spd:0.4,r:7,atk:1,shape:'rect'},
   {id:'fast',color:'#10b981',hpM:0.8,spd:2.2,r:5,atk:0,shape:'tri'}
 ];
 function _mkEnemy(ti,x,y){
@@ -21603,7 +21602,7 @@ function _mkBoss(tier){
   var label=tier===3?'HYPER BOSS':tier===2?'ELITE BOSS':'BOSS';
   var hp=Math.round(_enemyHp()*hpM);
   return{type:-1,x:BASE_W/2,y:-30,hp:hp,maxHp:hp,spd:spd,r:r,atk:_enemyAtk()*tier,color:col,shape:'boss',
-    canFire:true,fireTimer:0,fireRate:tier===3?700:tier===2?900:1300,
+    canFire:false,fireTimer:0,fireRate:9999,
     zigTimer:0,zigDir:1,boss:true,tier:tier,label:label,moveTimer:0};
 }
 
@@ -21783,9 +21782,9 @@ function _update(dt){
       e.x=Math.max(e.r,Math.min(BASE_W-e.r,e.x));
     }
     // 적 사격
-    if(e.canFire){e.fireTimer+=dt;if(e.fireTimer>=e.fireRate){e.fireTimer=0;
-      if(e.boss&&e.tier>=2){for(var s=-1;s<=1;s++)S.eBullets.push({x:e.x+s*8,y:e.y+e.r,vx:s*0.8,vy:2.5,dmg:e.atk,color:e.color});}
-      else{var adx=ship.x-e.x,ady=ship.y-e.y,ad=Math.sqrt(adx*adx+ady*ady)||1;S.eBullets.push({x:e.x,y:e.y+e.r,vx:adx/ad*2.5,vy:ady/ad*2.5,dmg:e.atk,color:e.color||'#ff4444'});}
+    if(e.canFire&&!e.boss){e.fireTimer+=dt;if(e.fireTimer>=e.fireRate){e.fireTimer=0;
+      var adx=ship.x-e.x,ady=ship.y-e.y,ad=Math.sqrt(adx*adx+ady*ady)||1;
+      S.eBullets.push({x:e.x,y:e.y+e.r,vx:adx/ad*2.5,vy:ady/ad*2.5,dmg:e.atk,color:e.color||'#3b82f6'});
     }}
     // 탐사선 접촉 피해
     if(!e.boss){var cdx=e.x-ship.x,cdy=e.y-ship.y;if(cdx*cdx+cdy*cdy<(e.r+10)*(e.r+10)){_hitShip(e.atk);_addFx(e.x,e.y,'#ff6600',5);S.enemies.splice(i,1);continue;}}
