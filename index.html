@@ -21781,12 +21781,16 @@ function _findTarget(sx,sy,range){
 
 /* ── HUD ── */
 function _drawBossBar(ctx,boss){
-  var bw=BASE_W*0.7,bh=6,bx=(BASE_W-bw)/2,by=36;
-  ctx.font='bold 9px monospace';ctx.fillStyle=boss.color;ctx.textAlign='center';ctx.fillText(boss.label,BASE_W/2,by-2);
+  var bw=BASE_W*0.65,bh=6,bx=(BASE_W-bw)/2,by=42;
+  ctx.font='bold 8px monospace';ctx.fillStyle=boss.color;ctx.textAlign='center';ctx.fillText(boss.label,BASE_W/2,by-2);
   ctx.fillStyle='#0a1520';ctx.fillRect(bx,by,bw,bh);
-  var pct=Math.max(0,boss.hp/boss.maxHp);ctx.fillStyle=boss.color;ctx.fillRect(bx,by,bw*pct,bh);
-  ctx.strokeStyle=boss.color;ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);
-  ctx.font='7px monospace';ctx.fillStyle='#ffffff';ctx.textAlign='right';ctx.fillText(Math.ceil(boss.hp)+'/'+boss.maxHp,bx+bw,by+bh+9);
+  var pct=Math.max(0,boss.hp/boss.maxHp);
+  var hpGrad=ctx.createLinearGradient(bx,0,bx+bw*pct,0);
+  hpGrad.addColorStop(0,boss.color);hpGrad.addColorStop(1,boss.color+'88');
+  ctx.fillStyle=hpGrad;ctx.fillRect(bx,by,bw*pct,bh);
+  ctx.strokeStyle=boss.color+'66';ctx.lineWidth=0.5;ctx.strokeRect(bx,by,bw,bh);
+  ctx.font='7px monospace';ctx.fillStyle='#94a3b8';ctx.textAlign='right';
+  ctx.fillText(Math.ceil(boss.hp)+'/'+boss.maxHp,bx+bw,by+bh+8);
 }
 function _drawShipHUD(ctx){
   var ship=S.ship;if(!ship)return;
@@ -21800,28 +21804,96 @@ function _drawShipHUD(ctx){
   ctx.fillText('HP '+Math.ceil(ship.hp)+'/'+ship.maxHp,BASE_W/2,by-3);
 }
 function _drawTopHUD(ctx){
-  // 최상단: 웨이브 진행 바
-  var barW=BASE_W-16,barH=14,barX=8,barY=6;
-  ctx.fillStyle='#060f18';ctx.fillRect(barX,barY,barW,barH);
-  ctx.strokeStyle='#0a3344';ctx.lineWidth=0.5;ctx.strokeRect(barX,barY,barW,barH);
-  // 웨이브 칸 나누기
-  for(var w=1;w<=S.maxWave;w++){
-    var wx=barX+(w-1)*(barW/S.maxWave),ww=barW/S.maxWave;
-    var done=w<S.wave,cur=w===S.wave;
-    if(done){ctx.fillStyle='#00ff8844';ctx.fillRect(wx+1,barY+1,ww-2,barH-2);}
-    else if(cur){ctx.fillStyle=S.elemColor+'44';ctx.fillRect(wx+1,barY+1,ww-2,barH-2);}
-    ctx.font='bold 8px monospace';ctx.textAlign='center';
-    ctx.fillStyle=done?'#00ff88':cur?S.elemColor:'#334455';
-    var wLabel=w===S.maxWave&&S.maxWave===3?'W3 HYPER':'W'+w;
-    ctx.fillText(wLabel,wx+ww/2,barY+barH-3);
-    // 구분선
-    if(w<S.maxWave){ctx.strokeStyle='#0a3344';ctx.beginPath();ctx.moveTo(wx+ww,barY);ctx.lineTo(wx+ww,barY+barH);ctx.stroke();}
+  var mw=S.maxWave, cy=18, mx=24, mxEnd=BASE_W-24;
+  var totalW=mxEnd-mx;
+  // 전체 진행도 (0~1): 웨이브 내 처치 진행 + 완료된 웨이브
+  var waveProgress=0;
+  if(S.wave>0&&S.totalEnemies>0&&!S.bossQueued) waveProgress=Math.min(1,S.killCount/Math.max(1,S.totalEnemies));
+  else if(S.bossQueued&&S.boss) waveProgress=1; // 보스전 중
+  var completedWaves=Math.max(0,S.wave-1);
+  var curWaveFrac=(S.wave>0)?((completedWaves+(S.bossQueued?1:waveProgress*0.85))/mw):0;
+  curWaveFrac=Math.min(1,curWaveFrac);
+
+  // 배경 패널
+  ctx.fillStyle='#060f1899';
+  var panelH=30;
+  ctx.fillRect(0,0,BASE_W,panelH+8);
+
+  // 스테이지 라벨
+  ctx.font='bold 8px monospace';ctx.fillStyle=S.elemColor;ctx.textAlign='left';
+  ctx.fillText('STAGE '+S.stage,mx,cy-6);
+
+  // ── 진행 라인 ──
+  // 노드 위치 계산: 시작○ — [W1구간] — 해골1 — [W2구간] — 해골2 — (해골3)
+  var nodes=[]; // {x, type:'start'|'boss1'|'boss2'|'boss3'}
+  nodes.push({x:mx,type:'start'});
+  for(var w=1;w<=mw;w++){
+    nodes.push({x:mx+totalW*(w/mw),type:w===1?'boss1':w===2?'boss2':'boss3'});
   }
-  // 스테이지
-  ctx.font='bold 9px monospace';ctx.fillStyle=S.elemColor;ctx.textAlign='left';
-  ctx.fillText('STAGE '+S.stage,barX,barY+barH+12);
-  ctx.fillStyle='#556677';ctx.textAlign='right';ctx.font='8px monospace';
-  ctx.fillText((S.stage%5===0?'3':'2')+' WAVES',barX+barW,barY+barH+12);
+
+  // 비활성 라인 (전체)
+  ctx.strokeStyle='#1a2a3a';ctx.lineWidth=2;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(mx,cy);ctx.lineTo(mxEnd,cy);ctx.stroke();
+
+  // 활성 라인 (심지 타는 효과)
+  var burnX=mx+totalW*curWaveFrac;
+  if(curWaveFrac>0){
+    var grad=ctx.createLinearGradient(mx,0,burnX,0);
+    grad.addColorStop(0,S.elemColor+'88');grad.addColorStop(0.7,S.elemColor);grad.addColorStop(1,'#ffffff');
+    ctx.strokeStyle=grad;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(mx,cy);ctx.lineTo(burnX,cy);ctx.stroke();
+    // 심지 끝 발광
+    ctx.fillStyle='#ffffff';ctx.globalAlpha=0.6+0.3*Math.sin(Date.now()*0.008);
+    ctx.beginPath();ctx.arc(burnX,cy,3,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=0.2;ctx.fillStyle=S.elemColor;ctx.beginPath();ctx.arc(burnX,cy,6,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  // ── 노드 그리기 ──
+  for(var ni=0;ni<nodes.length;ni++){
+    var nd=nodes[ni],nx=nd.x;
+    var passed=nx<=burnX+2;
+    if(nd.type==='start'){
+      // 시작점: 동그라미
+      ctx.fillStyle=passed?S.elemColor:'#1a2a3a';
+      ctx.beginPath();ctx.arc(nx,cy,4,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=passed?'#ffffff':'#334455';ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(nx,cy,4,0,Math.PI*2);ctx.stroke();
+    } else {
+      // 보스 노드: 해골
+      var tier=nd.type==='boss1'?1:nd.type==='boss2'?2:3;
+      var bossCol=tier===3?'#ff0044':tier===2?'#ff8822':'#ffcc00';
+      var sz=tier===3?7:tier===2?6:5;
+      var active=Math.abs(burnX-nx)<8&&S.bossQueued;
+
+      // 배경 글로우 (활성 시)
+      if(active){
+        ctx.globalAlpha=0.3+0.15*Math.sin(Date.now()*0.006);ctx.fillStyle=bossCol;
+        ctx.beginPath();ctx.arc(nx,cy,sz+5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+      }
+      // 해골 아이콘
+      ctx.fillStyle=passed?bossCol:(active?bossCol:'#1a2a3a');
+      // 두개골
+      ctx.beginPath();ctx.arc(nx,cy-1,sz*0.6,Math.PI,0);
+      ctx.lineTo(nx+sz*0.5,cy+sz*0.2);ctx.lineTo(nx-sz*0.5,cy+sz*0.2);ctx.closePath();ctx.fill();
+      // 턱
+      ctx.fillRect(nx-sz*0.35,cy+sz*0.15,sz*0.7,sz*0.25);
+      // 눈
+      ctx.fillStyle=active?'#ffffff':(passed?'#060a14':'#0a1520');
+      ctx.beginPath();ctx.arc(nx-sz*0.2,cy-sz*0.05,sz*0.12,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(nx+sz*0.2,cy-sz*0.05,sz*0.12,0,Math.PI*2);ctx.fill();
+      // 라벨
+      ctx.font='bold 6px monospace';ctx.textAlign='center';
+      ctx.fillStyle=passed?bossCol:'#334455';
+      var lbl=tier===3?'HYPER':tier===2?'ELITE':'BOSS';
+      ctx.fillText(lbl,nx,cy+sz+6);
+
+      // 체크마크 (완료 시)
+      if(passed&&!active){
+        ctx.font='bold 8px monospace';ctx.fillStyle='#00ff88';ctx.fillText('✓',nx,cy-sz-2);
+      }
+    }
+  }
 }
 
 function _drawWarning(ctx,t){
