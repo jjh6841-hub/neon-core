@@ -9533,7 +9533,8 @@ function _buildLabSlots() {
     } else if (inProgress) {
       // 연구 진행 중
       var remaining = Math.ceil((endTime - now) / 1000);
-      var total = res ? res.time : 1;
+      var _resLv = (lab.research && lab.research[researchId]) || 0;
+      var total = res ? _labResTime(res.id, _resLv + 1) : 1;
       var pct = Math.round((1 - remaining / total) * 100);
       var rushCost = Math.max(1, Math.ceil(remaining / 60));
       cell.innerHTML = _numBadge +
@@ -13683,7 +13684,45 @@ function _getActiveRankTab(){
 }
 
 function _getPlayerPower(){
-  return (window._statAllDmg||0)+(window._statAllHp||0)+(window._statAllDef||0);
+  // 스탯 팝업을 열지 않아도 전투력을 계산
+  var ws=(window.PERM&&PERM.ws)||{};
+  var baseDmg=Math.round(5*Math.pow(1.20,(PERM.dmgLv||0)+(ws.damage||0)));
+  var baseHp=Math.round(25*Math.pow(1.20,(PERM.hpLv||0)+(ws.maxHp||0)));
+  var baseDefAbs=ws.defAbs||0;
+  var rDmgLv=parseInt(localStorage.getItem('res_r_damage')||'0',10);
+  var rHpLv=parseInt(localStorage.getItem('res_r_health')||'0',10);
+  var rDefLv=parseInt(localStorage.getItem('res_r_defense')||'0',10);
+  if(rDmgLv>0)baseDmg=Math.round(baseDmg*(1+rDmgLv*0.03));
+  if(rHpLv>0)baseHp=Math.round(baseHp*(1+rHpLv*0.03));
+  if(rDefLv>0)baseDefAbs=Math.round(baseDefAbs*(1+rDefLv*0.03));
+  var em=window._getElementMultipliers?window._getElementMultipliers():{atk:1,def:1,hp:1};
+  baseDmg=Math.round(baseDmg*em.atk); baseHp=Math.round(baseHp*em.hp); baseDefAbs=Math.round(baseDefAbs*em.def);
+  var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
+  var allDmg=Math.round(baseDmg*(sm.atk||1));
+  var allHp=Math.round(baseHp*(sm.hp||1));
+  var allDef=Math.round(baseDefAbs*(sm.def||1));
+  // 프리즘 보너스
+  var _prismB={atk:0,hp:0,def:0};
+  var _eqP=(PERM&&PERM.prismEquipped)||[];
+  _eqP.forEach(function(pid){
+    var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
+    if(!pr)return; var pv=(PERM.prisms&&PERM.prisms[pid])||{}; if(!pv.lv||pv.lv<=0)return;
+    var val=pr.lvEff[pv.lv-1]||0;
+    if(pid==='p_damage')_prismB.atk+=val; if(pid==='p_max_hp')_prismB.hp+=val; if(pid==='p_def')_prismB.def+=val;
+  });
+  if(_prismB.atk>0)allDmg=Math.round(allDmg*(1+_prismB.atk/100));
+  if(_prismB.hp>0)allHp=Math.round(allHp*(1+_prismB.hp/100));
+  if(_prismB.def>0)allDef=Math.round(allDef*(1+_prismB.def/100));
+  // 모듈 보너스
+  var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,_lv:{atk:0,hp:0,def:0}};
+  var _modLv=_modB._lv||{atk:0,hp:0,def:0};
+  if(_modB.atk>0)allDmg=Math.round(allDmg*(1+_modB.atk/100));
+  if(_modLv.atk>0)allDmg=Math.round(allDmg*(1+_modLv.atk/100));
+  if(_modB.hp>0)allHp=Math.round(allHp*(1+_modB.hp/100));
+  if(_modLv.hp>0)allHp=Math.round(allHp*(1+_modLv.hp/100));
+  if(_modB.def>0)allDef=Math.round(allDef*(1+_modB.def/100));
+  if(_modLv.def>0)allDef=Math.round(allDef*(1+_modLv.def/100));
+  return allDmg+allHp+allDef;
 }
 
 function _renderRanking() {
@@ -18792,7 +18831,7 @@ function _injectProtoBar(){
   // 독립 바: screen-shop 내부, 광고와 같은 높이에 우측 배치
   var bar=document.createElement('div');
   bar.id='proto-battle-bar';
-  bar.style.cssText='position:absolute;top:-34px;right:6px;z-index:10;display:flex;align-items:center;gap:6px;pointer-events:auto;';
+  bar.style.cssText='position:absolute;top:-37px;right:6px;z-index:10;display:flex;align-items:center;gap:6px;pointer-events:auto;';
 
   equipped.forEach(function(p){
     _protoCooldowns[p.id]={ready:true,timer:0};
