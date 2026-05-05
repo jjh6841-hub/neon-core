@@ -9306,14 +9306,75 @@ Object.keys(RESEARCH_LIST).forEach(function(cat) {
   RESEARCH_LIST[cat].forEach(function(r) { r.cat = cat; ALL_RESEARCH.push(r); });
 });
 
-// 코어랩 레벨별 연구 시간 (초)
+// 코어랩 기본 연구 시간 테이블 (초)
 // 1Lv=20s, 2=3m, 3=7m, 4=15m, 5=30m, 6=45m, 7=1h, 8=1h20m, 9=1h50m, 10=2h30m
 // 11=3h20m, 12=4h20m, 13=5h30m, 14=7h, 15=9h, 16=11h30m, 17=14h, 18=17h, 19=20h, 20=24h
 // 21=30h, 22=37h, 23=45h, 24=54h, 25+=64h
 var _LAB_TIME_TABLE = [0,20,180,420,900,1800,2700,3600,4800,6600,9000,12000,15600,19800,25200,32400,41400,50400,61200,72000,86400,108000,133200,162000,194400,230400];
-function _labResTime(lv) { return lv >= 25 ? 230400 : (_LAB_TIME_TABLE[lv] || 230400); }
-// 코어랩 레벨별 골드 비용 — base 100 × 1.35^(lv-1)
-function _labResCost(lv) { return Math.floor(100 * Math.pow(1.35, Math.max(0, lv - 1))); }
+
+// 코어랩 연구별 골드 비용 설정 — costs: 레벨별 명시 비용, growth: 이후 증가율
+var _LAB_COST_CFG = {
+  // 메타
+  game_speed:  { costs:[500,2000,5000,20000] },
+  atk_discount:{ costs:[150,250], growth:1.35 },
+  def_discount:{ costs:[150,250], growth:1.35 },
+  utl_discount:{ costs:[150,250], growth:1.35 },
+  lab_speed:   { costs:[150,250], growth:1.35 },
+  // 공격
+  r_damage:    { costs:[100,150], growth:1.35 },
+  r_spd:       { costs:[150,220,310,430,590,810,1180], growth:1.40 },
+  r_crit:      { costs:[120,170,255,380,570], growth:1.35 },
+  r_crit_mult: { costs:[100,140], growth:1.35 },
+  r_range:     { costs:[160,240,350,470,700,1020], growth:1.40 },
+  r_dmg_meter: { costs:[140,190,270,380,520,730,1050], growth:1.35 },
+  r_pierce:    { costs:[5000,25000,125000] },
+  r_enh_crit:  { costs:[500,800,1220,1930,2850,4210,5960], growth:1.35 },
+  r_enh_crit_m:{ costs:[200,300], growth:1.35 },
+  // 방어
+  r_health:    { costs:[110,160], growth:1.35 },
+  r_regen:     { costs:[110,160], growth:1.35 },
+  r_defense:   { costs:[120,175], growth:1.35 },
+  r_reflect:   { costs:[140,210,300,420,570,790,1150], growth:1.35 },
+  r_vamp:      { costs:[140,210,300,410,560,770], growth:1.35 },
+  r_shield:    { costs:[180,320,470,690,980,1400], growth:1.35 },
+  r_knockback: { costs:[200,310,470,700,1030], growth:1.40 },
+  r_knockforce:{ costs:[1000,4000,14000,35000,97000] },
+  // 유틸
+  r_start_chip:{ costs:[150,200], growth:1.35 },
+  r_chip_kill: { costs:[150,200], growth:1.35 },
+  r_chip_wave: { costs:[150,200], growth:1.35 },
+  r_gold_boost:{ costs:[150,200], growth:1.35 },
+  r_auto_atk:  { costs:[1000,1900,2700,3800,5200,7300,10500], growth:1.35 },
+  r_auto_def:  { costs:[1000,1900,2700,3800,5200,7300,10500], growth:1.35 },
+  r_auto_utl:  { costs:[1000,1900,2700,3800,5200,7300,10500], growth:1.35 },
+  r_enemy_skip:{ costs:[2000,3700,5500,8200], growth:1.35 },
+  r_proto_cd:  { costs:[1500,2400,3200,4300,5700,7800,11000], growth:1.35 },
+};
+function _labResCost(resId, lv) {
+  var cfg = _LAB_COST_CFG[resId];
+  if (!cfg) return Math.floor(100 * Math.pow(1.35, Math.max(0, lv - 1)));
+  if (lv <= cfg.costs.length) return cfg.costs[lv - 1];
+  if (!cfg.growth) return cfg.costs[cfg.costs.length - 1];
+  var last = cfg.costs[cfg.costs.length - 1];
+  return Math.floor(last * Math.pow(cfg.growth, lv - cfg.costs.length));
+}
+
+// 코어랩 연구별 시간 설정 — custom: 전용 시간 배열, shift: 기본 테이블 인덱스 오프셋
+var _LAB_TIME_CFG = {
+  game_speed:  { custom:[300,2520,16020,45060] },
+  r_range:     { shift:1 },
+  r_pierce:    { custom:[1800,12000,42000] },
+  r_knockback: { shift:1 },
+  r_knockforce:{ custom:[300,2520,16020,45060,90720] },
+};
+function _labResTime(resId, lv) {
+  var cfg = _LAB_TIME_CFG[resId];
+  if (cfg) {
+    if (cfg.custom) return lv <= cfg.custom.length ? cfg.custom[lv - 1] : cfg.custom[cfg.custom.length - 1];
+    if (cfg.shift) { var idx = lv + cfg.shift; return idx >= 25 ? 230400 : (_LAB_TIME_TABLE[idx] || 230400); }
+  }
+  return lv >= 25 ? 230400 : (_LAB_TIME_TABLE[lv] || 230400);
+}
 
 var LAB_SLOT_COUNT = 10;
 var LAB_SLOT_COST   = [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800];
@@ -9579,8 +9640,8 @@ function _buildLabPopupList() {
     var lv     = done[r.id] || 0;
     var nextLv = lv + 1;
     var maxed  = lv >= r.maxLv;
-    var _rTime = maxed ? 0 : _labResTime(nextLv);
-    var _rCost = maxed ? 0 : _labResCost(nextLv);
+    var _rTime = maxed ? 0 : _labResTime(r.id, nextLv);
+    var _rCost = maxed ? 0 : _labResCost(r.id, nextLv);
     var inProg = false;
     for (var s = 0; s < LAB_SLOT_COUNT; s++) {
       if ((lab['slot'+s] || {}).researchId === r.id) { inProg = true; break; }
