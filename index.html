@@ -20984,12 +20984,17 @@ function _submitCoupon() {
       </div>
       <div style="color:#ff8822;margin-bottom:4px;">▸ 요일별 적용 시스템</div>
       <div style="margin-bottom:8px;color:#778899;">
-        월: 강화소 + 모듈 + 스토어 + 전투 증강<br>
-        화: 코어랩 + 모듈 + 스토어 + 전투 증강<br>
-        수: 프리즘 + 모듈 + 스토어 + 전투 증강<br>
-        목: 스킨 + 모듈 + 스토어 + 전투 증강<br>
-        금: 프로토콜 + 모듈 + 스토어 + 전투 증강<br>
-        토: 모듈 + 스토어 + 전투 증강
+        월: 강화소 + 모듈 + 스토어<br>
+        화: 코어랩 + 모듈 + 스토어<br>
+        수: 프리즘 + 모듈 + 스토어<br>
+        목: 스킨 + 모듈 + 스토어<br>
+        금: 프로토콜 + 모듈 + 스토어<br>
+        토: 모듈 + 스토어
+      </div>
+      <div style="color:#ff8822;margin-bottom:4px;">▸ 난이도</div>
+      <div style="margin-bottom:8px;color:#778899;">
+        스테이지 1 = 에이온 10웨이브 동급<br>
+        스테이지 N = 에이온 N×10웨이브 동급
       </div>
       <div style="color:#ff8822;margin-bottom:4px;">▸ 규칙</div>
       <div style="color:#778899;">
@@ -21193,12 +21198,12 @@ function _getTodayElements() {
 
 /* ── 요일별 적용 시스템 ── */
 var DAY_SYSTEMS = {
-  fire:    { label:'강화소 + 모듈 + 스토어 + 전투 증강', systems:['workshop','module','store','augment'] },
-  water:   { label:'코어랩 + 모듈 + 스토어 + 전투 증강', systems:['corelab','module','store','augment'] },
-  electric:{ label:'프리즘 + 모듈 + 스토어 + 전투 증강', systems:['prism','module','store','augment'] },
-  earth:   { label:'스킨 + 모듈 + 스토어 + 전투 증강', systems:['skin','module','store','augment'] },
-  wind:    { label:'프로토콜 + 모듈 + 스토어 + 전투 증강', systems:['protocol','module','store','augment'] },
-  dark:    { label:'모듈 + 스토어 + 전투 증강', systems:['module','store','augment'] },
+  fire:    { label:'강화소 + 모듈 + 스토어', systems:['workshop','module','store'] },
+  water:   { label:'코어랩 + 모듈 + 스토어', systems:['corelab','module','store'] },
+  electric:{ label:'프리즘 + 모듈 + 스토어', systems:['prism','module','store'] },
+  earth:   { label:'스킨 + 모듈 + 스토어', systems:['skin','module','store'] },
+  wind:    { label:'프로토콜 + 모듈 + 스토어', systems:['protocol','module','store'] },
+  dark:    { label:'모듈 + 스토어', systems:['module','store'] },
 };
 
 /* ── 단계 관리 (속성별 1~30) ── */
@@ -21543,17 +21548,63 @@ function _resize(){
 }
 function _calcStats(){
   var P=window.PERM||{},ws=P.ws||{},eLv=window._exploreGetElemLv,eid=S.elemId;
+  // 속성 레벨 보너스
   var aL=eLv?eLv(eid,'atk'):0,dL=eLv?eLv(eid,'def'):0,hL=eLv?eLv(eid,'hp'):0;
   var crL=eLv?eLv(eid,'critRate'):0,cdL=eLv?eLv(eid,'critDmg'):0;
-  var bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)+(ws.damage||0))*(1+aL*0.03));
-  var bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)+(ws.maxHp||0))*(1+hL*0.03));
-  var def=Math.min(0.70,(ws.defRate||0)*0.005+dL*0.01);
+  // 기본 스탯 (강화소 + 영구 레벨)
+  var bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)+(ws.damage||0)));
+  var bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)+(ws.maxHp||0)));
+  var def=Math.min(0.70,(ws.defRate||0)*0.005);
   var spd=1+(P.spdLv||0)*0.03+(ws.atkspd||0)*0.03;
+  var critR=Math.min(1.0,(ws.critChance||0)*0.005);
+  var critM=1.5+(ws.critMult||0)*0.1;
+  // 코어랩 보너스
+  var rDmg=parseInt(localStorage.getItem('res_r_damage')||'0',10);
+  var rHp=parseInt(localStorage.getItem('res_r_health')||'0',10);
+  var rDef=parseInt(localStorage.getItem('res_r_defense')||'0',10);
+  var rSpd=parseInt(localStorage.getItem('res_r_spd')||'0',10);
+  var rCrit=parseInt(localStorage.getItem('res_r_crit')||'0',10);
+  if(rDmg>0)bd=Math.round(bd*(1+rDmg*0.03));
+  if(rHp>0)bh=Math.round(bh*(1+rHp*0.03));
+  if(rDef>0)def=Math.min(0.70,def+rDef*0.003);
+  if(rSpd>0)spd*=(1+rSpd*0.02);
+  critR=Math.min(1.0,critR+rCrit*0.005);
+  // 속성 배율 적용
+  bd=Math.round(bd*(1+aL*0.03));
+  bh=Math.round(bh*(1+hL*0.03));
+  def=Math.min(0.70,def+dL*0.01);
+  critR=Math.min(1.0,critR+crL*0.002);
+  critM+=cdL*0.03;
+  // 프리즘 보너스
+  var _prB={atk:0,hp:0,def:0,critRate:0,critDmg:0};
+  var _eqP=(P&&P.prismEquipped)||[];
+  _eqP.forEach(function(pid){
+    var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
+    if(!pr)return;var pv=(P.prisms&&P.prisms[pid])||{};if(!pv.lv||pv.lv<=0)return;
+    var val=pr.lvEff[pv.lv-1]||0;
+    if(pid==='p_damage')_prB.atk+=val;if(pid==='p_max_hp')_prB.hp+=val;if(pid==='p_def')_prB.def+=val;
+    if(pid==='p_crit_rate')_prB.critRate+=val;if(pid==='p_crit_dmg')_prB.critDmg+=val;
+  });
+  if(_prB.atk>0)bd=Math.round(bd*(1+_prB.atk/100));
+  if(_prB.hp>0)bh=Math.round(bh*(1+_prB.hp/100));
+  if(_prB.def>0)def=Math.min(0.70,def+_prB.def/100);
+  critR=Math.min(1.0,critR+(_prB.critRate||0)/100);
+  critM+=(_prB.critDmg||0);
+  // 스킨 보너스
+  var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
+  bd=Math.round(bd*(sm.atk||1));bh=Math.round(bh*(sm.hp||1));
+  // 모듈 보너스
+  var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,_lv:{atk:0,hp:0,def:0}};
+  var _modLv=_modB._lv||{atk:0,hp:0,def:0};
+  if(_modB.atk>0)bd=Math.round(bd*(1+_modB.atk/100));if(_modLv.atk>0)bd=Math.round(bd*(1+_modLv.atk/100));
+  if(_modB.hp>0)bh=Math.round(bh*(1+_modB.hp/100));if(_modLv.hp>0)bh=Math.round(bh*(1+_modLv.hp/100));
   return{hp:Math.max(50,bh),maxHp:Math.max(50,bh),dmg:Math.max(3,bd),def:def,
-    atkMs:Math.max(150,Math.round(400/spd)),critRate:Math.min(0.8,crL*0.002),critMult:1.5+cdL*0.03,range:Math.round(BASE_H/2)};
+    atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2)};
 }
-function _enemyHp(){return Math.round(20*Math.pow(1.18,S.stage-1));}
-function _enemyAtk(){return Math.round(3*Math.pow(1.12,S.stage-1));}
+/* 적 난이도: 스테이지 N = 에이온 N*10 웨이브 동급 */
+function _eqWave(){return S.stage*10;}
+function _enemyHp(){var w=_eqWave();return Math.round(3*Math.pow(1.18,w-1));}
+function _enemyAtk(){var w=_eqWave();return Math.round(2*Math.pow(1.12,w-1));}
 
 /* ── 탐사선 그리기 ── */
 function _drawShip(ctx,x,y,sc,al,time){
