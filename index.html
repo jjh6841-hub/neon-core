@@ -21506,6 +21506,7 @@ window._exploreGetStage = _getStage;
 window._exploreStageReward = _stageReward;
 window._exploreRender = renderExplore;
 window._exploreGetElemLv = _getElemLv;
+window.DAY_SYSTEMS = DAY_SYSTEMS;
 
 }());
 </script>
@@ -21543,56 +21544,81 @@ function _resize(){
 }
 function _calcStats(){
   var P=window.PERM||{},ws=P.ws||{},eLv=window._exploreGetElemLv,eid=S.elemId;
-  // 속성 레벨 보너스
-  var aL=eLv?eLv(eid,'atk'):0,dL=eLv?eLv(eid,'def'):0,hL=eLv?eLv(eid,'hp'):0;
-  var crL=eLv?eLv(eid,'critRate'):0,cdL=eLv?eLv(eid,'critDmg'):0;
-  // 기본 스탯 (강화소 + 영구 레벨)
-  var bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)+(ws.damage||0)));
-  var bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)+(ws.maxHp||0)));
-  var def=Math.min(0.70,(ws.defRate||0)*0.005);
-  var spd=1+(P.spdLv||0)*0.03+(ws.atkspd||0)*0.03;
-  var critR=Math.min(1.0,(ws.critChance||0)*0.005);
-  var critM=1.5+(ws.critMult||0)*0.1;
-  // 코어랩 보너스
-  var rDmg=parseInt(localStorage.getItem('res_r_damage')||'0',10);
-  var rHp=parseInt(localStorage.getItem('res_r_health')||'0',10);
-  var rDef=parseInt(localStorage.getItem('res_r_defense')||'0',10);
-  var rSpd=parseInt(localStorage.getItem('res_r_spd')||'0',10);
-  var rCrit=parseInt(localStorage.getItem('res_r_crit')||'0',10);
-  if(rDmg>0)bd=Math.round(bd*(1+rDmg*0.03));
-  if(rHp>0)bh=Math.round(bh*(1+rHp*0.03));
-  if(rDef>0)def=Math.min(0.70,def+rDef*0.003);
-  if(rSpd>0)spd*=(1+rSpd*0.02);
-  critR=Math.min(1.0,critR+rCrit*0.005);
-  // 속성 배율 적용
-  bd=Math.round(bd*(1+aL*0.03));
-  bh=Math.round(bh*(1+hL*0.03));
-  def=Math.min(0.70,def+dL*0.01);
-  critR=Math.min(1.0,critR+crL*0.002);
-  critM+=cdL*0.03;
-  // 프리즘 보너스
-  var _prB={atk:0,hp:0,def:0,critRate:0,critDmg:0};
-  var _eqP=(P&&P.prismEquipped)||[];
-  _eqP.forEach(function(pid){
-    var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
-    if(!pr)return;var pv=(P.prisms&&P.prisms[pid])||{};if(!pv.lv||pv.lv<=0)return;
-    var val=pr.lvEff[pv.lv-1]||0;
-    if(pid==='p_damage')_prB.atk+=val;if(pid==='p_max_hp')_prB.hp+=val;if(pid==='p_def')_prB.def+=val;
-    if(pid==='p_crit_rate')_prB.critRate+=val;if(pid==='p_crit_dmg')_prB.critDmg+=val;
-  });
-  if(_prB.atk>0)bd=Math.round(bd*(1+_prB.atk/100));
-  if(_prB.hp>0)bh=Math.round(bh*(1+_prB.hp/100));
-  if(_prB.def>0)def=Math.min(0.70,def+_prB.def/100);
-  critR=Math.min(1.0,critR+(_prB.critRate||0)/100);
-  critM+=(_prB.critDmg||0);
-  // 스킨 보너스
-  var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
-  bd=Math.round(bd*(sm.atk||1));bh=Math.round(bh*(sm.hp||1));
-  // 모듈 보너스
-  var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,_lv:{atk:0,hp:0,def:0}};
-  var _modLv=_modB._lv||{atk:0,hp:0,def:0};
-  if(_modB.atk>0)bd=Math.round(bd*(1+_modB.atk/100));if(_modLv.atk>0)bd=Math.round(bd*(1+_modLv.atk/100));
-  if(_modB.hp>0)bh=Math.round(bh*(1+_modB.hp/100));if(_modLv.hp>0)bh=Math.round(bh*(1+_modLv.hp/100));
+  // 요일별 활성 시스템 확인
+  var ds=window.DAY_SYSTEMS&&window.DAY_SYSTEMS[eid];
+  var sys=ds?ds.systems:[];
+  function _has(k){return sys.indexOf(k)!==-1;}
+  var hasWS=_has('workshop'),hasLab=_has('corelab'),hasPrism=_has('prism');
+  var hasSkin=_has('skin'),hasMod=_has('module'),hasElem=_has('element');
+
+  // 기본 스탯 (영구 레벨은 항상 적용)
+  var bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)));
+  var bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)));
+  var def=0,spd=1+(P.spdLv||0)*0.03,critR=0,critM=1.5;
+
+  // 강화소 (workshop)
+  if(hasWS){
+    bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)+(ws.damage||0)));
+    bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)+(ws.maxHp||0)));
+    def=Math.min(0.70,(ws.defRate||0)*0.005);
+    spd=1+(P.spdLv||0)*0.03+(ws.atkspd||0)*0.03;
+    critR=Math.min(1.0,(ws.critChance||0)*0.005);
+    critM=1.5+(ws.critMult||0)*0.1;
+  }
+
+  // 코어랩 (corelab)
+  if(hasLab){
+    var rDmg=parseInt(localStorage.getItem('res_r_damage')||'0',10);
+    var rHp=parseInt(localStorage.getItem('res_r_health')||'0',10);
+    var rDef=parseInt(localStorage.getItem('res_r_defense')||'0',10);
+    var rSpd=parseInt(localStorage.getItem('res_r_spd')||'0',10);
+    var rCrit=parseInt(localStorage.getItem('res_r_crit')||'0',10);
+    if(rDmg>0)bd=Math.round(bd*(1+rDmg*0.03));
+    if(rHp>0)bh=Math.round(bh*(1+rHp*0.03));
+    if(rDef>0)def=Math.min(0.70,def+rDef*0.003);
+    if(rSpd>0)spd*=(1+rSpd*0.02);
+    critR=Math.min(1.0,critR+rCrit*0.005);
+  }
+
+  // 속성 (element) — 모든 요일 공통
+  if(hasElem){
+    var aL=eLv?eLv(eid,'atk'):0,dL=eLv?eLv(eid,'def'):0,hL=eLv?eLv(eid,'hp'):0;
+    var crL=eLv?eLv(eid,'critRate'):0,cdL=eLv?eLv(eid,'critDmg'):0;
+    bd=Math.round(bd*(1+aL*0.03));bh=Math.round(bh*(1+hL*0.03));
+    def=Math.min(0.70,def+dL*0.01);critR=Math.min(1.0,critR+crL*0.002);critM+=cdL*0.03;
+  }
+
+  // 프리즘 (prism)
+  if(hasPrism){
+    var _prB={atk:0,hp:0,def:0,critRate:0,critDmg:0};
+    var _eqP=(P&&P.prismEquipped)||[];
+    _eqP.forEach(function(pid){
+      var pr=window.PRISMS?PRISMS.filter(function(x){return x.id===pid;})[0]:null;
+      if(!pr)return;var pv=(P.prisms&&P.prisms[pid])||{};if(!pv.lv||pv.lv<=0)return;
+      var val=pr.lvEff[pv.lv-1]||0;
+      if(pid==='p_damage')_prB.atk+=val;if(pid==='p_max_hp')_prB.hp+=val;if(pid==='p_def')_prB.def+=val;
+      if(pid==='p_crit_rate')_prB.critRate+=val;if(pid==='p_crit_dmg')_prB.critDmg+=val;
+    });
+    if(_prB.atk>0)bd=Math.round(bd*(1+_prB.atk/100));
+    if(_prB.hp>0)bh=Math.round(bh*(1+_prB.hp/100));
+    if(_prB.def>0)def=Math.min(0.70,def+_prB.def/100);
+    critR=Math.min(1.0,critR+(_prB.critRate||0)/100);critM+=(_prB.critDmg||0);
+  }
+
+  // 스킨 (skin)
+  if(hasSkin){
+    var sm=window._getSkinMultipliers?window._getSkinMultipliers():{atk:1,def:1,hp:1};
+    bd=Math.round(bd*(sm.atk||1));bh=Math.round(bh*(sm.hp||1));
+  }
+
+  // 모듈 (module)
+  if(hasMod){
+    var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,_lv:{atk:0,hp:0,def:0}};
+    var _modLv=_modB._lv||{atk:0,hp:0,def:0};
+    if(_modB.atk>0)bd=Math.round(bd*(1+_modB.atk/100));if(_modLv.atk>0)bd=Math.round(bd*(1+_modLv.atk/100));
+    if(_modB.hp>0)bh=Math.round(bh*(1+_modB.hp/100));if(_modLv.hp>0)bh=Math.round(bh*(1+_modLv.hp/100));
+  }
+
   return{hp:Math.max(50,bh),maxHp:Math.max(50,bh),dmg:Math.max(3,bd),def:def,
     atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2)};
 }
