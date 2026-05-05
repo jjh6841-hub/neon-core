@@ -21551,12 +21551,10 @@ function _calcStats(){
   var hasWS=_has('workshop'),hasLab=_has('corelab'),hasPrism=_has('prism');
   var hasSkin=_has('skin'),hasMod=_has('module'),hasElem=_has('element');
 
-  // 기본 스탯 (영구 레벨은 항상 적용)
-  var bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)));
-  var bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)));
-  var def=0,spd=1+(P.spdLv||0)*0.03,critR=0,critM=1.5;
+  // 기본 스탯
+  var bd=5,bh=25,def=0,spd=1,critR=0,critM=1.5;
 
-  // 강화소 (workshop)
+  // 강화소 (workshop) — 영구 레벨(dmgLv,hpLv,spdLv) + 강화소 레벨 포함
   if(hasWS){
     bd=Math.round(5*Math.pow(1.20,(P.dmgLv||0)+(ws.damage||0)));
     bh=Math.round(25*Math.pow(1.20,(P.hpLv||0)+(ws.maxHp||0)));
