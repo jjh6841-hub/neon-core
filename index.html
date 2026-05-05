@@ -7720,12 +7720,21 @@ if (dailyPopup) {
     }
   }
 
+  /* ══ 코어랩 할인 계수 (0.5%/Lv) ══ */
+  function _wsDiscountMult(tab) {
+    var lab = _loadLab(), res = lab.research || {};
+    var key = tab === 'atk' ? 'atk_discount' : tab === 'def' ? 'def_discount' : tab === 'utl' ? 'utl_discount' : null;
+    if (!key) return 1;
+    var lv = res[key] || 0;
+    return Math.max(0.2, 1 - lv * 0.005);
+  }
+
   /* ══ 업그레이드 카드 생성 ══ */
   function appendCard(container, key, ws) {
     var cfg    = WS_ITEMS[key];
     var lv     = ws[key] || 0;
     var maxed  = lv >= cfg.maxLv;
-    var cost   = maxed ? 0 : cfg.cost(lv);
+    var cost   = maxed ? 0 : Math.max(1, Math.floor(cfg.cost(lv) * _wsDiscountMult(cfg.tab)));
     var afford = PERM.gold >= cost;
     var locked = !!cfg.locked;
 
@@ -7799,7 +7808,7 @@ if (dailyPopup) {
           var desc = _cfg.desc || _cfg.name + ' 능력을 강화합니다';
           var curVal = _cfg.cur(_lv);
           var nxtVal = _maxed ? '-' : _cfg.nxt(_lv);
-          var costVal = _maxed ? '-' : _cfg.cost(_lv);
+          var costVal = _maxed ? '-' : Math.max(1, Math.floor(_cfg.cost(_lv) * _wsDiscountMult(_cfg.tab)));
           ov.innerHTML =
             '<div style="background:#0a1520;border:1px solid #00ffff;padding:18px;max-width:280px;width:90%;font-family:Courier New,monospace;">' +
               '<div style="color:#00ffff;font-size:14px;font-weight:bold;margin-bottom:4px;">' + _cfg.name + '</div>' +
@@ -7826,7 +7835,7 @@ if (dailyPopup) {
     var cfg   = WS_ITEMS[key];
     var lv    = ws[key] || 0;
     if (lv >= cfg.maxLv) return;
-    var cost  = cfg.cost(lv);
+    var cost  = Math.max(1, Math.floor(cfg.cost(lv) * _wsDiscountMult(cfg.tab)));
     if (PERM.gold < cost) { flashCard(card, '#ef4444'); return; }
     PERM.gold -= cost;
     logCurrency('gold', -cost, '강화: ' + cfg.name + ' Lv' + (lv+1));
