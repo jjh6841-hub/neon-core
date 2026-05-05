@@ -21851,13 +21851,15 @@ function _update(dt){
   for(var i=S.enemies.length-1;i>=0;i--){
     var e=S.enemies[i];
     if(e.boss){
-      if(e.y<80)e.y+=e.spd*dt*0.06*2;
-      e.moveTimer+=dt;e.x+=Math.sin(e.moveTimer*0.002)*e.spd*2*dt*0.06;
+      var _bslw=1-_getEbSlow();if(e._stun>0){e._stun-=dt;_bslw=0;}
+      if(e.y<80)e.y+=e.spd*_bslw*dt*0.06*2;
+      e.moveTimer+=dt;e.x+=Math.sin(e.moveTimer*0.002)*e.spd*2*_bslw*dt*0.06;
       e.x=Math.max(e.r+5,Math.min(BASE_W-e.r-5,e.x));
     } else {
       // 적이 탐사선을 향해 이동
       var dx=ship.x-e.x,dy=ship.y-e.y,dist=Math.sqrt(dx*dx+dy*dy)||1;
-      e.x+=dx/dist*e.spd*dt*0.06;e.y+=dy/dist*e.spd*dt*0.06;
+      var _eslw=1-_getEbSlow();if(e._stun>0){e._stun-=dt;_eslw=0;}
+      e.x+=dx/dist*e.spd*_eslw*dt*0.06;e.y+=dy/dist*e.spd*_eslw*dt*0.06;
       if(e.shape==='arrow'){e.zigTimer+=dt;if(e.zigTimer>800){e.zigDir*=-1;e.zigTimer=0;}e.x+=e.zigDir*1.2*dt*0.06;}
       e.x=Math.max(e.r,Math.min(BASE_W-e.r,e.x));
     }
@@ -21873,7 +21875,7 @@ function _update(dt){
   // 탄환 vs 적 충돌
   for(var bi=S.bullets.length-1;bi>=0;bi--){var b=S.bullets[bi],hit=false;
     for(var ei=S.enemies.length-1;ei>=0;ei--){var e=S.enemies[ei],ddx=b.x-e.x,ddy=b.y-e.y;
-      if(ddx*ddx+ddy*ddy<(e.r+3)*(e.r+3)){var dmg=b.crit?Math.round(b.dmg*ship.critMult):b.dmg;e.hp-=dmg;
+      if(ddx*ddx+ddy*ddy<(e.r+3)*(e.r+3)){var dmg=Math.round((b.crit?b.dmg*ship.critMult:b.dmg)*_getEbDmgMult());e.hp-=dmg;
         // 흡혈 (바이탈 드레인 + 강화소)
         if(ship.lifeSteal>0){ship.hp=Math.min(ship.maxHp,ship.hp+dmg*ship.lifeSteal);}
         _addFx(b.x,b.y,b.crit?'#ffff00':'#00ffff',b.crit?6:3);
@@ -21938,7 +21940,7 @@ function _render(time){
 }
 
 function _loop(ts){if(!S.active)return;var dt=S.lastTs>0?Math.min(ts-S.lastTs,50):16;S.lastTs=ts;
-  if(!S.paused)_update(dt);_render(ts);S.rafId=requestAnimationFrame(_loop);}
+  if(!S.paused){_update(dt);_updateEbProto(dt);}_render(ts);S.rafId=requestAnimationFrame(_loop);}
 
 /* ── 일시정지 ── */
 function _togglePause(){
@@ -21996,6 +21998,7 @@ function _closeBattle(){
   var scr=document.getElementById('screen-explore-battle');if(scr)scr.style.display='none';
   var ov=document.getElementById('eb-result-overlay');if(ov)ov.style.display='none';
   var pov=document.getElementById('eb-pause-overlay');if(pov)pov.style.display='none';
+  _removeProtoBar();
   S.active=false;S.paused=false;
   if(window._exploreRender)window._exploreRender();
 }
@@ -22019,6 +22022,7 @@ window.startExploreBattle=function(elemId,stage,elemData){
     atkMs:stats.atkMs,critRate:stats.critRate,critMult:stats.critMult,range:stats.range,
     lifeSteal:stats.lifeSteal||0,_fireTimer:0};
   S.active=true;
+  _initProtoBar();
   setTimeout(function(){if(S.active)_spawnWave();},500);
   S.rafId=requestAnimationFrame(_loop);
 };
@@ -22034,6 +22038,117 @@ document.addEventListener('DOMContentLoaded',function(){
     S.active=false;if(S.rafId)cancelAnimationFrame(S.rafId);_closeBattle();
   });
 });
+
+window.addEventListener('resize',function(){if(S.active)_resize();});
+
+/* ═══ 탐사 프로토콜 시스템 (금요일/질풍 전용) ═══ */
+var _ebProtoCds={};  // {id: {ready,timer,maxCd}}
+var _ebProtoEffects={}; // {id: {remaining, ...}}
+
+function _hasProtocol(){
+  var ds=window.DAY_SYSTEMS&&window.DAY_SYSTEMS[S.elemId];
+  return ds&&ds.systems.indexOf('protocol')!==-1;
+}
+
+function _initProtoBar(){
+  var old=document.getElementById('eb-proto-bar');if(old)old.remove();
+  if(!_hasProtocol()) return;
+  var equipped=window._getEquippedProtocols?window._getEquippedProtocols():[];
+  if(equipped.length===0) return;
+  _ebProtoCds={};_ebProtoEffects={};
+  var bar=document.createElement('div');
+  bar.id='eb-proto-bar';
+  bar.style.cssText='position:absolute;bottom:70px;right:6px;z-index:10610;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;pointer-events:auto;';
+  var shown=equipped.slice(0,6);
+  shown.forEach(function(p){
+    _ebProtoCds[p.id]={ready:true,timer:0,maxCd:p.cd};
+    var btn=document.createElement('button');
+    btn.id='eb-proto-'+p.id;
+    btn.style.cssText='width:36px;height:36px;border:1.5px solid '+p.color+';border-radius:50%;background:rgba(10,10,34,0.85);display:flex;align-items:center;justify-content:center;color:'+p.color+';font-size:14px;cursor:pointer;-webkit-appearance:none;position:relative;padding:0;';
+    btn.textContent=p.icon;
+    btn.addEventListener('click',function(){_useEbProto(p.id,p);});
+    bar.appendChild(btn);
+  });
+  var scr=document.getElementById('screen-explore-battle');
+  if(scr)scr.appendChild(bar);
+}
+
+function _removeProtoBar(){
+  var bar=document.getElementById('eb-proto-bar');if(bar)bar.remove();
+  _ebProtoCds={};_ebProtoEffects={};
+}
+
+function _useEbProto(id,p){
+  if(!S.active||S.paused||S.phase==='result'||S.phase==='warning') return;
+  var cd=_ebProtoCds[id];if(!cd||!cd.ready) return;
+  var ship=S.ship;if(!ship||ship.hp<=0) return;
+  var def=p.def,lv=p.lv;
+  cd.ready=false;cd.timer=cd.maxCd;
+
+  if(id==='pt_emp'){
+    // 전체 적에게 피해 + 기절
+    var dmgPct=(def.dmgBase+lv*def.dmgPerLv)/100;
+    var dmg=Math.round(ship.dmg*dmgPct);
+    S.enemies.forEach(function(e){e.hp-=dmg;e._stun=(def.stunBase+lv*def.stunPerLv)*1000;_addFx(e.x,e.y,'#3b82f6',4);});
+    S.enemies=S.enemies.filter(function(e){if(e.hp<=0){_addFx(e.x,e.y,e.color,e.boss?20:8);if(e.boss)S.boss=null;S.killCount++;return false;}return true;});
+  } else if(id==='pt_nano'){
+    // HP 회복
+    var healPct=(def.healBase+lv*def.healPerLv)/100;
+    ship.hp=Math.min(ship.maxHp,ship.hp+Math.round(ship.maxHp*healPct));
+    _addFx(ship.x,ship.y,'#00ff88',8);
+  } else if(id==='pt_overdrive'){
+    // 공격력 배율 버프
+    var dur=(def.durBase+lv*def.durPerLv)*1000;
+    var mult=def.multBase+lv*def.multPerLv;
+    _ebProtoEffects.overdrive={remaining:dur,mult:mult};
+  } else if(id==='pt_timewarp'){
+    // 적 감속
+    var dur2=(def.durBase+lv*def.durPerLv)*1000;
+    var slow=(def.slowBase+lv*def.slowPerLv)/100;
+    _ebProtoEffects.timewarp={remaining:dur2,slow:slow};
+  } else if(id==='pt_gravity'){
+    // 범위 피해
+    var gDmg=Math.round(def.dmgBase+lv*def.dmgPerLv);
+    S.enemies.forEach(function(e){var dx=e.x-ship.x,dy=e.y-ship.y;if(dx*dx+dy*dy<ship.range*ship.range){e.hp-=gDmg;_addFx(e.x,e.y,'#ffcc00',3);}});
+    S.enemies=S.enemies.filter(function(e){if(e.hp<=0){_addFx(e.x,e.y,e.color,e.boss?20:8);if(e.boss)S.boss=null;S.killCount++;return false;}return true;});
+  } else {
+    // 기타: 범위 피해로 통일
+    var oDmg=Math.round((def.dmgBase||100)+lv*(def.dmgPerLv||20));
+    S.enemies.forEach(function(e){e.hp-=oDmg;_addFx(e.x,e.y,p.color,3);});
+    S.enemies=S.enemies.filter(function(e){if(e.hp<=0){_addFx(e.x,e.y,e.color,e.boss?20:8);if(e.boss)S.boss=null;S.killCount++;return false;}return true;});
+  }
+}
+
+function _updateEbProto(dt){
+  // 쿨다운
+  Object.keys(_ebProtoCds).forEach(function(id){
+    var cd=_ebProtoCds[id];
+    if(!cd.ready){cd.timer-=dt/1000;if(cd.timer<=0){cd.ready=true;cd.timer=0;}}
+    // 버튼 시각 업데이트
+    var btn=document.getElementById('eb-proto-'+id);
+    if(btn){
+      btn.style.opacity=cd.ready?'1':'0.4';
+      // 쿨다운 숫자 표시
+      var numEl=btn.querySelector('.eb-cd-num');
+      if(!cd.ready){
+        if(!numEl){numEl=document.createElement('span');numEl.className='eb-cd-num';numEl.style.cssText='position:absolute;bottom:-2px;right:-2px;font-size:7px;color:#fff;background:#000;padding:0 2px;border-radius:2px;font-family:monospace;';btn.appendChild(numEl);}
+        numEl.textContent=Math.ceil(cd.timer);
+      } else if(numEl) numEl.remove();
+    }
+  });
+  // 효과 업데이트
+  if(_ebProtoEffects.overdrive){
+    _ebProtoEffects.overdrive.remaining-=dt;
+    if(_ebProtoEffects.overdrive.remaining<=0) delete _ebProtoEffects.overdrive;
+  }
+  if(_ebProtoEffects.timewarp){
+    _ebProtoEffects.timewarp.remaining-=dt;
+    if(_ebProtoEffects.timewarp.remaining<=0) delete _ebProtoEffects.timewarp;
+  }
+}
+
+function _getEbDmgMult(){return _ebProtoEffects.overdrive?_ebProtoEffects.overdrive.mult:1;}
+function _getEbSlow(){return _ebProtoEffects.timewarp?_ebProtoEffects.timewarp.slow:0;}
 
 window.addEventListener('resize',function(){if(S.active)_resize();});
 }());
