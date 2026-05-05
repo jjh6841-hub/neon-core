@@ -21551,8 +21551,8 @@ function _calcStats(){
   var hasWS=_has('workshop'),hasLab=_has('corelab'),hasPrism=_has('prism');
   var hasSkin=_has('skin'),hasMod=_has('module'),hasElem=_has('element');
 
-  // 기본 스탯
-  var bd=5,bh=25,def=0,spd=1,critR=0,critM=1.5;
+  // 기본 스탯 (강화소 비활성 시 기본값)
+  var bd=15,bh=50,def=0,spd=1,critR=0,critM=1.5;
 
   // 강화소 (workshop) — 영구 레벨(dmgLv,hpLv,spdLv) + 강화소 레벨 포함
   if(hasWS){
