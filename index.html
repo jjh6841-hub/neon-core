@@ -21659,11 +21659,24 @@ function _calcStats(){
   }
 
   // 모듈 (module)
+  var modCritChance=0,modCritMult=1.5,modLvCritChance=0,modLvCritMult=1.5,modGoldMult=0;
   if(hasMod){
-    var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,_lv:{atk:0,hp:0,def:0}};
-    var _modLv=_modB._lv||{atk:0,hp:0,def:0};
-    if(_modB.atk>0)bd=Math.round(bd*(1+_modB.atk/100));if(_modLv.atk>0)bd=Math.round(bd*(1+_modLv.atk/100));
-    if(_modB.hp>0)bh=Math.round(bh*(1+_modB.hp/100));if(_modLv.hp>0)bh=Math.round(bh*(1+_modLv.hp/100));
+    var _modB=window._getModuleBonuses?window._getModuleBonuses():{atk:0,hp:0,def:0,cdmg:0,crit:0,gold:0,_lv:{atk:0,hp:0,def:0,cdmg:0,crit:0,gold:0}};
+    var _modLv=_modB._lv||{atk:0,hp:0,def:0,cdmg:0,crit:0,gold:0};
+    // 등급 효과
+    if(_modB.atk>0)bd=Math.round(bd*(1+_modB.atk/100));
+    if(_modB.hp>0)bh=Math.round(bh*(1+_modB.hp/100));
+    if(_modB.def>0)def=Math.min(0.70,def+_modB.def/100);
+    modCritMult=_modB.cdmg>0?_modB.cdmg:1.5;
+    if(_modB.crit>0)modCritChance=Math.min(1.0,_modB.crit/100);
+    if(_modB.gold>0)modGoldMult+=_modB.gold/100;
+    // 레벨 효과
+    if(_modLv.atk>0)bd=Math.round(bd*(1+_modLv.atk/100));
+    if(_modLv.hp>0)bh=Math.round(bh*(1+_modLv.hp/100));
+    if(_modLv.def>0)def=Math.min(0.70,def+_modLv.def/100);
+    modLvCritMult=_modLv.cdmg>0?1+_modLv.cdmg/100:1.5;
+    if(_modLv.crit>0)modLvCritChance=Math.min(1.0,_modLv.crit/100);
+    if(_modLv.gold>0)modGoldMult+=_modLv.gold/100;
   }
 
   // 스토어 영구 능력 (바이탈 드레인 등 — 모든 요일 적용)
@@ -21673,7 +21686,8 @@ function _calcStats(){
 
   return{hp:Math.max(50,bh),maxHp:Math.max(50,bh),dmg:Math.max(3,bd),def:def,
     atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2),
-    lifeSteal:lifeSteal};
+    lifeSteal:lifeSteal,modCritChance:modCritChance,modCritMult:modCritMult,
+    modLvCritChance:modLvCritChance,modLvCritMult:modLvCritMult,goldMult:1+modGoldMult};
 }
 /* 적 난이도: 월(강화소)=에이온 5웨이브마다, 화~토=3+stage×2웨이브 */
 function _eqWave(){
@@ -22051,11 +22065,18 @@ function _update(dt){
   // 탄환 vs 적 충돌
   for(var bi=S.bullets.length-1;bi>=0;bi--){var b=S.bullets[bi],hit=false;
     for(var ei=S.enemies.length-1;ei>=0;ei--){var e=S.enemies[ei],ddx=b.x-e.x,ddy=b.y-e.y;
-      if(ddx*ddx+ddy*ddy<(e.r+3)*(e.r+3)){var dmg=Math.round((b.crit?b.dmg*ship.critMult:b.dmg)*_getEbDmgMult());e.hp-=dmg;e._hitFlash=3;
+      if(ddx*ddx+ddy*ddy<(e.r+3)*(e.r+3)){
+        var dmg=Math.round((b.crit?b.dmg*ship.critMult:b.dmg)*_getEbDmgMult());
+        var _isCrit=b.crit;
+        // 모듈 치명타 (독립 판정)
+        if(ship.modCritChance>0&&Math.random()<ship.modCritChance){dmg=Math.round(dmg*ship.modCritMult);_isCrit=true;}
+        // 모듈 레벨 치명타 (독립 판정)
+        if(ship.modLvCritChance>0&&Math.random()<ship.modLvCritChance){dmg=Math.round(dmg*ship.modLvCritMult);_isCrit=true;}
+        e.hp-=dmg;e._hitFlash=3;
         // 흡혈 (바이탈 드레인 + 강화소)
         if(ship.lifeSteal>0){ship.hp=Math.min(ship.maxHp,ship.hp+dmg*ship.lifeSteal);}
-        _addFx(b.x,b.y,b.crit?'#ffff00':'#00ffff',b.crit?6:3);
-        if(b.crit)S.fx.push({x:b.x,y:b.y-8,vx:0,vy:-1,life:0.8,color:'#ffff00',sz:0,text:'CRIT!',textSize:8});
+        _addFx(b.x,b.y,_isCrit?'#ffff00':'#00ffff',_isCrit?6:3);
+        if(_isCrit)S.fx.push({x:b.x,y:b.y-8,vx:0,vy:-1,life:0.8,color:'#ffff00',sz:0,text:'CRIT!',textSize:8});
         if(e.hp<=0){_addFx(e.x,e.y,e.color,e.boss?20:8);if(e.boss)S.boss=null;S.enemies.splice(ei,1);S.killCount++;}hit=true;break;}}
     if(hit)S.bullets.splice(bi,1);}
 
@@ -22144,6 +22165,7 @@ function _showResultDOM(){
   var ov=document.getElementById('eb-result-overlay');if(!ov)return;
   var cnt=document.getElementById('eb-result-content');if(!cnt)return;
   var rw=window._exploreStageReward?window._exploreStageReward(S.stage):0;
+  if(S.ship&&S.ship.goldMult>1)rw=Math.round(rw*S.ship.goldMult);
   var elemName=S.elemData?S.elemData.name:'';
   var elemIcon=S.elemData?S.elemData.icon:'';
   var elemCore=S.elemData?S.elemData.core:'코어';
@@ -22210,7 +22232,10 @@ window.startExploreBattle=function(elemId,stage,elemData){
   var stats=_calcStats();
   S.ship={x:BASE_W/2,y:BASE_H-45,hp:stats.hp,maxHp:stats.maxHp,dmg:stats.dmg,def:stats.def,
     atkMs:stats.atkMs,critRate:stats.critRate,critMult:stats.critMult,range:stats.range,
-    lifeSteal:stats.lifeSteal||0,_fireTimer:0};
+    lifeSteal:stats.lifeSteal||0,_fireTimer:0,
+    modCritChance:stats.modCritChance||0,modCritMult:stats.modCritMult||1.5,
+    modLvCritChance:stats.modLvCritChance||0,modLvCritMult:stats.modLvCritMult||1.5,
+    goldMult:stats.goldMult||1};
   S.active=true;
   _initProtoBar();
   setTimeout(function(){if(S.active)_spawnWave();},500);
