@@ -22560,7 +22560,7 @@ var MOD_CRIT_EFF  = [1, 3, 6, 12, 25, 50];
 /* 치명타 계수 보너스 (곱연산, 값+1=배율. 일반=1.5× ~ 고대=200×) */
 var MOD_CDMG_EFF  = [0.5, 2, 7, 19, 59, 199];
 /* 골드 획득 (합연산, 고대+2=200%) */
-var MOD_GOLD_EFF  = [2, 5, 12, 25, 50, 100];
+var MOD_GOLD_EFF  = [2, 5, 12, 30, 90, 200];
 /* 슬롯 → 모듈 타입 매핑 (각 슬롯은 특정 타입만 장착 가능) */
 var MOD_SLOT_FILTER = ['mod_atk','mod_crit','mod_def','mod_hp','mod_cdmg','mod_gold'];
 
@@ -22809,7 +22809,7 @@ var MOD_LV_COST = 3; // 파편 3개/레벨
 function _getModLvEffect(typeId, lv) {
   if (lv <= 0) return 0;
   if (typeId === 'mod_crit') return Math.round(lv * 0.1 * 10) / 10;   // 레벨당 0.1%
-  if (typeId === 'mod_gold') return Math.round(lv * 0.3 * 10) / 10;   // 레벨당 0.3%
+  if (typeId === 'mod_gold') return Math.round(lv * 0.5 * 10) / 10;   // 레벨당 0.5%
   return lv * 5; // atk, hp, def, cdmg: 레벨당 5%
 }
 function _modLvLabel(typeId, val) {
