@@ -1695,6 +1695,42 @@ canvas {
   };
   firebase.initializeApp(config);
   window._fbDb = firebase.firestore();
+
+  /* ── 서버 시간 동기화 (세션당 1회) ── */
+  window._timeOffset = parseInt(localStorage.getItem('_nc_time_offset')||'0',10);
+  window._timeSynced = false;
+  (function _syncServerTime(){
+    var ref=window._fbDb.collection('_meta').doc('time');
+    ref.set({t:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+      return ref.get();
+    }).then(function(doc){
+      if(doc.exists&&doc.data().t){
+        var serverMs=doc.data().t.toMillis();
+        window._timeOffset=serverMs-Date.now();
+        localStorage.setItem('_nc_time_offset',String(window._timeOffset));
+        window._timeSynced=true;
+      }
+    }).catch(function(){});
+  })();
+  /* 서버 보정 시간 */
+  window._serverNow=function(){return Date.now()+(window._timeOffset||0);};
+  window._serverDate=function(){return new Date(window._serverNow());};
+
+  /* ── 네트워크 감시: 오프라인 시 차단 오버레이 ── */
+  window._showOfflineOverlay=function(){
+    if(document.getElementById('nc-offline-ov')) return;
+    var ov=document.createElement('div');ov.id='nc-offline-ov';
+    ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(3,8,16,0.97);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;';
+    ov.innerHTML='<div style="text-align:center;"><div style="color:#ef4444;font-size:14px;letter-spacing:3px;margin-bottom:12px;">⚠ 연결 끊김</div><div style="color:#556677;font-size:11px;">네트워크 연결이 필요합니다</div><div style="color:#334455;font-size:9px;margin-top:8px;">Wi-Fi 또는 모바일 데이터를 켜주세요</div></div>';
+    document.body.appendChild(ov);
+  };
+  window._hideOfflineOverlay=function(){
+    var ov=document.getElementById('nc-offline-ov');if(ov)ov.remove();
+  };
+  window.addEventListener('offline',function(){window._showOfflineOverlay();});
+  window.addEventListener('online',function(){window._hideOfflineOverlay();});
+  if(!navigator.onLine) window._showOfflineOverlay();
+
   // 유저 ID 생성/로드
   var uid = localStorage.getItem('td_uid');
   if (!uid) { uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2,6); localStorage.setItem('td_uid', uid); }
@@ -2189,9 +2225,8 @@ var AudioManager = {
 
 /* ── 시계 역행 방어: 시간을 앞으로 돌렸다가 되돌리면 리셋 차단 ── */
 function _clockGuard(){
-  var KEY='_nc_last_ts',now=Date.now();
+  var KEY='_nc_last_ts',now=window._serverNow?_serverNow():Date.now();
   var last=parseInt(localStorage.getItem(KEY)||'0',10);
-  // 마지막 기록보다 1분 이상 과거 → 시계 역행
   if(last>0&&now<last-60000){localStorage.setItem(KEY,String(now));return true;}
   localStorage.setItem(KEY,String(now));return false;
 }
@@ -2225,7 +2260,7 @@ function _attendCycleDay() {
 
 // 주간 출석 카운트 (하루 1회 접속 시 — 보상과 무관)
 function _checkDailyAttend() {
-  var today = new Date().toDateString();
+  var today = (window._serverDate?_serverDate():new Date()).toDateString();
   if (localStorage.getItem('wk_attend_date') === today) return;
   localStorage.setItem('wk_attend_date', today);
   try {
@@ -2236,9 +2271,10 @@ function _checkDailyAttend() {
 
 /* ── 오프라인 보상 시스템 ── */
 function _calcOfflineReward() {
+  var _sn=window._serverNow?_serverNow():Date.now();
   var lastOnline = parseInt(localStorage.getItem('last_online')||'0',10);
-  if (!lastOnline) { localStorage.setItem('last_online', Date.now()); localStorage.setItem('gem_epoch', Date.now()); return null; }
-  var elapsed = Date.now() - lastOnline;
+  if (!lastOnline) { localStorage.setItem('last_online', _sn); localStorage.setItem('gem_epoch', _sn); return null; }
+  var elapsed = _sn - lastOnline;
   var mins = Math.floor(elapsed / 60000);
   if (mins < 5) return null; // 5분 미만 무시
   mins = Math.min(mins, 480); // 최대 8시간
@@ -2288,9 +2324,9 @@ function _showOfflinePopup(data) {
     if (data.gold > 0) { PERM.gold = (PERM.gold||0) + data.gold; logCurrency('gold', data.gold, '오프라인 보상'); }
     if (data.gems > 0) { PERM.gems = (PERM.gems||0) + data.gems; logCurrency('gems', data.gems, '오프라인 보상'); }
     savePerm();
-    localStorage.setItem('last_online', Date.now());
-    // 보석 에포크: 수령 시 현재 시간으로 리셋 (잔여 시간 이월 방지)
-    localStorage.setItem('gem_epoch', Date.now());
+    var _sn2=window._serverNow?_serverNow():Date.now();
+    localStorage.setItem('last_online', _sn2);
+    localStorage.setItem('gem_epoch', _sn2);
     ov.remove();
     try {
       var hg=document.getElementById('home-gold'); if(hg) hg.textContent=PERM.gold||0;
@@ -2354,8 +2390,8 @@ setInterval(function(){ _updateOfflineBtn(); }, 30000);
 function checkDailyReward() {
   _checkDailyAttend();
   if (!_isContentUnlocked(50)) return;
-  if (_clockGuard()) return; // 시계 역행 시 차단
-  var today = new Date().toDateString();
+  if (_clockGuard()) return;
+  var today = (window._serverDate?_serverDate():new Date()).toDateString();
   var lastLogin = localStorage.getItem('td_daily_login');
   if (lastLogin === today) return;
   var streak = parseInt(localStorage.getItem('td_daily_streak') || '0');
@@ -10674,8 +10710,8 @@ function _updateDailyAllProgress() {
 
 /* ── 일일 리셋 체크 (KST 자정 기준) ── */
 function _checkDailyReset() {
-  if(_clockGuard()) return; // 시계 역행 시 차단
-  var now=new Date(); var kst=new Date(now.getTime()+9*3600000);
+  if(_clockGuard()) return;
+  var now=window._serverDate?_serverDate():new Date(); var kst=new Date(now.getTime()+9*3600000);
   var todayStr=kst.toISOString().slice(0,10);
   var last=localStorage.getItem('daily_reset_date');
   if(last!==todayStr){
@@ -11108,7 +11144,7 @@ setTimeout(_updateBadge, 500);
   var WK_CP_REWARDS  = {5:10,10:10,15:10,20:10,25:10,30:10,35:20};
 
   function _checkWeeklyReset() {
-    var now=new Date(); var kst=new Date(now.getTime()+9*3600000);
+    var now=window._serverDate?_serverDate():new Date(); var kst=new Date(now.getTime()+9*3600000);
     var day=kst.getUTCDay(); var mon=new Date(kst);
     mon.setUTCDate(kst.getUTCDate()-((day+6)%7));
     var monStr=mon.toISOString().slice(0,10);
@@ -12448,7 +12484,7 @@ var _SP_TIERS = [];
 })();
 
 function _spGetSeasonKey() {
-  var d = new Date();
+  var d = window._serverDate?_serverDate():new Date();
   var m = d.getMonth() + 1;
   return d.getFullYear() + '-' + (m < 10 ? '0' + m : '' + m);
 }
@@ -21278,8 +21314,8 @@ window._renderElementTab = function(container) {
 function _getTickets() { return parseInt(localStorage.getItem('explore_tickets')||'0',10); }
 function _setTickets(v) { localStorage.setItem('explore_tickets', v); }
 function _checkDailyReset() {
-  if(window._clockGuard&&window._clockGuard()) return; // 시계 역행 시 차단
-  var today = new Date().toDateString();
+  if(window._clockGuard&&window._clockGuard()) return;
+  var today = (window._serverDate?window._serverDate():new Date()).toDateString();
   var last = localStorage.getItem('explore_ticket_date') || '';
   if (last !== today) {
     var cur = _getTickets();
