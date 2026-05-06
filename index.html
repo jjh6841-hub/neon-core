@@ -2187,6 +2187,26 @@ var AudioManager = {
   toggleSFX: function(on) { if(this.sfxGain) this.sfxGain.gain.value = on ? 0.25 : 0; },
 };
 
+/* ── 시계 역행 방어: 시간을 앞으로 돌렸다가 되돌리면 리셋 차단 ── */
+function _clockGuard(){
+  var KEY='_nc_last_ts',now=Date.now();
+  var last=parseInt(localStorage.getItem(KEY)||'0',10);
+  // 마지막 기록보다 1분 이상 과거 → 시계 역행
+  if(last>0&&now<last-60000){localStorage.setItem(KEY,String(now));return true;}
+  localStorage.setItem(KEY,String(now));return false;
+}
+window._clockGuard=_clockGuard;
+/* 어뷰징 로그 → Firebase */
+function _logAbuse(type,detail){
+  try{
+    var uid=localStorage.getItem('nc_uid')||'unknown';
+    var nick=localStorage.getItem('td_nickname')||'';
+    firebase.firestore().collection('abuse_logs').add({
+      uid:uid,nick:nick,type:type,detail:detail,ts:Date.now(),tsStr:new Date().toISOString()
+    });
+  }catch(_){}
+}
+
 // ── Daily Reward (25일 사이클, 5일마다 보너스, 25일차 3배) ──
 var DailyRewards = (function() {
   var arr = [];
@@ -2334,6 +2354,7 @@ setInterval(function(){ _updateOfflineBtn(); }, 30000);
 function checkDailyReward() {
   _checkDailyAttend();
   if (!_isContentUnlocked(50)) return;
+  if (_clockGuard()) return; // 시계 역행 시 차단
   var today = new Date().toDateString();
   var lastLogin = localStorage.getItem('td_daily_login');
   if (lastLogin === today) return;
@@ -9600,6 +9621,14 @@ function _buildLabSlots() {
         cell.addEventListener('click', function() {
           var ld = _loadLab();
           var sid = slotD.researchId;
+          // 어뷰징 감지: startTime이 있고 실제 경과가 예상의 50% 미만이면 의심
+          var _slotD2=ld['slot'+idx]||{};
+          if(_slotD2.startTime&&_slotD2.expectedMs){
+            var _elapsed=Date.now()-_slotD2.startTime;
+            if(_elapsed<_slotD2.expectedMs*0.5){
+              try{_logAbuse('lab_time','연구:'+sid+' 예상:'+Math.round(_slotD2.expectedMs/1000)+'s 실제:'+Math.round(_elapsed/1000)+'s');}catch(_){}
+            }
+          }
           if(!ld.research) ld.research = {};
           ld.research[sid] = (ld.research[sid]||0) + 1;
           // localStorage에 개별 연구 레벨 저장
@@ -9607,6 +9636,8 @@ function _buildLabSlots() {
           if(!ld['slot'+idx]) ld['slot'+idx] = {};
           ld['slot'+idx].researchId = null;
           ld['slot'+idx].endTime = null;
+          ld['slot'+idx].startTime = null;
+          ld['slot'+idx].expectedMs = null;
           _saveLab(ld);
           try { localStorage.setItem('stat_research_done', parseInt(localStorage.getItem('stat_research_done')||'0',10)+1); } catch(_){}
           try { if(window.checkAchievements) window.checkAchievements(); } catch(_){}
@@ -9726,6 +9757,8 @@ function _buildLabPopupList() {
           var labSpeedMult = 1 - Math.min(_labSpeedCap, (labData.research && labData.research.lab_speed || 0) * 0.005 + _labBoostPkg);
           labData[slotKey].researchId = research.id;
           var _resDelay = Math.floor(time * 1000 * labSpeedMult);
+          labData[slotKey].startTime  = Date.now();
+          labData[slotKey].expectedMs = _resDelay;
           labData[slotKey].endTime    = Date.now() + _resDelay;
           _saveLab(labData);
           // 알림 예약 (앱 종료 시에도 알림)
@@ -10641,6 +10674,7 @@ function _updateDailyAllProgress() {
 
 /* ── 일일 리셋 체크 (KST 자정 기준) ── */
 function _checkDailyReset() {
+  if(_clockGuard()) return; // 시계 역행 시 차단
   var now=new Date(); var kst=new Date(now.getTime()+9*3600000);
   var todayStr=kst.toISOString().slice(0,10);
   var last=localStorage.getItem('daily_reset_date');
@@ -21244,6 +21278,7 @@ window._renderElementTab = function(container) {
 function _getTickets() { return parseInt(localStorage.getItem('explore_tickets')||'0',10); }
 function _setTickets(v) { localStorage.setItem('explore_tickets', v); }
 function _checkDailyReset() {
+  if(window._clockGuard&&window._clockGuard()) return; // 시계 역행 시 차단
   var today = new Date().toDateString();
   var last = localStorage.getItem('explore_ticket_date') || '';
   if (last !== today) {
