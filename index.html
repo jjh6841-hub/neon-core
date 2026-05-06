@@ -4814,7 +4814,8 @@ function triggerGameOver() {
 
   // Update & save persistent data (bestWave = 마지막으로 클리어한 웨이브)
   var clearedWave = Math.max(0, G.wave - 1);
-  if (clearedWave > PERM.bestWave) PERM.bestWave = clearedWave;
+  var _isNewBest = clearedWave > PERM.bestWave;
+  if (_isNewBest) PERM.bestWave = clearedWave;
   var _battleGoldEarned = (G.goldEarned||0);
   var _battleGemsEarned = Math.max(0, gemsEarned);
   // 전투 중 외부에서 변경된 재화(오프라인 보상/임무 등)를 보존: 전투 획득분만 반영
@@ -4835,7 +4836,16 @@ function triggerGameOver() {
   // Populate results
   document.getElementById('r-wave').textContent  = clearedWave;
   document.getElementById('r-kills').textContent = G.killCount;
-  document.getElementById('r-best').textContent  = PERM.bestWave;
+  var _rBest = document.getElementById('r-best');
+  _rBest.textContent = PERM.bestWave;
+  if (_isNewBest) {
+    _rBest.style.color = '#00ff88';
+    _rBest.style.textShadow = '0 0 12px #00ff8866';
+    _rBest.textContent = PERM.bestWave + ' ★NEW';
+  } else {
+    _rBest.style.color = '';
+    _rBest.style.textShadow = '';
+  }
   document.getElementById('r-gold').textContent  = G.goldBaseEarned || 0;
   var _extraGold = (G.goldEarned || 0) - (G.goldBaseEarned || 0);
   document.getElementById('r-ad-gold').textContent = _extraGold > 0 ? _extraGold : 0;
