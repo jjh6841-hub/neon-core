@@ -1696,22 +1696,17 @@ canvas {
   firebase.initializeApp(config);
   window._fbDb = firebase.firestore();
 
-  /* ── 서버 시간 동기화 (세션당 1회) ── */
+  /* ── 서버 시간 동기화 (Realtime DB .info/serverTimeOffset — 무료, 카운트 없음) ── */
   window._timeOffset = parseInt(localStorage.getItem('_nc_time_offset')||'0',10);
   window._timeSynced = false;
-  (function _syncServerTime(){
-    var ref=window._fbDb.collection('_meta').doc('time');
-    ref.set({t:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
-      return ref.get();
-    }).then(function(doc){
-      if(doc.exists&&doc.data().t){
-        var serverMs=doc.data().t.toMillis();
-        window._timeOffset=serverMs-Date.now();
-        localStorage.setItem('_nc_time_offset',String(window._timeOffset));
-        window._timeSynced=true;
-      }
-    }).catch(function(){});
-  })();
+  try{
+    firebase.database().ref('.info/serverTimeOffset').on('value',function(snap){
+      var offset=snap.val()||0;
+      window._timeOffset=offset;
+      localStorage.setItem('_nc_time_offset',String(offset));
+      window._timeSynced=true;
+    });
+  }catch(_){}
   /* 서버 보정 시간 */
   window._serverNow=function(){return Date.now()+(window._timeOffset||0);};
   window._serverDate=function(){return new Date(window._serverNow());};
