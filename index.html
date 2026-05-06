@@ -18144,7 +18144,7 @@ var PROTOCOLS = window.PROTOCOLS = [
    desc:'일정 시간 공격력 배율 증가',
    cdReduce:4.5, durBase:5, durPerLv:0.5, multBase:2, multPerLv:0.8},
   {id:'pt_blackhole',  icon:'◉', color:'#8b5cf6', name:'블랙홀',           maxLv:5, baseCd:180,
-   desc:'범위 내 적을 시작 위치로 워프 (보스 제외) + 무적',
+   desc:'범위 내 적을 시작 위치로 워프 (보스 제외)',
    cdReduce:18, durBase:2, durPerLv:0.6},
   {id:'pt_timewarp',   icon:'⎈', color:'#6366f1', name:'시간 왜곡',         maxLv:5, baseCd:90,
    desc:'적 이동속도 감소',
@@ -19031,7 +19031,6 @@ function _useProtocol(id){
   else if(id==='pt_blackhole'){
     var dur=(def.durBase+lv*def.durPerLv)*1000;
     _protoActiveEffects.blackhole={remaining:dur};
-    G._ptInvincible=true;
     /* 블랙홀 시각 효과는 _protoActiveEffects 기반 렌더링 */
   }
 
@@ -19227,7 +19226,6 @@ function _startProtoTick(){
         }
       });
       if(bh.remaining<=0){
-        G._ptInvincible=false;
         enemies.forEach(function(e){delete e._bhWarped;});
         delete _protoActiveEffects.blackhole;
         _startCdAfterEffect('pt_blackhole');
@@ -19521,14 +19519,6 @@ function _stopProtoTick(){
         _spdBackups.delete(e);
       }
     });
-    // 블랙홀 무적
-    if(G._ptInvincible){
-      if(!G._ptLastHp) G._ptLastHp=G.tower.hp;
-      if(G.tower.hp<G._ptLastHp) G.tower.hp=G._ptLastHp;
-      G._ptLastHp=G.tower.hp;
-    } else {
-      delete G._ptLastHp;
-    }
   },100);
 })();
 
@@ -19547,7 +19537,6 @@ if(typeof _origGameOverProto==='function'){
     _origGameOverProto.apply(this,arguments);
     _removeProtoBar();
     _stopProtoTick();
-    G._ptInvincible=false;
     G._ptSlowPct=0;
   };
 }
