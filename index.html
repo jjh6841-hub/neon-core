@@ -9623,6 +9623,26 @@ function _buildLabSlots() {
   }
 }
 
+/* ── 코어랩 ↔ 강화소 잠금 연동 ── */
+var _RES_WS_LOCK = {
+  r_crit:{t:'atk',g:1,l:'치명타'},r_crit_mult:{t:'atk',g:1,l:'치명타'},
+  r_range:{t:'atk',g:2,l:'범위'},r_dmg_meter:{t:'atk',g:2,l:'범위'},
+  r_pierce:{t:'atk',g:6,l:'적 방어 감소'},
+  r_enh_crit:{t:'atk',g:7,l:'강화 치명타'},r_enh_crit_m:{t:'atk',g:7,l:'강화 치명타'},
+  r_defense:{t:'def',g:1,l:'방어'},
+  r_reflect:{t:'def',g:2,l:'반사'},r_vamp:{t:'def',g:3,l:'흡혈'},
+  r_knockback:{t:'def',g:4,l:'넉백'},r_knockforce:{t:'def',g:4,l:'넉백'},
+  r_shield:{t:'def',g:5,l:'쉴드'},
+  r_gold_boost:{t:'utl',g:1,l:'골드 강화'},
+  r_auto_atk:{t:'utl',g:3,l:'자동 업글'},r_auto_def:{t:'utl',g:3,l:'자동 업글'},r_auto_utl:{t:'utl',g:3,l:'자동 업글'},
+  r_enemy_skip:{t:'utl',g:4,l:'적 레벨 건너뛰기'},r_proto_cd:{t:'utl',g:5,l:'프로토콜 쿨감'}
+};
+function _isResUnlocked(rid){
+  var lk=_RES_WS_LOCK[rid]; if(!lk) return true;
+  var u=lk.t==='atk'?(PERM.ws_atk_unlocks||0):lk.t==='def'?(PERM.ws_def_unlocks||0):(PERM.ws_utl_unlocks||0);
+  return u>=lk.g;
+}
+
 function _buildLabPopupList() {
   var container = document.getElementById('lab-popup-list'); if (!container) return;
   container.innerHTML = '';
@@ -9639,6 +9659,7 @@ function _buildLabPopupList() {
   });
 
   items.forEach(function(r) {
+    var _locked = !_isResUnlocked(r.id);
     var lv     = done[r.id] || 0;
     var nextLv = lv + 1;
     var maxed  = lv >= r.maxLv;
@@ -9650,6 +9671,23 @@ function _buildLabPopupList() {
     }
     var maxLvText = r.maxLv >= 999 ? '∞' : r.maxLv;
     var card = document.createElement('div');
+
+    // ── 잠금 상태: 강화소 해금 필요 ──
+    if (_locked) {
+      var _lkInfo = _RES_WS_LOCK[r.id];
+      card.style.cssText = 'background:#060a12;border:1px solid #111825;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;opacity:0.5;';
+      card.innerHTML =
+        '<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;">' +
+          '<span style="font-size:11px;color:#334455;font-family:monospace;">' + r.name + '</span>' +
+          '<span style="font-size:9px;color:#223344;font-family:monospace;">' + r.desc + '</span>' +
+          '<span style="font-size:9px;color:#556677;font-family:monospace;display:flex;align-items:center;gap:4px;margin-top:2px;">' +
+            '<svg width="8" height="8" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#556677" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#556677" stroke-width="1.2"/></svg>' +
+            '강화소 [' + (_lkInfo?_lkInfo.l:'') + '] 해금 필요</span>' +
+        '</div>';
+      container.appendChild(card);
+      return;
+    }
+
     card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;' +
       (maxed ? 'opacity:0.4;' : '');
     // 현재 능력치 텍스트
