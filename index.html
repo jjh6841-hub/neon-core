@@ -18046,14 +18046,63 @@ var PROTO_ICONS = {
   pt_nano: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32"><rect x="12" y="4" width="8" height="24" rx="2" fill="none" stroke="'+c+'" stroke-width="1.5"/><rect x="4" y="12" width="24" height="8" rx="2" fill="none" stroke="'+c+'" stroke-width="1.5"/><rect x="13" y="5" width="6" height="22" rx="1" fill="'+c+'" opacity="0.25"/><rect x="5" y="13" width="22" height="6" rx="1" fill="'+c+'" opacity="0.25"/><circle cx="16" cy="16" r="3" fill="'+c+'" opacity="0.6"/></svg>';},
   /* 분열 레이저: 8방향 빔 */
   pt_splitlaser: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32"><circle cx="16" cy="16" r="5" fill="'+c+'" opacity="0.3"/><circle cx="16" cy="16" r="2" fill="'+c+'"/><line x1="16" y1="11" x2="16" y2="1" stroke="'+c+'" stroke-width="2" opacity="0.8"/><line x1="16" y1="21" x2="16" y2="31" stroke="'+c+'" stroke-width="2" opacity="0.8"/><line x1="11" y1="16" x2="1" y2="16" stroke="'+c+'" stroke-width="2" opacity="0.6"/><line x1="21" y1="16" x2="31" y2="16" stroke="'+c+'" stroke-width="2" opacity="0.6"/><line x1="12" y1="12" x2="5" y2="5" stroke="'+c+'" stroke-width="1.2" opacity="0.4"/><line x1="20" y1="20" x2="27" y2="27" stroke="'+c+'" stroke-width="1.2" opacity="0.4"/><line x1="20" y1="12" x2="27" y2="5" stroke="'+c+'" stroke-width="1.2" opacity="0.4"/><line x1="12" y1="20" x2="5" y2="27" stroke="'+c+'" stroke-width="1.2" opacity="0.4"/></svg>';},
-  /* 과열 레이저: 3줄 + 화살표 */
-  pt_overheat: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32"><rect x="6" y="14" width="20" height="4" rx="2" fill="'+c+'" opacity="0.3"/><line x1="8" y1="16" x2="28" y2="16" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round"/><line x1="8" y1="11" x2="25" y2="11" stroke="'+c+'" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/><line x1="8" y1="21" x2="25" y2="21" stroke="'+c+'" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/><polygon points="28,16 24,12 24,20" fill="'+c+'"/><polygon points="25,11 22,8 22,14" fill="'+c+'" opacity="0.5"/><polygon points="25,21 22,18 22,24" fill="'+c+'" opacity="0.5"/></svg>';},
-  /* 중력 팽창: 원형 코어 + 4방향 화살표 + 파선 원 */
-  pt_gravity: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="'+c+'" opacity="0.3"/><circle cx="16" cy="16" r="3" fill="'+c+'"/><path d="M16,2 L18,8 L16,6 L14,8 Z" fill="'+c+'" opacity="0.6"/><path d="M16,30 L18,24 L16,26 L14,24 Z" fill="'+c+'" opacity="0.6"/><path d="M2,16 L8,14 L6,16 L8,18 Z" fill="'+c+'" opacity="0.6"/><path d="M30,16 L24,14 L26,16 L24,18 Z" fill="'+c+'" opacity="0.6"/><circle cx="16" cy="16" r="12" fill="none" stroke="'+c+'" stroke-width="1" stroke-dasharray="4 3" opacity="0.3"/></svg>';},
-  /* 기간토마키아: 동심원 폭발 + 8방향 파편 */
-  pt_giganto: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="'+c+'" stroke-width="1" opacity="0.2"/><circle cx="16" cy="16" r="9" fill="none" stroke="'+c+'" stroke-width="1.5" opacity="0.4"/><circle cx="16" cy="16" r="5" fill="'+c+'" opacity="0.3"/><path d="M16,3 L17,9 L16,7 L15,9 Z" fill="'+c+'"/><path d="M16,29 L17,23 L16,25 L15,23 Z" fill="'+c+'"/><path d="M3,16 L9,15 L7,16 L9,17 Z" fill="'+c+'"/><path d="M29,16 L23,15 L25,16 L23,17 Z" fill="'+c+'"/><path d="M6,6 L10,9 L8,8 Z" fill="'+c+'" opacity="0.6"/><path d="M26,6 L22,9 L24,8 Z" fill="'+c+'" opacity="0.6"/><path d="M6,26 L10,23 L8,24 Z" fill="'+c+'" opacity="0.6"/><path d="M26,26 L22,23 L24,24 Z" fill="'+c+'" opacity="0.6"/></svg>';},
-  /* 체인 라이트닝: 연쇄 노드 + 번개선 */
-  pt_chain: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32"><circle cx="6" cy="7" r="3.5" fill="'+c+'" opacity="0.6"/><circle cx="6" cy="7" r="5.5" fill="none" stroke="'+c+'" stroke-width="0.8" opacity="0.3"/><circle cx="24" cy="11" r="3" fill="'+c+'" opacity="0.5"/><circle cx="15" cy="24" r="2.5" fill="'+c+'" opacity="0.5"/><circle cx="27" cy="27" r="2" fill="'+c+'" opacity="0.4"/><polyline points="6,7 14,9 24,11" fill="none" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round"/><polyline points="6,7 14,9 24,11" fill="none" stroke="#fff" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/><polyline points="24,11 19,17 15,24" fill="none" stroke="'+c+'" stroke-width="2" stroke-linecap="round" opacity="0.7"/><polyline points="15,24 21,25.5 27,27" fill="none" stroke="'+c+'" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/></svg>';}
+  /* 과열 레이저: 중앙 빔 + 열파 */
+  pt_overheat: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32">'+
+    '<rect x="5" y="14" width="22" height="4" rx="2" fill="'+c+'" opacity="0.15"/>'+
+    '<line x1="4" y1="16" x2="28" y2="16" stroke="'+c+'" stroke-width="3" stroke-linecap="round"/><line x1="4" y1="16" x2="28" y2="16" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity="0.4"/>'+
+    '<line x1="6" y1="11" x2="26" y2="11" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/>'+
+    '<line x1="6" y1="21" x2="26" y2="21" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" opacity="0.55"/>'+
+    '<polygon points="29,16 25,12 25,20" fill="'+c+'"/>'+
+    '<polygon points="27,11 24,8 24,14" fill="'+c+'" opacity="0.45"/><polygon points="27,21 24,18 24,24" fill="'+c+'" opacity="0.45"/>'+
+    '<path d="M7,6 Q11,8 15,5.5 Q19,3 23,6" fill="none" stroke="'+c+'" stroke-width="0.8" opacity="0.3"/>'+
+    '<path d="M9,4 Q13,6.5 17,3.5 Q21,1 25,4" fill="none" stroke="'+c+'" stroke-width="0.6" opacity="0.15"/>'+
+    '<path d="M7,26 Q11,24 15,26.5 Q19,29 23,26" fill="none" stroke="'+c+'" stroke-width="0.8" opacity="0.3"/>'+
+    '<path d="M9,28 Q13,25.5 17,28.5 Q21,31 25,28" fill="none" stroke="'+c+'" stroke-width="0.6" opacity="0.15"/>'+
+    '<circle cx="4" cy="16" r="3" fill="'+c+'" opacity="0.2"/><circle cx="4" cy="16" r="1.5" fill="'+c+'" opacity="0.7"/>'+
+    '</svg>';},
+  /* 중력 팽창: 코어 폭발 + 방사 충격파 */
+  pt_gravity: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32">'+
+    '<circle cx="16" cy="16" r="14" fill="none" stroke="'+c+'" stroke-width="0.8" stroke-dasharray="3 2.5" opacity="0.2"/>'+
+    '<circle cx="16" cy="16" r="10" fill="none" stroke="'+c+'" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.35"/>'+
+    '<circle cx="16" cy="16" r="6" fill="'+c+'" opacity="0.2"/><circle cx="16" cy="16" r="3" fill="'+c+'"/>'+
+    '<circle cx="16" cy="16" r="1.2" fill="#fff" opacity="0.6"/>'+
+    '<path d="M16,1.5 L17.5,6 L16,4.5 L14.5,6 Z" fill="'+c+'" opacity="0.7"/><line x1="16" y1="6" x2="16" y2="10" stroke="'+c+'" stroke-width="1" opacity="0.4"/>'+
+    '<path d="M16,30.5 L17.5,26 L16,27.5 L14.5,26 Z" fill="'+c+'" opacity="0.7"/><line x1="16" y1="26" x2="16" y2="22" stroke="'+c+'" stroke-width="1" opacity="0.4"/>'+
+    '<path d="M1.5,16 L6,14.5 L4.5,16 L6,17.5 Z" fill="'+c+'" opacity="0.7"/><line x1="6" y1="16" x2="10" y2="16" stroke="'+c+'" stroke-width="1" opacity="0.4"/>'+
+    '<path d="M30.5,16 L26,14.5 L27.5,16 L26,17.5 Z" fill="'+c+'" opacity="0.7"/><line x1="26" y1="16" x2="22" y2="16" stroke="'+c+'" stroke-width="1" opacity="0.4"/>'+
+    '<line x1="6" y1="6" x2="10.5" y2="10.5" stroke="'+c+'" stroke-width="0.8" opacity="0.25"/><line x1="26" y1="6" x2="21.5" y2="10.5" stroke="'+c+'" stroke-width="0.8" opacity="0.25"/>'+
+    '<line x1="6" y1="26" x2="10.5" y2="21.5" stroke="'+c+'" stroke-width="0.8" opacity="0.25"/><line x1="26" y1="26" x2="21.5" y2="21.5" stroke="'+c+'" stroke-width="0.8" opacity="0.25"/>'+
+    '</svg>';},
+  /* 기간토마키아: 폭발 코어 + 충격파 + 파편 */
+  pt_giganto: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32">'+
+    '<circle cx="16" cy="16" r="14" fill="none" stroke="'+c+'" stroke-width="1.2" opacity="0.15"/>'+
+    '<circle cx="16" cy="16" r="10" fill="none" stroke="'+c+'" stroke-width="1.5" opacity="0.35"/>'+
+    '<circle cx="16" cy="16" r="6" fill="'+c+'" opacity="0.25"/><circle cx="16" cy="16" r="3" fill="'+c+'" opacity="0.6"/>'+
+    '<circle cx="16" cy="16" r="1.5" fill="#fff" opacity="0.5"/>'+
+    '<line x1="16" y1="2" x2="16" y2="7" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round"/><circle cx="16" cy="2" r="1.5" fill="'+c+'"/>'+
+    '<line x1="16" y1="30" x2="16" y2="25" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round"/><circle cx="16" cy="30" r="1.5" fill="'+c+'"/>'+
+    '<line x1="2" y1="16" x2="7" y2="16" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round"/><circle cx="2" cy="16" r="1.5" fill="'+c+'"/>'+
+    '<line x1="30" y1="16" x2="25" y2="16" stroke="'+c+'" stroke-width="2.5" stroke-linecap="round"/><circle cx="30" cy="16" r="1.5" fill="'+c+'"/>'+
+    '<line x1="5.5" y1="5.5" x2="9.5" y2="9.5" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/><circle cx="5" cy="5" r="1.2" fill="'+c+'" opacity="0.6"/>'+
+    '<line x1="26.5" y1="5.5" x2="22.5" y2="9.5" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/><circle cx="27" cy="5" r="1.2" fill="'+c+'" opacity="0.6"/>'+
+    '<line x1="5.5" y1="26.5" x2="9.5" y2="22.5" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/><circle cx="5" cy="27" r="1.2" fill="'+c+'" opacity="0.6"/>'+
+    '<line x1="26.5" y1="26.5" x2="22.5" y2="22.5" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/><circle cx="27" cy="27" r="1.2" fill="'+c+'" opacity="0.6"/>'+
+    '</svg>';},
+  /* 체인 라이트닝: 지그재그 번개 분기 + 에너지 노드 */
+  pt_chain: function(c,s){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 32 32">'+
+    '<circle cx="14" cy="16" r="7" fill="'+c+'" opacity="0.08"/>'+
+    '<path d="M6,2 L9,7 L5,9 L10,14 L7,16" fill="none" stroke="'+c+'" stroke-width="2.5" stroke-linejoin="bevel" stroke-linecap="round"/>'+
+    '<path d="M6,2 L9,7 L5,9 L10,14 L7,16" fill="none" stroke="#fff" stroke-width="0.7" opacity="0.6" stroke-linejoin="bevel"/>'+
+    '<path d="M7,16 L13,13 L17,16 L22,12 L28,10" fill="none" stroke="'+c+'" stroke-width="2" stroke-linejoin="bevel" stroke-linecap="round" opacity="0.85"/>'+
+    '<path d="M7,16 L13,13 L17,16 L22,12 L28,10" fill="none" stroke="#fff" stroke-width="0.5" opacity="0.4" stroke-linejoin="bevel"/>'+
+    '<path d="M7,16 L10,21 L6,23 L12,28" fill="none" stroke="'+c+'" stroke-width="2" stroke-linejoin="bevel" stroke-linecap="round" opacity="0.7"/>'+
+    '<path d="M17,16 L22,20 L19,23 L26,28" fill="none" stroke="'+c+'" stroke-width="1.5" stroke-linejoin="bevel" stroke-linecap="round" opacity="0.5"/>'+
+    '<circle cx="6" cy="2" r="2.5" fill="'+c+'"/><circle cx="6" cy="2" r="4" fill="'+c+'" opacity="0.15"/>'+
+    '<circle cx="7" cy="16" r="3" fill="'+c+'" opacity="0.8"/><circle cx="7" cy="16" r="5.5" fill="'+c+'" opacity="0.1"/>'+
+    '<circle cx="28" cy="10" r="2" fill="'+c+'" opacity="0.7"/>'+
+    '<circle cx="12" cy="28" r="2" fill="'+c+'" opacity="0.6"/>'+
+    '<circle cx="26" cy="28" r="1.5" fill="'+c+'" opacity="0.45"/>'+
+    '</svg>';}
 };
 window.PROTO_ICONS=PROTO_ICONS;
 
