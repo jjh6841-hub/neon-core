@@ -21626,11 +21626,11 @@ function _calcStats(){
     atkMs:Math.max(150,Math.round(400/spd)),critRate:critR,critMult:critM,range:Math.round(BASE_H/2),
     lifeSteal:lifeSteal};
 }
-/* 적 난이도: 월(강화소)=stage×10웨이브, 화~토=3+stage×2웨이브 */
+/* 적 난이도: 월(강화소)=에이온 5웨이브마다, 화~토=3+stage×2웨이브 */
 function _eqWave(){
   var ds=window.DAY_SYSTEMS&&window.DAY_SYSTEMS[S.elemId];
   var hasWS=ds&&ds.systems.indexOf('workshop')!==-1;
-  return hasWS ? S.stage*10 : 3+S.stage*2;
+  return hasWS ? S.stage*5 : 3+S.stage*2;
 }
 function _enemyHp(){var w=_eqWave();return Math.round(8+w*2.5);}
 function _enemyAtk(){var w=_eqWave();return Math.round(2+w*0.4);}
@@ -21681,9 +21681,10 @@ function _mkBoss(tier){
   var col=tier===3?'#ff0044':tier===2?'#ff8822':'#ffcc00';
   var label=tier===3?'HYPER BOSS':tier===2?'ELITE BOSS':'BOSS';
   var hp=Math.round(_enemyHp()*hpM);
+  var fRate=tier===3?800:tier===2?1200:1800;
   return{type:-1,x:BASE_W/2,y:-30,hp:hp,maxHp:hp,spd:spd,r:r,atk:_enemyAtk()*tier,color:col,shape:'boss',
-    canFire:false,fireTimer:0,fireRate:9999,
-    zigTimer:0,zigDir:1,boss:true,tier:tier,label:label,moveTimer:0};
+    canFire:true,fireTimer:0,fireRate:fRate,
+    zigTimer:0,zigDir:1,boss:true,tier:tier,label:label,moveTimer:0,inRange:false};
 }
 
 /* ── 웨이브 ── */
@@ -21954,11 +21955,26 @@ function _update(dt){
     var e=S.enemies[i];
     if(e.boss){
       var _bslw=1-_getEbSlow();if(e._stun>0){e._stun-=dt;_bslw=0;}
-      // 보스도 탐사선을 향해 추적
       var bdx=ship.x-e.x,bdy=ship.y-e.y,bdist=Math.sqrt(bdx*bdx+bdy*bdy)||1;
-      e.x+=bdx/bdist*e.spd*_bslw*dt*0.06;
-      e.y+=bdy/bdist*e.spd*_bslw*dt*0.06;
-      e.moveTimer+=dt;e.x+=Math.sin(e.moveTimer*0.003)*0.5*_bslw*dt*0.06;
+      e.inRange=bdist<=ship.range;
+      if(!e.inRange){
+        // 범위 밖: 탐사선을 향해 추적
+        e.x+=bdx/bdist*e.spd*_bslw*dt*0.06;
+        e.y+=bdy/bdist*e.spd*_bslw*dt*0.06;
+      } else {
+        // 범위 안: 멈추고 좌우 흔들림만
+        e.moveTimer+=dt;e.x+=Math.sin(e.moveTimer*0.003)*0.8*_bslw*dt*0.06;
+        // 원거리 사격
+        e.fireTimer+=dt;
+        if(e.fireTimer>=e.fireRate){e.fireTimer=0;
+          var bAng,bCnt=e.tier===3?5:e.tier===2?3:1;
+          for(var bi=0;bi<bCnt;bi++){
+            var spread=(bi-(bCnt-1)/2)*0.25;
+            var bvx=bdx/bdist*4+spread*2,bvy=bdy/bdist*4;
+            S.eBullets.push({x:e.x,y:e.y+e.r,vx:bvx,vy:bvy,dmg:e.atk,color:e.color});
+          }
+        }
+      }
       e.x=Math.max(e.r+5,Math.min(BASE_W-e.r-5,e.x));
     } else {
       // 적이 탐사선을 향해 이동
