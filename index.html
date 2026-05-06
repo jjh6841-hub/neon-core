@@ -9653,13 +9653,13 @@ function _buildLabPopupList() {
   var done = lab.research || {};
 
   var items = ALL_RESEARCH.filter(function(r) {
+    if (!_isResUnlocked(r.id)) return false;
     if (_labFilterCat !== 'all' && r.cat !== _labFilterCat) return false;
     if (_labHideComplete && (done[r.id] || 0) >= r.maxLv) return false;
     return true;
   });
 
   items.forEach(function(r) {
-    var _locked = !_isResUnlocked(r.id);
     var lv     = done[r.id] || 0;
     var nextLv = lv + 1;
     var maxed  = lv >= r.maxLv;
@@ -9671,23 +9671,6 @@ function _buildLabPopupList() {
     }
     var maxLvText = r.maxLv >= 999 ? '∞' : r.maxLv;
     var card = document.createElement('div');
-
-    // ── 잠금 상태: 강화소 해금 필요 ──
-    if (_locked) {
-      var _lkInfo = _RES_WS_LOCK[r.id];
-      card.style.cssText = 'background:#060a12;border:1px solid #111825;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;opacity:0.5;';
-      card.innerHTML =
-        '<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;">' +
-          '<span style="font-size:11px;color:#334455;font-family:monospace;">' + r.name + '</span>' +
-          '<span style="font-size:9px;color:#223344;font-family:monospace;">' + r.desc + '</span>' +
-          '<span style="font-size:9px;color:#556677;font-family:monospace;display:flex;align-items:center;gap:4px;margin-top:2px;">' +
-            '<svg width="8" height="8" viewBox="0 0 16 16"><rect x="3" y="8" width="10" height="7" rx="1.5" fill="none" stroke="#556677" stroke-width="1.2"/><path d="M5.5,8 V5.5 C5.5,3 10.5,3 10.5,5.5 V8" fill="none" stroke="#556677" stroke-width="1.2"/></svg>' +
-            '강화소 [' + (_lkInfo?_lkInfo.l:'') + '] 해금 필요</span>' +
-        '</div>';
-      container.appendChild(card);
-      return;
-    }
-
     card.style.cssText = 'background:#0a1a2a;border:1px solid #0a3344;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;' +
       (maxed ? 'opacity:0.4;' : '');
     // 현재 능력치 텍스트
